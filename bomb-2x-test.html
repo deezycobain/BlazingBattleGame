@@ -14,52 +14,49 @@
   <script>
     (() => {
       const frame = document.getElementById('game');
-      const PROJECTILE_MATCH = 'assets/characters/senku/vfx/bomb/projectile_clean/';
       const SCALE = 2;
 
-      function isSenkuBomb(image) {
+      function looksLikeSenkuBomb(image) {
         if (!image) return false;
         const src = String(image.currentSrc || image.src || '');
-        return src.includes(PROJECTILE_MATCH) || src.includes('vfx/bomb/projectile_clean/');
+        if (src.includes('/senku/') && src.includes('bomb')) return true;
+        if (src.includes('projectile_clean')) return true;
+
+        // The current cleaned Senku bomb runtime frames are 96x96 PNGs.
+        // This fallback catches the live renderer even if it has converted the
+        // image to an internal canvas/image object and stripped the source URL.
+        const w = image.naturalWidth || image.videoWidth || image.width || 0;
+        const h = image.naturalHeight || image.videoHeight || image.height || 0;
+        return w === 96 && h === 96;
       }
 
-      function installCanvasPatch() {
-        const win = frame.contentWindow;
-        if (!win || !win.CanvasRenderingContext2D) return;
+      function wrapDrawImage(target, original) {
+        if (!target || typeof original !== 'function' || original.__senkuBomb2xWrapped) return original;
 
-        const proto = win.CanvasRenderingContext2D.prototype;
-        if (proto.__senkuBomb2xPatched) return;
+        function patchedDrawImage(image, ...args) {
+          if (!looksLikeSenkuBomb(image)) return original.call(this, image, ...args);
 
-        const originalDrawImage = proto.drawImage;
-        proto.drawImage = function(image, ...args) {
-          if (!isSenkuBomb(image)) {
-            return originalDrawImage.call(this, image, ...args);
-          }
-
-          // drawImage(image, dx, dy)
           if (args.length === 2) {
             const [dx, dy] = args;
-            const w = (image.naturalWidth || image.width || 0) * SCALE;
-            const h = (image.naturalHeight || image.height || 0) * SCALE;
             const ow = image.naturalWidth || image.width || 0;
             const oh = image.naturalHeight || image.height || 0;
-            return originalDrawImage.call(this, image, dx - (w - ow) / 2, dy - (h - oh) / 2, w, h);
+            const nw = ow * SCALE;
+            const nh = oh * SCALE;
+            return original.call(this, image, dx - (nw - ow) / 2, dy - (nh - oh) / 2, nw, nh);
           }
 
-          // drawImage(image, dx, dy, dw, dh)
           if (args.length === 4) {
             const [dx, dy, dw, dh] = args;
             const nw = dw * SCALE;
             const nh = dh * SCALE;
-            return originalDrawImage.call(this, image, dx - (nw - dw) / 2, dy - (nh - dh) / 2, nw, nh);
+            return original.call(this, image, dx - (nw - dw) / 2, dy - (nh - dh) / 2, nw, nh);
           }
 
-          // drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
           if (args.length === 8) {
             const [sx, sy, sw, sh, dx, dy, dw, dh] = args;
             const nw = dw * SCALE;
             const nh = dh * SCALE;
-            return originalDrawImage.call(this, image, sx, sy, sw, sh,
+            return original.call(this, image, sx, sy, sw, sh,
               dx - (nw - dw) / 2,
               dy - (nh - dh) / 2,
               nw,
@@ -67,18 +64,45 @@
             );
           }
 
-          return originalDrawImage.call(this, image, ...args);
-        };
+          return original.call(this, image, ...args);
+        }
 
-        proto.__senkuBomb2xPatched = true;
-        console.info('[Blazing Battle] Senku cleaned bomb projectile canvas scale test active: 2x');
+        patchedDrawImage.__senkuBomb2xWrapped = true;
+        return patchedDrawImage;
+      }
+
+      function installPatch() {
+        const win = frame.contentWindow;
+        const doc = frame.contentDocument;
+        if (!win || !doc) return;
+
+        // Patch the prototype for future contexts.
+        if (win.CanvasRenderingContext2D) {
+          const proto = win.CanvasRenderingContext2D.prototype;
+          if (!proto.__senkuBomb2xPatched) {
+            proto.drawImage = wrapDrawImage(proto, proto.drawImage);
+            proto.__senkuBomb2xPatched = true;
+          }
+        }
+
+        // Patch contexts that may already have been created by the game before
+        // this wrapper gets control.
+        doc.querySelectorAll('canvas').forEach(canvas => {
+          try {
+            const ctx = canvas.getContext('2d');
+            if (ctx && !ctx.__senkuBomb2xPatched) {
+              ctx.drawImage = wrapDrawImage(ctx, ctx.drawImage);
+              ctx.__senkuBomb2xPatched = true;
+            }
+          } catch (_) {}
+        });
       }
 
       frame.addEventListener('load', () => {
-        installCanvasPatch();
-        // Re-apply briefly in case the game initializes/replaces its renderer after iframe load.
-        setTimeout(installCanvasPatch, 250);
-        setTimeout(installCanvasPatch, 1000);
+        installPatch();
+        // Keep re-checking briefly because the game can create/replace canvases
+        // after initial load.
+        [50, 150, 300, 600, 1000, 2000, 4000].forEach(ms => setTimeout(installPatch, ms));
       });
     })();
   </script>
