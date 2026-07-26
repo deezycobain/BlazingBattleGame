@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Blazing Battle — Senku Basic Dev Test</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
+#game{display:block;width:100%;height:100%;border:0}
+#status{position:fixed;z-index:999999;top:8px;right:8px;padding:5px 8px;border-radius:8px;font:700 11px/1.2 system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.72);pointer-events:none}
+</style>
+</head>
+<body>
+<div id="status">SENKU DEV TEST LOADING…</div>
+<iframe id="game" title="Blazing Battle"></iframe>
+<script>
+(() => {
+  const frame = document.getElementById('game');
+  const status = document.getElementById('status');
+  const injectedPatch = String.raw`
+<script>
+(() => {
+  const BOMB_SCALE = 2;
+  const EXP_FRAME_MS = 78;
+  const EXP_PATH = 'assets/characters/senku/vfx/bomb/small_explosion_6f/';
+  const EXP_FILES = ['frame_01.svg','frame_02.svg','frame_03.svg','frame_04.svg','frame_05.svg','frame_06.svg'];
+  const expFrames = EXP_FILES.map(name => { const img = new Image(); img.src = EXP_PATH + name; return img; });
+  let bombHits = 0;
+  let explosionHits = 0;
+  let expStart = 0;
+  let lastImpactDraw = 0;
+
+  function report(){
+    try { parent.postMessage({type:'senku-full-basic-test',bombHits,explosionHits},'*'); } catch(_){}
+  }
+
+  function srcOf(image){ return String((image && (image.currentSrc || image.src)) || ''); }
+  function isProjectile(image){
+    if(!image) return false;
+    const src = srcOf(image);
+    if(src.includes('projectile_clean')) return true;
+    const w=image.naturalWidth||image.videoWidth||image.width||0;
+    const h=image.naturalHeight||image.videoHeight||image.height||0;
+    return w===96 && h===96;
+  }
+  function isStaticImpact(image){
+    const src=srcOf(image);
+    return src.includes('static_impact/explosion.png') || (src.includes('/senku/') && src.includes('/static_impact/'));
+  }
+  function centeredScaledDraw(ctx, original, image, args, scale){
+    if(args.length===2){
+      const [dx,dy]=args, ow=image.naturalWidth||image.width||0, oh=image.naturalHeight||image.height||0;
+      const nw=ow*scale, nh=oh*scale;
+      return original.call(ctx,image,dx-(nw-ow)/2,dy-(nh-oh)/2,nw,nh);
+    }
+    if(args.length===4){
+      const [dx,dy,dw,dh]=args, nw=dw*scale, nh=dh*scale;
+      return original.call(ctx,image,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
+    }
+    if(args.length===8){
+      const [sx,sy,sw,sh,dx,dy,dw,dh]=args, nw=dw*scale, nh=dh*scale;
+      return original.call(ctx,image,sx,sy,sw,sh,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
+    }
+    return original.call(ctx,image,...args);
+  }
+
+  if(window.CanvasRenderingContext2D){
+    const proto=CanvasRenderingContext2D.prototype;
+    const original=proto.drawImage;
+    proto.drawImage=function(image,...args){
+      if(isStaticImpact(image)){
+        const now=performance.now();
+        if(!expStart || now-lastImpactDraw>180){ expStart=now; explosionHits++; report(); }
+        lastImpactDraw=now;
+        const idx=Math.min(EXP_FILES.length-1,Math.floor((now-expStart)/EXP_FRAME_MS));
+        const replacement=expFrames[idx];
+        if(replacement && replacement.complete && replacement.naturalWidth){
+          return original.call(this,replacement,...args);
+        }
+        return original.call(this,image,...args);
+      }
+      if(isProjectile(image)){
+        bombHits++; report();
+        return centeredScaledDraw(this,original,image,args,BOMB_SCALE);
+      }
+      return original.call(this,image,...args);
+    };
+  }
+  report();
+})();
+<\/script>`;
+
+  window.addEventListener('message', e => {
+    if(!e.data || e.data.type!=='senku-full-basic-test') return;
+    status.textContent = `SENKU DEV • 2× BOMB ${e.data.bombHits} • EXP ${e.data.explosionHits}`;
+  });
+
+  fetch('../index.html',{cache:'no-store'})
+    .then(r=>{if(!r.ok)throw new Error(`HTTP ${r.status}`);return r.text();})
+    .then(html=>{
+      const baseTag='<base href="../">';
+      let patched=html;
+      if(patched.includes('<head>')) patched=patched.replace('<head>','<head>'+baseTag+injectedPatch);
+      else patched=baseTag+injectedPatch+patched;
+      frame.srcdoc=patched;
+      status.textContent='SENKU DEV • READY';
+    })
+    .catch(err=>{console.error(err);status.textContent='SENKU DEV • LOAD ERROR';});
+})();
+</script>
+</body>
+</html>
