@@ -14,13 +14,22 @@
   let lastBombDraw = null;
   let impactTimer = null;
 
+  function imageSrc(image) {
+    return image ? String(image.currentSrc || image.src || '') : '';
+  }
+
   function looksLikeSenkuBomb(image) {
-    if (!image) return false;
-    const src = String(image.currentSrc || image.src || '');
-    // Runtime fix: identify ONLY Senku's cleaned bomb frames. The old 96x96
-    // dimension fallback also matched unrelated UI/canvas images and caused a
-    // stray explosion near the Normal button.
+    const src = imageSrc(image);
     return src.includes(PROJECTILE_TOKEN) || src.includes('/senku/vfx/bomb/projectile_clean/');
+  }
+
+  function looksLikeLegacySenkuImpact(image) {
+    const src = imageSrc(image);
+    if (!src) return false;
+    return src.includes('assets/characters/senku/vfx/bomb/static_impact/') ||
+      src.includes('/senku/vfx/bomb/static_impact/') ||
+      src.includes('assets/characters/senku/vfx/bomb/explosion/') ||
+      src.includes('/senku/vfx/bomb/explosion/');
   }
 
   function destRect(args, image) {
@@ -75,6 +84,12 @@
 
   const originalDrawImage = proto.drawImage;
   proto.drawImage = function(image, ...args) {
+    // The old Senku runtime still attempts to render its previous static/legacy
+    // impact art. The approved six-frame effect below replaces it completely.
+    // Suppress only Senku's legacy impact assets so they cannot appear elsewhere
+    // on the UI/canvas while leaving every other character/VFX untouched.
+    if (looksLikeLegacySenkuImpact(image)) return;
+
     if (!looksLikeSenkuBomb(image)) return originalDrawImage.call(this, image, ...args);
 
     const dest = destRect(args, image);
