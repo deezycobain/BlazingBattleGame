@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Blazing Battle — Senku Basic Dev Test</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}#game{display:block;width:100%;height:100%;border:0}#status{position:fixed;z-index:999999;top:8px;right:8px;padding:5px 8px;border-radius:8px;background:rgba(0,0,0,.72);color:#fff;font:700 11px/1.2 system-ui,sans-serif;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="status">SENKU DEV TEST LOADING…</div>
+<iframe id="game" title="Blazing Battle"></iframe>
+<script>
+(()=>{
+  const frame=document.getElementById('game');
+  const status=document.getElementById('status');
+  const devRoot='https://raw.githubusercontent.com/deezycobain/BlazingBattleGame/dev/assets/characters/senku/vfx/bomb/small_explosion_6f/';
+  const explosionUrls=[1,2,3,4,5,6].map(n=>devRoot+'frame_0'+n+'.png');
+  const injectedPatch=String.raw`
+<script>
+(()=>{
+  const BOMB_SCALE=2;
+  const EXP_FRAME_MS=45;
+  const EXP_URLS=${JSON.stringify([1,2,3,4,5,6].map(n=>'https://raw.githubusercontent.com/deezycobain/BlazingBattleGame/dev/assets/characters/senku/vfx/bomb/small_explosion_6f/frame_0'+n+'.png'))};
+  const expFrames=EXP_URLS.map(src=>{const img=new Image();img.crossOrigin='anonymous';img.src=src;return img;});
+  let bombHits=0,expHits=0,impactStart=0,lastImpactDraw=0;
+  const report=()=>{try{parent.postMessage({type:'senku-full-basic-test',bombHits,expHits},'*')}catch(_){}};
+  const srcOf=image=>String((image&&(image.currentSrc||image.src))||'');
+  function isBomb(image){
+    const src=srcOf(image);
+    if(src.includes('projectile_clean'))return true;
+    if(src.includes('/senku/')&&src.includes('/bomb/')&&!src.includes('static_impact'))return true;
+    const w=image&&(image.naturalWidth||image.videoWidth||image.width||0),h=image&&(image.naturalHeight||image.videoHeight||image.height||0);
+    return w===96&&h===96;
+  }
+  function isStaticImpact(image){
+    const src=srcOf(image);
+    return src.includes('/senku/vfx/bomb/static_impact/explosion.png')||src.includes('vfx/bomb/static_impact/explosion.png');
+  }
+  function drawScaled(original,ctx,image,args,scale){
+    if(args.length===2){const [dx,dy]=args,ow=image.naturalWidth||image.width||0,oh=image.naturalHeight||image.height||0,nw=ow*scale,nh=oh*scale;return original.call(ctx,image,dx-(nw-ow)/2,dy-(nh-oh)/2,nw,nh)}
+    if(args.length===4){const [dx,dy,dw,dh]=args,nw=dw*scale,nh=dh*scale;return original.call(ctx,image,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh)}
+    if(args.length===8){const [sx,sy,sw,sh,dx,dy,dw,dh]=args,nw=dw*scale,nh=dh*scale;return original.call(ctx,image,sx,sy,sw,sh,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh)}
+    return original.call(ctx,image,...args);
+  }
+  function drawExplosion(original,ctx,args){
+    const now=performance.now();
+    if(!impactStart||now-lastImpactDraw>180){impactStart=now;expHits++;report()}
+    lastImpactDraw=now;
+    const idx=Math.min(5,Math.floor((now-impactStart)/EXP_FRAME_MS));
+    const img=expFrames[idx];
+    if(!img||!img.complete)return;
+    if(args.length===2){const [dx,dy]=args;return original.call(ctx,img,dx,dy)}
+    if(args.length===4){const [dx,dy,dw,dh]=args;return original.call(ctx,img,dx,dy,dw,dh)}
+    if(args.length===8){const [, , , ,dx,dy,dw,dh]=args;return original.call(ctx,img,0,0,img.naturalWidth||img.width,img.naturalHeight||img.height,dx,dy,dw,dh)}
+  }
+  if(window.CanvasRenderingContext2D){
+    const proto=CanvasRenderingContext2D.prototype,original=proto.drawImage;
+    proto.drawImage=function(image,...args){
+      if(isStaticImpact(image))return drawExplosion(original,this,args);
+      if(isBomb(image)){bombHits++;report();return drawScaled(original,this,image,args,BOMB_SCALE)}
+      return original.call(this,image,...args);
+    };
+  }
+  report();
+})();
+<\/script>`;
+  window.addEventListener('message',e=>{
+    if(!e.data||e.data.type!=='senku-full-basic-test')return;
+    status.textContent=`SENKU DEV • 2× BOMB ${e.data.bombHits?'✓':'…'} • 6F EXP ${e.data.expHits?'✓':'…'}`;
+  });
+  fetch('./index.html',{cache:'no-store'})
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text()})
+    .then(html=>{
+      const base='<base href="./">';
+      let patched=html.includes('<head>')?html.replace('<head>','<head>'+base+injectedPatch):base+injectedPatch+html;
+      frame.srcdoc=patched;
+      status.textContent='SENKU DEV • 2× BOMB … • 6F EXP …';
+    })
+    .catch(err=>{console.error(err);status.textContent='SENKU DEV LOAD ERROR'});
+})();
+</script>
+</body>
+</html>
