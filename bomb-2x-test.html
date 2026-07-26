@@ -7,103 +7,122 @@
   <style>
     html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
     #game { display: block; width: 100%; height: 100%; border: 0; }
+    #status {
+      position: fixed;
+      z-index: 999999;
+      top: 8px;
+      right: 8px;
+      padding: 5px 8px;
+      border-radius: 8px;
+      font: 700 11px/1.2 system-ui, sans-serif;
+      color: #fff;
+      background: rgba(0,0,0,.72);
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
-  <iframe id="game" src="./index.html" title="Blazing Battle"></iframe>
+  <div id="status">2× BOMB TEST LOADING…</div>
+  <iframe id="game" title="Blazing Battle"></iframe>
   <script>
     (() => {
       const frame = document.getElementById('game');
-      const SCALE = 2;
+      const status = document.getElementById('status');
 
-      function looksLikeSenkuBomb(image) {
-        if (!image) return false;
-        const src = String(image.currentSrc || image.src || '');
-        if (src.includes('/senku/') && src.includes('bomb')) return true;
-        if (src.includes('projectile_clean')) return true;
+      const injectedPatch = String.raw`
+<script>
+(() => {
+  const SCALE = 2;
+  let hitCount = 0;
 
-        // The current cleaned Senku bomb runtime frames are 96x96 PNGs.
-        // This fallback catches the live renderer even if it has converted the
-        // image to an internal canvas/image object and stripped the source URL.
-        const w = image.naturalWidth || image.videoWidth || image.width || 0;
-        const h = image.naturalHeight || image.videoHeight || image.height || 0;
-        return w === 96 && h === 96;
+  function report() {
+    try {
+      parent.postMessage({ type: 'senku-bomb-test-hit', hitCount }, '*');
+    } catch (_) {}
+  }
+
+  function looksLikeBomb(image) {
+    if (!image) return false;
+    const src = String(image.currentSrc || image.src || '');
+    if (src.includes('projectile_clean')) return true;
+    if (src.includes('/senku/') && src.includes('/bomb/')) return true;
+
+    const w = image.naturalWidth || image.videoWidth || image.width || 0;
+    const h = image.naturalHeight || image.videoHeight || image.height || 0;
+    return w === 96 && h === 96;
+  }
+
+  if (window.CanvasRenderingContext2D) {
+    const proto = CanvasRenderingContext2D.prototype;
+    const original = proto.drawImage;
+
+    proto.drawImage = function(image, ...args) {
+      if (!looksLikeBomb(image)) return original.call(this, image, ...args);
+
+      hitCount++;
+      report();
+
+      if (args.length === 2) {
+        const [dx, dy] = args;
+        const ow = image.naturalWidth || image.width || 0;
+        const oh = image.naturalHeight || image.height || 0;
+        const nw = ow * SCALE;
+        const nh = oh * SCALE;
+        return original.call(this, image, dx - (nw - ow) / 2, dy - (nh - oh) / 2, nw, nh);
       }
 
-      function wrapDrawImage(target, original) {
-        if (!target || typeof original !== 'function' || original.__senkuBomb2xWrapped) return original;
-
-        function patchedDrawImage(image, ...args) {
-          if (!looksLikeSenkuBomb(image)) return original.call(this, image, ...args);
-
-          if (args.length === 2) {
-            const [dx, dy] = args;
-            const ow = image.naturalWidth || image.width || 0;
-            const oh = image.naturalHeight || image.height || 0;
-            const nw = ow * SCALE;
-            const nh = oh * SCALE;
-            return original.call(this, image, dx - (nw - ow) / 2, dy - (nh - oh) / 2, nw, nh);
-          }
-
-          if (args.length === 4) {
-            const [dx, dy, dw, dh] = args;
-            const nw = dw * SCALE;
-            const nh = dh * SCALE;
-            return original.call(this, image, dx - (nw - dw) / 2, dy - (nh - dh) / 2, nw, nh);
-          }
-
-          if (args.length === 8) {
-            const [sx, sy, sw, sh, dx, dy, dw, dh] = args;
-            const nw = dw * SCALE;
-            const nh = dh * SCALE;
-            return original.call(this, image, sx, sy, sw, sh,
-              dx - (nw - dw) / 2,
-              dy - (nh - dh) / 2,
-              nw,
-              nh
-            );
-          }
-
-          return original.call(this, image, ...args);
-        }
-
-        patchedDrawImage.__senkuBomb2xWrapped = true;
-        return patchedDrawImage;
+      if (args.length === 4) {
+        const [dx, dy, dw, dh] = args;
+        const nw = dw * SCALE;
+        const nh = dh * SCALE;
+        return original.call(this, image, dx - (nw - dw) / 2, dy - (nh - dh) / 2, nw, nh);
       }
 
-      function installPatch() {
-        const win = frame.contentWindow;
-        const doc = frame.contentDocument;
-        if (!win || !doc) return;
-
-        // Patch the prototype for future contexts.
-        if (win.CanvasRenderingContext2D) {
-          const proto = win.CanvasRenderingContext2D.prototype;
-          if (!proto.__senkuBomb2xPatched) {
-            proto.drawImage = wrapDrawImage(proto, proto.drawImage);
-            proto.__senkuBomb2xPatched = true;
-          }
-        }
-
-        // Patch contexts that may already have been created by the game before
-        // this wrapper gets control.
-        doc.querySelectorAll('canvas').forEach(canvas => {
-          try {
-            const ctx = canvas.getContext('2d');
-            if (ctx && !ctx.__senkuBomb2xPatched) {
-              ctx.drawImage = wrapDrawImage(ctx, ctx.drawImage);
-              ctx.__senkuBomb2xPatched = true;
-            }
-          } catch (_) {}
-        });
+      if (args.length === 8) {
+        const [sx, sy, sw, sh, dx, dy, dw, dh] = args;
+        const nw = dw * SCALE;
+        const nh = dh * SCALE;
+        return original.call(this, image, sx, sy, sw, sh,
+          dx - (nw - dw) / 2,
+          dy - (nh - dh) / 2,
+          nw,
+          nh
+        );
       }
 
-      frame.addEventListener('load', () => {
-        installPatch();
-        // Keep re-checking briefly because the game can create/replace canvases
-        // after initial load.
-        [50, 150, 300, 600, 1000, 2000, 4000].forEach(ms => setTimeout(installPatch, ms));
+      return original.call(this, image, ...args);
+    };
+  }
+
+  report();
+})();
+<\/script>`;
+
+      window.addEventListener('message', event => {
+        if (!event.data || event.data.type !== 'senku-bomb-test-hit') return;
+        status.textContent = `2× BOMB TEST ACTIVE • HITS ${event.data.hitCount}`;
       });
+
+      fetch('./index.html', { cache: 'no-store' })
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.text();
+        })
+        .then(html => {
+          const baseTag = '<base href="./">';
+          let patched = html;
+          if (patched.includes('<head>')) {
+            patched = patched.replace('<head>', '<head>' + baseTag + injectedPatch);
+          } else {
+            patched = baseTag + injectedPatch + patched;
+          }
+          frame.srcdoc = patched;
+          status.textContent = '2× BOMB TEST ACTIVE • HITS 0';
+        })
+        .catch(error => {
+          console.error(error);
+          status.textContent = '2× TEST LOAD ERROR';
+        });
     })();
   </script>
 </body>
