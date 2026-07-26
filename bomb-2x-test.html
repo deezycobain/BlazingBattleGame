@@ -14,25 +14,72 @@
   <script>
     (() => {
       const frame = document.getElementById('game');
-      const projectilePath = 'assets/characters/senku/vfx/bomb/projectile_clean/';
+      const PROJECTILE_MATCH = 'assets/characters/senku/vfx/bomb/projectile_clean/';
+      const SCALE = 2;
 
-      function installPatch() {
-        const doc = frame.contentDocument;
-        if (!doc || !doc.head) return;
-
-        const style = doc.createElement('style');
-        style.id = 'senku-bomb-2x-test-patch';
-        style.textContent = `
-          img[src*="${projectilePath}"],
-          img[src*="vfx/bomb/projectile_clean/"] {
-            scale: 2 !important;
-            transform-origin: center center !important;
-          }
-        `;
-        doc.head.appendChild(style);
+      function isSenkuBomb(image) {
+        if (!image) return false;
+        const src = String(image.currentSrc || image.src || '');
+        return src.includes(PROJECTILE_MATCH) || src.includes('vfx/bomb/projectile_clean/');
       }
 
-      frame.addEventListener('load', installPatch);
+      function installCanvasPatch() {
+        const win = frame.contentWindow;
+        if (!win || !win.CanvasRenderingContext2D) return;
+
+        const proto = win.CanvasRenderingContext2D.prototype;
+        if (proto.__senkuBomb2xPatched) return;
+
+        const originalDrawImage = proto.drawImage;
+        proto.drawImage = function(image, ...args) {
+          if (!isSenkuBomb(image)) {
+            return originalDrawImage.call(this, image, ...args);
+          }
+
+          // drawImage(image, dx, dy)
+          if (args.length === 2) {
+            const [dx, dy] = args;
+            const w = (image.naturalWidth || image.width || 0) * SCALE;
+            const h = (image.naturalHeight || image.height || 0) * SCALE;
+            const ow = image.naturalWidth || image.width || 0;
+            const oh = image.naturalHeight || image.height || 0;
+            return originalDrawImage.call(this, image, dx - (w - ow) / 2, dy - (h - oh) / 2, w, h);
+          }
+
+          // drawImage(image, dx, dy, dw, dh)
+          if (args.length === 4) {
+            const [dx, dy, dw, dh] = args;
+            const nw = dw * SCALE;
+            const nh = dh * SCALE;
+            return originalDrawImage.call(this, image, dx - (nw - dw) / 2, dy - (nh - dh) / 2, nw, nh);
+          }
+
+          // drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
+          if (args.length === 8) {
+            const [sx, sy, sw, sh, dx, dy, dw, dh] = args;
+            const nw = dw * SCALE;
+            const nh = dh * SCALE;
+            return originalDrawImage.call(this, image, sx, sy, sw, sh,
+              dx - (nw - dw) / 2,
+              dy - (nh - dh) / 2,
+              nw,
+              nh
+            );
+          }
+
+          return originalDrawImage.call(this, image, ...args);
+        };
+
+        proto.__senkuBomb2xPatched = true;
+        console.info('[Blazing Battle] Senku cleaned bomb projectile canvas scale test active: 2x');
+      }
+
+      frame.addEventListener('load', () => {
+        installCanvasPatch();
+        // Re-apply briefly in case the game initializes/replaces its renderer after iframe load.
+        setTimeout(installCanvasPatch, 250);
+        setTimeout(installCanvasPatch, 1000);
+      });
     })();
   </script>
 </body>
