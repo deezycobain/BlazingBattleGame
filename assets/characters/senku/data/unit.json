@@ -48,10 +48,11 @@
       "presentation": {
         "cast_duration_ms": 560,
         "flight_duration_ms": 620,
-        "impact_duration_ms": 360,
+        "impact_duration_ms": 450,
         "arc_height_px": 86,
         "release_frame": 3,
         "projectile_rotation": true,
+        "projectile_scale": 2.0,
         "impact_anchor": {
           "target": "feet",
           "x": 0.5,
@@ -59,12 +60,19 @@
           "ground_offset_y_px": 3,
           "layer": "ground"
         },
-        "impact_vfx_mode": "single_frame_fade",
-        "impact_frame_index": 4,
-        "impact_fade_start": 0.34,
-        "impact_height_px": 58,
-        "impact_animation": "static_hold_fade",
-        "impact_asset": "vfx/bomb/static_impact/explosion.png",
+        "impact_vfx_mode": "frame_sequence",
+        "impact_frame_ms": 75,
+        "impact_width_px": 132,
+        "impact_height_px": 73,
+        "impact_animation": "six_frame_sequence",
+        "impact_assets": [
+          "vfx/bomb/small_explosion_6f/frame_01.png",
+          "vfx/bomb/small_explosion_6f/frame_02.png",
+          "vfx/bomb/small_explosion_6f/frame_03.png",
+          "vfx/bomb/small_explosion_6f/frame_04.png",
+          "vfx/bomb/small_explosion_6f/frame_05.png",
+          "vfx/bomb/small_explosion_6f/frame_06.png"
+        ],
         "projectile_assets": [
           "vfx/bomb/projectile_clean/frame_01.png",
           "vfx/bomb/projectile_clean/frame_02.png",
@@ -109,8 +117,8 @@
       "jutsu": "sprites/runtime/jutsu/chemical_reaction/cast/"
     },
     "vfx": {
-      "projectile": "vfx/bomb/projectile/",
-      "explosion": "vfx/bomb/explosion/",
+      "projectile": "vfx/bomb/projectile_clean/",
+      "explosion": "vfx/bomb/small_explosion_6f/",
       "jutsu_projectile": "vfx/jutsu/chemical_reaction/projectile/",
       "jutsu_impact": "vfx/jutsu/chemical_reaction/impact/"
     }
@@ -122,7 +130,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "v0.6.22: Bomb projectile frames cleaned to remove detached source-sheet/text-like artifacts while retaining bomb, fuse spark, and intended trail. Arc/timing unchanged.",
+    "notes": "Dev checkpoint: approved Senku bomb visual scale locked at 2x. Basic impact uses cleaned six-frame Small Explosion sequence. Arc, flight timing, rotation, damage timing, body animation, and targeting remain unchanged.",
     "animation_map": true
   },
   "balance": {
@@ -216,26 +224,28 @@
     "vfx": {
       "bomb/explosion": {
         "frames": [
-          "vfx/bomb/explosion/frame_01.png",
-          "vfx/bomb/explosion/frame_02.png",
-          "vfx/bomb/explosion/frame_03.png",
-          "vfx/bomb/explosion/frame_04.png",
-          "vfx/bomb/explosion/frame_05.png"
+          "vfx/bomb/small_explosion_6f/frame_01.png",
+          "vfx/bomb/small_explosion_6f/frame_02.png",
+          "vfx/bomb/small_explosion_6f/frame_03.png",
+          "vfx/bomb/small_explosion_6f/frame_04.png",
+          "vfx/bomb/small_explosion_6f/frame_05.png",
+          "vfx/bomb/small_explosion_6f/frame_06.png"
         ],
-        "frame_ms": 90,
+        "frame_ms": 75,
         "loop": false,
         "body_asset": false
       },
       "bomb/projectile": {
         "frames": [
-          "vfx/bomb/projectile/frame_01.png",
-          "vfx/bomb/projectile/frame_02.png",
-          "vfx/bomb/projectile/frame_03.png",
-          "vfx/bomb/projectile/frame_04.png",
-          "vfx/bomb/projectile/frame_05.png"
+          "vfx/bomb/projectile_clean/frame_01.png",
+          "vfx/bomb/projectile_clean/frame_02.png",
+          "vfx/bomb/projectile_clean/frame_03.png",
+          "vfx/bomb/projectile_clean/frame_04.png",
+          "vfx/bomb/projectile_clean/frame_05.png"
         ],
         "frame_ms": 90,
         "loop": false,
+        "render_scale": 2.0,
         "body_asset": false
       },
       "jutsu/chemical_reaction/impact": {
