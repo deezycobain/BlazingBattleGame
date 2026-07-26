@@ -1,0 +1,23 @@
+{
+  "architecture_version": 1,
+  "baseline_gameplay": "v0.5.27",
+  "live_html_changed": false,
+  "unit_ids": [
+    "crimson",
+    "subzero",
+    "lebee",
+    "anubis"
+  ],
+  "enemy_ids": [
+    "onre",
+    "gotoku",
+    "yurei"
+  ],
+  "shared_effect_roots": [
+    "assets/effects/status",
+    "assets/effects/field",
+    "assets/effects/attacks",
+    "assets/effects/summon",
+    "assets/effects/ui"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "project": "Blazing Battle",
+  "version": "0.6.0",
+  "checkpoint_type": "major_master",
+  "checkpoint_date": "2026-07-24",
+  "canonical": true,
+  "based_on": "0.5.47 CHARACTER_ASSET_ROUTING_FIX",
+  "standalone_file": "Blazing_Battle_v0600_MASTER_STANDALONE.html",
+  "standalone_sha256": "6bae16c7477fc445a8663a542b7b52a272d6c976fa849abd89fbc51d76cbe360",
+  "future_build_rule": "Patch forward from v0.6.0 master; preserve this checkpoint unchanged."
+}

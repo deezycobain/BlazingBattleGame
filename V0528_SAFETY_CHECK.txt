@@ -1,0 +1,4 @@
+v0.5.27 index SHA-256: f4fd2f12d8df9a3bb2c788927e6f2f2be3b1c0cd0cb58ce0d693eb4b03c27180
+v0.5.28 index SHA-256: f4fd2f12d8df9a3bb2c788927e6f2f2be3b1c0cd0cb58ce0d693eb4b03c27180
+MATCH: YES
+Gameplay HTML changed: NO

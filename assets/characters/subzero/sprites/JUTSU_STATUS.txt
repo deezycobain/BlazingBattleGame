@@ -1,0 +1,14 @@
+SUB-ZERO JUTSU ASSET STATUS — v0.5.16
+
+The supplied SubZero_Sprite_Assets package contains:
+- Idle
+- Walk 4-frame sheet
+- Basic Hit
+- Recoil 4-frame sheet
+- Reference
+
+It does NOT contain a dedicated Jutsu/casting animation or ice-attack frame.
+The runtime therefore no longer substitutes the Basic Hit punch for Jutsu.
+Until a Jutsu pose/animation is supplied, Sub-Zero keeps his normalized idle body
+art during the Jutsu lunge/cast and the existing blue Jutsu hitbox/impact treatment
+handles gameplay feedback.

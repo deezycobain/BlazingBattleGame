@@ -1,0 +1,71 @@
+{
+  "schema_version": 2,
+  "id": "yurei",
+  "display_name": "Yurei",
+  "title": null,
+  "role": "enemy",
+  "archetype": "ghost_skirmisher",
+  "element": "Spirit",
+  "rarity": null,
+  "collection": {
+    "owned": false,
+    "inventory_visible": false,
+    "battle_ready": true
+  },
+  "stats": {
+    "level": 1,
+    "hp": 110,
+    "attack": 15,
+    "defense": 8,
+    "speed": 36
+  },
+  "combat": {
+    "mark": "G",
+    "movement_range": 76,
+    "basic_shape": {
+      "type": "circle",
+      "r": 76
+    },
+    "jutsu_shape": null,
+    "chakra_max": 0
+  },
+  "render": {
+    "scale": 1.0
+  },
+  "abilities": {
+    "basic": {
+      "id": "spirit_claw",
+      "name": "Spirit Claw",
+      "damage_multiplier": 1.0,
+      "delivery": "melee"
+    },
+    "jutsu": null
+  },
+  "assets": {
+    "art": null,
+    "card": null,
+    "portrait": "portraits/",
+    "icon": "icons/",
+    "sprites": {
+      "idle": "sprites/runtime/idle/",
+      "attack_basic": "sprites/runtime/attack/",
+      "recoil": "sprites/runtime/recoil/",
+      "jutsu": "sprites/runtime/jutsu/"
+    },
+    "vfx": "vfx/"
+  },
+  "readiness": {
+    "collection": false,
+    "battle": true,
+    "idle": true,
+    "basic_attack": false,
+    "jutsu": false,
+    "recoil": false,
+    "notes": "Existing ghost enemy; stats remain in current runtime during migration."
+  },
+  "balance": {
+    "status": "provisional",
+    "pass": "v0.5.30",
+    "notes": "Initial archetype-based values. Tune freely during balance testing."
+  }
+}

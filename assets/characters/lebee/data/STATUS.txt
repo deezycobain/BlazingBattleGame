@@ -1,0 +1,1 @@
+Collection-ready only. Battle sprites/stats/Jutsu implementation not yet approved.

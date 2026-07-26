@@ -1,0 +1,48 @@
+{
+  "version": "0.5.24-asset-organization",
+  "runtime_parent": "0.5.23",
+  "runtime_code_changed": false,
+  "active_playable": [
+    "Crimson",
+    "Sub-Zero"
+  ],
+  "active_boss": [
+    "Anubis"
+  ],
+  "active_enemies": [
+    "Onre",
+    "Gotoku",
+    "Yurei"
+  ],
+  "legacy_archived": [
+    "Scorpion",
+    "Lebee",
+    "Deezy",
+    "Tyler",
+    "Cody",
+    "Blazehood",
+    "Rokage",
+    "Shiny"
+  ],
+  "rules": [
+    "Character body sprites, cards, portraits, maps and VFX must remain separate.",
+    "Do not use summon/card art as a battlefield sprite fallback.",
+    "Do not delete legacy assets until explicitly approved.",
+    "Field and status VFX live outside character folders unless uniquely authored source material is being preserved."
+  ],
+  "characters": {
+    "senku": {
+      "runtime": {
+        "idle": "assets/characters/senku/sprites/runtime/idle/",
+        "attack_basic": "assets/characters/senku/sprites/runtime/attack/basic/",
+        "recoil": "assets/characters/senku/sprites/runtime/recoil/"
+      },
+      "vfx": {
+        "projectile": "assets/characters/senku/vfx/bomb/projectile/",
+        "explosion": "assets/characters/senku/vfx/bomb/explosion/"
+      },
+      "card": "assets/characters/senku/cards/senku_card.jpeg",
+      "art": "assets/characters/senku/art/senku_full_art.jpeg"
+    }
+  }
+}

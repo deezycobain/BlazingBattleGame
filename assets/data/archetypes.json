@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "archetypes": {
+    "assassin_melee": {
+      "label": "Assassin / Melee DPS",
+      "description": "Fast close-range damage dealer. Higher ATK/SPD, moderate durability."
+    },
+    "ranged_controller": {
+      "label": "Ranged Controller",
+      "description": "Mid-range fighter built around control/status effects and safe pressure."
+    },
+    "caster_aoe": {
+      "label": "Caster / AoE",
+      "description": "Lower durability, strong area Jutsu and ranged pressure."
+    },
+    "boss_tank_controller": {
+      "label": "Boss / Tank Controller",
+      "description": "High durability and damage with battlefield-control abilities."
+    },
+    "ghost_skirmisher": {
+      "label": "Ghost / Skirmisher",
+      "description": "Light enemy archetype with moderate speed and basic pressure."
+    },
+    "ghost_striker": {
+      "label": "Ghost / Striker",
+      "description": "Light enemy archetype favoring direct damage."
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "version": "v0.6.16",
+  "canvas": {
+    "width": 420,
+    "height": 420,
+    "anchor_x": 210,
+    "anchor_y": 392
+  },
+  "rules": {
+    "runtime_uses_individual_frames": true,
+    "body_frames_contain_body_only": true,
+    "vfx_are_separate_assets": true,
+    "animation_events_are_data_driven": true
+  }
+}

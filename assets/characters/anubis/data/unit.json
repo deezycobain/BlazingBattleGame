@@ -1,0 +1,102 @@
+{
+  "schema_version": 2,
+  "id": "anubis",
+  "display_name": "Anubis",
+  "title": "Judge of Souls",
+  "role": "boss",
+  "archetype": "boss_tank_controller",
+  "element": "Dark",
+  "rarity": "Boss",
+  "collection": {
+    "owned": false,
+    "inventory_visible": false,
+    "battle_ready": true
+  },
+  "stats": {
+    "level": 1,
+    "hp": 950,
+    "attack": 38,
+    "defense": 32,
+    "speed": 43
+  },
+  "combat": {
+    "mark": "BOSS",
+    "movement_range": 72,
+    "basic_shape": {
+      "type": "circle",
+      "r": 105
+    },
+    "jutsu_shape": {
+      "type": "circle",
+      "r": 205
+    },
+    "chakra_max": 8
+  },
+  "render": {
+    "scale": 1.25,
+    "battle_size_scale": 2.3713
+  },
+  "abilities": {
+    "basic": {
+      "id": "staff_strike",
+      "name": "Staff Strike",
+      "damage_multiplier": 1.0,
+      "delivery": "melee"
+    },
+    "jutsu": {
+      "id": "boss_rotation",
+      "name": "Boss Rotation",
+      "cost": 5,
+      "damage_multiplier": 2.05,
+      "delivery": "boss_rotation"
+    }
+  },
+  "assets": {
+    "art": null,
+    "card": null,
+    "portrait": "portraits/",
+    "icon": "icons/",
+    "sprites": {
+      "idle": "sprites/runtime/idle/",
+      "attack_basic": "sprites/runtime/attack/basic/",
+      "recoil": "sprites/runtime/recoil/",
+      "jutsu": "sprites/runtime/jutsu/"
+    },
+    "vfx": "vfx/"
+  },
+  "readiness": {
+    "collection": false,
+    "battle": true,
+    "idle": true,
+    "basic_attack": true,
+    "jutsu": true,
+    "recoil": false,
+    "notes": "Boss definition. Existing combat code remains authoritative until migration.",
+    "animation_map": true
+  },
+  "balance": {
+    "status": "provisional",
+    "pass": "v0.5.30",
+    "notes": "Initial archetype-based values. Tune freely during balance testing."
+  },
+  "animation_standard": {
+    "version": "v0.6.16",
+    "canvas": {
+      "width": 420,
+      "height": 420,
+      "anchor_x": 210,
+      "anchor_y": 392
+    },
+    "animations": {
+      "idle": {
+        "frames": [
+          "sprites/runtime/idle/frame_01.png"
+        ],
+        "frame_ms": 180,
+        "loop": true,
+        "events": []
+      }
+    },
+    "vfx": {}
+  }
+}

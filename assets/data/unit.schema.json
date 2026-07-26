@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blazing Battle Unit Definition",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "display_name",
+    "role",
+    "archetype",
+    "collection",
+    "stats",
+    "combat",
+    "render",
+    "abilities",
+    "assets",
+    "readiness",
+    "balance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "id": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "role": {
+      "enum": [
+        "playable",
+        "boss",
+        "enemy"
+      ]
+    },
+    "archetype": {
+      "type": "string"
+    },
+    "element": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rarity": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stats": {
+      "type": "object",
+      "required": [
+        "level",
+        "hp",
+        "attack",
+        "defense",
+        "speed"
+      ]
+    },
+    "combat": {
+      "type": "object",
+      "required": [
+        "mark",
+        "movement_range",
+        "basic_shape",
+        "chakra_max"
+      ]
+    },
+    "abilities": {
+      "type": "object",
+      "required": [
+        "basic",
+        "jutsu"
+      ]
+    },
+    "collection": {
+      "type": "object"
+    },
+    "render": {
+      "type": "object"
+    },
+    "assets": {
+      "type": "object"
+    },
+    "readiness": {
+      "type": "object"
+    },
+    "balance": {
+      "type": "object"
+    }
+  }
+}

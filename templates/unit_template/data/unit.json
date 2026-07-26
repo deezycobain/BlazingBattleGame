@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "id": "unit_id",
+  "display_name": "Unit Name",
+  "title": null,
+  "role": "playable",
+  "archetype": "archetype_id",
+  "element": null,
+  "rarity": null,
+  "collection": {
+    "owned": false,
+    "inventory_visible": false,
+    "battle_ready": false
+  },
+  "stats": {
+    "level": 1,
+    "hp": 100,
+    "attack": 25,
+    "defense": 20,
+    "speed": 50
+  },
+  "combat": {
+    "mark": "?",
+    "movement_range": 80,
+    "basic_shape": {
+      "type": "circle",
+      "r": 90
+    },
+    "jutsu_shape": {
+      "type": "circle",
+      "r": 150
+    },
+    "chakra_max": 8
+  },
+  "render": {
+    "scale": 1.0
+  },
+  "abilities": {
+    "basic": {
+      "id": "basic_attack",
+      "name": "Basic Attack",
+      "damage_multiplier": 1.0,
+      "chakra_gain": 1,
+      "delivery": "melee"
+    },
+    "jutsu": {
+      "id": "jutsu_id",
+      "name": "Jutsu",
+      "cost": 4,
+      "damage_multiplier": 2.0,
+      "delivery": "single_target"
+    }
+  },
+  "assets": {
+    "art": null,
+    "card": null,
+    "portrait": "portraits/",
+    "icon": "icons/",
+    "sprites": {
+      "idle": "sprites/runtime/idle/",
+      "attack_basic": "sprites/runtime/attack/basic/",
+      "recoil": "sprites/runtime/recoil/",
+      "jutsu": "sprites/runtime/jutsu/"
+    },
+    "vfx": "vfx/"
+  },
+  "readiness": {
+    "collection": false,
+    "battle": false,
+    "idle": false,
+    "basic_attack": false,
+    "jutsu": false,
+    "recoil": false,
+    "notes": ""
+  },
+  "balance": {
+    "status": "provisional",
+    "pass": null,
+    "notes": ""
+  }
+}

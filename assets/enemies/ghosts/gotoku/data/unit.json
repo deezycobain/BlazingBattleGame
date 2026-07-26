@@ -1,0 +1,72 @@
+{
+  "schema_version": 2,
+  "id": "gotoku",
+  "display_name": "Gotoku",
+  "title": null,
+  "role": "enemy",
+  "archetype": "ghost_striker",
+  "element": "Spirit",
+  "rarity": null,
+  "collection": {
+    "owned": false,
+    "inventory_visible": false,
+    "battle_ready": true
+  },
+  "stats": {
+    "level": 1,
+    "hp": 100,
+    "attack": 15,
+    "defense": 9,
+    "speed": 31
+  },
+  "combat": {
+    "mark": "G",
+    "movement_range": 70,
+    "basic_shape": {
+      "type": "rect",
+      "w": 180,
+      "h": 55
+    },
+    "jutsu_shape": null,
+    "chakra_max": 0
+  },
+  "render": {
+    "scale": 1.0
+  },
+  "abilities": {
+    "basic": {
+      "id": "ghost_strike",
+      "name": "Ghost Strike",
+      "damage_multiplier": 1.0,
+      "delivery": "melee"
+    },
+    "jutsu": null
+  },
+  "assets": {
+    "art": null,
+    "card": null,
+    "portrait": "portraits/",
+    "icon": "icons/",
+    "sprites": {
+      "idle": "sprites/runtime/idle/",
+      "attack_basic": "sprites/runtime/attack/",
+      "recoil": "sprites/runtime/recoil/",
+      "jutsu": "sprites/runtime/jutsu/"
+    },
+    "vfx": "vfx/"
+  },
+  "readiness": {
+    "collection": false,
+    "battle": true,
+    "idle": true,
+    "basic_attack": false,
+    "jutsu": false,
+    "recoil": false,
+    "notes": "Existing ghost enemy; stats remain in current runtime during migration."
+  },
+  "balance": {
+    "status": "provisional",
+    "pass": "v0.5.30",
+    "notes": "Initial archetype-based values. Tune freely during balance testing."
+  }
+}

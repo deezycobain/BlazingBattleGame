@@ -1,0 +1,22 @@
+{
+  "anubis": {
+    "body_frames": 1,
+    "vfx_frames": 0
+  },
+  "crimson": {
+    "body_frames": 6,
+    "vfx_frames": 0
+  },
+  "lebee": {
+    "body_frames": 27,
+    "vfx_frames": 0
+  },
+  "senku": {
+    "body_frames": 16,
+    "vfx_frames": 16
+  },
+  "subzero": {
+    "body_frames": 4,
+    "vfx_frames": 3
+  }
+}

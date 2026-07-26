@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="240" viewBox="0 0 180 240">
+<defs>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd85a"/><stop offset=".55" stop-color="#d99d19"/><stop offset="1" stop-color="#8f5e08"/></linearGradient>
+ <linearGradient id="black" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#252a31"/><stop offset="1" stop-color="#090b0e"/></linearGradient>
+ <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d69b6e"/><stop offset="1" stop-color="#8c593b"/></linearGradient>
+</defs>
+<!-- back leg -->
+<path d="M86 142 C79 164 73 189 70 215 L49 217 C50 184 53 161 61 139 Z" fill="url(#black)" stroke="#090909" stroke-width="4"/>
+<path d="M123 143 C130 166 137 190 140 216 L119 218 C114 187 108 165 101 144 Z" fill="url(#black)" stroke="#090909" stroke-width="4"/>
+<!-- boots -->
+<path d="M46 208 L73 207 L76 228 Q61 236 39 228 Z" fill="#11151a" stroke="#050607" stroke-width="4"/>
+<path d="M116 209 L141 207 L153 226 Q137 233 115 227 Z" fill="#11151a" stroke="#050607" stroke-width="4"/>
+<path d="M49 196 L72 194 L71 216 L48 218 Z" fill="url(#gold)" stroke="#241704" stroke-width="3"/>
+<path d="M116 194 L139 192 L143 215 L118 217 Z" fill="url(#gold)" stroke="#241704" stroke-width="3"/>
+<!-- torso -->
+<path d="M61 74 Q88 57 117 75 L127 142 Q94 157 54 139 Z" fill="url(#black)" stroke="#08090b" stroke-width="4"/>
+<path d="M67 78 L85 68 L94 84 L103 68 L117 78 L114 135 L67 136 Z" fill="url(#gold)" stroke="#302004" stroke-width="3"/>
+<path d="M75 84 L110 84 M72 97 L113 97 M70 110 L115 110 M69 123 L115 123" stroke="#7a510d" stroke-width="2" opacity=".72"/>
+<!-- sash -->
+<path d="M57 135 Q91 145 126 136 L121 152 Q91 162 57 150 Z" fill="#3d2b10" stroke="#171007" stroke-width="3"/>
+<path d="M82 147 L102 147 L107 197 L89 184 L78 198 Z" fill="url(#gold)" stroke="#2b1b05" stroke-width="3"/>
+<!-- rear arm -->
+<path d="M61 83 C45 88 34 105 28 122 C31 132 41 135 49 128 L66 104 Z" fill="url(#skin)" stroke="#1a0f0a" stroke-width="4"/>
+<path d="M28 116 L48 126 L42 145 Q27 143 21 131 Z" fill="url(#gold)" stroke="#261804" stroke-width="3"/>
+<path d="M24 138 Q15 144 21 155 Q31 161 42 149 L42 141 Z" fill="#12161b" stroke="#050607" stroke-width="3"/>
+<!-- forward arm -->
+<path d="M116 83 C135 88 149 100 156 116 C157 126 147 132 139 126 L119 106 Z" fill="url(#skin)" stroke="#1a0f0a" stroke-width="4"/>
+<path d="M140 111 L158 118 L160 137 Q146 143 136 130 Z" fill="url(#gold)" stroke="#261804" stroke-width="3"/>
+<path d="M154 132 Q169 133 169 144 Q164 155 151 149 L145 139 Z" fill="#12161b" stroke="#050607" stroke-width="3"/>
+<!-- shoulders -->
+<path d="M57 77 Q47 78 41 91 L59 102 L71 83 Z" fill="url(#gold)" stroke="#2b1b05" stroke-width="3"/>
+<path d="M118 78 Q132 79 139 91 L123 101 L108 83 Z" fill="url(#gold)" stroke="#2b1b05" stroke-width="3"/>
+<!-- hood/head -->
+<path d="M69 65 Q69 27 95 21 Q122 27 121 64 L109 81 L80 80 Z" fill="url(#black)" stroke="#050607" stroke-width="4"/>
+<path d="M77 48 Q94 38 113 48 L111 62 Q95 71 79 62 Z" fill="#15191f" stroke="#050607" stroke-width="2"/>
+<path d="M78 55 Q94 47 112 55 L106 73 L84 73 Z" fill="url(#gold)" stroke="#332104" stroke-width="3"/>
+<path d="M86 54 L93 52 L91 57 L85 58 Z M99 52 L107 54 L108 58 L101 57 Z" fill="#f4e8c2"/>
+<path d="M91 62 L96 58 L101 62 L98 68 L93 68 Z" fill="#7d4d0b" opacity=".75"/>
+<!-- loose shoulder scarf -->
+<path d="M67 72 Q52 87 48 103" fill="none" stroke="#d79b18" stroke-width="7" stroke-linecap="round"/>
+</svg>
