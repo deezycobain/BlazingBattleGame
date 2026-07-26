@@ -18,9 +18,16 @@
     return image ? String(image.currentSrc || image.src || '') : '';
   }
 
-  function looksLikeSenkuBomb(image) {
+  function isExplicitSenkuBomb(image) {
     const src = imageSrc(image);
     return src.includes(PROJECTILE_TOKEN) || src.includes('/senku/vfx/bomb/projectile_clean/');
+  }
+
+  function isBombSizedRuntimeImage(image) {
+    if (!image) return false;
+    const w = image.naturalWidth || image.videoWidth || image.width || 0;
+    const h = image.naturalHeight || image.videoHeight || image.height || 0;
+    return w === 96 && h === 96;
   }
 
   function looksLikeLegacySenkuImpact(image) {
@@ -48,19 +55,36 @@
     return null;
   }
 
-  function playExplosion(canvas, dest) {
-    if (!canvas || !dest) return;
+  function screenPoint(canvas, dest) {
+    if (!canvas || !dest || !canvas.width || !canvas.height) return null;
     const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
     const sx = rect.width / canvas.width;
     const sy = rect.height / canvas.height;
-    const x = rect.left + (dest.dx + dest.dw / 2) * sx;
-    const y = rect.top + (dest.dy + dest.dh) * sy;
+    return {
+      x: rect.left + (dest.dx + dest.dw / 2) * sx,
+      y: rect.top + (dest.dy + dest.dh) * sy
+    };
+  }
+
+  function isBattlefieldDraw(canvas, dest) {
+    const point = screenPoint(canvas, dest);
+    if (!point) return false;
+    // Prevent the 96x96 runtime fallback from ever treating top HUD/button art
+    // as Senku's projectile. The playable battlefield begins below the HUD.
+    return point.y > window.innerHeight * 0.30 &&
+      point.x > 0 && point.x < window.innerWidth;
+  }
+
+  function playExplosion(canvas, dest) {
+    const point = screenPoint(canvas, dest);
+    if (!point || !isBattlefieldDraw(canvas, dest)) return;
 
     const img = document.createElement('img');
     img.setAttribute('data-senku-runtime-explosion', '1');
     img.style.cssText = 'position:fixed;z-index:2147483646;pointer-events:none;object-fit:contain;transform:translate(-50%,-100%);transform-origin:50% 100%;';
-    img.style.left = `${x}px`;
-    img.style.top = `${y}px`;
+    img.style.left = `${point.x}px`;
+    img.style.top = `${point.y}px`;
     img.style.width = `${EXPLOSION_W}px`;
     img.style.height = `${EXPLOSION_H}px`;
     document.body.appendChild(img);
@@ -84,16 +108,17 @@
 
   const originalDrawImage = proto.drawImage;
   proto.drawImage = function(image, ...args) {
-    // The old Senku runtime still attempts to render its previous static/legacy
-    // impact art. The approved six-frame effect below replaces it completely.
-    // Suppress only Senku's legacy impact assets so they cannot appear elsewhere
-    // on the UI/canvas while leaving every other character/VFX untouched.
     if (looksLikeLegacySenkuImpact(image)) return;
 
-    if (!looksLikeSenkuBomb(image)) return originalDrawImage.call(this, image, ...args);
-
     const dest = destRect(args, image);
-    if (dest) {
+    const explicitBomb = isExplicitSenkuBomb(image);
+    const runtimeBomb = !explicitBomb && isBombSizedRuntimeImage(image) && dest && isBattlefieldDraw(this.canvas, dest);
+    if (!explicitBomb && !runtimeBomb) return originalDrawImage.call(this, image, ...args);
+
+    // Only battlefield projectile draws can arm the impact VFX. This keeps the
+    // old 96x96 fallback needed by the live renderer without creating a stray
+    // explosion beside the Normal button.
+    if (dest && isBattlefieldDraw(this.canvas, dest)) {
       lastBombDraw = { canvas: this.canvas, dest };
       if (impactTimer) clearTimeout(impactTimer);
       impactTimer = setTimeout(() => {
