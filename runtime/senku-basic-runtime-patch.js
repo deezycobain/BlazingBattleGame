@@ -4,6 +4,7 @@
   const EXPLOSION_W = 132;
   const EXPLOSION_H = 73;
   const EXPLOSION_BASE = 'assets/characters/senku/vfx/bomb/small_explosion_6f/';
+  const PROJECTILE_TOKEN = 'assets/characters/senku/vfx/bomb/projectile_clean/';
   const explosionFrames = [1,2,3,4,5,6].map(n => {
     const img = new Image();
     img.src = `${EXPLOSION_BASE}frame_0${n}.png`;
@@ -16,11 +17,10 @@
   function looksLikeSenkuBomb(image) {
     if (!image) return false;
     const src = String(image.currentSrc || image.src || '');
-    if (src.includes('assets/characters/senku/vfx/bomb/projectile_clean/')) return true;
-    if (src.includes('/senku/') && src.includes('/bomb/') && !src.includes('small_explosion_6f')) return true;
-    const w = image.naturalWidth || image.videoWidth || image.width || 0;
-    const h = image.naturalHeight || image.videoHeight || image.height || 0;
-    return w === 96 && h === 96;
+    // Runtime fix: identify ONLY Senku's cleaned bomb frames. The old 96x96
+    // dimension fallback also matched unrelated UI/canvas images and caused a
+    // stray explosion near the Normal button.
+    return src.includes(PROJECTILE_TOKEN) || src.includes('/senku/vfx/bomb/projectile_clean/');
   }
 
   function destRect(args, image) {
