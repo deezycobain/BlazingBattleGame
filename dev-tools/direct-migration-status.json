@@ -1,0 +1,276 @@
+{
+  "unit_data_tag": true,
+  "runtime_chakra_anchor": true,
+  "make_roster_anchor": true,
+  "team_spawn": true,
+  "speed_anchor": true,
+  "boss_speed_anchor": true,
+  "animation_function": true,
+  "renderer_block": true,
+  "heal_anchor": true,
+  "hud_anchor": true,
+  "embedded_json_parse": true,
+  "embedded_senku": {
+    "schema_version": 2,
+    "id": "senku",
+    "display_name": "Senku",
+    "title": "The Kingdom of Science",
+    "role": "playable",
+    "archetype": "ranged_tactician",
+    "element": "Nature",
+    "rarity": "Legendary",
+    "collection": {
+      "owned": true,
+      "inventory_visible": true,
+      "battle_ready": true
+    },
+    "stats": {
+      "level": 1,
+      "hp": 180,
+      "attack": 38,
+      "defense": 28,
+      "speed": 64
+    },
+    "combat": {
+      "mark": "S",
+      "movement_range": 92,
+      "basic_shape": {
+        "type": "rect",
+        "w": 255,
+        "h": 58,
+        "offset_x": 116
+      },
+      "jutsu_shape": {
+        "type": "screen_rect",
+        "scope": "all_allies"
+      },
+      "chakra_max": 8
+    },
+    "render": {
+      "scale": 1.3
+    },
+    "abilities": {
+      "basic": {
+        "id": "explosive_bomb",
+        "name": "Explosive Bomb",
+        "damage_multiplier": 1.0,
+        "chakra_gain": 1,
+        "delivery": "ranged_projectile",
+        "range_presentation": "forward_lane",
+        "presentation": {
+          "cast_duration_ms": 560,
+          "flight_duration_ms": 620,
+          "impact_duration_ms": 360,
+          "arc_height_px": 86,
+          "release_frame": 3,
+          "projectile_rotation": true,
+          "impact_anchor": {
+            "target": "feet",
+            "x": 0.5,
+            "y": 0.96,
+            "ground_offset_y_px": 3,
+            "layer": "ground"
+          },
+          "impact_vfx_mode": "single_frame_fade",
+          "impact_frame_index": 4,
+          "impact_fade_start": 0.34,
+          "impact_height_px": 58,
+          "impact_animation": "static_hold_fade",
+          "impact_asset": "vfx/bomb/static_impact/explosion.png",
+          "projectile_assets": [
+            "vfx/bomb/projectile_clean/frame_01.png",
+            "vfx/bomb/projectile_clean/frame_02.png",
+            "vfx/bomb/projectile_clean/frame_03.png",
+            "vfx/bomb/projectile_clean/frame_04.png",
+            "vfx/bomb/projectile_clean/frame_05.png"
+          ],
+          "projectile_cleaned": true
+        }
+      },
+      "jutsu": {
+        "id": "revival_formula",
+        "name": "Revival Formula",
+        "cost": 4,
+        "damage_multiplier": 0,
+        "delivery": "bottle_party_heal",
+        "category": "jutsu",
+        "ultimate": false,
+        "status_effect": null,
+        "status_chance": 0,
+        "presentation": {
+          "cast_frames": 4,
+          "projectile_frames": 3,
+          "impact_frames": 3,
+          "cast_duration_ms": 680,
+          "flight_duration_ms": 420,
+          "impact_duration_ms": 620,
+          "screen_dim_alpha": 0.12
+        },
+        "target": "all_allies",
+        "effect": "heal_full",
+        "heal_percent": 1.0
+      }
+    },
+    "assets": {
+      "art": "art/senku_full_art.jpeg",
+      "card": "cards/senku_card.jpeg",
+      "sprites": {
+        "idle": "sprites/runtime/idle/",
+        "attack_basic": "sprites/runtime/attack/basic/",
+        "recoil": "sprites/runtime/recoil/",
+        "jutsu": "sprites/runtime/jutsu/chemical_reaction/cast/"
+      },
+      "vfx": {
+        "projectile": "vfx/bomb/projectile/",
+        "explosion": "vfx/bomb/explosion/",
+        "jutsu_projectile": "vfx/jutsu/chemical_reaction/projectile/",
+        "jutsu_impact": "vfx/jutsu/chemical_reaction/impact/"
+      }
+    },
+    "readiness": {
+      "collection": true,
+      "battle": true,
+      "idle": true,
+      "basic_attack": true,
+      "jutsu": true,
+      "recoil": true,
+      "notes": "v0.6.22: Bomb projectile frames cleaned to remove detached source-sheet/text-like artifacts while retaining bomb, fuse spark, and intended trail. Arc/timing unchanged.",
+      "animation_map": true
+    },
+    "balance": {
+      "status": "provisional",
+      "pass": "v0.6.8"
+    },
+    "animation_standard": {
+      "version": "v0.6.16",
+      "canvas": {
+        "width": 420,
+        "height": 420,
+        "anchor_x": 210,
+        "anchor_y": 392
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            "sprites/runtime/idle/frame_01.png",
+            "sprites/runtime/idle/frame_02.png",
+            "sprites/runtime/idle/frame_03.png",
+            "sprites/runtime/idle/frame_04.png"
+          ],
+          "frame_ms": 180,
+          "loop": true,
+          "events": []
+        },
+        "basic_attack": {
+          "frames": [
+            "sprites/runtime/attack/basic/frame_01.png",
+            "sprites/runtime/attack/basic/frame_02.png",
+            "sprites/runtime/attack/basic/frame_03.png",
+            "sprites/runtime/attack/basic/frame_04.png"
+          ],
+          "frame_ms": 145,
+          "loop": false,
+          "events": [
+            {
+              "frame": 3,
+              "event": "release_projectile",
+              "vfx": "bomb/projectile"
+            },
+            {
+              "event": "on_projectile_arrival",
+              "action": "apply_damage"
+            },
+            {
+              "event": "on_projectile_arrival",
+              "vfx": "bomb/explosion"
+            }
+          ]
+        },
+        "recoil": {
+          "frames": [
+            "sprites/runtime/recoil/frame_01.png",
+            "sprites/runtime/recoil/frame_02.png",
+            "sprites/runtime/recoil/frame_03.png",
+            "sprites/runtime/recoil/frame_04.png"
+          ],
+          "frame_ms": 92,
+          "loop": false,
+          "events": []
+        },
+        "jutsu": {
+          "chemical_reaction/cast": {
+            "frames": [
+              "sprites/runtime/jutsu/chemical_reaction/cast/frame_01.png",
+              "sprites/runtime/jutsu/chemical_reaction/cast/frame_02.png",
+              "sprites/runtime/jutsu/chemical_reaction/cast/frame_03.png",
+              "sprites/runtime/jutsu/chemical_reaction/cast/frame_04.png"
+            ],
+            "frame_ms": 150,
+            "loop": false,
+            "events": [
+              {
+                "frame": 3,
+                "event": "release_projectile",
+                "vfx": "jutsu/chemical_reaction/projectile"
+              },
+              {
+                "event": "on_projectile_arrival",
+                "vfx": "jutsu/chemical_reaction/impact"
+              },
+              {
+                "event": "on_impact",
+                "action": "heal_all_allies_full"
+              }
+            ]
+          }
+        }
+      },
+      "vfx": {
+        "bomb/explosion": {
+          "frames": [
+            "vfx/bomb/explosion/frame_01.png",
+            "vfx/bomb/explosion/frame_02.png",
+            "vfx/bomb/explosion/frame_03.png",
+            "vfx/bomb/explosion/frame_04.png",
+            "vfx/bomb/explosion/frame_05.png"
+          ],
+          "frame_ms": 90,
+          "loop": false,
+          "body_asset": false
+        },
+        "bomb/projectile": {
+          "frames": [
+            "vfx/bomb/projectile/frame_01.png",
+            "vfx/bomb/projectile/frame_02.png",
+            "vfx/bomb/projectile/frame_03.png",
+            "vfx/bomb/projectile/frame_04.png",
+            "vfx/bomb/projectile/frame_05.png"
+          ],
+          "frame_ms": 90,
+          "loop": false,
+          "body_asset": false
+        },
+        "jutsu/chemical_reaction/impact": {
+          "frames": [
+            "vfx/jutsu/chemical_reaction/impact/frame_01.png",
+            "vfx/jutsu/chemical_reaction/impact/frame_02.png",
+            "vfx/jutsu/chemical_reaction/impact/frame_03.png"
+          ],
+          "frame_ms": 90,
+          "loop": false,
+          "body_asset": false
+        },
+        "jutsu/chemical_reaction/projectile": {
+          "frames": [
+            "vfx/jutsu/chemical_reaction/projectile/frame_01.png",
+            "vfx/jutsu/chemical_reaction/projectile/frame_02.png",
+            "vfx/jutsu/chemical_reaction/projectile/frame_03.png"
+          ],
+          "frame_ms": 90,
+          "loop": false,
+          "body_asset": false
+        }
+      }
+    }
+  }
+}
