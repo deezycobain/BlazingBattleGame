@@ -10,12 +10,18 @@ if(!facingRx.test(html))throw new Error('Static hitbox pass: updateFacing() bloc
 const facingReplacement=`function updateFacing(){
  // Moving a unit changes only the authored attack-shape origin.
  // Proximity never rotates or snaps the attack field toward a target.
- const PLAYER_ATTACK_ROTATION=-Math.PI/2;
- const ENEMY_ATTACK_ROTATION=Math.PI/2;
  S.pairs.forEach(pair=>{
-   pair.units.forEach(u=>{u.rotation=PLAYER_ATTACK_ROTATION;});
+   pair.units.forEach(u=>{
+     const combat=canonicalUnit(u.name)?.combat||{};
+     const deg=Number.isFinite(combat.basic_rotation_deg)?combat.basic_rotation_deg:-90;
+     u.rotation=deg*Math.PI/180;
+   });
  });
- S.enemies.forEach(e=>{e.rotation=ENEMY_ATTACK_ROTATION;});
+ S.enemies.forEach(e=>{
+   const combat=canonicalUnit(e.name)?.combat||{};
+   const deg=Number.isFinite(combat.basic_rotation_deg)?combat.basic_rotation_deg:90;
+   e.rotation=deg*Math.PI/180;
+ });
 }
 
 function battleSpriteFor`;
@@ -41,4 +47,4 @@ if(sizeAt>=0 && sizeAt-bombStart<5000){
 }
 
 await fs.writeFile(file,html);
-console.log('Gameplay presentation pass: static attack hitboxes + Senku bomb size curve applied');
+console.log('Gameplay presentation pass: static per-unit attack orientations + Senku bomb size curve applied');
