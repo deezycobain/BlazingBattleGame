@@ -57,6 +57,37 @@ const teamUiStyle=`<style id="bb-team-mobile-fit">
 html=html.replace(/<\/head>/i,`${teamUiStyle}</head>`);
 console.log('Base team updated to Senku/Lebee/Sub-Zero; team-save feedback moved above button');
 
+// Attack geometry is positional strategy, not auto-aim. Each unit keeps its
+// canonical basic/jutsu shape and that shape has a fixed battlefield-facing
+// orientation: player shapes project toward the enemy side; enemy shapes project
+// toward the player side. Movement changes the shape origin, never its angle.
+const oldFacing=`function updateFacing(){
+ S.pairs.forEach(pair=>{
+   pair.units.forEach(u=>{
+     let pos=actorPos(pair,u);
+     let target=nearestEnemyPoint(pos.x,pos.y);
+     if(target)u.rotation=Math.atan2(target.y-pos.y,target.x-pos.x);
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   let target=nearestPlayerPoint(e.x,e.y);
+   if(target)e.rotation=Math.atan2(target.y-e.y,target.x-e.x);
+ });
+}`;
+const staticFacing=`function updateFacing(){
+ // Static attack-field orientation. Positioning determines whether an enemy is
+ // inside the authored shape; proximity never rotates or snaps the field.
+ const PLAYER_ATTACK_ROTATION=-Math.PI/2;
+ const ENEMY_ATTACK_ROTATION=Math.PI/2;
+ S.pairs.forEach(pair=>{
+   pair.units.forEach(u=>{u.rotation=PLAYER_ATTACK_ROTATION;});
+ });
+ S.enemies.forEach(e=>{e.rotation=ENEMY_ATTACK_ROTATION;});
+}`;
+replaceRequired(oldFacing,staticFacing,'static attack hitbox facing');
+console.log('Attack hitboxes locked to static battlefield-facing orientation; nearest-target snapping removed');
+
 // Senku basic bomb visual scale is canonical presentation data. The projectile
 // leaves his hand large/readable, then eases down slightly as it completes the arc.
 const oldBombRenderer=`else if(f.kind==='senkuBombProjectile'){
