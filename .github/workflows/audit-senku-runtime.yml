@@ -29,21 +29,20 @@ jobs:
           text=Path('index.html').read_text(encoding='utf-8')
           clean=re.sub(r'data:[^;]+;base64,[A-Za-z0-9+/=]+','<DATA_URL_REMOVED>',text)
           patterns=[
-            r'animateSenkuChemicalReaction', r'jutsuCost', r'chakra\s*:',
-            r'chakra\s*=', r'BLAZING_UNIT_DATA', r'UNIT_DATA', r'makeUnit',
-            r'createUnit', r'buildUnit', r'unitFrom', r'playerUnits', r'roster',
-            r'speed\s*:', r'\.speed', r'supportJutsu', r'isAllySupportJutsu',
-            r'drawPlayerResources', r'jutsuBtn\.textContent'
+            r'animateSenkuChemicalReaction', r'senkuChemProjectile', r'senkuChemImpact',
+            r'SENKU_CHEM', r'jutsuCost', r'chakra\s*:', r'chakra\s*=',
+            r'BLAZING_UNIT_DATA', r'runtimeDefinition', r'makeRosterUnit',
+            r'teamSpawnOptions', r'freshBoss', r'Anubis', r'speed\s*:', r'\.speed',
+            r'S\.floaters\.forEach', r'drawPlayerResources', r'jutsuBtn\.textContent'
           ]
           items=[]
           for pat in patterns:
             count=0
             for m in re.finditer(pat,clean,re.I):
-              lo=max(0,m.start()-1100);hi=min(len(clean),m.end()+1500)
-              snippet=clean[lo:hi].replace('\r','')
-              items.append({'term':pat,'offset':m.start(),'snippet':snippet})
+              lo=max(0,m.start()-1300);hi=min(len(clean),m.end()+1800)
+              items.append({'term':pat,'offset':m.start(),'snippet':clean[lo:hi].replace('\r','')})
               count+=1
-              if count>=8: break
+              if count>=10: break
           Path('dev-tools').mkdir(exist_ok=True)
           Path('dev-tools/senku-runtime-targets.json').write_text(json.dumps(items,indent=2),encoding='utf-8')
 
@@ -52,5 +51,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dev-tools/senku-runtime-targets.json
-          git commit -m "Generate targeted Senku runtime findings" || exit 0
+          git commit -m "Generate Senku heal renderer findings" || exit 0
           git push origin HEAD:dev
