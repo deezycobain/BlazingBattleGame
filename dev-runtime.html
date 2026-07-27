@@ -95,15 +95,28 @@
 }`);
     applied.push('Ally Heal support routing canonicalized');
 
-    // Use the exact approved presentation: no basic/punch pose; bottle launches from Senku,
-    // arcs upward near him, fades at the apex, then a green burst confirms the heal.
+    // Give Ally Heal its own body-animation key. This deliberately does NOT use punch/kick/special,
+    // so the legacy movement code cannot turn the cast into a forward attack lunge.
+    html=replaceOnce(
+      html,
+      "function unitAttackFrames(name,kind){\n  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];\n}",
+      "function unitAttackFrames(name,kind){\n  if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];\n  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];\n}",
+      'Ally Heal cast frame routing'
+    );
+    applied.push('Ally Heal body cast frames isolated');
+
+    // Approved presentation: Senku performs the dedicated throw body frames in place,
+    // then the bottle arcs upward near him, fades at the apex, and produces the green heal burst.
     const newAnim=`function animateSenkuChemicalReaction(unitName,from,target,onImpact,onDone){
  const token=ACTIVE_ACTION_TOKEN;
  const meta=canonicalUnit('senku').abilities.jutsu.presentation||{};
- const castDuration=meta.cast_duration_ms||300;
+ const castDuration=meta.cast_duration_ms||680;
  const flightDuration=meta.flight_duration_ms||650;
  const flashDuration=meta.impact_duration_ms||500;
  const arcHeight=meta.arc_height_px||95;
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={kind:'allyHealCast',start:performance.now(),duration:castDuration};
  if(meta.screen_dim_alpha)S.jutsuDim={start:performance.now(),alpha:meta.screen_dim_alpha,end:null};
  if(!window.__SENKU_ALLY_HEAL_BOTTLE){
   const img=new Image();
@@ -125,10 +138,11 @@
      setTimeout(()=>{
        S.floaters=S.floaters.filter(x=>x!==flash);
        if(S.jutsuDim)S.jutsuDim.end=performance.now();
+       const st=ensureAnimState();if(st.attackPose)delete st.attackPose[unitName];
        if(actionTokenAlive(token)){try{onDone&&onDone()}catch(err){recoverAction('Senku Ally Heal completion')}}
      },flashDuration);
    },flightDuration);
- },Math.min(220,castDuration*.35));
+ },Math.max(120,castDuration*.55));
 }
 
 function animateSenkuBomb`;
@@ -167,7 +181,7 @@ function animateSenkuBomb`;
     const rendererRx=/else if\(f\.kind==='senkuChemProjectile'\)\{.*?else if\(f\.kind==='senkuBombProjectile'\)\{/s;
     if(!rendererRx.test(html))throw new Error('old Senku heal renderer missing');
     html=html.replace(rendererRx,newRenderer);
-    applied.push('approved Ally Heal bottle airburst restored');
+    applied.push('approved Ally Heal throw body + bottle airburst restored');
 
     html=replaceOnce(
       html,
