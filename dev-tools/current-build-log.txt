@@ -1,5 +1,5 @@
 
-added 38 packages, and audited 39 packages in 9s
+added 38 packages, and audited 39 packages in 6s
 
 7 packages are looking for funding
   run `npm fund` for details
@@ -18,9 +18,10 @@ Production migration: Senku 8/8 chakra core + approved Ally Heal runtime applied
 Cloudflare build: index 49.9 MiB -> 0.3 MiB
 Externalized 177 embedded assets (28.2 MiB decoded)
 Cloudflare build validation: all dist assets are under 25 MiB.
+Visible game version synchronized: v0.7.0
 Canonical unit sync applied: senku, crimson, subzero, lebee, anubis
 Base team updated to Senku/Lebee/Sub-Zero; team-save feedback moved above button
 Preview overrides applied for local: playable chakra=max, player speed=200, boss speed=50
-Build metadata embedded: branch=local commit=local
+Build metadata embedded: version=v0.7.0 branch=local commit=local
 Gameplay presentation pass: renderer-safe static hitboxes + UI-only nearest-target highlight (1 visual hits calls) + canonical single-target resolution + Senku bomb size curve applied
 EXIT_STATUS=0
