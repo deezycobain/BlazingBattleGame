@@ -10,62 +10,53 @@
 <div id="status">DEV RUNTIME PREPARING…</div>
 <script>
 (async()=>{
-  const DEV_SPEED=200;
-  const DEV_CHAKRA=8;
+  const DEV_PLAYER_SPEED=200;
   const status=document.getElementById('status');
   try{
-    const res=await fetch('./index.html?v=dev-runtime-source-corebridge-7',{cache:'no-store'});
-    if(!res.ok) throw new Error(`index fetch ${res.status}`);
-    let html=await res.text();
-    let chakraEdits=0,maxEdits=0,senkuLocalizedEdits=0,senkuSpeedEdits=0,senkuArrayEdits=0,senkuFillEdits=0;
-
-    // DEV CHAKRA BASELINE. Numeric legacy resource fields are rewritten before game execution.
-    const currentNames='chakra|currentChakra|chakraCurrent|chakraNow|chakra_start|chakraStart|startingChakra|startChakra|chakraPips|chakraOrbs|chakraSegments|energy|currentEnergy|ki|currentKi|charge|charges';
-    const maxNames='chakraMax|maxChakra|chakra_max|max_chakra|max_chakra_points|energyMax|maxEnergy|kiMax|maxKi|maxCharge|maxCharges';
-    html=html.replace(new RegExp('((["\\\']?(?:'+currentNames+')["\\\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{chakraEdits++;return p+DEV_CHAKRA;});
-    html=html.replace(new RegExp('((["\\\']?(?:'+maxNames+')["\\\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{maxEdits++;return p+DEV_CHAKRA;});
-
-    // Senku-specific bridge for the legacy standalone runtime. Canonical unit.json is 8/8,
-    // but the monolithic runtime can initialize chakra as a numeric field, a pip array,
-    // or Array(8).fill(false/0). Handle all three forms only in Senku-localized source blocks.
-    const lower=html.toLowerCase();
-    const spans=[]; let pos=0;
-    while((pos=lower.indexOf('senku',pos))!==-1){spans.push([Math.max(0,pos-3200),Math.min(html.length,pos+3800)]);pos+=5;}
-    const merged=[];
-    spans.sort((a,b)=>a[0]-b[0]).forEach(s=>{const last=merged[merged.length-1];if(last&&s[0]<=last[1])last[1]=Math.max(last[1],s[1]);else merged.push(s.slice());});
-    for(let i=merged.length-1;i>=0;i--){
-      const [a,b]=merged[i]; let block=html.slice(a,b);
-      block=block.replace(/((?:["']?(?:chakra|currentChakra|chakraCurrent|chakraNow|chakra_start|chakraStart|startingChakra|startChakra|chakraPips|chakraOrbs|chakraSegments|energy|currentEnergy|ki|currentKi|charge|charges|chakraMax|maxChakra|chakra_max|max_chakra)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{senkuLocalizedEdits++;return p+DEV_CHAKRA;});
-      block=block.replace(/((?:["']?(?:speed|spd|meterSpeed|turnSpeed|initiativeSpeed|gaugeSpeed|atbSpeed|actionSpeed)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{senkuSpeedEdits++;return p+DEV_SPEED;});
-
-      // chakra: [false,false,...] or chakra: [0,0,...]
-      block=block.replace(/((?:["']?(?:chakra|chakraPips|chakraOrbs|chakraSegments|currentChakra)["']?)\s*[:=]\s*)\[((?:\s*(?:true|false|0|1)\s*,?){2,})\]/gi,(m,p,items)=>{
-        const boolMode=/true|false/i.test(items);
-        senkuArrayEdits++;
-        return p+'['+Array(DEV_CHAKRA).fill(boolMode?'true':'1').join(',')+']';
-      });
-
-      // chakra: Array(8).fill(false) / new Array(8).fill(0)
-      block=block.replace(/((?:["']?(?:chakra|chakraPips|chakraOrbs|chakraSegments|currentChakra)["']?)\s*[:=]\s*)((?:new\s+)?Array\(\s*8\s*\)\.fill\(\s*(false|0)\s*\))/gi,(m,p,expr,seed)=>{
-        senkuFillEdits++;
-        return p+`Array(${DEV_CHAKRA}).fill(${String(seed).toLowerCase()==='false'?'true':'1'})`;
-      });
-
-      html=html.slice(0,a)+block+html.slice(b);
+    const indexRes=await fetch('./runtime/registry/unit-index.json?v=unit-core-v3',{cache:'no-store'});
+    if(!indexRes.ok)throw new Error(`unit index ${indexRes.status}`);
+    const unitIndex=await indexRes.json();
+    const core={};
+    for(const entry of unitIndex.units||[]){
+      const r=await fetch('./'+entry.path+'?v=unit-core-v3',{cache:'no-store'});
+      if(!r.ok)throw new Error(`${entry.id} unit ${r.status}`);
+      const u=await r.json();
+      const max=u?.combat?.chakra_max,start=u?.combat?.chakra_start;
+      if(u.schema_version<3||!Number.isInteger(max)||!Number.isInteger(start)||start<0||start>max)throw new Error(`${entry.id} invalid chakra core`);
+      core[u.id]={id:u.id,name:u.display_name,role:u.role,max,start,speed:u.stats?.speed};
     }
 
-    // Pre-execution dev contract. Resolver-backed code should consume this rather than inventing more one-off test rules.
-    const marker=`<script>window.__BB_DEV_PREBOOT__={chakra:${DEV_CHAKRA},chakraEdits:${chakraEdits},maxEdits:${maxEdits},senkuLocalizedEdits:${senkuLocalizedEdits},senkuSpeedEdits:${senkuSpeedEdits},senkuArrayEdits:${senkuArrayEdits},senkuFillEdits:${senkuFillEdits}};<\/script>`;
-    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startFullChakra:true,startingChakra:${DEV_CHAKRA},playerSpeed:${DEV_SPEED},boostBossSpeed:false,senkuStartsMaxChakra:true});<\/script>`;
-    html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}${config}`);
+    const res=await fetch('./index.html?v=dev-runtime-unit-core-v8',{cache:'no-store'});
+    if(!res.ok)throw new Error(`index fetch ${res.status}`);
+    let html=await res.text();
+    let localizedEdits=0,arrayEdits=0,fillEdits=0,speedEdits=0;
 
-    document.open();
-    document.write(html);
-    document.close();
-  }catch(err){
-    status.textContent='DEV RUNTIME LOAD FAILED • '+(err?.message||err);
-    console.error(err);
-  }
+    // Transitional bridge for the monolithic legacy battle. Values come from each unit's
+    // canonical unit.json. No global chakra number is authored here.
+    for(const unit of Object.values(core)){
+      if(unit.role!=='playable')continue;
+      const needles=[unit.id,String(unit.name||'').toLowerCase()].filter(Boolean);
+      const lower=html.toLowerCase();const spans=[];
+      for(const needle of needles){let pos=0;while((pos=lower.indexOf(needle,pos))!==-1){spans.push([Math.max(0,pos-3600),Math.min(html.length,pos+4400)]);pos+=Math.max(1,needle.length);}}
+      const merged=[];spans.sort((a,b)=>a[0]-b[0]).forEach(s=>{const last=merged[merged.length-1];if(last&&s[0]<=last[1])last[1]=Math.max(last[1],s[1]);else merged.push(s.slice());});
+      for(let i=merged.length-1;i>=0;i--){
+        const [a,b]=merged[i];let block=html.slice(a,b);const max=unit.max;
+        block=block.replace(/((?:["']?(?:chakra|currentChakra|chakraCurrent|chakraNow|chakra_start|chakraStart|startingChakra|startChakra|chakraPips|chakraOrbs|chakraSegments|energy|currentEnergy|ki|currentKi|charge|charges|chakraMax|maxChakra|chakra_max|max_chakra)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{localizedEdits++;return p+max;});
+        block=block.replace(/((?:["']?(?:speed|spd|meterSpeed|turnSpeed|initiativeSpeed|gaugeSpeed|atbSpeed|actionSpeed)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{speedEdits++;return p+DEV_PLAYER_SPEED;});
+        block=block.replace(/((?:["']?(?:chakra|chakraPips|chakraOrbs|chakraSegments|currentChakra)["']?)\s*[:=]\s*)\[((?:\s*(?:true|false|0|1)\s*,?){2,})\]/gi,(m,p,items)=>{const boolMode=/true|false/i.test(items);arrayEdits++;return p+'['+Array(max).fill(boolMode?'true':'1').join(',')+']';});
+        block=block.replace(/((?:["']?(?:chakra|chakraPips|chakraOrbs|chakraSegments|currentChakra)["']?)\s*[:=]\s*)((?:new\s+)?Array\(\s*\d+\s*\)\.fill\(\s*(false|0)\s*\))/gi,(m,p,expr,seed)=>{fillEdits++;return p+`Array(${max}).fill(${String(seed).toLowerCase()==='false'?'true':'1'})`;});
+        html=html.slice(0,a)+block+html.slice(b);
+      }
+    }
+
+    const payload=JSON.stringify(core).replace(/</g,'\\u003c');
+    const marker=`<script>window.BB_UNIT_CORE=Object.freeze(${payload});window.__BB_DEV_PREBOOT__={unitCore:true,localizedEdits:${localizedEdits},arrayEdits:${arrayEdits},fillEdits:${fillEdits},speedEdits:${speedEdits}};<\/script>`;
+    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startPlayableAtMaxChakra:true,playerSpeed:${DEV_PLAYER_SPEED},boostBossSpeed:false});<\/script>`;
+    const factory=`<script src="runtime/core/unit-state.js?v=e359099"><\/script>`;
+    html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}${config}${factory}`);
+
+    document.open();document.write(html);document.close();
+  }catch(err){status.textContent='DEV RUNTIME LOAD FAILED • '+(err?.message||err);console.error(err);}
 })();
 </script>
 </body>
