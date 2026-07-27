@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "unit_id": "senku",
   "source_unit_data": "assets/characters/senku/data/unit.json",
   "abilities": {
@@ -30,9 +30,10 @@
       "slot": "jutsu",
       "animation_id": "senku.animation.jutsu.revival_formula.cast",
       "cost_source": "abilities.jutsu.cost",
+      "delivery_id": "airburst",
       "gameplay_actions": [
         {
-          "event": "on_impact",
+          "event": "on_burst",
           "action_id": "heal_party_percent",
           "parameters": {
             "percent_of_max_hp": 0.3
@@ -40,17 +41,20 @@
         }
       ],
       "vfx": {
-        "projectile": "senku.vfx.jutsu.revival_formula.projectile",
-        "impact": "shared.vfx.heal.green_flash"
+        "projectile": "senku.vfx.jutsu.revival_formula.bottle",
+        "burst": "shared.vfx.heal.green_flash"
       },
       "projectile_presentation": {
         "trajectory": "airburst",
         "rise_height_px": 150,
-        "horizontal_drift_px": 32,
+        "arc_height_px": 95,
+        "horizontal_drift_px": 72,
         "scale": 1.0,
-        "duration_ms": 520,
+        "duration_ms": 650,
         "burst_at_apex": true,
-        "legacy_impact_frames_suppressed": true
+        "fade_projectile_before_burst": true,
+        "legacy_projectile_renderer": false,
+        "legacy_impact_renderer": false
       }
     }
   },
