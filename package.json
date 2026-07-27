@@ -1,0 +1,11 @@
+{
+  "name": "blazing-battle-game",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-cloudflare.mjs",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.114.0"
+  }
+}
