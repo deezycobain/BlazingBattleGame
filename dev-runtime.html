@@ -14,29 +14,37 @@
   const DEV_CHAKRA=8;
   const status=document.getElementById('status');
   try{
-    const res=await fetch('./index.html?v=dev-runtime-source-fullchakra-3',{cache:'no-store'});
+    const res=await fetch('./index.html?v=dev-runtime-source-playerboost-4',{cache:'no-store'});
     if(!res.ok) throw new Error(`index fetch ${res.status}`);
     let html=await res.text();
     let speedEdits=0,bossSpeedSkips=0,chakraEdits=0,maxEdits=0,initEdits=0,senkuEdits=0;
 
-    // DEV BASELINE: player/unit speed is accelerated, but bosses/enemies retain their authored speed.
+    // DEV BASELINE: boost authored PLAYER unit speeds only. Boss/enemy/opponent records stay untouched.
     const speedPattern=/((?:["']?(?:speed|spd|meterSpeed|turnSpeed|initiativeSpeed|gaugeSpeed|atbSpeed|actionSpeed)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi;
     html=html.replace(speedPattern,(match,prefix,value,offset,whole)=>{
-      const near=whole.slice(Math.max(0,offset-240),Math.min(whole.length,offset+180)).toLowerCase();
-      const isBoss=/\bboss\b|\benemy\b|\bopponent\b|anubis|side\s*[:=]\s*["']enemy["']|role\s*[:=]\s*["']boss["']/.test(near);
+      const near=whole.slice(Math.max(0,offset-1400),Math.min(whole.length,offset+1400)).toLowerCase();
+      const isBoss=/\bboss\b|\benemy\b|\bopponent\b|anubis|side\s*[:=]\s*["']enemy["']|role\s*[:=]\s*["']boss["']|role\s*[:=]\s*["']enemy["']/.test(near);
       if(isBoss){bossSpeedSkips++;return match;}
       speedEdits++;return prefix+DEV_SPEED;
     });
 
-    const currentNames='chakra|currentChakra|chakraCurrent|chakraNow|energy|currentEnergy|ki|currentKi';
+    // Full chakra for all player-side unit/resource values in dev.
+    const currentNames='chakra|currentChakra|chakraCurrent|chakraNow|chakra_start|chakraStart|energy|currentEnergy|ki|currentKi';
     const maxNames='chakraMax|maxChakra|chakra_max|max_chakra|energyMax|maxEnergy|kiMax|maxKi';
-    html=html.replace(new RegExp('((?:["\']?(?:'+currentNames+')["\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{chakraEdits++;return p+DEV_CHAKRA;});
-    html=html.replace(new RegExp('((?:["\']?(?:'+maxNames+')["\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{maxEdits++;return p+DEV_CHAKRA;});
+    html=html.replace(new RegExp('((?:["\']?(?:'+currentNames+')["\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p,v,offset,whole)=>{
+      const near=whole.slice(Math.max(0,offset-1100),Math.min(whole.length,offset+1100)).toLowerCase();
+      if(/\bboss\b|\benemy\b|\bopponent\b|anubis/.test(near)) return m;
+      chakraEdits++;return p+DEV_CHAKRA;
+    });
+    html=html.replace(new RegExp('((?:["\']?(?:'+maxNames+')["\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p,v,offset,whole)=>{
+      const near=whole.slice(Math.max(0,offset-1100),Math.min(whole.length,offset+1100)).toLowerCase();
+      if(/\bboss\b|\benemy\b|\bopponent\b|anubis/.test(near)) return m;
+      maxEdits++;return p+DEV_CHAKRA;
+    });
     html=html.replace(/((?:chakra|currentChakra|chakraCurrent|chakraNow)\s*=\s*)(?:0|null|undefined|[^;\n]+?\?\?\s*0)(?=\s*[;,\n])/gi,(m,p)=>{initEdits++;return p+DEV_CHAKRA;});
 
-    // Senku hard-start rule for the current legacy runtime. This supplements the canonical
-    // unit.json combat.chakra_start=8 until the standalone battle fully consumes unit data.
-    html=html.replace(/((?:senku(?:Current)?Chakra|senku_chakra|senkuChakraCurrent)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{senkuEdits++;return p+DEV_CHAKRA;});
+    // Senku explicit legacy bridge: canonical unit core is 8/8, and legacy runtime is forced to match it.
+    html=html.replace(/((?:senku(?:Current)?Chakra|senku_chakra|senkuChakraCurrent|senkuChakra|senku\.chakra|senku\.currentChakra)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{senkuEdits++;return p+DEV_CHAKRA;});
 
     const marker=`<script>window.__BB_DEV_PREBOOT__={speed:${DEV_SPEED},chakra:${DEV_CHAKRA},speedEdits:${speedEdits},bossSpeedSkips:${bossSpeedSkips},chakraEdits:${chakraEdits},maxEdits:${maxEdits},initEdits:${initEdits},senkuEdits:${senkuEdits}};<\/script>`;
     html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}`);
