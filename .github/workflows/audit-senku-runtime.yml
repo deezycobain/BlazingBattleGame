@@ -20,36 +20,37 @@ jobs:
           ref: dev
           fetch-depth: 0
 
-      - name: Extract small Senku runtime snippets
+      - name: Extract targeted runtime snippets
         shell: python
         run: |
           from pathlib import Path
           import json,re
 
           text=Path('index.html').read_text(encoding='utf-8')
-          # Remove embedded font/image data so searches don't hit encoded junk.
           clean=re.sub(r'data:[^;]+;base64,[A-Za-z0-9+/=]+','<DATA_URL_REMOVED>',text)
           patterns=[
-            r'Senku',r'chakra',r'Revival Formula',r'chemical_reaction',r'heal',
-            r'ATTACK_SPRITES',r'special',r'speed',r'initiative',r'turn meter',r'Basic builds chakra'
+            r'animateSenkuChemicalReaction', r'jutsuCost', r'chakra\s*:',
+            r'chakra\s*=', r'BLAZING_UNIT_DATA', r'UNIT_DATA', r'makeUnit',
+            r'createUnit', r'buildUnit', r'unitFrom', r'playerUnits', r'roster',
+            r'speed\s*:', r'\.speed', r'supportJutsu', r'isAllySupportJutsu',
+            r'drawPlayerResources', r'jutsuBtn\.textContent'
           ]
-          items=[];seen=set()
+          items=[]
           for pat in patterns:
+            count=0
             for m in re.finditer(pat,clean,re.I):
-              lo=max(0,m.start()-700);hi=min(len(clean),m.end()+900)
+              lo=max(0,m.start()-1100);hi=min(len(clean),m.end()+1500)
               snippet=clean[lo:hi].replace('\r','')
-              key=snippet[:180]
-              if key in seen: continue
-              seen.add(key)
               items.append({'term':pat,'offset':m.start(),'snippet':snippet})
-              if sum(1 for x in items if x['term']==pat)>=12: break
+              count+=1
+              if count>=8: break
           Path('dev-tools').mkdir(exist_ok=True)
-          Path('dev-tools/senku-runtime-snippets.json').write_text(json.dumps(items,indent=2),encoding='utf-8')
+          Path('dev-tools/senku-runtime-targets.json').write_text(json.dumps(items,indent=2),encoding='utf-8')
 
-      - name: Commit audit report
+      - name: Commit targeted findings
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dev-tools/senku-runtime-snippets.json
-          git commit -m "Generate Senku runtime snippets" || exit 0
+          git add dev-tools/senku-runtime-targets.json
+          git commit -m "Generate targeted Senku runtime findings" || exit 0
           git push origin HEAD:dev
