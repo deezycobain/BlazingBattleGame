@@ -12,7 +12,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
 </head>
 <body>
 <div id="boot">DEV LOADING…</div>
-<iframe id="game" src="./index.html?v=dev-playtest-2" title="Blazing Battle"></iframe>
+<iframe id="game" src="./index.html?v=dev-playtest-3" title="Blazing Battle"></iframe>
 <script>
 (()=>{
   const frame=document.getElementById('game');
@@ -157,6 +157,15 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
     doc.head.appendChild(script);
   }
 
+  function installSenkuTestOverrides(doc){
+    if(doc.getElementById('bb-senku-test-overrides')||frame.contentWindow?.__SENKU_TEST_OVERRIDES__)return;
+    const script=doc.createElement('script');
+    script.id='bb-senku-test-overrides';
+    script.src='runtime/dev/senku-test-overrides.js?v=0e5841f';
+    script.onerror=()=>{boot.textContent='SENKU TEST OVERRIDE LOAD ERROR';boot.style.opacity='1';};
+    doc.head.appendChild(script);
+  }
+
   function install(){
     try{
       const win=frame.contentWindow,doc=frame.contentDocument;
@@ -168,7 +177,8 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
       doc.querySelectorAll('canvas').forEach(canvas=>{try{const ctx=canvas.getContext('2d');if(ctx&&!ctx.__senkuDevProjectilePatched){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuDevProjectilePatched=true;}}catch(_){}});
       installBossStyle(doc);
       installDevMonitor(doc);
-      boot.textContent='DEV READY';
+      installSenkuTestOverrides(doc);
+      boot.textContent='DEV READY • SENKU TEST BOOST';
       setTimeout(()=>boot.style.opacity='0',900);
     }catch(e){boot.textContent='DEV PATCH ACCESS ERROR';boot.style.opacity='1';}
   }
