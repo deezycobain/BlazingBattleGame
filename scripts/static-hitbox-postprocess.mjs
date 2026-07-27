@@ -18,48 +18,51 @@ const facingReplacement=`function updateFacing(){
         const combat=canonicalUnit(actor.name)?.combat||{};
         if(Number.isFinite(combat.basic_rotation_deg))deg=combat.basic_rotation_deg;
       }
-    }catch(_){}
+    }catch(_){ }
     return deg*Math.PI/180;
   }
 
   S.pairs.forEach(pair=>{
     let active=null;
-    try{active=front(pair)}catch(_){}
+    try{active=front(pair)}catch(_){ }
 
     // Senku's bomb owns a circular range. Only the nearest enemy already inside
     // that circle is his target, and Senku visually faces that locked target.
     if(active?.name==='Senku'){
       let shape={type:'circle',r:140};
-      try{shape=canonicalUnit('senku')?.combat?.basic_shape||shape}catch(_){}
-      const rawCandidates=(S.enemies||[]).filter(e=>e.hp>0 && rawHits(pair,{shape,rotation:0},{x:e.x,y:e.y,r:e.r||19}));
+      try{shape=canonicalUnit('senku')?.combat?.basic_shape||shape}catch(_){ }
+      const rawCandidates=(S.enemies||[]).filter(e=>e&&e.hp>0 && rawHits(pair,{shape,rotation:0},{x:e.x,y:e.y,r:e.r||19}));
       const nearest=rawCandidates.sort((a,b)=>d(pair,a)-d(pair,b))[0]||null;
       if(nearest){
         const angle=Math.atan2(nearest.y-pair.y,nearest.x-pair.x);
         pair.rotation=angle;
-        pair.units.forEach(unit=>{unit.rotation=angle;});
+        (pair.units||[]).forEach(unit=>{if(unit)unit.rotation=angle;});
         return;
       }
     }
 
-    pair.units.forEach(unit=>{unit.rotation=fixedAttackRotation(unit,-90);});
+    (pair.units||[]).forEach(unit=>{if(unit)unit.rotation=fixedAttackRotation(unit,-90);});
   });
 
-  S.enemies.forEach(e=>{e.rotation=fixedAttackRotation(e,90);});
+  (S.enemies||[]).forEach(e=>{if(e)e.rotation=fixedAttackRotation(e,90);});
 }
 
 function battleSpriteFor`;
 html=html.replace(facingRx,facingReplacement);
 
 // Make canonical single-target range semantics apply everywhere that calls hits(),
-// including the white target indicators. The underlying geometry remains rawHits().
-// This means Senku's circle can contain several enemies, but only the nearest one
-// is considered targetable/highlighted. Lebee remains multi-target.
+// including the white target indicators. IMPORTANT: the legacy geometry helper
+// calls hits() recursively for some shape types. Rename those internal recursive
+// calls too, otherwise the wrapper re-enters itself and blows up the renderer when
+// Senku's movement/attack overlay is drawn.
 const hitsStart=html.indexOf('function hits(');
 if(hitsStart<0)throw new Error('Single-target pass: hits() function not found');
 const hitsBodyStart=hitsStart+'function hits('.length;
 const nextFunction=html.indexOf('\nfunction ',hitsBodyStart);
 if(nextFunction<0)throw new Error('Single-target pass: could not find end of hits() function');
-html=html.slice(0,hitsStart)+html.slice(hitsStart,nextFunction).replace('function hits(','function rawHits(')+html.slice(nextFunction);
+let rawHitsFn=html.slice(hitsStart,nextFunction);
+rawHitsFn=rawHitsFn.replace('function hits(','function rawHits(').replace(/\bhits\(/g,'rawHits(');
+html=html.slice(0,hitsStart)+rawHitsFn+html.slice(nextFunction);
 const wrapper=`
 function hits(a,u,b){
   const base=rawHits(a,u,b);
@@ -70,12 +73,12 @@ function hits(a,u,b){
     else if(a?.name)actor=a;
     const basic=actor?.name?canonicalUnit(actor.name)?.abilities?.basic:null;
     if(basic?.target_mode==='single' && basic?.single_target_selector==='nearest_in_shape' && u?.shape?.type==='circle' && a?.units){
-      const candidates=(S.enemies||[]).filter(e=>e.hp>0 && rawHits(a,u,{x:e.x,y:e.y,r:e.r||19}));
+      const candidates=(S.enemies||[]).filter(e=>e&&e.hp>0 && rawHits(a,u,{x:e.x,y:e.y,r:e.r||19}));
       if(!candidates.length)return false;
       const nearest=candidates.sort((x,y)=>d(a,x)-d(a,y))[0];
       return Math.abs((b?.x??Infinity)-nearest.x)<0.01 && Math.abs((b?.y??Infinity)-nearest.y)<0.01;
     }
-  }catch(_){}
+  }catch(_){ }
   return true;
 }
 `;
@@ -92,7 +95,7 @@ html=html.replace(targetRx,(_match,indent)=>`${indent}if(!useJutsu){
  ${indent} }
  ${indent}}
  ${indent}if(!targets.length){
- ${indent} S.log=\`\${u.name} committed the move but caught no target.\`;return finishAction()
+ ${indent} S.log=\`${'${u.name}'} committed the move but caught no target.\`;return finishAction()
  ${indent}}`);
 
 // Preserve the approved Senku bomb visual size curve.
@@ -113,4 +116,4 @@ if(sizeAt>=0 && sizeAt-bombStart<5000){
 }
 
 await fs.writeFile(file,html);
-console.log('Gameplay presentation pass: Senku nearest-target lock/facing + single highlight; Lebee multi-target lane retained');
+console.log('Gameplay presentation pass: safe Senku nearest-target highlight/facing + Lebee multi-target lane retained');
