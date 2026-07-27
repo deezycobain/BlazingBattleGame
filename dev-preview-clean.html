@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Blazing Battle — Clean Dev Preview</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
+#game{display:block;width:100%;height:100%;border:0}
+#status{position:fixed;z-index:2147483647;top:8px;right:8px;padding:5px 8px;border-radius:8px;font:700 11px/1.2 system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.72);pointer-events:none}
+</style>
+</head>
+<body>
+<div id="status">CLEAN DEV LOADING…</div>
+<iframe id="game" src="./index.html?v=clean-preview-1" title="Blazing Battle"></iframe>
+<script>
+(()=>{
+  const frame=document.getElementById('game');
+  const status=document.getElementById('status');
+  const SCALE=2;
+
+  function looksLikeSenkuBombForScale(image){
+    if(!image)return false;
+    const src=String(image.currentSrc||image.src||'');
+    if(src.includes('/senku/')&&src.includes('bomb'))return true;
+    if(src.includes('projectile_clean'))return true;
+    const w=image.naturalWidth||image.videoWidth||image.width||0;
+    const h=image.naturalHeight||image.videoHeight||image.height||0;
+    return w===96&&h===96;
+  }
+
+  function wrapDrawImage(original){
+    if(typeof original!=='function'||original.__senkuScaleOnlyWrapped)return original;
+    function patchedDrawImage(image,...args){
+      if(!looksLikeSenkuBombForScale(image))return original.call(this,image,...args);
+      if(args.length===2){
+        const [dx,dy]=args;
+        const ow=image.naturalWidth||image.width||0,oh=image.naturalHeight||image.height||0;
+        const nw=ow*SCALE,nh=oh*SCALE;
+        return original.call(this,image,dx-(nw-ow)/2,dy-(nh-oh)/2,nw,nh);
+      }
+      if(args.length===4){
+        const [dx,dy,dw,dh]=args;
+        const nw=dw*SCALE,nh=dh*SCALE;
+        return original.call(this,image,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
+      }
+      if(args.length===8){
+        const [sx,sy,sw,sh,dx,dy,dw,dh]=args;
+        const nw=dw*SCALE,nh=dh*SCALE;
+        return original.call(this,image,sx,sy,sw,sh,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
+      }
+      return original.call(this,image,...args);
+    }
+    patchedDrawImage.__senkuScaleOnlyWrapped=true;
+    return patchedDrawImage;
+  }
+
+  function install(){
+    try{
+      const win=frame.contentWindow,doc=frame.contentDocument;
+      if(!win||!doc)return;
+      if(win.CanvasRenderingContext2D){
+        const proto=win.CanvasRenderingContext2D.prototype;
+        if(!proto.__senkuScaleOnlyPatched){
+          proto.drawImage=wrapDrawImage(proto.drawImage);
+          proto.__senkuScaleOnlyPatched=true;
+        }
+      }
+      doc.querySelectorAll('canvas').forEach(canvas=>{
+        try{
+          const ctx=canvas.getContext('2d');
+          if(ctx&&!ctx.__senkuScaleOnlyPatched){
+            ctx.drawImage=wrapDrawImage(ctx.drawImage);
+            ctx.__senkuScaleOnlyPatched=true;
+          }
+        }catch(_){ }
+      });
+      status.textContent='DEV • BOMB 2× • CLEAN IMPACT TEST';
+    }catch(e){status.textContent='DEV PATCH ACCESS ERROR';}
+  }
+
+  frame.addEventListener('load',()=>{
+    install();
+    [50,150,300,600,1000,2000,4000].forEach(ms=>setTimeout(install,ms));
+  });
+  setTimeout(()=>{if(status.textContent==='CLEAN DEV LOADING…')status.textContent='DEV GAME LOAD FAILED';},8000);
+})();
+</script>
+</body>
+</html>
