@@ -41,13 +41,16 @@
       ],
       "vfx": {
         "projectile": "senku.vfx.jutsu.revival_formula.projectile",
-        "impact": "senku.vfx.jutsu.revival_formula.impact"
+        "impact": "shared.vfx.heal.green_flash"
       },
       "projectile_presentation": {
-        "trajectory": "arc",
-        "arc_height_px": 86,
+        "trajectory": "airburst",
+        "rise_height_px": 150,
+        "horizontal_drift_px": 32,
         "scale": 1.0,
-        "duration_source": "abilities.jutsu.presentation.flight_duration_ms"
+        "duration_ms": 520,
+        "burst_at_apex": true,
+        "legacy_impact_frames_suppressed": true
       }
     }
   },
