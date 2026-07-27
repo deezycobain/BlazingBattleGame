@@ -20,36 +20,13 @@ jobs:
           ref: dev
           fetch-depth: 0
 
-      - name: Extract targeted runtime snippets
-        shell: python
-        run: |
-          from pathlib import Path
-          import json,re
+      - name: Run direct Senku battle migration
+        run: python dev-tools/migrate_senku_runtime.py
 
-          text=Path('index.html').read_text(encoding='utf-8')
-          clean=re.sub(r'data:[^;]+;base64,[A-Za-z0-9+/=]+','<DATA_URL_REMOVED>',text)
-          patterns=[
-            r'animateSenkuChemicalReaction', r'senkuChemProjectile', r'senkuChemImpact',
-            r'SENKU_CHEM', r'jutsuCost', r'chakra\s*:', r'chakra\s*=',
-            r'BLAZING_UNIT_DATA', r'runtimeDefinition', r'makeRosterUnit',
-            r'teamSpawnOptions', r'freshBoss', r'Anubis', r'speed\s*:', r'\.speed',
-            r'S\.floaters\.forEach', r'drawPlayerResources', r'jutsuBtn\.textContent'
-          ]
-          items=[]
-          for pat in patterns:
-            count=0
-            for m in re.finditer(pat,clean,re.I):
-              lo=max(0,m.start()-1300);hi=min(len(clean),m.end()+1800)
-              items.append({'term':pat,'offset':m.start(),'snippet':clean[lo:hi].replace('\r','')})
-              count+=1
-              if count>=10: break
-          Path('dev-tools').mkdir(exist_ok=True)
-          Path('dev-tools/senku-runtime-targets.json').write_text(json.dumps(items,indent=2),encoding='utf-8')
-
-      - name: Commit targeted findings
+      - name: Commit migrated runtime
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dev-tools/senku-runtime-targets.json
-          git commit -m "Generate Senku heal renderer findings" || exit 0
+          git add index.html dev-tools/direct-migration-run.json
+          git commit -m "Apply audited Senku runtime migration" || exit 0
           git push origin HEAD:dev
