@@ -14,35 +14,49 @@
   const DEV_CHAKRA=8;
   const status=document.getElementById('status');
   try{
-    const res=await fetch('./index.html?v=dev-runtime-source-corebridge-6',{cache:'no-store'});
+    const res=await fetch('./index.html?v=dev-runtime-source-corebridge-7',{cache:'no-store'});
     if(!res.ok) throw new Error(`index fetch ${res.status}`);
     let html=await res.text();
-    let chakraEdits=0,maxEdits=0,senkuLocalizedEdits=0,senkuSpeedEdits=0;
+    let chakraEdits=0,maxEdits=0,senkuLocalizedEdits=0,senkuSpeedEdits=0,senkuArrayEdits=0,senkuFillEdits=0;
 
-    // DEV CHAKRA BASELINE. Cover the common legacy spellings before the game executes.
-    const currentNames='chakra|currentChakra|chakraCurrent|chakraNow|chakra_start|chakraStart|startingChakra|startChakra|energy|currentEnergy|ki|currentKi|charge|charges';
+    // DEV CHAKRA BASELINE. Numeric legacy resource fields are rewritten before game execution.
+    const currentNames='chakra|currentChakra|chakraCurrent|chakraNow|chakra_start|chakraStart|startingChakra|startChakra|chakraPips|chakraOrbs|chakraSegments|energy|currentEnergy|ki|currentKi|charge|charges';
     const maxNames='chakraMax|maxChakra|chakra_max|max_chakra|max_chakra_points|energyMax|maxEnergy|kiMax|maxKi|maxCharge|maxCharges';
     html=html.replace(new RegExp('((["\\\']?(?:'+currentNames+')["\\\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{chakraEdits++;return p+DEV_CHAKRA;});
     html=html.replace(new RegExp('((["\\\']?(?:'+maxNames+')["\\\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{maxEdits++;return p+DEV_CHAKRA;});
 
     // Senku-specific bridge for the legacy standalone runtime. Canonical unit.json is 8/8,
-    // but the old monolithic runtime still carries its own copy of some values.
-    // Patch only text regions surrounding Senku so boss speed is never touched here.
+    // but the monolithic runtime can initialize chakra as a numeric field, a pip array,
+    // or Array(8).fill(false/0). Handle all three forms only in Senku-localized source blocks.
     const lower=html.toLowerCase();
     const spans=[]; let pos=0;
-    while((pos=lower.indexOf('senku',pos))!==-1){spans.push([Math.max(0,pos-2200),Math.min(html.length,pos+2600)]);pos+=5;}
+    while((pos=lower.indexOf('senku',pos))!==-1){spans.push([Math.max(0,pos-3200),Math.min(html.length,pos+3800)]);pos+=5;}
     const merged=[];
     spans.sort((a,b)=>a[0]-b[0]).forEach(s=>{const last=merged[merged.length-1];if(last&&s[0]<=last[1])last[1]=Math.max(last[1],s[1]);else merged.push(s.slice());});
     for(let i=merged.length-1;i>=0;i--){
       const [a,b]=merged[i]; let block=html.slice(a,b);
-      block=block.replace(/((?:["']?(?:chakra|currentChakra|chakraCurrent|chakraNow|chakra_start|chakraStart|startingChakra|startChakra|energy|currentEnergy|ki|currentKi|charge|charges|chakraMax|maxChakra|chakra_max|max_chakra)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{senkuLocalizedEdits++;return p+DEV_CHAKRA;});
+      block=block.replace(/((?:["']?(?:chakra|currentChakra|chakraCurrent|chakraNow|chakra_start|chakraStart|startingChakra|startChakra|chakraPips|chakraOrbs|chakraSegments|energy|currentEnergy|ki|currentKi|charge|charges|chakraMax|maxChakra|chakra_max|max_chakra)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{senkuLocalizedEdits++;return p+DEV_CHAKRA;});
       block=block.replace(/((?:["']?(?:speed|spd|meterSpeed|turnSpeed|initiativeSpeed|gaugeSpeed|atbSpeed|actionSpeed)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{senkuSpeedEdits++;return p+DEV_SPEED;});
+
+      // chakra: [false,false,...] or chakra: [0,0,...]
+      block=block.replace(/((?:["']?(?:chakra|chakraPips|chakraOrbs|chakraSegments|currentChakra)["']?)\s*[:=]\s*)\[((?:\s*(?:true|false|0|1)\s*,?){2,})\]/gi,(m,p,items)=>{
+        const boolMode=/true|false/i.test(items);
+        senkuArrayEdits++;
+        return p+'['+Array(DEV_CHAKRA).fill(boolMode?'true':'1').join(',')+']';
+      });
+
+      // chakra: Array(8).fill(false) / new Array(8).fill(0)
+      block=block.replace(/((?:["']?(?:chakra|chakraPips|chakraOrbs|chakraSegments|currentChakra)["']?)\s*[:=]\s*)((?:new\s+)?Array\(\s*8\s*\)\.fill\(\s*(false|0)\s*\))/gi,(m,p,expr,seed)=>{
+        senkuFillEdits++;
+        return p+`Array(${DEV_CHAKRA}).fill(${String(seed).toLowerCase()==='false'?'true':'1'})`;
+      });
+
       html=html.slice(0,a)+block+html.slice(b);
     }
 
-    // Pre-execution dev contract. New resolver-backed code can consume this directly.
-    const marker=`<script>window.__BB_DEV_PREBOOT__={chakra:${DEV_CHAKRA},chakraEdits:${chakraEdits},maxEdits:${maxEdits},senkuLocalizedEdits:${senkuLocalizedEdits},senkuSpeedEdits:${senkuSpeedEdits}};<\/script>`;
-    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startFullChakra:true,startingChakra:${DEV_CHAKRA},senkuSpeed:${DEV_SPEED},boostBossSpeed:false,senkuStartsMaxChakra:true});<\/script>`;
+    // Pre-execution dev contract. Resolver-backed code should consume this rather than inventing more one-off test rules.
+    const marker=`<script>window.__BB_DEV_PREBOOT__={chakra:${DEV_CHAKRA},chakraEdits:${chakraEdits},maxEdits:${maxEdits},senkuLocalizedEdits:${senkuLocalizedEdits},senkuSpeedEdits:${senkuSpeedEdits},senkuArrayEdits:${senkuArrayEdits},senkuFillEdits:${senkuFillEdits}};<\/script>`;
+    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startFullChakra:true,startingChakra:${DEV_CHAKRA},playerSpeed:${DEV_SPEED},boostBossSpeed:false,senkuStartsMaxChakra:true});<\/script>`;
     html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}${config}`);
 
     document.open();
