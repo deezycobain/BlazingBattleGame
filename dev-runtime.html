@@ -10,57 +10,38 @@
 <div id="status">DEV RUNTIME PREPARING…</div>
 <script>
 (async()=>{
-  const DEV_PLAYER_SPEED=200,DEV_BOSS_SPEED=50;
+  const DEV_PLAYER_SPEED=200,DEV_BOSS_SPEED=50,DEV_CHAKRA=8;
   const status=document.getElementById('status');
   const bust=()=>`bbdev=${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  async function getJson(path){
-    const r=await fetch(`${path}${path.includes('?')?'&':'?'}${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});
-    if(!r.ok)throw new Error(`${path} ${r.status}`);
-    return r.json();
-  }
+  async function getJson(path){const r=await fetch(`${path}${path.includes('?')?'&':'?'}${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});if(!r.ok)throw new Error(`${path} ${r.status}`);return r.json();}
   try{
     const unitIndex=await getJson('./runtime/registry/unit-index.json');
     const core={};const migrationWarnings=[];
-    for(const entry of unitIndex.units||[]){
-      let u=await getJson('./'+entry.path);
-      let max=u?.combat?.chakra_max,start=u?.combat?.chakra_start;
-      if(!Number.isInteger(max)){u=await getJson('./'+entry.path);max=u?.combat?.chakra_max;start=u?.combat?.chakra_start;}
-      if(!Number.isInteger(max))throw new Error(`${entry.id} missing chakra_max`);
-      if(!Number.isInteger(start)){start=0;migrationWarnings.push(`${entry.id}:stale-start-defaulted`);}
-      if(start<0||start>max)throw new Error(`${entry.id} invalid chakra range`);
-      core[u.id]={id:u.id,name:u.display_name,role:u.role,max,start,speed:u.stats?.speed};
-    }
+    for(const entry of unitIndex.units||[]){let u=await getJson('./'+entry.path);let max=u?.combat?.chakra_max,start=u?.combat?.chakra_start;if(!Number.isInteger(max)){u=await getJson('./'+entry.path);max=u?.combat?.chakra_max;start=u?.combat?.chakra_start;}if(!Number.isInteger(max))throw new Error(`${entry.id} missing chakra_max`);if(!Number.isInteger(start)){start=0;migrationWarnings.push(`${entry.id}:stale-start-defaulted`);}if(start<0||start>max)throw new Error(`${entry.id} invalid chakra range`);core[u.id]={id:u.id,name:u.display_name,role:u.role,max,start,speed:u.stats?.speed};}
 
-    const res=await fetch(`./index.html?${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});
-    if(!res.ok)throw new Error(`index fetch ${res.status}`);
-    let html=await res.text();
-    let localizedEdits=0,arrayEdits=0,fillEdits=0;
+    const res=await fetch(`./index.html?${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});if(!res.ok)throw new Error(`index fetch ${res.status}`);let html=await res.text();
+    let chakraEdits=0,arrayEdits=0,fillEdits=0,retiredVfxEdits=0,textEdits=0;
 
-    // Transitional chakra-only bridge. Do NOT rewrite speed in source text: broad source windows
-    // can overlap other combatants. Speed is applied by identity at runtime in playtest-patch.js.
-    const resourceNames='chakra|currentChakra|chakraCurrent|chakraNow|current_chakra|chakra_start|chakraStart|startingChakra|startChakra|chakraPips|chakraOrbs|chakraSegments|chakraCount|chakraPoints|chakraGauge|energy|currentEnergy|ki|currentKi|charge|charges|pips|orbs|segments|cp|ch';
-    const maxNames='chakraMax|maxChakra|chakra_max|max_chakra|max_chakra_points|energyMax|maxEnergy|kiMax|maxKi|maxCharge|maxCharges';
-    for(const unit of Object.values(core)){
-      if(unit.role!=='playable')continue;
-      const needles=[unit.id,String(unit.name||'').toLowerCase()].filter(Boolean);
-      const lower=html.toLowerCase();const spans=[];
-      for(const needle of needles){let pos=0;while((pos=lower.indexOf(needle,pos))!==-1){spans.push([Math.max(0,pos-12000),Math.min(html.length,pos+14000)]);pos+=Math.max(1,needle.length);}}
-      const merged=[];spans.sort((a,b)=>a[0]-b[0]).forEach(s=>{const last=merged[merged.length-1];if(last&&s[0]<=last[1])last[1]=Math.max(last[1],s[1]);else merged.push(s.slice());});
-      for(let i=merged.length-1;i>=0;i--){
-        const [a,b]=merged[i];let block=html.slice(a,b);const max=unit.max;
-        block=block.replace(new RegExp('((?:["\\\']?(?:'+resourceNames+'|'+maxNames+')["\\\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{localizedEdits++;return p+max;});
-        block=block.replace(new RegExp('((?:["\\\']?(?:'+resourceNames+')["\\\']?)\\s*[:=]\\s*)\\[((?:\\s*(?:true|false|0|1)\\s*,?){2,})\\]','gi'),(m,p,items)=>{const boolMode=/true|false/i.test(items);arrayEdits++;return p+'['+Array(max).fill(boolMode?'true':'1').join(',')+']';});
-        block=block.replace(new RegExp('((?:["\\\']?(?:'+resourceNames+')["\\\']?)\\s*[:=]\\s*)((?:new\\s+)?Array\\(\\s*\\d+\\s*\\)\\.fill\\(\\s*(false|0)\\s*\\))','gi'),(m,p,expr,seed)=>{fillEdits++;return p+`Array(${max}).fill(${String(seed).toLowerCase()==='false'?'true':'1'})`;});
-        html=html.slice(0,a)+block+html.slice(b);
-      }
-    }
+    // DEV RESOURCE BASELINE: all legacy current-chakra initializers start full for testing.
+    // Canonical normal-game start values still live only in each unit.json.
+    const currentNames='chakra|currentChakra|chakraCurrent|chakraNow|current_chakra|chakra_start|chakraStart|startingChakra|startChakra|chakraCount|chakraPoints|chakraGauge|energy|currentEnergy|ki|currentKi|charge|charges|cp|ch';
+    const arrayNames='chakraPips|chakraOrbs|chakraSegments|pips|orbs|segments';
+    html=html.replace(new RegExp('((?:["\\\']?(?:'+currentNames+')["\\\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{chakraEdits++;return p+DEV_CHAKRA;});
+    html=html.replace(new RegExp('((?:["\\\']?(?:'+arrayNames+')["\\\']?)\\s*[:=]\\s*)\\[((?:\\s*(?:true|false|0|1)\\s*,?){2,})\\]','gi'),(m,p,items)=>{const boolMode=/true|false/i.test(items);arrayEdits++;return p+'['+Array(DEV_CHAKRA).fill(boolMode?'true':'1').join(',')+']';});
+    html=html.replace(new RegExp('((?:["\\\']?(?:'+arrayNames+')["\\\']?)\\s*[:=]\\s*)((?:new\\s+)?Array\\(\\s*\\d+\\s*\\)\\.fill\\(\\s*(false|0)\\s*\\))','gi'),(m,p,expr,seed)=>{fillEdits++;return p+`Array(${DEV_CHAKRA}).fill(${String(seed).toLowerCase()==='false'?'true':'1'})`;});
+
+    // Remove the old Senku heal projectile/ground-impact source from the legacy runtime itself.
+    // The approved Ally Heal airburst is supplied by runtime/dev/playtest-patch.js from the cast sequence.
+    const transparent='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+    html=html.replace(/(?:assets\/characters\/senku\/)?vfx\/jutsu\/chemical_reaction\/(?:projectile|impact)\/frame_0[1-9]\.png/gi,()=>{retiredVfxEdits++;return transparent;});
+    html=html.replace(/Revival Formula/g,()=>{textEdits++;return 'Ally Heal';});
+    html=html.replace(/Basic builds chakra; closer linked allies can amplify Link Attack buffs[^<\n]*/gi,()=>{textEdits++;return '';});
 
     const payload=JSON.stringify(core).replace(/</g,'\\u003c');
-    const marker=`<script>window.BB_UNIT_CORE=Object.freeze(${payload});window.__BB_DEV_PREBOOT__={unitCore:true,localizedEdits:${localizedEdits},arrayEdits:${arrayEdits},fillEdits:${fillEdits},migrationWarnings:${JSON.stringify(migrationWarnings)}};<\/script>`;
-    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startPlayableAtMaxChakra:true,playerSpeed:${DEV_PLAYER_SPEED},bossSpeed:${DEV_BOSS_SPEED}});<\/script>`;
+    const marker=`<script>window.BB_UNIT_CORE=Object.freeze(${payload});window.__BB_DEV_PREBOOT__={unitCore:true,chakraEdits:${chakraEdits},arrayEdits:${arrayEdits},fillEdits:${fillEdits},retiredVfxEdits:${retiredVfxEdits},textEdits:${textEdits},migrationWarnings:${JSON.stringify(migrationWarnings)}};<\/script>`;
+    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startPlayableAtMaxChakra:true,startingChakra:${DEV_CHAKRA},playerSpeed:${DEV_PLAYER_SPEED},bossSpeed:${DEV_BOSS_SPEED}});<\/script>`;
     const factory=`<script src="runtime/core/unit-state.js?${bust()}"><\/script>`;
     html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}${config}${factory}`);
-
     document.open();document.write(html);document.close();
   }catch(err){status.textContent='DEV RUNTIME LOAD FAILED • '+(err?.message||err);console.error(err);}
 })();
