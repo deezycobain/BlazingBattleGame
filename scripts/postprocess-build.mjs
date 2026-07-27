@@ -7,11 +7,19 @@ let html=await fs.readFile(file,'utf8');
 const branch=process.env.WORKERS_CI_BRANCH||process.env.BB_BRANCH||'local';
 const commit=process.env.WORKERS_CI_COMMIT_SHA||'local';
 const isProduction=branch==='main';
+const GAME_VERSION='v0.7.0';
 const readJson=async p=>JSON.parse(await fs.readFile(path.join(ROOT,p),'utf8'));
 const replaceRequired=(oldText,newText,label)=>{
   if(!html.includes(oldText))throw new Error(`Postprocess anchor missing: ${label}`);
   html=html.replace(oldText,newText);
 };
+
+// Keep the visible build label synchronized with the promoted baseline rather than
+// leaking a stale legacy version string from the historical monolithic index.
+const versionRx=/Blazing Battle v\d+\.\d+\.\d+ MOBILE/g;
+if(!versionRx.test(html))throw new Error('Postprocess: visible game version label not found');
+html=html.replace(versionRx,`Blazing Battle ${GAME_VERSION} MOBILE`);
+console.log(`Visible game version synchronized: ${GAME_VERSION}`);
 
 const unitIndex=await readJson('runtime/registry/unit-index.json');
 const unitTag=/(<script id="blazing-unit-data">window\.BLAZING_UNIT_DATA=)(\{.*?\})(;<\/script>)/s;
@@ -51,7 +59,7 @@ const teamUiStyle=`<style id="bb-team-mobile-fit">
 html=html.replace(/<\/head>/i,`${teamUiStyle}</head>`);
 console.log('Base team updated to Senku/Lebee/Sub-Zero; team-save feedback moved above button');
 
-const meta=`<script>window.BB_BUILD_META=Object.freeze({branch:${JSON.stringify(branch)},commit:${JSON.stringify(commit)},environment:${JSON.stringify(isProduction?'production':'preview')},canonicalRuntime:true});<\/script>`;
+const meta=`<script>window.BB_BUILD_META=Object.freeze({version:${JSON.stringify('v0.7.0')},branch:${JSON.stringify(branch)},commit:${JSON.stringify(commit)},environment:${JSON.stringify(isProduction?'production':'preview')},canonicalRuntime:true});<\/script>`;
 html=html.replace(/<head([^>]*)>/i,`<head$1>${meta}`);
 
 if(!isProduction){
@@ -74,4 +82,4 @@ if(!isProduction){
 }
 
 await fs.writeFile(file,html);
-console.log(`Build metadata embedded: branch=${branch} commit=${commit.slice(0,12)}`);
+console.log(`Build metadata embedded: version=${GAME_VERSION} branch=${branch} commit=${commit.slice(0,12)}`);
