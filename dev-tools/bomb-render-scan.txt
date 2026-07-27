@@ -1,0 +1,135 @@
+else if(f.kind==='senkuBombProjectile'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     const e=t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+     const arc=f.arcHeight||86;
+     const x=f.from.x+(f.to.x-f.from.x)*e;
+     const baseY=f.from.y+(f.to.y-f.from.y)*e;
+     const y=baseY-4*arc*t*(1-t);
+
+     // Tangent direction of the parabolic trajectory.
+     const dx=f.to.x-f.from.x;
+     const dy=(f.to.y-f.from.y)-4*arc*(1-2*t);
+     const angle=Math.atan2(dy,dx);
+
+     const idx=Math.min(
+       SENKU_BOMB_FRAMES.length-1,
+       Math.floor(t*SENKU_BOMB_FRAMES.length)
+     );
+     const img=SENKU_BOMB_FRAMES[idx];
+     if(img?.complete&&img.naturalWidth>0){
+       const h=30,ratio=img.naturalWidth/img.naturalHeight,w=h*ratio;
+       ctx.translate(x,y);
+       ctx.rotate(angle);
+       ctx.shadowColor='#ff9a32';
+       ctx.shadowBlur=8;
+       ctx.drawImage(img,-w/2,-h/2,w,h);
+     }
+   }else if(f.kind==='senkuExplosion'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     const img=SENKU_BASIC_STATIC_EXPLOSION;
+
+     if(img?.complete&&img.naturalWidth>0){
+       const hold=.30;
+       const fade=t<=hold ? 1 : Math.max(0,1-(t-hold)/(1-hold));
+       const pop=Math.min(1,t/.12);
+       const scale=.90+.10*(1-Math.pow(1-pop,3));
+
+       // Compact basic-attack impact.
+       const baseH=58;
+       const h=baseH*scale;
+       const w=h*(img.naturalWidth/img.naturalHeight);
+
+       // Exact target ground-point placement.
+       const anchorX=.50;
+       const anchorY=.96;
+       const yNudge=3;
+
+       ctx.globalAlpha*=fade;
+       ctx.translate(f.x,f.y+yNudge);
+       ctx.shadowColor='#ff9a32';
+       ctx.shadowBlur=5*fade;
+       ctx.drawImage(img,-w*anchorX,-h*anchorY,w,h);
+     }
+   }else if(f.kind==='lebeeMeteor'){
+     const raw=(performance.now()-f.start)/f.duration;
+     const t=clamp(raw,0,1);
+     const e=t*t*(3-2*t);
+     const x=f.from.x+(f.to.x-f.from.x)*e;
+     const y=f.from.y+(f.to.y-f.from.y)*e;
+     const img=LEBEE_METEOR_FRAMES[f.frameIndex%LEBEE_METEOR_FRAMES.length];
+     ctx.translate(x,y);
+     ctx.rotate((f.spin||.08)*(1-t)+(f.rot||0));
+     if(img?.complete&&img.naturalWidth>0){
+       const startH=f.startH||110,endH=f.endH||44;
+       const h=startH+(endH-startH)*t,ratio=img.naturalWidth/img.naturalHeight,w=h*ratio;
+       const tailFade=t<.84?1:Math.max(0,(1-t)/.16);
+       ctx.globalAlpha=raw<0?0:tailFade;
+       ctx.globalCompositeOperation='screen';
+       ctx.shadowColor=f.frameIndex%3===0?'#ff61d8':f.frameIndex%3===1?'#58a8ff':'#ffc94e';
+       ctx.shadowBlur=11+5*(1-t);
+       ctx.drawImage(img,-w/2,-h/2,w,h);
+       ctx.globalCompositeOperation='source-over';
+     }
+   }else if(f.kind==='lebeeMeteorImpact'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     const img=LEBEE_METEOR_IMPACT_FRAMES[(f.frameIndex||0)%LEBEE_METEOR_IMPACT_FRAMES.length];
+     ctx.translate(f.x,f.y-3);
+     if(img?.complete&&img.naturalWidth>0){
+       const pulse=Math.sin(Math.min(1,t)*Math.PI);
+       const w=108+46*pulse,ratio=img.naturalHeight/img.naturalWidth,h=w*ratio;
+       ctx.globalAlpha=t<.72?1:(1-t)/.28;
+       ctx.shadowColor=f.frameIndex%3===0?'#ff77df':f.frameIndex%3===1?'#68aaff':'#ffd15a';ctx.shadowBlur=14;
+       ctx.drawImage(img,-w/2,-h*.72,w,h);
+     }
+   }else if(f.kind==='lebeeMeteorFinale'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     ctx.translate(f.x,f.y);
+     if(LEBEE_METEOR_IMPACT_COMBO.complete&&LEBEE_METEOR_IMPACT_COMBO.naturalWidth>0){
+       const pulse=Math.sin(Math.min(1,t)*Math.PI),w=220+72*pulse;
+       const ratio=LEBEE_METEOR_IMPACT_COMBO.naturalHeight/LEBEE_METEOR_IMPACT_COMBO.naturalWidth,h=w*ratio;
+       ctx.globalAlpha=t<.70?1:(1-t)/.30;ctx.shadowColor='#ffffff';ctx.shadowBlur=18;
+       ctx.drawImage(LEBEE_METEOR_IMPACT_COMBO,-w/2,-h*.76,w,h);
+     }
+   }else if(f.kind==='lebeeMeteorAftermath'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     ctx.translate(f.x,f.y);
+     if(LEBEE_METEOR_AFTERMATH.complete&&LEBEE_METEOR_AFTERMATH.naturalWidth>0){
+       const w=210,ratio=LEBEE_METEOR_AFTERMATH.naturalHeight/LEBEE_METEOR_AFTERMATH.naturalWidth,h=w*ratio;
+       ctx.globalAlpha=.68*(1-t);ctx.drawImage(LEBEE_METEOR_AFTERMATH,-w/2,-h*.70,w,h);
+     }
+   }else if(f.kind==='iceProjectile'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     const e=1-Math.pow(1-t,2.2);
+     const x=f.from.x+(f.to.x-f.from.x)*e;
+     const y=f.from.y+(f.to.y-f.from.y)*e-8*Math.sin(t*Math.PI);
+     const ang=Math.atan2(f.to.y-f.from.y,f.to.x-f.from.x);
+     ctx.translate(x,y);
+     ctx.rotate(ang);
+     // v0.5.23: use the supplied Freeze Blast projectile artwork rather than
+     // the procedural placeholder orb. It grows through the three approved
+     // projectile frames as it leaves Sub-Zero and closes on the target.
+     const idx=t<.24?0:(t<.58?1:2);
+     const img=FREEZE_PROJECTILE_FRAMES[idx];
+     if(img&&img.complete&&img.naturalWidth>0){
+       const targetH=18+15*t;
+       const ratio=img.naturalWidth/img.naturalHeight;
+       const targetW=targetH*ratio;
+       ctx.globalCompositeOperation='screen';
+       ctx.shadowColor='#72eaff';ctx.shadowBlur=11;
+       ctx.drawImage(img,-targetW*.62,-targetH*.5,targetW,targetH);
+       ctx.globalCompositeOperation='source-over';
+     }
+   }else if(f.kind==='frozenTarget'){
+     const pulse=.72+.18*Math.sin(performance.now()/75);
+     ctx.translate(f.x,f.y-17);
+     ctx.globalCompositeOperation='screen';
+     ctx.strokeStyle=`rgba(133,236,255,${pulse})`;ctx.fillStyle='rgba(82,185,255,.16)';ctx.lineWidth=2.5;
+     ctx.shadowColor='#7feaff';ctx.shadowBlur=10;
+     ctx.beginPath();
+     ctx.moveTo(-19,18);ctx.lineTo(-14,-20);ctx.lineTo(-4,-31);ctx.lineTo(2,-22);ctx.lineTo(12,-34);ctx.lineTo(18,-13);ctx.lineTo(20,18);ctx.closePath();
+     ctx.fill();ctx.stroke();
+     ctx.globalCompositeOperation='source-over';
+   }else{
+     ctx.fillStyle=f.color||'#fff';
+     ctx.font='bold 19px system-ui';
+     ctx.fil
