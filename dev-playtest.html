@@ -12,7 +12,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
 </head>
 <body>
 <div id="boot">DEV LOADING…</div>
-<iframe id="game" src="./index.html?v=dev-playtest-airburst-2" title="Blazing Battle"></iframe>
+<iframe id="game" src="./index.html?v=dev-playtest-allboost-1" title="Blazing Battle"></iframe>
 <script>
 (()=>{
   const frame=document.getElementById('game');
@@ -43,7 +43,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
   }
   function destinationFromArgs(ctx,args){
     let dx=0,dy=0,dw=40,dh=40;
-    if(args.length===2){[dx,dy]=args;[dw,dh]=sourceSize(args[0]||{});}else if(args.length===4){[dx,dy,dw,dh]=args;}else if(args.length===8){[, , , ,dx,dy,dw,dh]=args;}
+    if(args.length===2){[dx,dy]=args;}else if(args.length===4){[dx,dy,dw,dh]=args;}else if(args.length===8){[, , , ,dx,dy,dw,dh]=args;}
     const rect=ctx.canvas.getBoundingClientRect();const sx=rect.width/(ctx.canvas.width||rect.width||1),sy=rect.height/(ctx.canvas.height||rect.height||1);
     return {left:rect.left+dx*sx,top:rect.top+dy*sy,width:dw*sx,height:dh*sy};
   }
@@ -111,10 +111,10 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
     const labels=[...doc.querySelectorAll('*')].filter(el=>el.children.length===0&&el.textContent.trim()==='BOSS');labels.forEach(label=>{label.classList.add('bb-ornate-boss-label');let bar=null;for(let el=label.parentElement;el&&el!==doc.body;el=el.parentElement){const r=el.getBoundingClientRect();if(r.width>250&&r.height>=12&&r.height<=55){bar=el;break;}}if(!bar)return;bar.classList.add('bb-ornate-boss-hp');const br=bar.getBoundingClientRect();let fill=null,best=0;[...bar.children].filter(el=>el!==label).forEach(el=>{const r=el.getBoundingClientRect(),score=r.width*r.height;if(r.width>20&&r.height>4&&r.height<=br.height+8&&score>best){best=score;fill=el;}});if(fill)fill.classList.add('bb-ornate-boss-fill');});
   }
   function installDevMonitor(doc){if(doc.getElementById('bb-dev-monitor-loader')||doc.getElementById('bb-dev-monitor'))return;const s=doc.createElement('script');s.id='bb-dev-monitor-loader';s.src='runtime/dev/dev-monitor.js?v=6ca0761';doc.head.appendChild(s);}
-  function installSenkuTestOverrides(doc){if(doc.getElementById('bb-senku-test-overrides')||frame.contentWindow?.__SENKU_TEST_OVERRIDES__)return;const s=doc.createElement('script');s.id='bb-senku-test-overrides';s.src='runtime/dev/senku-test-overrides.js?v=ffcc7bd';doc.head.appendChild(s);}
+  function installDevCombatOverrides(doc){if(doc.getElementById('bb-dev-combat-overrides')||frame.contentWindow?.__BB_DEV_COMBAT_OVERRIDES__)return;const s=doc.createElement('script');s.id='bb-dev-combat-overrides';s.src='runtime/dev/dev-combat-overrides.js?v=1b4b5596';s.onerror=()=>{boot.textContent='DEV COMBAT OVERRIDE LOAD ERROR';boot.style.opacity='1';};doc.head.appendChild(s);}
 
   function install(){
-    try{const win=frame.contentWindow,doc=frame.contentDocument;if(!win||!doc)return;ensureAirburstStyle(doc);hookRevivalButton(doc);if(win.CanvasRenderingContext2D){const proto=win.CanvasRenderingContext2D.prototype;if(!proto.__senkuAirburstPatchedV3){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__senkuAirburstPatchedV3=true;}}doc.querySelectorAll('canvas').forEach(c=>{try{const ctx=c.getContext('2d');if(ctx&&!ctx.__senkuAirburstPatchedV3){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuAirburstPatchedV3=true;}}catch(_){}});installBossStyle(doc);installDevMonitor(doc);installSenkuTestOverrides(doc);boot.textContent='DEV READY • SENKU AIRBURST V2';setTimeout(()=>boot.style.opacity='0',900);}catch(e){boot.textContent='DEV PATCH ACCESS ERROR';boot.style.opacity='1';}
+    try{const win=frame.contentWindow,doc=frame.contentDocument;if(!win||!doc)return;ensureAirburstStyle(doc);hookRevivalButton(doc);if(win.CanvasRenderingContext2D){const proto=win.CanvasRenderingContext2D.prototype;if(!proto.__senkuAirburstPatchedV3){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__senkuAirburstPatchedV3=true;}}doc.querySelectorAll('canvas').forEach(c=>{try{const ctx=c.getContext('2d');if(ctx&&!ctx.__senkuAirburstPatchedV3){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuAirburstPatchedV3=true;}}catch(_){}});installBossStyle(doc);installDevMonitor(doc);installDevCombatOverrides(doc);boot.textContent='DEV READY • ALL UNITS FULL CHAKRA • SPEED 200';setTimeout(()=>boot.style.opacity='0',1200);}catch(e){boot.textContent='DEV PATCH ACCESS ERROR';boot.style.opacity='1';}
   }
   frame.addEventListener('load',()=>{install();[50,150,300,600,1000,2000,4000].forEach(ms=>setTimeout(install,ms));setInterval(install,750);});
   setTimeout(()=>{if(boot.textContent==='DEV LOADING…')boot.textContent='DEV GAME LOAD FAILED';},8000);
