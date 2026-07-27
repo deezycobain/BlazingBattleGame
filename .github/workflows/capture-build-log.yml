@@ -1,0 +1,35 @@
+name: Capture build log
+on:
+  push:
+    branches: [dev-v2]
+    paths-ignore:
+      - 'dev-tools/build-log.txt'
+permissions:
+  contents: write
+jobs:
+  capture:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run build and capture output
+        shell: bash
+        run: |
+          set +e
+          npm install > /tmp/build.log 2>&1
+          npm run build >> /tmp/build.log 2>&1
+          status=$?
+          mkdir -p dev-tools
+          cp /tmp/build.log dev-tools/build-log.txt
+          echo "EXIT_STATUS=$status" >> dev-tools/build-log.txt
+          exit 0
+      - name: Commit captured log
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add dev-tools/build-log.txt
+          git diff --cached --quiet || git commit -m "Capture dev build log"
+          git push
