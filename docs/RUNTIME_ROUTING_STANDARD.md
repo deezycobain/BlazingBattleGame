@@ -105,10 +105,37 @@ Example Revival Formula action:
 
 The action registry defines that `heal_party_percent` targets living allies, includes the caster, ignores defeated units, cannot revive, and caps healing at max HP.
 
+## Chakra is unit-core data
+
+Chakra is a numeric per-unit resource, not a level-wide default and not a value invented by the battle scene.
+
+Every `unit.json` must explicitly define:
+
+```json
+"combat": {
+  "chakra_max": 8,
+  "chakra_start": 0
+}
+```
+
+`chakra_max` is the unit's authored capacity.
+
+`chakra_start` is the authored amount that unit receives when a new battle-state instance is created. It may differ by character: `0`, `4`, `8`, or another valid integer from `0` through `chakra_max`.
+
+The mutable current value does **not** belong in canonical unit data. Battle state must initialize it once:
+
+`current_chakra = unit.combat.chakra_start`
+
+After that, attacks, abilities, passives, costs, and gains modify the battle-state `current_chakra` only. Resetting/recreating a battle unit must read `chakra_start` again instead of using a hard-coded global value.
+
+Dev/testing overrides are allowed to initialize playable units with `current_chakra = chakra_max`, but that override must happen at battle-state creation and must never rewrite the canonical unit values. Bosses/enemies keep their authored values unless a specific test explicitly overrides them.
+
+Missing `chakra_max` or `chakra_start` is a schema error for schema version 3+; the runtime should not silently invent a value.
+
 ## Source of truth responsibilities
 
 ### `assets/characters/<unit>/data/unit.json`
-Owns identity, stats, ability balance, chakra costs, targeting, and presentation values.
+Owns identity, stats, ability balance, authored `chakra_max`, authored `chakra_start`, chakra costs, targeting, and presentation values.
 
 ### `assets/characters/<unit>/data/runtime-map.json`
 Connects ability IDs and unit states to reusable gameplay action IDs and logical animation/VFX resource IDs.
@@ -122,6 +149,18 @@ Resolves logical animation/VFX resource IDs to physical asset folders.
 ### Renderer / runtime resolver
 Loads resources through the manifest and executes actions through the action registry. It should not contain character-specific PNG paths.
 
+## Current schema-3 chakra migration
+
+Active canonical units now explicitly own their starting chakra:
+
+- Senku: max `8`, start `8`
+- Crimson: max `8`, start `0`
+- Sub-Zero: max `8`, start `0`
+- Lebee: max `8`, start `0`
+- Anubis: max `8`, start `0`
+
+The zero values preserve the previous implicit/default start where no authored start value existed. They can now be deliberately balanced per unit without changing battle code.
+
 ## Senku migration checkpoint
 
 Senku is the reference implementation.
@@ -134,8 +173,9 @@ Once the runtime resolver is active and verified, the physical folders can be mo
 
 A new unit is not considered fully integrated until it has:
 
-1. `unit.json`
+1. `unit.json` using schema version 3 or newer with explicit `chakra_max` and `chakra_start`
 2. `runtime-map.json`
 3. logical animation/VFX entries in the asset manifest
 4. only registered gameplay action IDs
 5. no new character-specific hard-coded asset paths in the central battle runtime
+6. battle state initialized from unit-core resource values rather than global chakra defaults
