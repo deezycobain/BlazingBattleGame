@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "root": "assets/characters",
+  "units": {
+    "senku": {
+      "animations": {
+        "idle": {
+          "resource_id": "senku.animation.idle",
+          "path": "assets/characters/senku/sprites/runtime/idle/"
+        },
+        "recoil": {
+          "resource_id": "senku.animation.recoil",
+          "path": "assets/characters/senku/sprites/runtime/recoil/"
+        },
+        "basic_attack": {
+          "resource_id": "senku.animation.basic_attack",
+          "path": "assets/characters/senku/sprites/runtime/attack/basic/"
+        },
+        "revival_formula_cast": {
+          "resource_id": "senku.animation.jutsu.revival_formula.cast",
+          "path": "assets/characters/senku/sprites/runtime/jutsu/chemical_reaction/cast/",
+          "canonical_future_path": "assets/characters/senku/sprites/runtime/jutsu/revival_formula/cast/",
+          "legacy_path_alias": true
+        }
+      },
+      "vfx": {
+        "explosive_bomb_projectile": {
+          "resource_id": "senku.vfx.basic.explosive_bomb.projectile",
+          "path": "assets/characters/senku/vfx/bomb/projectile_clean/"
+        },
+        "explosive_bomb_impact": {
+          "resource_id": "senku.vfx.basic.explosive_bomb.impact",
+          "path": "assets/characters/senku/vfx/bomb/small_explosion_6f/"
+        },
+        "revival_formula_projectile": {
+          "resource_id": "senku.vfx.jutsu.revival_formula.projectile",
+          "path": "assets/characters/senku/vfx/jutsu/chemical_reaction/projectile/",
+          "canonical_future_path": "assets/characters/senku/vfx/jutsu/revival_formula/projectile/",
+          "legacy_path_alias": true
+        },
+        "revival_formula_impact": {
+          "resource_id": "senku.vfx.jutsu.revival_formula.impact",
+          "path": "assets/characters/senku/vfx/jutsu/chemical_reaction/impact/",
+          "canonical_future_path": "assets/characters/senku/vfx/jutsu/revival_formula/impact/",
+          "legacy_path_alias": true
+        }
+      }
+    }
+  }
+}
