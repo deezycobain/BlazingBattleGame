@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "id": "unit_id",
   "display_name": "Unit Name",
   "title": null,
@@ -30,7 +30,8 @@
       "type": "circle",
       "r": 150
     },
-    "chakra_max": 8
+    "chakra_max": 8,
+    "chakra_start": 0
   },
   "render": {
     "scale": 1.0
