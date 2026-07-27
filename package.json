@@ -1,0 +1,13 @@
+{
+  "name": "blazing-battle-game",
+  "private": true,
+  "version": "0.6.19",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler versions upload"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
