@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "validate": "node scripts/validate-runtime.mjs",
-    "build": "npm run validate && node scripts/build-cloudflare.mjs",
+    "build": "npm run validate && node scripts/build-cloudflare.mjs && node scripts/postprocess-build.mjs",
     "deploy": "wrangler deploy",
     "preview": "wrangler versions upload"
   },
