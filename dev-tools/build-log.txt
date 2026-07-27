@@ -1,5 +1,5 @@
 
-added 38 packages, and audited 39 packages in 6s
+added 38 packages, and audited 39 packages in 7s
 
 7 packages are looking for funding
   run `npm fund` for details
@@ -20,13 +20,7 @@ Externalized 177 embedded assets (28.2 MiB decoded)
 Cloudflare build validation: all dist assets are under 25 MiB.
 Canonical unit sync applied: senku, crimson, subzero, lebee, anubis
 Base team updated to Senku/Lebee/Sub-Zero; team-save feedback moved above button
-file:///home/runner/work/BlazingBattleGame/BlazingBattleGame/scripts/postprocess-build.mjs:12
-  if(!html.includes(oldText))throw new Error(`Postprocess anchor missing: ${label}`);
-                                   ^
-
-Error: Postprocess anchor missing: Senku bomb projectile scale curve
-    at replaceRequired (file:///home/runner/work/BlazingBattleGame/BlazingBattleGame/scripts/postprocess-build.mjs:12:36)
-    at file:///home/runner/work/BlazingBattleGame/BlazingBattleGame/scripts/postprocess-build.mjs:121:1
-
-Node.js v22.23.1
-EXIT_STATUS=1
+Preview overrides applied for local: playable chakra=max, player speed=200, boss speed=50
+Build metadata embedded: branch=local commit=local
+Static hitbox pass: removed nearest-target rotation/snapping
+EXIT_STATUS=0
