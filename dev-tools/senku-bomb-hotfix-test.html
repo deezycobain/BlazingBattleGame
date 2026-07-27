@@ -12,7 +12,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
 </head>
 <body>
 <div id="status">HOTFIX LOADING…</div>
-<iframe id="game" src="/deezycobain/BlazingBattleGame/dev/index.html" title="Blazing Battle"></iframe>
+<iframe id="game" title="Blazing Battle"></iframe>
 <script>
 (()=>{
   const frame=document.getElementById('game');
@@ -83,7 +83,10 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
   frame.addEventListener('load',()=>{
     [0,50,150,300,600,1000,2000,4000].forEach(ms=>setTimeout(installPatch,ms));
   });
-  setTimeout(()=>{if(status.textContent==='HOTFIX LOADING…')status.textContent='GAME LOAD FAILED';},8000);
+
+  // Resolve against this exact dev-tools page so RawGitHack stays on the dev branch.
+  frame.src=new URL('../index.html?v=hotfix-relative-1',window.location.href).href;
+  setTimeout(()=>{if(status.textContent==='HOTFIX LOADING…')status.textContent='GAME LOAD FAILED';},10000);
 })();
 </script>
 </body>
