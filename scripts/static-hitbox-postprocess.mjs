@@ -33,23 +33,21 @@ const facingReplacement=`function updateFacing(){
 function battleSpriteFor`;
 html=html.replace(facingRx,facingReplacement);
 
-// Senku's basic is a circular POSITIONING FIELD but a SINGLE-TARGET projectile.
-// If more than one enemy stands inside the circle, pick the closest enemy inside
-// that already-valid field. The field itself never rotates/snaps to that target.
-const targetAnchor=" if(!targets.length){\n   S.log=`${u.name} committed the move but caught no target.`;return finishAction()\n  }";
-if(!html.includes(targetAnchor))throw new Error('Single-target pass: player target-resolution anchor not found');
-const targetReplacement=` if(!useJutsu){
-   let basicAbility={};
-   try{basicAbility=canonicalUnit(u.name)?.abilities?.basic||{}}catch(_){}
-   if(basicAbility.target_mode==='single' && targets.length>1){
-    targets=[...targets].sort((a,b)=>d(p,a)-d(p,b)).slice(0,1);
-   }
-  }
-
-  if(!targets.length){
-   S.log=\`${'${u.name}'} committed the move but caught no target.\`;return finishAction()
-  }`;
-html=html.replace(targetAnchor,targetReplacement);
+// A basic attack may own a static multi-unit RANGE SHAPE while still resolving
+// only one actual target. This is driven by canonical ability data so future
+// single-target units can reuse the same behavior.
+const targetRx=/(\n\s*)if\(!targets\.length\)\{\s*\n\s*S\.log=`\$\{u\.name\} committed the move but caught no target\.`;return finishAction\(\)\s*\n\s*\}/;
+if(!targetRx.test(html))throw new Error('Single-target pass: player target-resolution anchor not found');
+html=html.replace(targetRx,(_match,indent)=>`${indent}if(!useJutsu){
+${indent} let basicAbility={};
+${indent} try{basicAbility=canonicalUnit(u.name)?.abilities?.basic||{}}catch(_){}
+${indent} if(basicAbility.target_mode==='single' && targets.length>1){
+${indent}  targets=[...targets].sort((a,b)=>d(p,a)-d(p,b)).slice(0,1);
+${indent} }
+${indent}}
+${indent}if(!targets.length){
+${indent} S.log=\`\${u.name} committed the move but caught no target.\`;return finishAction()
+${indent}}`);
 
 // Preserve the currently-approved Senku bomb size without depending on the
 // entire legacy renderer block. Only replace the height calculation inside the
@@ -97,4 +95,4 @@ if(bombFn.includes(unsafeCleanup)){
 }
 
 await fs.writeFile(file,html);
-console.log('Gameplay presentation pass: static hitboxes + Senku single-target bomb + safe projectile cleanup applied');
+console.log('Gameplay presentation pass: static hitboxes + canonical single-target basics + safe Senku projectile cleanup applied');
