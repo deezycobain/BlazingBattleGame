@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "id": "lebee",
   "display_name": "Lebee",
   "title": "Cosmic Wish",
@@ -32,7 +32,8 @@
       "type": "screen_rect",
       "padding": 18
     },
-    "chakra_max": 8
+    "chakra_max": 8,
+    "chakra_start": 0
   },
   "render": {
     "scale": 1.0
