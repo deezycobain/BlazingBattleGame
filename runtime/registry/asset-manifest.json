@@ -1,0 +1,57 @@
+{
+  "schema_version": 3,
+  "root": "assets/characters",
+  "shared": {
+    "vfx": {
+      "heal_green_flash": {
+        "resource_id": "shared.vfx.heal.green_flash",
+        "type": "procedural",
+        "renderer": "radial_flash",
+        "duration_ms": 500,
+        "usage": "Reusable party-heal confirmation flash"
+      }
+    }
+  },
+  "units": {
+    "senku": {
+      "animations": {
+        "idle": {
+          "resource_id": "senku.animation.idle",
+          "path": "assets/characters/senku/sprites/runtime/idle/"
+        },
+        "recoil": {
+          "resource_id": "senku.animation.recoil",
+          "path": "assets/characters/senku/sprites/runtime/recoil/"
+        },
+        "basic_attack": {
+          "resource_id": "senku.animation.basic_attack",
+          "path": "assets/characters/senku/sprites/runtime/attack/basic/"
+        },
+        "ally_heal_cast": {
+          "resource_id": "senku.animation.jutsu.ally_heal.cast",
+          "path": "assets/characters/senku/sprites/runtime/jutsu/chemical_reaction/cast/",
+          "required_runtime_frames": 2,
+          "migration_note": "Canonical resource ID; physical directory will be renamed after the approved two-frame PNGs are normalized."
+        }
+      },
+      "vfx": {
+        "explosive_bomb_projectile": {
+          "resource_id": "senku.vfx.basic.explosive_bomb.projectile",
+          "path": "assets/characters/senku/vfx/bomb/projectile_clean/"
+        },
+        "explosive_bomb_impact": {
+          "resource_id": "senku.vfx.basic.explosive_bomb.impact",
+          "type": "legacy_embedded",
+          "renderer": "senkuBombImpact",
+          "migration_note": "Current production impact remains embedded in the historical game shell; move to normal frame assets before deleting the legacy shell."
+        },
+        "ally_heal_bottle": {
+          "resource_id": "senku.vfx.jutsu.ally_heal.bottle",
+          "path": "assets/characters/senku/vfx/jutsu/chemical_reaction/projectile/",
+          "usage": "Bottle artwork only; trajectory and burst are shared delivery behavior",
+          "migration_note": "Canonical resource ID; physical directory retains its historical name temporarily."
+        }
+      }
+    }
+  }
+}

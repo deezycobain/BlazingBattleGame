@@ -1,0 +1,62 @@
+{
+  "schema_version": 3,
+  "unit_id": "senku",
+  "source_unit_data": "assets/characters/senku/data/unit.json",
+  "abilities": {
+    "explosive_bomb": {
+      "slot": "basic",
+      "animation_id": "senku.animation.basic_attack",
+      "gameplay_actions": [
+        {
+          "event": "on_projectile_arrival",
+          "action_id": "damage_target",
+          "parameters": {
+            "multiplier_source": "abilities.basic.damage_multiplier"
+          }
+        }
+      ],
+      "vfx": {
+        "projectile": "senku.vfx.basic.explosive_bomb.projectile",
+        "impact": "senku.vfx.basic.explosive_bomb.impact"
+      },
+      "projectile_presentation": {
+        "trajectory": "arc",
+        "arc_height_px": 86,
+        "scale_source": "abilities.basic.presentation.projectile_scale",
+        "duration_source": "abilities.basic.presentation.flight_duration_ms"
+      }
+    },
+    "ally_heal": {
+      "slot": "jutsu",
+      "animation_id": "senku.animation.jutsu.ally_heal.cast",
+      "cost_source": "abilities.jutsu.cost",
+      "delivery_id": "airburst_party_heal",
+      "gameplay_actions": [
+        {
+          "event": "on_burst",
+          "action_id": "heal_party_percent",
+          "parameters": {
+            "percent_of_max_hp_source": "abilities.jutsu.heal_percent"
+          }
+        }
+      ],
+      "vfx": {
+        "projectile": "senku.vfx.jutsu.ally_heal.bottle",
+        "burst": "shared.vfx.heal.green_flash"
+      },
+      "projectile_presentation": {
+        "trajectory": "airburst",
+        "arc_height_source": "abilities.jutsu.presentation.arc_height_px",
+        "horizontal_drift_px": 72,
+        "scale": 1.0,
+        "duration_source": "abilities.jutsu.presentation.flight_duration_ms",
+        "burst_at_apex": true,
+        "fade_projectile_before_burst": true
+      }
+    }
+  },
+  "states": {
+    "idle": "senku.animation.idle",
+    "recoil": "senku.animation.recoil"
+  }
+}

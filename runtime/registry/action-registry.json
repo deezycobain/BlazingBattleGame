@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "actions": {
+    "damage_target": {
+      "kind": "damage",
+      "target_scope": "selected_target",
+      "parameters": ["multiplier"]
+    },
+    "heal_party_percent": {
+      "kind": "heal",
+      "target_scope": "living_allies",
+      "parameters": ["percent_of_max_hp"],
+      "rules": {
+        "include_caster": true,
+        "ignore_defeated_units": true,
+        "can_revive": false,
+        "cap_at_max_hp": true
+      }
+    },
+    "revive_ally": {
+      "kind": "revive",
+      "target_scope": "defeated_ally",
+      "parameters": ["restore_percent_of_max_hp"]
+    },
+    "apply_status": {
+      "kind": "status",
+      "target_scope": "selected_target",
+      "parameters": ["status_id", "chance", "duration"]
+    },
+    "buff_party": {
+      "kind": "buff",
+      "target_scope": "living_allies",
+      "parameters": ["stat", "amount", "duration"]
+    },
+    "debuff_target": {
+      "kind": "debuff",
+      "target_scope": "selected_target",
+      "parameters": ["stat", "amount", "duration"]
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "id": "anubis",
   "display_name": "Anubis",
   "title": "Judge of Souls",
@@ -30,7 +30,8 @@
       "type": "circle",
       "r": 205
     },
-    "chakra_max": 8
+    "chakra_max": 8,
+    "chakra_start": 0
   },
   "render": {
     "scale": 1.25,
@@ -71,7 +72,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": false,
-    "notes": "Boss definition. Existing combat code remains authoritative until migration.",
+    "notes": "v0.7 baseline: boss chakra start is explicit unit data. Boss speed remains canonical unless a dev-only override is active.",
     "animation_map": true
   },
   "balance": {

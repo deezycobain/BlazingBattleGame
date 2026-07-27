@@ -1,0 +1,41 @@
+name: Inspect Senku basic target resolution
+on:
+  push:
+    branches: [dev-v2]
+    paths-ignore:
+      - 'dev-tools/senku-basic-scan.txt'
+permissions:
+  contents: write
+jobs:
+  inspect:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract Senku basic targeting source
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const needles=['animateSenkuBomb','senkuBombProjectile','validTargets','targetIndex','runTarget','resolvePlayer','playerAttack','attackProxy','aliveEnemies','S.floaters.push','onImpact'];
+          let out='';
+          for(const needle of needles){
+            out+='\n===== '+needle+' =====\n';
+            let from=0,count=0;
+            while(count<25){
+              const i=html.indexOf(needle,from);
+              if(i<0)break;
+              out+=`\n--- match ${count+1} @ ${i} ---\n`+html.slice(Math.max(0,i-2200),Math.min(html.length,i+needle.length+4200))+'\n';
+              from=i+needle.length;count++;
+            }
+          }
+          fs.mkdirSync('dev-tools',{recursive:true});
+          fs.writeFileSync('dev-tools/senku-basic-scan.txt',out);
+          NODE
+      - name: Commit inspection result
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add dev-tools/senku-basic-scan.txt
+          git diff --cached --quiet || git commit -m "Record Senku basic target inspection"
+          git push

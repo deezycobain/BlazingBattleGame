@@ -2,8 +2,10 @@
   "name": "blazing-battle-game",
   "private": true,
   "scripts": {
-    "build": "node scripts/build-cloudflare.mjs",
-    "deploy": "wrangler deploy"
+    "validate": "node scripts/validate-runtime.mjs",
+    "build": "npm run validate && node scripts/build-cloudflare.mjs && node scripts/postprocess-build.mjs && node scripts/static-hitbox-postprocess.mjs",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler versions upload"
   },
   "devDependencies": {
     "wrangler": "4.114.0"

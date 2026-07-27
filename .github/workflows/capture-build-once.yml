@@ -1,0 +1,35 @@
+name: Capture current dev build
+on:
+  push:
+    branches: [dev-v2]
+    paths-ignore:
+      - 'dev-tools/current-build-log.txt'
+permissions:
+  contents: write
+jobs:
+  capture:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run build
+        shell: bash
+        run: |
+          set +e
+          npm install > /tmp/build.log 2>&1
+          npm run build >> /tmp/build.log 2>&1
+          status=$?
+          mkdir -p dev-tools
+          cp /tmp/build.log dev-tools/current-build-log.txt
+          echo "EXIT_STATUS=$status" >> dev-tools/current-build-log.txt
+          exit 0
+      - name: Commit log
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add dev-tools/current-build-log.txt
+          git diff --cached --quiet || git commit -m "Capture current dev build log"
+          git push
