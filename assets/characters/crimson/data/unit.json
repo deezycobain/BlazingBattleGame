@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "id": "crimson",
   "display_name": "Crimson",
   "title": "Blazing Vanguard",
@@ -32,7 +32,8 @@
       "w": 310,
       "h": 86
     },
-    "chakra_max": 8
+    "chakra_max": 8,
+    "chakra_start": 0
   },
   "render": {
     "scale": 1.0
