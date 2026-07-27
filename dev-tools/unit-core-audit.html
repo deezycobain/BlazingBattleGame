@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blazing Battle — Unit Core Audit</title>
+<style>body{margin:0;background:#0d1015;color:#eef3f8;font:14px/1.45 system-ui,sans-serif;padding:20px}.ok{color:#7be495}.bad{color:#ff7b7b}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{text-align:left;padding:8px;border-bottom:1px solid #2a313b}code{color:#9bdcff}</style>
+</head>
+<body>
+<h1>Unit Core Chakra Audit</h1>
+<div id="summary">Checking canonical unit data…</div>
+<table><thead><tr><th>Unit</th><th>Schema</th><th>Max</th><th>Start</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table>
+<script>
+(async()=>{
+  const ids=['senku','crimson','subzero','lebee','anubis'];
+  const rows=document.getElementById('rows');let failures=0;
+  for(const id of ids){
+    try{
+      const r=await fetch(`../assets/characters/${id}/data/unit.json?v=chakra-core-v3`,{cache:'no-store'});
+      if(!r.ok)throw new Error(`HTTP ${r.status}`);
+      const u=await r.json();const max=u?.combat?.chakra_max,start=u?.combat?.chakra_start;
+      const valid=u.schema_version>=3&&Number.isInteger(max)&&Number.isInteger(start)&&max>=0&&start>=0&&start<=max;
+      if(!valid)failures++;
+      rows.insertAdjacentHTML('beforeend',`<tr><td>${u.display_name||id}</td><td>${u.schema_version}</td><td>${String(max)}</td><td>${String(start)}</td><td class="${valid?'ok':'bad'}">${valid?'PASS':'FAIL'}</td></tr>`);
+    }catch(e){failures++;rows.insertAdjacentHTML('beforeend',`<tr><td>${id}</td><td>—</td><td>—</td><td>—</td><td class="bad">${e.message}</td></tr>`);}
+  }
+  document.getElementById('summary').innerHTML=failures?`<strong class="bad">FAIL — ${failures} unit core issue(s)</strong>`:`<strong class="ok">PASS — all active canonical units own numeric chakra max/start values</strong>`;
+})();
+</script>
+</body>
+</html>
