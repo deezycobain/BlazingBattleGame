@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "units": [
+    {"id":"senku","path":"assets/characters/senku/data/unit.json"},
+    {"id":"crimson","path":"assets/characters/crimson/data/unit.json"},
+    {"id":"subzero","path":"assets/characters/subzero/data/unit.json"},
+    {"id":"lebee","path":"assets/characters/lebee/data/unit.json"},
+    {"id":"anubis","path":"assets/characters/anubis/data/unit.json"}
+  ]
+}
