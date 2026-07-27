@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Blazing Battle Runtime Routing Test</title>
+<style>
+body{margin:0;background:#0d0f12;color:#f1f1f1;font-family:system-ui,-apple-system,sans-serif;padding:18px}
+h1{font-size:20px;margin:0 0 12px}.card{background:#171a1f;border:1px solid #303640;border-radius:12px;padding:14px;margin:10px 0}.ok{color:#79e58c}.bad{color:#ff7474}.warn{color:#ffd36f}code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}pre{white-space:pre-wrap;word-break:break-word;background:#0b0d10;padding:10px;border-radius:8px}.row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #282d35;padding:7px 0}.row:last-child{border-bottom:0}.label{color:#aeb7c4}.value{text-align:right}.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#20252d;font-size:12px}
+</style>
+</head>
+<body>
+<h1>Runtime Routing Validation</h1>
+<div id="summary" class="card">Loading registries…</div>
+<div id="results"></div>
+<script src="../runtime/resource-resolver.js"></script>
+<script>
+(async()=>{
+  const summary=document.getElementById('summary');
+  const results=document.getElementById('results');
+  const base='../';
+
+  const loadJson=async path=>{
+    const res=await fetch(base+path+'?v='+Date.now(),{cache:'no-store'});
+    if(!res.ok)throw new Error(`${path}: HTTP ${res.status}`);
+    return res.json();
+  };
+
+  const testAsset=async path=>{
+    const url=base+path+'frame_01.png?v='+Date.now();
+    const res=await fetch(url,{cache:'no-store'});
+    return {url,status:res.status,ok:res.ok};
+  };
+
+  const row=(label,value,cls='')=>`<div class="row"><span class="label">${label}</span><span class="value ${cls}">${value}</span></div>`;
+  const card=(title,body)=>`<div class="card"><div class="badge">${title}</div>${body}</div>`;
+
+  try{
+    const [actionRegistry,assetManifest,unitMap,unitData]=await Promise.all([
+      loadJson('runtime/registry/action-registry.json'),
+      loadJson('runtime/registry/asset-manifest.json'),
+      loadJson('assets/characters/senku/data/runtime-map.json'),
+      loadJson('assets/characters/senku/data/unit.json')
+    ]);
+
+    const resolver=new BlazingResourceResolver({actionRegistry,assetManifest,unitMap,unitData});
+    const validation=resolver.validate();
+    const basic=resolver.resolveAbility('explosive_bomb');
+    const jutsu=resolver.resolveAbility('revival_formula');
+
+    const resources=[
+      basic.animation,
+      basic.vfx.projectile,
+      basic.vfx.impact,
+      jutsu.animation,
+      jutsu.vfx.projectile,
+      jutsu.vfx.impact,
+      resolver.resolveState('idle'),
+      resolver.resolveState('recoil')
+    ];
+
+    const assetChecks=[];
+    for(const resource of resources){
+      assetChecks.push({resource,...await testAsset(resource.path)});
+    }
+
+    const failedAssets=assetChecks.filter(x=>!x.ok);
+    const healAction=jutsu.actions.find(a=>a.action_id==='heal_party_percent');
+    const logicOk=jutsu.cost===4 && healAction?.parameters?.percent_of_max_hp===0.3 && healAction?.definition?.target_scope==='living_allies' && healAction?.definition?.rules?.can_revive===false;
+    const allOk=validation.ok && failedAssets.length===0 && logicOk;
+
+    summary.innerHTML=`<strong class="${allOk?'ok':'bad'}">${allOk?'PASS — routing is healthy':'FAIL — routing needs attention'}</strong><br><small>${resources.length} resources checked • ${Object.keys(unitMap.abilities).length} abilities resolved</small>`;
+
+    results.innerHTML+=card('Senku • Explosive Bomb',
+      row('Animation ID',basic.animation.resource_id,'ok')+
+      row('Projectile',basic.vfx.projectile.resource_id,'ok')+
+      row('Impact',basic.vfx.impact.resource_id,'ok')+
+      row('Action',basic.actions[0]?.action_id||'missing',basic.actions[0]?'ok':'bad')+
+      row('Damage multiplier',String(basic.actions[0]?.parameters?.multiplier),'ok')
+    );
+
+    results.innerHTML+=card('Senku • Revival Formula',
+      row('Cost',String(jutsu.cost),jutsu.cost===4?'ok':'bad')+
+      row('Animation ID',jutsu.animation.resource_id,'ok')+
+      row('Projectile',jutsu.vfx.projectile.resource_id,'ok')+
+      row('Impact',jutsu.vfx.impact.resource_id,'ok')+
+      row('Shared action',healAction?.action_id||'missing',healAction?'ok':'bad')+
+      row('Heal',`${Math.round((healAction?.parameters?.percent_of_max_hp||0)*100)}% max HP`,healAction?.parameters?.percent_of_max_hp===0.3?'ok':'bad')+
+      row('Target scope',healAction?.definition?.target_scope||'missing',healAction?.definition?.target_scope==='living_allies'?'ok':'bad')+
+      row('Can revive',String(healAction?.definition?.rules?.can_revive),healAction?.definition?.rules?.can_revive===false?'ok':'bad')
+    );
+
+    results.innerHTML+=card('Physical Asset Routes',assetChecks.map(check=>
+      row(check.resource.resource_id,check.ok?'frame_01.png ✓':`HTTP ${check.status}`,check.ok?'ok':'bad')
+    ).join(''));
+
+    if(validation.warnings.length){
+      results.innerHTML+=card('Migration Warnings',validation.warnings.map(w=>`<div class="warn">⚠ ${w}</div>`).join(''));
+    }
+    if(validation.errors.length){
+      results.innerHTML+=card('Resolver Errors',validation.errors.map(e=>`<div class="bad">✕ ${e}</div>`).join(''));
+    }
+
+    window.__BLAZING_ROUTING_TEST__={allOk,validation,basic,jutsu,assetChecks};
+  }catch(error){
+    summary.innerHTML=`<strong class="bad">TEST CRASHED</strong><pre>${String(error.stack||error)}</pre>`;
+  }
+})();
+</script>
+</body>
+</html>
