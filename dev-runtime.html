@@ -19,15 +19,26 @@
     return r.json();
   }
   async function getText(path){
-    const r=await fetch(`${path}${path.includes('?')?'&':'?'}${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});
-    if(!r.ok)throw new Error(`${path} ${r.status}`);
-    return (await r.text()).trim();
+    const urls=[
+      `${path}${path.includes('?')?'&':'?'}${bust()}`,
+      `https://raw.githubusercontent.com/deezycobain/BlazingBattleGame/dev/${path.replace(/^\.\//,'')}?${bust()}`
+    ];
+    let lastErr=null;
+    for(const url of urls){
+      try{
+        const r=await fetch(url,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});
+        if(!r.ok)throw new Error(`${url} ${r.status}`);
+        return (await r.text()).trim();
+      }catch(err){lastErr=err;}
+    }
+    throw lastErr||new Error(`Unable to fetch ${path}`);
   }
   function replaceOnce(html,oldText,newText,label){
     if(!html.includes(oldText))throw new Error(`${label} anchor missing`);
     return html.replace(oldText,newText);
   }
   try{
+    status.textContent='DEV • loading unit cores';
     const unitIndex=await getJson('./runtime/registry/unit-index.json');
     const unitsById={},core={};
     for(const entry of unitIndex.units||[]){
@@ -40,13 +51,19 @@
     const senku=unitsById.senku;
     if(!senku)throw new Error('canonical Senku missing');
 
-    // Dedicated uploaded Ally Heal throw frames. Stored as text-safe base64 on dev,
-    // decoded into ordinary Image objects inside the actual battle runtime.
-    const allyHealCastData=(await Promise.all([
-      getText('./assets/characters/senku/sprites/runtime/jutsu/ally_heal/cast/frame_01.png.b64'),
-      getText('./assets/characters/senku/sprites/runtime/jutsu/ally_heal/cast/frame_02.png.b64')
-    ])).map(b64=>'data:image/png;base64,'+b64);
+    status.textContent='DEV • loading Ally Heal throw frames';
+    let allyHealCastData=[];
+    try{
+      allyHealCastData=(await Promise.all([
+        getText('./assets/characters/senku/sprites/runtime/jutsu/ally_heal/cast/frame_01.png.b64'),
+        getText('./assets/characters/senku/sprites/runtime/jutsu/ally_heal/cast/frame_02.png.b64')
+      ])).map(b64=>'data:image/png;base64,'+b64);
+    }catch(frameErr){
+      console.warn('Ally Heal uploaded frames unavailable; game will still load',frameErr);
+      allyHealCastData=[];
+    }
 
+    status.textContent='DEV • patching battle runtime';
     const res=await fetch(`./index.html?${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});
     if(!res.ok)throw new Error(`index fetch ${res.status}`);
     let html=await res.text();
@@ -107,8 +124,6 @@
 }`);
     applied.push('Ally Heal support routing canonicalized');
 
-    // Use the newly supplied two-frame throw instead of the retired Chemical Reaction body cast.
-    // The frame objects are cached once and returned through the same generic attack-frame resolver.
     html=replaceOnce(
       html,
       "function unitAttackFrames(name,kind){\n  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];\n}",
@@ -117,8 +132,6 @@
     );
     applied.push('uploaded two-frame Ally Heal cast routed');
 
-    // Smooth sequence: idle naturally hands off to the planted wind-up frame, then release frame.
-    // Bottle leaves during frame 2 and takes over visually with the approved arc/fade/green burst.
     const newAnim=`function animateSenkuChemicalReaction(unitName,from,target,onImpact,onDone){
  const token=ACTIVE_ACTION_TOKEN;
  const meta=canonicalUnit('senku').abilities.jutsu.presentation||{};
@@ -207,7 +220,7 @@ function animateSenkuBomb`;
 
     const payload=JSON.stringify(core).replace(/</g,'\\u003c');
     const castPayload=JSON.stringify(allyHealCastData).replace(/</g,'\\u003c');
-    const marker=`<script>window.BB_UNIT_CORE=Object.freeze(${payload});window.__BB_SENKU_ALLY_HEAL_CAST_DATA=Object.freeze(${castPayload});window.__BB_DEV_PREBOOT__={unitCore:true,directBattleMigration:true,allyHealUploadedFrames:2,applied:${JSON.stringify(applied)}};<\/script>`;
+    const marker=`<script>window.BB_UNIT_CORE=Object.freeze(${payload});window.__BB_SENKU_ALLY_HEAL_CAST_DATA=Object.freeze(${castPayload});window.__BB_DEV_PREBOOT__={unitCore:true,directBattleMigration:true,allyHealUploadedFrames:${allyHealCastData.length},applied:${JSON.stringify(applied)}};<\/script>`;
     const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startPlayableAtMaxChakra:true,playerSpeed:${DEV_PLAYER_SPEED},bossSpeed:${DEV_BOSS_SPEED}});<\/script>`;
     html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}${config}`);
     document.open();document.write(html);document.close();
