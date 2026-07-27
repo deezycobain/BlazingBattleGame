@@ -20,31 +20,33 @@ jobs:
           ref: dev
           fetch-depth: 0
 
-      - name: Extract Senku projectile runtime contexts
+      - name: Extract Senku runtime contexts
         shell: python
         run: |
           from pathlib import Path
-          import re
 
           src = Path('index.html').read_text(encoding='utf-8').splitlines()
           terms = [
               'Senku', 'senku', 'bomb', 'projectile', 'drawImage',
-              'ATTACK_SPRITES', 'impact', 'bossHp', 'BOSS'
+              'ATTACK_SPRITES', 'impact', 'bossHp', 'BOSS',
+              'chakra', 'Chakra', 'jutsu', 'Jutsu', 'special',
+              'Revival Formula', 'Ally Heal', 'chemical_reaction',
+              'heal', 'Heal', 'turnSpeed', 'speed', 'initiative',
+              'meter', 'charge', 'energy'
           ]
           hits = []
           seen = set()
 
           for i, line in enumerate(src):
               if any(term in line for term in terms):
-                  lo = max(0, i - 8)
-                  hi = min(len(src), i + 9)
+                  lo = max(0, i - 14)
+                  hi = min(len(src), i + 15)
                   key = (lo, hi)
                   if key in seen:
                       continue
                   seen.add(key)
                   hits.append((lo, hi))
 
-          # merge overlapping ranges
           merged = []
           for lo, hi in sorted(hits):
               if not merged or lo > merged[-1][1] + 2:
@@ -54,7 +56,7 @@ jobs:
 
           out = []
           out.append('# Senku Runtime Audit\n')
-          out.append('Generated from dev/index.html. Line numbers are 1-based.\n')
+          out.append('Generated from dev/index.html. Line numbers are 1-based. Expanded for chakra, speed, and Ally Heal migration.\n')
           for lo, hi in merged:
               out.append(f'\n## Lines {lo+1}-{hi}\n```html')
               for n in range(lo, hi):
@@ -69,5 +71,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dev-tools/senku-runtime-audit.md
-          git commit -m "Generate Senku runtime audit" || exit 0
+          git commit -m "Generate expanded Senku runtime audit" || exit 0
           git push origin HEAD:dev
