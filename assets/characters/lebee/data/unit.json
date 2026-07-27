@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "id": "lebee",
   "display_name": "Lebee",
   "title": "Cosmic Wish",
@@ -32,7 +32,8 @@
       "type": "screen_rect",
       "padding": 18
     },
-    "chakra_max": 8
+    "chakra_max": 8,
+    "chakra_start": 2
   },
   "render": {
     "scale": 1.0
@@ -109,7 +110,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "v0.6.10: Lebee normal attack uses canonical thin forward rectangular ranged hitbox. Jutsu geometry remains independently defined by jutsu_shape.",
+    "notes": "v0.7 baseline: chakra_start is canonical unit data. Existing meteor presentation retained.",
     "animation_map": true
   },
   "balance": {
@@ -133,10 +134,7 @@
       ],
       "anchor": {
         "type": "fixed_lower_body",
-        "canvas": [
-          420,
-          420
-        ],
+        "canvas": [420, 420],
         "x": 210,
         "baseline_y": 396
       },
