@@ -22,5 +22,5 @@ Canonical unit sync applied: senku, crimson, subzero, lebee, anubis
 Base team updated to Senku/Lebee/Sub-Zero; team-save feedback moved above button
 Preview overrides applied for local: playable chakra=max, player speed=200, boss speed=50
 Build metadata embedded: branch=local commit=local
-Gameplay presentation pass: Senku nearest-target lock/facing + single highlight; Lebee multi-target lane retained
+Gameplay presentation pass: safe Senku nearest-target highlight/facing + Lebee multi-target lane retained
 EXIT_STATUS=0
