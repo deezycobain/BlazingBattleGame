@@ -12,7 +12,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
 </head>
 <body>
 <div id="boot">DEV LOADING…</div>
-<iframe id="game" src="./dev-runtime.html?v=556d4a2" title="Blazing Battle"></iframe>
+<iframe id="game" src="./dev-runtime.html?v=ad9f22a" title="Blazing Battle"></iframe>
 <script>
 (()=>{
   const frame=document.getElementById('game');
@@ -89,25 +89,26 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
   }
 
   function wrapDrawImage(original){
-    if(typeof original!=='function'||original.__senkuAirburstWrappedV4)return original;
+    if(typeof original!=='function'||original.__senkuAirburstWrappedV5)return original;
     function patchedDrawImage(image,...args){
       if(looksLikeSenkuBody(image))lastSenkuRect=destinationFromArgs(this,args);
       if(performance.now()<suppressRevivalUntil&&looksLikeRevivalAsset(image))return;
       if(looksLikeSenkuBombForScale(image))return drawBombScaled(original,this,image,args);
       return original.call(this,image,...args);
     }
-    patchedDrawImage.__senkuAirburstWrappedV4=true;return patchedDrawImage;
+    patchedDrawImage.__senkuAirburstWrappedV5=true;return patchedDrawImage;
   }
 
   function hookRevivalButton(doc){
-    if(doc.__bbRevivalHookedV2)return;doc.__bbRevivalHookedV2=true;
+    if(doc.__bbRevivalHookedV3)return;doc.__bbRevivalHookedV3=true;
     const handler=e=>{
+      if(!e.isTrusted)return;
       const target=e.target instanceof Element?e.target:null;
       if(!target||target.closest('#bb-dev-monitor'))return;
       const control=target.closest('button,[role="button"],input[type="button"],input[type="submit"]');
       if(!control)return;
       const txt=String(control.textContent||control.value||'').replace(/\s+/g,' ').trim();
-      if(/^Revival Formula(?:\s*·\s*4|\s*4)?$/i.test(txt)||txt.startsWith('Revival Formula'))setTimeout(launchRevivalAirburst,120);
+      if(txt.startsWith('Revival Formula'))setTimeout(launchRevivalAirburst,120);
     };
     doc.addEventListener('click',handler,true);
   }
@@ -122,8 +123,8 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
     try{
       const win=frame.contentWindow,doc=frame.contentDocument;if(!win||!doc)return;
       ensureAirburstStyle(doc);hookRevivalButton(doc);
-      if(win.CanvasRenderingContext2D){const proto=win.CanvasRenderingContext2D.prototype;if(!proto.__senkuAirburstPatchedV4){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__senkuAirburstPatchedV4=true;}}
-      doc.querySelectorAll('canvas').forEach(c=>{try{const ctx=c.getContext('2d');if(ctx&&!ctx.__senkuAirburstPatchedV4){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuAirburstPatchedV4=true;}}catch(_){}});
+      if(win.CanvasRenderingContext2D){const proto=win.CanvasRenderingContext2D.prototype;if(!proto.__senkuAirburstPatchedV5){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__senkuAirburstPatchedV5=true;}}
+      doc.querySelectorAll('canvas').forEach(c=>{try{const ctx=c.getContext('2d');if(ctx&&!ctx.__senkuAirburstPatchedV5){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuAirburstPatchedV5=true;}}catch(_){}});
       installBossStyle(doc);installDevMonitor(doc);
       const pre=win.__BB_DEV_PREBOOT__;
       boot.textContent=pre?`DEV READY • FULL CHAKRA • SPEED 200 • ${pre.speedEdits}/${pre.chakraEdits}`:'DEV READY • PREBOOT CHECKING';
