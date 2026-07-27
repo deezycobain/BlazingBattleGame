@@ -8,18 +8,19 @@
   if(!frame||!boot)return;
 
   const BOMB_SCALE=2;
-  const DEV_SPEED=200;
+  const DEV_PLAYER_SPEED=200;
+  const DEV_BOSS_SPEED=50;
   const JUTSU_PROJECTILE_SIZE=[291,185];
   const JUTSU_IMPACT_SIZE=[396,267];
-  const CHAKRA_KEYS=['chakra','currentChakra','chakraCurrent','chakraNow','current_chakra','energy','currentEnergy','ki','currentKi','charge','charges','chakraCount','chakraPoints','chakraGauge','cp','ch'];
-  const CHAKRA_MAX_KEYS=['chakraMax','maxChakra','chakra_max','max_chakra','energyMax','maxEnergy','kiMax','maxKi','maxCharge','maxCharges'];
+  const CHAKRA_KEYS=['chakra','currentChakra','chakraCurrent','chakraNow','current_chakra','energy','currentEnergy','ki','currentKi','charge','charges','chakraCount','chakraPoints','chakraGauge','cp','ch','value','current','amount'];
+  const CHAKRA_MAX_KEYS=['chakraMax','maxChakra','chakra_max','max_chakra','energyMax','maxEnergy','kiMax','maxKi','maxCharge','maxCharges','max','capacity'];
   const CHAKRA_ARRAY_KEYS=['chakraPips','chakraOrbs','chakraSegments','pips','orbs','segments'];
-  let lastTrigger=0,lastSenkuRect=null,lastHydrateLog=0;
+  let lastTrigger=0,lastSenkuRect=null,lastHydrateLog=0,suppressLegacyRevivalUntil=0;
 
   const sourceOf=image=>String(image?.currentSrc||image?.src||'');
   const sourceSize=image=>[image?.naturalWidth||image?.videoWidth||image?.width||0,image?.naturalHeight||image?.videoHeight||image?.height||0];
   const matchesSize=(image,size)=>{const [w,h]=sourceSize(image);return w===size[0]&&h===size[1];};
-  const logDev=(type,message)=>{try{frame.contentWindow?.__BLAZING_DEV_MONITOR__?.record(type,message);}catch(_){}};
+  const logDev=(type,message)=>{try{frame.contentWindow?.__BLAZING_DEV_MONITOR__?.record(type,message);}catch(_){} };
 
   function isLegacyRevivalVfx(image){
     if(!image)return false;
@@ -57,6 +58,7 @@
   }
   function launchRevivalAirburst(){
     const now=performance.now();if(now-lastTrigger<700)return;lastTrigger=now;
+    suppressLegacyRevivalUntil=now+2200;
     const doc=frame.contentDocument;if(!doc)return;ensureAirburstStyle(doc);
     const vw=doc.documentElement.clientWidth||innerWidth,vh=doc.documentElement.clientHeight||innerHeight;
     const startX=lastSenkuRect?lastSenkuRect.left+lastSenkuRect.width*.55:vw*.22;
@@ -65,7 +67,7 @@
     const bottle=doc.createElement('img');bottle.className='bb-revival-bottle';
     bottle.src='assets/characters/senku/vfx/jutsu/chemical_reaction/projectile/frame_01.png';
     bottle.style.left=(startX-19)+'px';bottle.style.top=(startY-15)+'px';doc.body.appendChild(bottle);
-    logDev('info','Revival Formula • canonical airburst started');
+    logDev('info','Revival Formula • canonical airburst started from actual Jutsu execution');
     const start=performance.now(),duration=650;
     function tick(t){const q=Math.min(1,(t-start)/duration),x=(endX-startX)*q,y=(endY-startY)*q-95*Math.sin(Math.PI*q),rot=360*q;bottle.style.transform=`translate(${x}px,${y}px) rotate(${rot}deg)`;bottle.style.opacity=String(q<.82?1:1-(q-.82)/.18);if(q<1)requestAnimationFrame(tick);else{bottle.remove();playGreenFlash(doc,endX,endY);}}
     requestAnimationFrame(tick);
@@ -77,43 +79,31 @@
     if(args.length===8){const [sx,sy,sw,sh,dx,dy,dw,dh]=args,nw=dw*BOMB_SCALE,nh=dh*BOMB_SCALE;return original.call(ctx,image,sx,sy,sw,sh,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);}
     return original.call(ctx,image,...args);
   }
+  function isSenkuTurn(doc){return /Senku(?:'|’)?s turn\b/i.test(String(doc.body?.innerText||''));}
   function wrapDrawImage(original){
-    if(typeof original!=='function'||original.__bbCanonicalPatch)return original;
+    if(typeof original!=='function'||original.__bbCanonicalPatchV2)return original;
     function patchedDrawImage(image,...args){
       if(looksLikeSenkuBody(image))lastSenkuRect=destinationFromArgs(this,args);
-      // Old Revival Formula projectile/ground-impact visuals are retired. Gameplay may still pass
-      // through the legacy executor during migration, but those visuals never render.
-      if(isLegacyRevivalVfx(image))return;
+      if(isLegacyRevivalVfx(image)){
+        // The legacy renderer is now only a signal that the actual Revival Formula attack has executed.
+        // Replace it at render-time so selection clicks never play the animation and the old VFX never appears.
+        if(performance.now()>=suppressLegacyRevivalUntil&&isSenkuTurn(frame.contentDocument))launchRevivalAirburst();
+        return;
+      }
       if(looksLikeSenkuBomb(image))return drawBombScaled(original,this,image,args);
       return original.call(this,image,...args);
     }
-    patchedDrawImage.__bbCanonicalPatch=true;return patchedDrawImage;
-  }
-
-  function isDisabled(control){return !control||Boolean(control.disabled||control.matches?.(':disabled')||control.getAttribute?.('aria-disabled')==='true'||/\bdisabled\b/i.test(String(control.className||'')));}
-  function isSenkuTurn(doc){return /Senku(?:'|’)?s turn\b/i.test(String(doc.body?.innerText||''));}
-  function bindRevivalControls(doc){
-    const controls=[...doc.querySelectorAll('button,[role="button"],input[type="button"],input[type="submit"]')]
-      .filter(el=>!el.closest('#bb-dev-monitor')&&String(el.textContent||el.value||'').replace(/\s+/g,' ').trim().startsWith('Revival Formula'));
-    for(const control of controls){
-      if(control.__bbCanonicalRevivalBound)continue;control.__bbCanonicalRevivalBound=true;
-      control.addEventListener('click',e=>{
-        if(e.isTrusted===false)return;
-        if(!isSenkuTurn(doc)){logDev('warn','Revival blocked • active unit is not Senku');return;}
-        if(isDisabled(control)){logDev('warn','Revival blocked • Jutsu is disabled');return;}
-        setTimeout(launchRevivalAirburst,90);
-      },true);
-    }
+    patchedDrawImage.__bbCanonicalPatchV2=true;return patchedDrawImage;
   }
 
   function identityStrings(obj){
-    const direct=[obj?.id,obj?.unit_id,obj?.unitId,obj?.characterId,obj?.character_id,obj?.name,obj?.display_name,obj?.displayName,obj?.character,obj?.unit,obj?.mark];
-    const nested=[obj?.unitData?.id,obj?.unitData?.display_name,obj?.definition?.id,obj?.data?.id];
+    const direct=[obj?.id,obj?.unit_id,obj?.unitId,obj?.characterId,obj?.character_id,obj?.name,obj?.display_name,obj?.displayName,obj?.character,obj?.unit,obj?.mark,obj?.key,obj?.slug];
+    const nested=[obj?.unitData?.id,obj?.unitData?.display_name,obj?.definition?.id,obj?.definition?.display_name,obj?.data?.id,obj?.data?.display_name];
     let strings=[...direct,...nested].filter(v=>typeof v==='string').map(v=>v.toLowerCase());
-    try{for(const v of Object.values(obj).slice(0,40)){if(typeof v==='string'&&v.toLowerCase().includes('/senku/'))strings.push('senku');}}catch(_){}
+    try{for(const v of Object.values(obj).slice(0,60)){if(typeof v==='string'&&v.toLowerCase().includes('/senku/'))strings.push('senku');}}catch(_){}
     return strings;
   }
-  function unitForObject(obj,core){
+  function explicitUnitForObject(obj,core){
     const ids=identityStrings(obj);
     for(const unit of Object.values(core||{})){
       const needles=[unit.id,String(unit.name||'').toLowerCase(),unit.id==='senku'?'s':null].filter(Boolean);
@@ -121,23 +111,53 @@
     }
     return null;
   }
-  function applyDevCoreToObject(obj,core){
-    if(!obj||typeof obj!=='object')return 0;
-    const unit=unitForObject(obj,core);if(!unit||unit.role!=='playable')return 0;
+  function looksLikeBoss(obj,unitHint){
+    if(unitHint?.role==='boss')return true;
+    const ids=identityStrings(obj);
+    return ids.some(v=>v==='boss'||v==='anubis'||v.includes('boss'));
+  }
+  function applyDevCoreToObject(obj,unit){
+    if(!obj||typeof obj!=='object'||!unit)return 0;
     let changed=0;
-    for(const key of CHAKRA_MAX_KEYS){if(Object.prototype.hasOwnProperty.call(obj,key)){try{if(obj[key]!==unit.max){obj[key]=unit.max;changed++;}}catch(_){}}}
-    for(const key of CHAKRA_KEYS){if(Object.prototype.hasOwnProperty.call(obj,key)){try{if(typeof obj[key]==='number'&&obj[key]!==unit.max){obj[key]=unit.max;changed++;}}catch(_){}}}
-    for(const key of CHAKRA_ARRAY_KEYS){if(Object.prototype.hasOwnProperty.call(obj,key)&&Array.isArray(obj[key])){try{const boolMode=obj[key].some(v=>typeof v==='boolean');obj[key]=Array(unit.max).fill(boolMode?true:1);changed++;}catch(_){}}}
-    for(const key of ['speed','spd','meterSpeed','turnSpeed','initiativeSpeed','gaugeSpeed','atbSpeed','actionSpeed']){if(Object.prototype.hasOwnProperty.call(obj,key)&&typeof obj[key]==='number'&&obj[key]!==DEV_SPEED){try{obj[key]=DEV_SPEED;changed++;}catch(_){}}}
+    const isBoss=unit.role==='boss'||looksLikeBoss(obj,unit);
+    const desiredSpeed=isBoss?DEV_BOSS_SPEED:DEV_PLAYER_SPEED;
+
+    for(const key of CHAKRA_MAX_KEYS){if(Object.prototype.hasOwnProperty.call(obj,key)&&typeof obj[key]==='number'){try{if(obj[key]!==unit.max){obj[key]=unit.max;changed++;}}catch(_){}}}
+    if(unit.role==='playable'){
+      for(const key of CHAKRA_KEYS){if(Object.prototype.hasOwnProperty.call(obj,key)){try{if(typeof obj[key]==='number'&&obj[key]!==unit.max){obj[key]=unit.max;changed++;}}catch(_){}}}
+      for(const key of CHAKRA_ARRAY_KEYS){if(Object.prototype.hasOwnProperty.call(obj,key)&&Array.isArray(obj[key])){try{const boolMode=obj[key].some(v=>typeof v==='boolean');obj[key]=Array(unit.max).fill(boolMode?true:1);changed++;}catch(_){}}}
+      // Senku is the migrated unit and some legacy battle copies do not expose a chakra key at the
+      // same object level as older embedded units. Seed the canonical aliases on Senku-bearing state
+      // objects so child/legacy consumers have a numeric source instead of falling back to zero.
+      if(unit.id==='senku'){
+        for(const [key,val] of [['chakra',unit.max],['currentChakra',unit.max],['chakraMax',unit.max]]){
+          try{if(!Object.prototype.hasOwnProperty.call(obj,key)){obj[key]=val;changed++;}}catch(_){}
+        }
+      }
+    }
+    for(const key of ['speed','spd','meterSpeed','turnSpeed','initiativeSpeed','gaugeSpeed','atbSpeed','actionSpeed']){
+      if(Object.prototype.hasOwnProperty.call(obj,key)&&typeof obj[key]==='number'&&obj[key]!==desiredSpeed){try{obj[key]=desiredSpeed;changed++;}catch(_){}}
+    }
     return changed;
   }
   function hydrateDevUnitState(win){
     const core=win.BB_UNIT_CORE;if(!core)return 0;
-    const seen=new WeakSet(),queue=[];let changed=0,nodes=0;
-    for(const key of ['gameState','state','battleState','battle','units','players','party','team','roster','combatants','characters','allies','actors']){try{const v=win[key];if(v&&typeof v==='object')queue.push(v);}catch(_){}}
-    try{for(const key of Object.getOwnPropertyNames(win)){let v;try{v=win[key];}catch(_){continue;}if(v&&typeof v==='object'&&!v.nodeType&&v!==win.document)queue.push(v);}}catch(_){}
-    while(queue.length&&nodes<12000){const obj=queue.shift();if(!obj||typeof obj!=='object'||seen.has(obj))continue;seen.add(obj);nodes++;changed+=applyDevCoreToObject(obj,core);let vals=[];try{vals=Array.isArray(obj)?obj.slice(0,100):Object.values(obj).slice(0,100);}catch(_){continue;}for(const v of vals){if(v&&typeof v==='object'&&!v.nodeType&&!seen.has(v))queue.push(v);}}
-    if(changed&&performance.now()-lastHydrateLog>1200){lastHydrateLog=performance.now();logDev('ok',`unit-core hydration • ${changed} fields`);}return changed;
+    const seen=new WeakSet(),queue=[];let changed=0,nodes=0,senkuObjects=0,bossObjects=0;
+    for(const key of ['gameState','state','battleState','battle','units','players','party','team','roster','combatants','characters','allies','actors']){try{const v=win[key];if(v&&typeof v==='object')queue.push({obj:v,hint:null,depth:0});}catch(_){}}
+    try{for(const key of Object.getOwnPropertyNames(win)){let v;try{v=win[key];}catch(_){continue;}if(v&&typeof v==='object'&&!v.nodeType&&v!==win.document)queue.push({obj:v,hint:null,depth:0});}}catch(_){}
+    while(queue.length&&nodes<16000){
+      const item=queue.shift(),obj=item?.obj;if(!obj||typeof obj!=='object'||seen.has(obj))continue;seen.add(obj);nodes++;
+      const explicit=explicitUnitForObject(obj,core);const hint=explicit||item.hint;
+      if(hint){changed+=applyDevCoreToObject(obj,hint);if(hint.id==='senku')senkuObjects++;if(hint.role==='boss')bossObjects++;}
+      let entries=[];try{entries=Array.isArray(obj)?obj.slice(0,120).map((v,i)=>[String(i),v]):Object.entries(obj).slice(0,120);}catch(_){continue;}
+      for(const [key,v] of entries){if(!v||typeof v!=='object'||v.nodeType||seen.has(v))continue;let childHint=hint;
+        // Do not blindly propagate unit identity through containers that may hold multiple combatants.
+        if(['units','players','party','team','roster','combatants','characters','allies','actors'].includes(String(key).toLowerCase()))childHint=null;
+        queue.push({obj:v,hint:childHint,depth:item.depth+1});
+      }
+    }
+    if((changed||senkuObjects||bossObjects)&&performance.now()-lastHydrateLog>1200){lastHydrateLog=performance.now();logDev('ok',`unit hydration • fields ${changed} • senku nodes ${senkuObjects} • boss nodes ${bossObjects}`);}
+    return changed;
   }
 
   function installBossStyle(doc){
@@ -150,11 +170,11 @@
   function install(){
     try{
       const win=frame.contentWindow,doc=frame.contentDocument;if(!win||!doc)return;
-      ensureAirburstStyle(doc);bindRevivalControls(doc);hydrateDevUnitState(win);
-      if(win.CanvasRenderingContext2D){const proto=win.CanvasRenderingContext2D.prototype;if(!proto.__bbCanonicalPatch){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__bbCanonicalPatch=true;}}
-      doc.querySelectorAll('canvas').forEach(c=>{try{const ctx=c.getContext('2d');if(ctx&&!ctx.__bbCanonicalPatch){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__bbCanonicalPatch=true;}}catch(_){}});
+      ensureAirburstStyle(doc);hydrateDevUnitState(win);
+      if(win.CanvasRenderingContext2D){const proto=win.CanvasRenderingContext2D.prototype;if(!proto.__bbCanonicalPatchV2){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__bbCanonicalPatchV2=true;}}
+      doc.querySelectorAll('canvas').forEach(c=>{try{const ctx=c.getContext('2d');if(ctx&&!ctx.__bbCanonicalPatchV2){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__bbCanonicalPatchV2=true;}}catch(_){}});
       installBossStyle(doc);installDevMonitor(doc);
-      const pre=win.__BB_DEV_PREBOOT__;boot.textContent=pre?'DEV READY • CANONICAL CORE • OLD REVIVAL VFX RETIRED':'DEV READY • CORE CHECKING';setTimeout(()=>boot.style.opacity='0',2200);
+      const pre=win.__BB_DEV_PREBOOT__;boot.textContent=pre?'DEV READY • PLAYERS 200 • BOSS 50 • REVIVAL EXECUTION HOOK':'DEV READY • CORE CHECKING';setTimeout(()=>boot.style.opacity='0',2200);
     }catch(e){boot.textContent='DEV PATCH ACCESS ERROR';boot.style.opacity='1';}
   }
 
