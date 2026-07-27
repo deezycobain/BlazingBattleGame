@@ -82,6 +82,25 @@
     );
     applied.push('players 200 boss 50');
 
+    // IMPORTANT: the old support-Jutsu detector was tied to Revival Formula naming.
+    // Route support behavior by canonical ability data instead, so Ally Heal enters the heal branch
+    // rather than falling through to Senku's generic/basic attack execution.
+    const supportRx=/function isAllySupportJutsu\([^)]*\)\{.*?\n\}/s;
+    if(!supportRx.test(html))throw new Error('support Jutsu detector missing');
+    html=html.replace(supportRx,`function isAllySupportJutsu(unit){
+ if(!unit)return false;
+ try{
+  const j=canonicalUnit(unit.name)?.abilities?.jutsu;
+  return !!j && (
+   j.id==='ally_heal' ||
+   j.delivery==='airburst_party_heal' ||
+   j.effect==='heal_percent_max_hp' ||
+   j.target==='all_living_allies'
+  );
+ }catch(_){return false;}
+}`);
+    applied.push('Ally Heal support routing canonicalized');
+
     // Replace old Chemical Reaction execution with approved Ally Heal airburst.
     const newAnim=`function animateSenkuChemicalReaction(unitName,from,target,onImpact,onDone){
  const token=ACTIVE_ACTION_TOKEN;
