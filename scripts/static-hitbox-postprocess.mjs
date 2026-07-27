@@ -69,29 +69,17 @@ if(sizeAt>=0 && sizeAt-bombStart<5000){
 }
 
 // Projectile cleanup must happen even if the action token is retired while a
-// bomb is in flight. Previously the token guard ran first, leaving a late/second
-// bomb floater permanently on screen after a multi-target sequence.
+// bomb is in flight. Reverse only the guard/removal pair inside animateSenkuBomb.
 const bombFnStart=html.indexOf('function animateSenkuBomb(');
 const bombFnEnd=html.indexOf('function setMeteorFullscreenFlash',bombFnStart);
 if(bombFnStart<0||bombFnEnd<0)throw new Error('Senku bomb cleanup pass: function bounds not found');
 let bombFn=html.slice(bombFnStart,bombFnEnd);
-const unsafeCleanup=`setTimeout(()=>{
-      if(!actionTokenAlive(token))return;
-
-      S.floaters=S.floaters.filter(x=>x!==projectile);
-      const targetGroundY=`;
-const safeCleanup=`setTimeout(()=>{
-      // Always remove the projectile first; action cancellation must never strand VFX.
-      S.floaters=S.floaters.filter(x=>x!==projectile);
-      if(!actionTokenAlive(token))return;
-
-      const targetGroundY=`;
-if(!bombFn.includes(unsafeCleanup) && !bombFn.includes('action cancellation must never strand VFX')){
-  throw new Error('Senku bomb cleanup pass: projectile cleanup anchor not found');
-}
-if(bombFn.includes(unsafeCleanup)){
-  bombFn=bombFn.replace(unsafeCleanup,safeCleanup);
+const cleanupRx=/if\(!actionTokenAlive\(token\)\)return;\s*S\.floaters=S\.floaters\.filter\(x=>x!==projectile\);/;
+if(cleanupRx.test(bombFn)){
+  bombFn=bombFn.replace(cleanupRx,`// Always remove the projectile first; action cancellation must never strand VFX.\n      S.floaters=S.floaters.filter(x=>x!==projectile);\n      if(!actionTokenAlive(token))return;`);
   html=html.slice(0,bombFnStart)+bombFn+html.slice(bombFnEnd);
+}else if(!bombFn.includes('action cancellation must never strand VFX')){
+  throw new Error('Senku bomb cleanup pass: projectile cleanup anchor not found');
 }
 
 await fs.writeFile(file,html);
