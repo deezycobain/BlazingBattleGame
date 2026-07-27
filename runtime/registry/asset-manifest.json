@@ -29,8 +29,9 @@
         },
         "ally_heal_cast": {
           "resource_id": "senku.animation.jutsu.ally_heal.cast",
-          "path": "assets/characters/senku/sprites/runtime/jutsu/ally_heal/cast/",
-          "required_runtime_frames": 2
+          "path": "assets/characters/senku/sprites/runtime/jutsu/chemical_reaction/cast/",
+          "required_runtime_frames": 2,
+          "migration_note": "Canonical resource ID; physical directory will be renamed after the approved two-frame PNGs are normalized."
         }
       },
       "vfx": {
@@ -46,7 +47,7 @@
           "resource_id": "senku.vfx.jutsu.ally_heal.bottle",
           "path": "assets/characters/senku/vfx/jutsu/chemical_reaction/projectile/",
           "usage": "Bottle artwork only; trajectory and burst are shared delivery behavior",
-          "migration_note": "Artwork path retains historical folder name until assets are physically relocated; resource ID is canonical."
+          "migration_note": "Canonical resource ID; physical directory retains its historical name temporarily."
         }
       }
     }
