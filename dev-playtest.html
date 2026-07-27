@@ -12,16 +12,31 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
 </head>
 <body>
 <div id="boot">DEV LOADING…</div>
-<iframe id="game" src="./index.html?v=dev-playtest-1" title="Blazing Battle"></iframe>
+<iframe id="game" src="./index.html?v=dev-playtest-2" title="Blazing Battle"></iframe>
 <script>
 (()=>{
   const frame=document.getElementById('game');
   const boot=document.getElementById('boot');
-  const SCALE=2;
+  const BOMB_SCALE=2;
+  const JUTSU_ARC_HEIGHT=86;
+  const JUTSU_FLIGHT_MS=420;
+  const jutsuArc={startedAt:0,lastSeenAt:0,active:false};
+
+  function sourceOf(image){
+    return String(image?.currentSrc||image?.src||'');
+  }
+
+  function looksLikeRevivalFormulaProjectile(image){
+    if(!image)return false;
+    const src=sourceOf(image);
+    return src.includes('/jutsu/chemical_reaction/projectile/') ||
+      src.includes('/jutsu/revival_formula/projectile/') ||
+      (src.includes('/senku/')&&src.includes('revival_formula')&&src.includes('projectile'));
+  }
 
   function looksLikeSenkuBombForScale(image){
-    if(!image)return false;
-    const src=String(image.currentSrc||image.src||'');
+    if(!image||looksLikeRevivalFormulaProjectile(image))return false;
+    const src=sourceOf(image);
     if(src.includes('/senku/')&&src.includes('bomb'))return true;
     if(src.includes('projectile_clean'))return true;
     const w=image.naturalWidth||image.videoWidth||image.width||0;
@@ -29,29 +44,76 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
     return w===96&&h===96;
   }
 
+  function logDev(type,message){
+    try{frame.contentWindow?.__BLAZING_DEV_MONITOR__?.record(type,message);}catch(_){}
+  }
+
+  function currentJutsuArcOffset(){
+    const now=performance.now();
+    if(!jutsuArc.active || now-jutsuArc.lastSeenAt>300){
+      jutsuArc.startedAt=now;
+      jutsuArc.active=true;
+      logDev('info','Senku Revival Formula projectile arc started');
+    }
+    jutsuArc.lastSeenAt=now;
+    const t=Math.min(1,Math.max(0,(now-jutsuArc.startedAt)/JUTSU_FLIGHT_MS));
+    const offset=-JUTSU_ARC_HEIGHT*Math.sin(Math.PI*t);
+    if(t>=1){
+      jutsuArc.active=false;
+      logDev('ok','Senku Revival Formula projectile landed');
+    }
+    return offset;
+  }
+
+  function drawJutsuArc(original,ctx,image,args){
+    const yOffset=currentJutsuArcOffset();
+    if(args.length===2){
+      const [dx,dy]=args;
+      return original.call(ctx,image,dx,dy+yOffset);
+    }
+    if(args.length===4){
+      const [dx,dy,dw,dh]=args;
+      return original.call(ctx,image,dx,dy+yOffset,dw,dh);
+    }
+    if(args.length===8){
+      const [sx,sy,sw,sh,dx,dy,dw,dh]=args;
+      return original.call(ctx,image,sx,sy,sw,sh,dx,dy+yOffset,dw,dh);
+    }
+    return original.call(ctx,image,...args);
+  }
+
+  function drawBombScaled(original,ctx,image,args){
+    if(args.length===2){
+      const [dx,dy]=args;
+      const ow=image.naturalWidth||image.width||0,oh=image.naturalHeight||image.height||0;
+      const nw=ow*BOMB_SCALE,nh=oh*BOMB_SCALE;
+      return original.call(ctx,image,dx-(nw-ow)/2,dy-(nh-oh)/2,nw,nh);
+    }
+    if(args.length===4){
+      const [dx,dy,dw,dh]=args;
+      const nw=dw*BOMB_SCALE,nh=dh*BOMB_SCALE;
+      return original.call(ctx,image,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
+    }
+    if(args.length===8){
+      const [sx,sy,sw,sh,dx,dy,dw,dh]=args;
+      const nw=dw*BOMB_SCALE,nh=dh*BOMB_SCALE;
+      return original.call(ctx,image,sx,sy,sw,sh,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
+    }
+    return original.call(ctx,image,...args);
+  }
+
   function wrapDrawImage(original){
-    if(typeof original!=='function'||original.__senkuScaleOnlyWrapped)return original;
+    if(typeof original!=='function'||original.__senkuDevProjectileWrapped)return original;
     function patchedDrawImage(image,...args){
-      if(!looksLikeSenkuBombForScale(image))return original.call(this,image,...args);
-      if(args.length===2){
-        const [dx,dy]=args;
-        const ow=image.naturalWidth||image.width||0,oh=image.naturalHeight||image.height||0;
-        const nw=ow*SCALE,nh=oh*SCALE;
-        return original.call(this,image,dx-(nw-ow)/2,dy-(nh-oh)/2,nw,nh);
+      if(looksLikeRevivalFormulaProjectile(image)){
+        return drawJutsuArc(original,this,image,args);
       }
-      if(args.length===4){
-        const [dx,dy,dw,dh]=args;
-        const nw=dw*SCALE,nh=dh*SCALE;
-        return original.call(this,image,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
-      }
-      if(args.length===8){
-        const [sx,sy,sw,sh,dx,dy,dw,dh]=args;
-        const nw=dw*SCALE,nh=dh*SCALE;
-        return original.call(this,image,sx,sy,sw,sh,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
+      if(looksLikeSenkuBombForScale(image)){
+        return drawBombScaled(original,this,image,args);
       }
       return original.call(this,image,...args);
     }
-    patchedDrawImage.__senkuScaleOnlyWrapped=true;
+    patchedDrawImage.__senkuDevProjectileWrapped=true;
     return patchedDrawImage;
   }
 
@@ -101,9 +163,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
       if(!win||!doc)return;
       if(win.CanvasRenderingContext2D){
         const proto=win.CanvasRenderingContext2D.prototype;
-        if(!proto.__senkuScaleOnlyPatched){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__senkuScaleOnlyPatched=true;}
+        if(!proto.__senkuDevProjectilePatched){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__senkuDevProjectilePatched=true;}
       }
-      doc.querySelectorAll('canvas').forEach(canvas=>{try{const ctx=canvas.getContext('2d');if(ctx&&!ctx.__senkuScaleOnlyPatched){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuScaleOnlyPatched=true;}}catch(_){}});
+      doc.querySelectorAll('canvas').forEach(canvas=>{try{const ctx=canvas.getContext('2d');if(ctx&&!ctx.__senkuDevProjectilePatched){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuDevProjectilePatched=true;}}catch(_){}});
       installBossStyle(doc);
       installDevMonitor(doc);
       boot.textContent='DEV READY';
