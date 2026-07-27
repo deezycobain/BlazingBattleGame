@@ -17,7 +17,7 @@
     "hp": 180,
     "attack": 38,
     "defense": 28,
-    "speed": 64
+    "speed": 200
   },
   "combat": {
     "mark": "S",
@@ -33,7 +33,8 @@
       "scope": "all_allies"
     },
     "chakra_max": 8,
-    "chakra_start": 8
+    "chakra_start": 8,
+    "chakra_current": 8
   },
   "render": {
     "scale": 1.3
@@ -134,7 +135,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "Dev checkpoint: approved Senku bomb visual scale locked at 2x. Basic impact uses cleaned six-frame Small Explosion sequence. Revival Formula costs 4 chakra and heals each living ally, including Senku, for 30% of that unit's max HP; defeated allies are ignored and revival is reserved for Senku's ultimate. Dev unit core starts Senku at max chakra (8/8).",
+    "notes": "Dev checkpoint: approved Senku bomb visual scale locked at 2x. Basic impact uses cleaned six-frame Small Explosion sequence. Revival Formula costs 4 chakra and heals each living ally, including Senku, for 30% of that unit's max HP; defeated allies are ignored and revival is reserved for Senku's ultimate. Dev unit core starts Senku at max chakra (8/8) with speed 200 for rapid testing.",
     "animation_map": true
   },
   "balance": {
