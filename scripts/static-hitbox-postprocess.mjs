@@ -5,23 +5,29 @@ const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
 
 // Attack geometry is positional strategy, not auto-aim.
+// IMPORTANT: battle pairs also contain empty reserve placeholders and some stages
+// contain non-canonical enemies. Never let a presentation lookup throw during render.
 const facingRx=/function updateFacing\(\)\{[\s\S]*?\n\}\n\nfunction battleSpriteFor/;
 if(!facingRx.test(html))throw new Error('Static hitbox pass: updateFacing() block not found');
 const facingReplacement=`function updateFacing(){
- // Moving a unit changes only the authored attack-shape origin.
- // Proximity never rotates or snaps the attack field toward a target.
- S.pairs.forEach(pair=>{
-   pair.units.forEach(u=>{
-     const combat=canonicalUnit(u.name)?.combat||{};
-     const deg=Number.isFinite(combat.basic_rotation_deg)?combat.basic_rotation_deg:-90;
-     u.rotation=deg*Math.PI/180;
-   });
- });
- S.enemies.forEach(e=>{
-   const combat=canonicalUnit(e.name)?.combat||{};
-   const deg=Number.isFinite(combat.basic_rotation_deg)?combat.basic_rotation_deg:90;
-   e.rotation=deg*Math.PI/180;
- });
+  // Moving a unit changes only the authored attack-shape origin.
+  // Proximity never rotates or snaps the attack field toward a target.
+  function fixedAttackRotation(actor,fallbackDeg){
+    let deg=fallbackDeg;
+    try{
+      if(actor?.name){
+        const combat=canonicalUnit(actor.name)?.combat||{};
+        if(Number.isFinite(combat.basic_rotation_deg))deg=combat.basic_rotation_deg;
+      }
+    }catch(_){
+      // Empty reserve slots and stage-only enemies intentionally use the fallback.
+    }
+    return deg*Math.PI/180;
+  }
+  S.pairs.forEach(pair=>{
+    pair.units.forEach(u=>{u.rotation=fixedAttackRotation(u,-90);});
+  });
+  S.enemies.forEach(e=>{e.rotation=fixedAttackRotation(e,90);});
 }
 
 function battleSpriteFor`;
@@ -47,4 +53,4 @@ if(sizeAt>=0 && sizeAt-bombStart<5000){
 }
 
 await fs.writeFile(file,html);
-console.log('Gameplay presentation pass: static per-unit attack orientations + Senku bomb size curve applied');
+console.log('Gameplay presentation pass: safe static per-unit attack orientations + Senku bomb size curve applied');
