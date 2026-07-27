@@ -10,40 +10,165 @@
 <div id="status">DEV RUNTIME PREPARING…</div>
 <script>
 (async()=>{
-  const DEV_PLAYER_SPEED=200,DEV_BOSS_SPEED=50,DEV_CHAKRA=8;
+  const DEV_PLAYER_SPEED=200,DEV_BOSS_SPEED=50;
   const status=document.getElementById('status');
   const bust=()=>`bbdev=${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  async function getJson(path){const r=await fetch(`${path}${path.includes('?')?'&':'?'}${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});if(!r.ok)throw new Error(`${path} ${r.status}`);return r.json();}
+  async function getJson(path){
+    const r=await fetch(`${path}${path.includes('?')?'&':'?'}${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});
+    if(!r.ok)throw new Error(`${path} ${r.status}`);
+    return r.json();
+  }
+  function replaceOnce(html,oldText,newText,label){
+    if(!html.includes(oldText))throw new Error(`${label} anchor missing`);
+    return html.replace(oldText,newText);
+  }
   try{
     const unitIndex=await getJson('./runtime/registry/unit-index.json');
-    const core={};const migrationWarnings=[];
-    for(const entry of unitIndex.units||[]){let u=await getJson('./'+entry.path);let max=u?.combat?.chakra_max,start=u?.combat?.chakra_start;if(!Number.isInteger(max)){u=await getJson('./'+entry.path);max=u?.combat?.chakra_max;start=u?.combat?.chakra_start;}if(!Number.isInteger(max))throw new Error(`${entry.id} missing chakra_max`);if(!Number.isInteger(start)){start=0;migrationWarnings.push(`${entry.id}:stale-start-defaulted`);}if(start<0||start>max)throw new Error(`${entry.id} invalid chakra range`);core[u.id]={id:u.id,name:u.display_name,role:u.role,max,start,speed:u.stats?.speed};}
+    const unitsById={},core={};
+    for(const entry of unitIndex.units||[]){
+      const u=await getJson('./'+entry.path);
+      const max=u?.combat?.chakra_max,start=u?.combat?.chakra_start;
+      if(!Number.isInteger(max)||!Number.isInteger(start)||start<0||start>max)throw new Error(`${entry.id} invalid chakra core`);
+      unitsById[u.id]=u;
+      core[u.id]={id:u.id,name:u.display_name,role:u.role,max,start,speed:u.stats?.speed};
+    }
+    const senku=unitsById.senku;
+    if(!senku)throw new Error('canonical Senku missing');
 
-    const res=await fetch(`./index.html?${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});if(!res.ok)throw new Error(`index fetch ${res.status}`);let html=await res.text();
-    let chakraEdits=0,arrayEdits=0,fillEdits=0,retiredVfxEdits=0,textEdits=0;
+    const res=await fetch(`./index.html?${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});
+    if(!res.ok)throw new Error(`index fetch ${res.status}`);
+    let html=await res.text();
+    const applied=[];
 
-    // DEV RESOURCE BASELINE: all legacy current-chakra initializers start full for testing.
-    // Canonical normal-game start values still live only in each unit.json.
-    const currentNames='chakra|currentChakra|chakraCurrent|chakraNow|current_chakra|chakra_start|chakraStart|startingChakra|startChakra|chakraCount|chakraPoints|chakraGauge|energy|currentEnergy|ki|currentKi|charge|charges|cp|ch';
-    const arrayNames='chakraPips|chakraOrbs|chakraSegments|pips|orbs|segments';
-    html=html.replace(new RegExp('((?:["\\\']?(?:'+currentNames+')["\\\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{chakraEdits++;return p+DEV_CHAKRA;});
-    html=html.replace(new RegExp('((?:["\\\']?(?:'+arrayNames+')["\\\']?)\\s*[:=]\\s*)\\[((?:\\s*(?:true|false|0|1)\\s*,?){2,})\\]','gi'),(m,p,items)=>{const boolMode=/true|false/i.test(items);arrayEdits++;return p+'['+Array(DEV_CHAKRA).fill(boolMode?'true':'1').join(',')+']';});
-    html=html.replace(new RegExp('((?:["\\\']?(?:'+arrayNames+')["\\\']?)\\s*[:=]\\s*)((?:new\\s+)?Array\\(\\s*\\d+\\s*\\)\\.fill\\(\\s*(false|0)\\s*\\))','gi'),(m,p,expr,seed)=>{fillEdits++;return p+`Array(${DEV_CHAKRA}).fill(${String(seed).toLowerCase()==='false'?'true':'1'})`;});
+    // Replace the embedded Senku definition the battle actually consumes.
+    const unitTag=/(<script id="blazing-unit-data">window\.BLAZING_UNIT_DATA=)(\{.*?\})(;<\/script>)/s;
+    const match=html.match(unitTag);
+    if(!match)throw new Error('embedded unit data tag missing');
+    const embedded=JSON.parse(match[2]);
+    embedded.senku=senku;
+    html=html.replace(unitTag,(_,a,_json,c)=>a+JSON.stringify(embedded)+c);
+    applied.push('embedded Senku canonicalized');
 
-    // Remove the old Senku heal projectile/ground-impact source from the legacy runtime itself.
-    // The approved Ally Heal airburst is supplied by runtime/dev/playtest-patch.js from the cast sequence.
-    const transparent='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
-    html=html.replace(/(?:assets\/characters\/senku\/)?vfx\/jutsu\/chemical_reaction\/(?:projectile|impact)\/frame_0[1-9]\.png/gi,()=>{retiredVfxEdits++;return transparent;});
-    html=html.replace(/Revival Formula/g,()=>{textEdits++;return 'Ally Heal';});
-    html=html.replace(/Basic builds chakra; closer linked allies can amplify Link Attack buffs[^<\n]*/gi,()=>{textEdits++;return '';});
+    // Battle construction: unit data owns starting chakra. Dev makes all playable units Jutsu-ready.
+    html=replaceOnce(
+      html,
+      "maxChakra:d.combat.chakra_max||0,jutsuCost:jutsu.cost??99,",
+      "maxChakra:d.combat.chakra_max||0,startChakra:d.combat.chakra_start??0,jutsuCost:jutsu.cost??99,",
+      'runtimeDefinition chakra'
+    );
+    html=replaceOnce(
+      html,
+      "const start=opts.startingChakra??2;\n u.chakra=start==='full'?u.maxChakra:Math.max(0,Math.min(u.maxChakra,start));",
+      "const start=opts.startingChakra??d.startChakra??0;\n u.chakra=start==='full'?u.maxChakra:Math.max(0,Math.min(u.maxChakra,start));",
+      'makeRosterUnit chakra'
+    );
+    const spawnRx=/function teamSpawnOptions\(name\)\{.*?\n\}/s;
+    if(!spawnRx.test(html))throw new Error('teamSpawnOptions missing');
+    html=html.replace(spawnRx,"function teamSpawnOptions(name){\n // DEV TEST ONLY: every playable starts at its own max chakra.\n return {startingChakra:'full'};\n}");
+    applied.push('playable chakra starts full');
+
+    // Speed at authoritative construction points only: players 200, boss 50.
+    html=replaceOnce(
+      html,
+      "mark:d.combat.mark,speed:d.stats.speed,attack:d.stats.attack,defense:d.stats.defense,",
+      "mark:d.combat.mark,speed:(d.role==='playable'?200:(d.role==='boss'?50:d.stats.speed)),attack:d.stats.attack,defense:d.stats.defense,",
+      'runtime speed'
+    );
+    html=replaceOnce(
+      html,
+      "speed:canonicalUnit('anubis').stats.speed,attack:canonicalUnit('anubis').stats.attack",
+      "speed:50,attack:canonicalUnit('anubis').stats.attack",
+      'boss speed'
+    );
+    applied.push('players 200 boss 50');
+
+    // Replace old Chemical Reaction execution with approved Ally Heal airburst.
+    const newAnim=`function animateSenkuChemicalReaction(unitName,from,target,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const meta=canonicalUnit('senku').abilities.jutsu.presentation||{};
+ const castDuration=meta.cast_duration_ms||680;
+ const flightDuration=meta.flight_duration_ms||650;
+ const flashDuration=meta.impact_duration_ms||500;
+ const arcHeight=meta.arc_height_px||95;
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={kind:'special',start:performance.now(),duration:castDuration+flightDuration+flashDuration};
+ if(meta.screen_dim_alpha)S.jutsuDim={start:performance.now(),alpha:meta.screen_dim_alpha,end:null};
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const dir=from.x>(W/2)?-1:1;
+   const burst={x:from.x+(72*dir),y:Math.max(95,from.y-145)};
+   const projectile={kind:'senkuAllyHealProjectile',from:{x:from.x,y:from.y-30},to:burst,start:performance.now(),duration:flightDuration,life:1,arcHeight};
+   S.floaters.push(projectile);
+   setTimeout(()=>{
+     if(!actionTokenAlive(token))return;
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Senku Ally Heal impact failed:',err);return recoverAction('Senku Ally Heal impact')}
+     const flash={kind:'senkuAllyHealFlash',x:burst.x,y:burst.y,start:performance.now(),duration:flashDuration,life:1};
+     S.floaters.push(flash);
+     setTimeout(()=>{
+       S.floaters=S.floaters.filter(x=>x!==flash);
+       if(S.jutsuDim)S.jutsuDim.end=performance.now();
+       const st=ensureAnimState();if(st.attackPose)delete st.attackPose[unitName];
+       if(actionTokenAlive(token)){try{onDone&&onDone()}catch(err){recoverAction('Senku Ally Heal completion')}}
+     },flashDuration);
+   },flightDuration);
+ },castDuration*.70);
+}
+
+function animateSenkuBomb`;
+    const animRx=/function animateSenkuChemicalReaction\(unitName,from,target,onImpact,onDone\)\{.*?\n\}\n\nfunction animateSenkuBomb/s;
+    if(!animRx.test(html))throw new Error('old Senku heal animation missing');
+    html=html.replace(animRx,newAnim);
+
+    const newRenderer=`else if(f.kind==='senkuAllyHealProjectile'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+     const arc=f.arcHeight||95;
+     const x=f.from.x+(f.to.x-f.from.x)*e;
+     const baseY=f.from.y+(f.to.y-f.from.y)*e;
+     const y=baseY-4*arc*t*(1-t);
+     const dx=f.to.x-f.from.x;
+     const dy=(f.to.y-f.from.y)-4*arc*(1-2*t);
+     const img=SENKU_CHEM_PROJECTILE_FRAMES[0];
+     if(img?.complete&&img.naturalWidth>0){
+       const h=30,ratio=img.naturalWidth/img.naturalHeight,w=h*ratio;
+       ctx.translate(x,y);ctx.rotate(Math.atan2(dy,dx)+t*Math.PI*2);
+       ctx.globalAlpha=t<.82?1:Math.max(0,1-(t-.82)/.18);
+       ctx.shadowColor='#62ff63';ctx.shadowBlur=10;ctx.drawImage(img,-w/2,-h/2,w,h);
+     }
+   }else if(f.kind==='senkuAllyHealFlash'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1),pulse=Math.sin(Math.PI*t),r=14+92*pulse;
+     ctx.translate(f.x,f.y);ctx.globalCompositeOperation='screen';ctx.globalAlpha=Math.max(0,1-t);
+     const g=ctx.createRadialGradient(0,0,0,0,0,r);
+     g.addColorStop(0,'rgba(240,255,242,.98)');g.addColorStop(.22,'rgba(124,255,151,.90)');g.addColorStop(.55,'rgba(55,223,101,.52)');g.addColorStop(1,'rgba(44,179,88,0)');
+     ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.globalCompositeOperation='source-over';
+   }else if(f.kind==='senkuBombProjectile'){`;
+    const rendererRx=/else if\(f\.kind==='senkuChemProjectile'\)\{.*?else if\(f\.kind==='senkuBombProjectile'\)\{/s;
+    if(!rendererRx.test(html))throw new Error('old Senku heal renderer missing');
+    html=html.replace(rendererRx,newRenderer);
+    applied.push('old heal animation replaced');
+
+    // Ally Heal gameplay: 30% max HP to living allies, no revive.
+    html=replaceOnce(
+      html,
+      "const healed=Math.max(0,ally.maxHp-ally.hp);\n     ally.hp=ally.maxHp;",
+      "const before=ally.hp;\n     const healAmount=Math.max(1,Math.round(ally.maxHp*(canonicalUnit('senku').abilities.jutsu.heal_percent??0.30)));\n     ally.hp=Math.min(ally.maxHp,ally.hp+healAmount);\n     const healed=ally.hp-before;",
+      'full-heal gameplay'
+    );
+    html=html.replace("S.log=`${u.name} activated ${u.jutsuName||'Revival Formula'} — restoring all active allies to full HP.`;","S.log=`${u.name} activated ${u.jutsuName||'Ally Heal'} — healing all living allies for 30% max HP.`;");
+    html=html.replace(":S.phase==='player'?`${active.name}'s turn — Basic builds chakra; closer linked allies can amplify Link Attack buffs. Choose an action, preview its range, then drag and release.`",":S.phase==='player'?`${active.name}'s turn`");
+    applied.push('30% living-allies heal');
 
     const payload=JSON.stringify(core).replace(/</g,'\\u003c');
-    const marker=`<script>window.BB_UNIT_CORE=Object.freeze(${payload});window.__BB_DEV_PREBOOT__={unitCore:true,chakraEdits:${chakraEdits},arrayEdits:${arrayEdits},fillEdits:${fillEdits},retiredVfxEdits:${retiredVfxEdits},textEdits:${textEdits},migrationWarnings:${JSON.stringify(migrationWarnings)}};<\/script>`;
-    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startPlayableAtMaxChakra:true,startingChakra:${DEV_CHAKRA},playerSpeed:${DEV_PLAYER_SPEED},bossSpeed:${DEV_BOSS_SPEED}});<\/script>`;
-    const factory=`<script src="runtime/core/unit-state.js?${bust()}"><\/script>`;
-    html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}${config}${factory}`);
+    const marker=`<script>window.BB_UNIT_CORE=Object.freeze(${payload});window.__BB_DEV_PREBOOT__={unitCore:true,directBattleMigration:true,applied:${JSON.stringify(applied)}};<\/script>`;
+    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startPlayableAtMaxChakra:true,playerSpeed:${DEV_PLAYER_SPEED},bossSpeed:${DEV_BOSS_SPEED}});<\/script>`;
+    html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}${config}`);
     document.open();document.write(html);document.close();
-  }catch(err){status.textContent='DEV RUNTIME LOAD FAILED • '+(err?.message||err);console.error(err);}
+  }catch(err){
+    status.textContent='DEV RUNTIME LOAD FAILED • '+(err?.message||err);
+    console.error(err);
+  }
 })();
 </script>
 </body>
