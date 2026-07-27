@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "id": "senku",
   "display_name": "Senku",
   "title": "The Kingdom of Science",
@@ -33,8 +33,7 @@
       "scope": "all_allies"
     },
     "chakra_max": 8,
-    "chakra_start": 8,
-    "chakra_current": 8
+    "chakra_start": 8
   },
   "render": {
     "scale": 1.3
@@ -135,7 +134,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "Dev checkpoint: approved Senku bomb visual scale locked at 2x. Basic impact uses cleaned six-frame Small Explosion sequence. Revival Formula costs 4 chakra and heals each living ally, including Senku, for 30% of that unit's max HP; defeated allies are ignored and revival is reserved for Senku's ultimate. Dev unit core starts Senku at max chakra (8/8) with speed 200 for rapid testing.",
+    "notes": "Dev checkpoint: approved Senku bomb visual scale locked at 2x. Basic impact uses cleaned six-frame Small Explosion sequence. Revival Formula costs 4 chakra and heals each living ally, including Senku, for 30% of that unit's max HP; defeated allies are ignored and revival is reserved for Senku's ultimate. Chakra max/start are canonical unit-core values; battle state must initialize current chakra from chakra_start.",
     "animation_map": true
   },
   "balance": {
