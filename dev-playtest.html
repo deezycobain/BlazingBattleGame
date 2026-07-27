@@ -12,7 +12,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
 </head>
 <body>
 <div id="boot">DEV LOADING…</div>
-<iframe id="game" src="./dev-runtime.html?v=ad9f22a" title="Blazing Battle"></iframe>
+<iframe id="game" src="./dev-runtime.html?v=3f96dcd" title="Blazing Battle"></iframe>
 <script>
 (()=>{
   const frame=document.getElementById('game');
@@ -21,116 +21,23 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
   const JUTSU_PROJECTILE_SIZE=[291,185];
   const JUTSU_IMPACT_SIZE=[396,267];
   let suppressRevivalUntil=0,lastTrigger=0,lastSenkuRect=null;
-
   const sourceOf=image=>String(image?.currentSrc||image?.src||'');
   const sourceSize=image=>[image?.naturalWidth||image?.videoWidth||image?.width||0,image?.naturalHeight||image?.videoHeight||image?.height||0];
   const matchesSize=(image,size)=>{const [w,h]=sourceSize(image);return w===size[0]&&h===size[1];};
   const logDev=(type,message)=>{try{frame.contentWindow?.__BLAZING_DEV_MONITOR__?.record(type,message);}catch(_){}};
-
-  function looksLikeRevivalAsset(image){
-    if(!image)return false;
-    const src=sourceOf(image);
-    return src.includes('/jutsu/chemical_reaction/')||src.includes('/jutsu/revival_formula/')||matchesSize(image,JUTSU_PROJECTILE_SIZE)||matchesSize(image,JUTSU_IMPACT_SIZE);
-  }
-  function looksLikeSenkuBody(image){
-    const src=sourceOf(image);return src.includes('/senku/sprites/runtime/');
-  }
-  function looksLikeSenkuBombForScale(image){
-    if(!image||looksLikeRevivalAsset(image))return false;
-    const src=sourceOf(image),[w,h]=sourceSize(image);
-    return (src.includes('/senku/')&&src.includes('bomb'))||src.includes('projectile_clean')||(w===96&&h===96);
-  }
-  function destinationFromArgs(ctx,args){
-    let dx=0,dy=0,dw=40,dh=40;
-    if(args.length===2){[dx,dy]=args;}else if(args.length===4){[dx,dy,dw,dh]=args;}else if(args.length===8){[, , , ,dx,dy,dw,dh]=args;}
-    const rect=ctx.canvas.getBoundingClientRect();const sx=rect.width/(ctx.canvas.width||rect.width||1),sy=rect.height/(ctx.canvas.height||rect.height||1);
-    return {left:rect.left+dx*sx,top:rect.top+dy*sy,width:dw*sx,height:dh*sy};
-  }
-
-  function ensureAirburstStyle(doc){
-    if(doc.getElementById('bb-revival-airburst-style'))return;
-    const style=doc.createElement('style');style.id='bb-revival-airburst-style';style.textContent=`
-      .bb-revival-bottle{position:fixed;z-index:2147483000;pointer-events:none;width:38px;height:30px;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45));will-change:transform,opacity}
-      .bb-revival-flash{position:fixed;z-index:2147482999;pointer-events:none;width:40px;height:40px;border-radius:50%;transform:translate(-50%,-50%) scale(.2);opacity:0;background:radial-gradient(circle,rgba(238,255,241,.98) 0%,rgba(124,255,151,.92) 20%,rgba(55,223,101,.62) 44%,rgba(44,179,88,.2) 68%,rgba(44,179,88,0) 80%);box-shadow:0 0 34px rgba(80,255,130,.78)}
-    `;doc.head.appendChild(style);
-  }
-
-  function playGreenFlash(doc,x,y){
-    const flash=doc.createElement('div');flash.className='bb-revival-flash';flash.style.left=x+'px';flash.style.top=y+'px';doc.body.appendChild(flash);logDev('ok','Revival Formula airburst • heal flash');
-    const start=performance.now(),duration=500;
-    function tick(t){const q=Math.min(1,(t-start)/duration);const scale=.2+4.4*Math.sin(Math.PI*q);flash.style.transform=`translate(-50%,-50%) scale(${scale})`;flash.style.opacity=String(q<.18?q/.18:1-(q-.18)/.82);if(q<1)requestAnimationFrame(tick);else flash.remove();}
-    requestAnimationFrame(tick);
-  }
-
-  function launchRevivalAirburst(){
-    const now=performance.now();if(now-lastTrigger<800)return;lastTrigger=now;suppressRevivalUntil=now+1500;
-    const doc=frame.contentDocument;if(!doc)return;ensureAirburstStyle(doc);
-    const vw=doc.documentElement.clientWidth||innerWidth,vh=doc.documentElement.clientHeight||innerHeight;
-    const startX=lastSenkuRect?lastSenkuRect.left+lastSenkuRect.width*.55:vw*.72;
-    const startY=lastSenkuRect?lastSenkuRect.top+lastSenkuRect.height*.38:vh*.62;
-    const endX=startX+(startX>vw*.5?-70:70);
-    const endY=Math.max(vh*.28,startY-150);
-    const bottle=doc.createElement('img');bottle.className='bb-revival-bottle';bottle.src='assets/characters/senku/vfx/jutsu/chemical_reaction/projectile/frame_01.png';bottle.style.left=(startX-19)+'px';bottle.style.top=(startY-15)+'px';doc.body.appendChild(bottle);
-    logDev('info','Revival Formula manual airburst launched');
-    const start=performance.now(),duration=650;
-    function tick(t){
-      const q=Math.min(1,(t-start)/duration),x=(endX-startX)*q,y=(endY-startY)*q-95*Math.sin(Math.PI*q),rot=360*q;
-      bottle.style.transform=`translate(${x}px,${y}px) rotate(${rot}deg)`;bottle.style.opacity=String(q<.88?1:1-(q-.88)/.12);
-      if(q<1)requestAnimationFrame(tick);else{bottle.remove();playGreenFlash(doc,endX,endY);}
-    }
-    requestAnimationFrame(tick);
-  }
-
-  function drawBombScaled(original,ctx,image,args){
-    if(args.length===2){const [dx,dy]=args,[ow,oh]=sourceSize(image),nw=ow*BOMB_SCALE,nh=oh*BOMB_SCALE;return original.call(ctx,image,dx-(nw-ow)/2,dy-(nh-oh)/2,nw,nh);}
-    if(args.length===4){const [dx,dy,dw,dh]=args,nw=dw*BOMB_SCALE,nh=dh*BOMB_SCALE;return original.call(ctx,image,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);}
-    if(args.length===8){const [sx,sy,sw,sh,dx,dy,dw,dh]=args,nw=dw*BOMB_SCALE,nh=dh*BOMB_SCALE;return original.call(ctx,image,sx,sy,sw,sh,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);}
-    return original.call(ctx,image,...args);
-  }
-
-  function wrapDrawImage(original){
-    if(typeof original!=='function'||original.__senkuAirburstWrappedV5)return original;
-    function patchedDrawImage(image,...args){
-      if(looksLikeSenkuBody(image))lastSenkuRect=destinationFromArgs(this,args);
-      if(performance.now()<suppressRevivalUntil&&looksLikeRevivalAsset(image))return;
-      if(looksLikeSenkuBombForScale(image))return drawBombScaled(original,this,image,args);
-      return original.call(this,image,...args);
-    }
-    patchedDrawImage.__senkuAirburstWrappedV5=true;return patchedDrawImage;
-  }
-
-  function hookRevivalButton(doc){
-    if(doc.__bbRevivalHookedV3)return;doc.__bbRevivalHookedV3=true;
-    const handler=e=>{
-      if(!e.isTrusted)return;
-      const target=e.target instanceof Element?e.target:null;
-      if(!target||target.closest('#bb-dev-monitor'))return;
-      const control=target.closest('button,[role="button"],input[type="button"],input[type="submit"]');
-      if(!control)return;
-      const txt=String(control.textContent||control.value||'').replace(/\s+/g,' ').trim();
-      if(txt.startsWith('Revival Formula'))setTimeout(launchRevivalAirburst,120);
-    };
-    doc.addEventListener('click',handler,true);
-  }
-
-  function installBossStyle(doc){
-    if(!doc.getElementById('bb-ornate-boss-style')){const style=doc.createElement('style');style.id='bb-ornate-boss-style';style.textContent=`.bb-ornate-boss-hp{position:relative!important;height:18px!important;min-height:18px!important;max-height:18px!important;margin-top:3px!important;overflow:visible!important;border:2px solid #a9772e!important;border-radius:5px!important;background:linear-gradient(180deg,#170708 0%,#090303 55%,#160607 100%)!important}.bb-ornate-boss-hp::before,.bb-ornate-boss-hp::after{content:'';position:absolute;z-index:8;top:50%;width:9px;height:9px;background:#2a130b;border:1px solid #c19443;transform:translateY(-50%) rotate(45deg)}.bb-ornate-boss-hp::before{left:-6px}.bb-ornate-boss-hp::after{right:-6px}.bb-ornate-boss-fill{height:10px!important;top:2px!important;background:linear-gradient(180deg,#ff3b3b 0%,#d51220 46%,#8e0712 100%)!important}.bb-ornate-boss-label{z-index:10!important;color:#f6cf55!important;font-size:13px!important}`;doc.head.appendChild(style);}
-    const labels=[...doc.querySelectorAll('*')].filter(el=>el.children.length===0&&el.textContent.trim()==='BOSS');labels.forEach(label=>{label.classList.add('bb-ornate-boss-label');let bar=null;for(let el=label.parentElement;el&&el!==doc.body;el=el.parentElement){const r=el.getBoundingClientRect();if(r.width>250&&r.height>=12&&r.height<=55){bar=el;break;}}if(!bar)return;bar.classList.add('bb-ornate-boss-hp');const br=bar.getBoundingClientRect();let fill=null,best=0;[...bar.children].filter(el=>el!==label).forEach(el=>{const r=el.getBoundingClientRect(),score=r.width*r.height;if(r.width>20&&r.height>4&&r.height<=br.height+8&&score>best){best=score;fill=el;}});if(fill)fill.classList.add('bb-ornate-boss-fill');});
-  }
+  function looksLikeRevivalAsset(image){if(!image)return false;const src=sourceOf(image);return src.includes('/jutsu/chemical_reaction/')||src.includes('/jutsu/revival_formula/')||matchesSize(image,JUTSU_PROJECTILE_SIZE)||matchesSize(image,JUTSU_IMPACT_SIZE);}
+  function looksLikeSenkuBody(image){return sourceOf(image).includes('/senku/sprites/runtime/');}
+  function looksLikeSenkuBombForScale(image){if(!image||looksLikeRevivalAsset(image))return false;const src=sourceOf(image),[w,h]=sourceSize(image);return (src.includes('/senku/')&&src.includes('bomb'))||src.includes('projectile_clean')||(w===96&&h===96);}
+  function destinationFromArgs(ctx,args){let dx=0,dy=0,dw=40,dh=40;if(args.length===2){[dx,dy]=args;}else if(args.length===4){[dx,dy,dw,dh]=args;}else if(args.length===8){[, , , ,dx,dy,dw,dh]=args;}const rect=ctx.canvas.getBoundingClientRect();const sx=rect.width/(ctx.canvas.width||rect.width||1),sy=rect.height/(ctx.canvas.height||rect.height||1);return {left:rect.left+dx*sx,top:rect.top+dy*sy,width:dw*sx,height:dh*sy};}
+  function ensureAirburstStyle(doc){if(doc.getElementById('bb-revival-airburst-style'))return;const style=doc.createElement('style');style.id='bb-revival-airburst-style';style.textContent=`.bb-revival-bottle{position:fixed;z-index:2147483000;pointer-events:none;width:38px;height:30px;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45));will-change:transform,opacity}.bb-revival-flash{position:fixed;z-index:2147482999;pointer-events:none;width:40px;height:40px;border-radius:50%;transform:translate(-50%,-50%) scale(.2);opacity:0;background:radial-gradient(circle,rgba(238,255,241,.98) 0%,rgba(124,255,151,.92) 20%,rgba(55,223,101,.62) 44%,rgba(44,179,88,.2) 68%,rgba(44,179,88,0) 80%);box-shadow:0 0 34px rgba(80,255,130,.78)}`;doc.head.appendChild(style);}
+  function playGreenFlash(doc,x,y){const flash=doc.createElement('div');flash.className='bb-revival-flash';flash.style.left=x+'px';flash.style.top=y+'px';doc.body.appendChild(flash);logDev('ok','Revival Formula airburst • heal flash');const start=performance.now(),duration=500;function tick(t){const q=Math.min(1,(t-start)/duration);const scale=.2+4.4*Math.sin(Math.PI*q);flash.style.transform=`translate(-50%,-50%) scale(${scale})`;flash.style.opacity=String(q<.18?q/.18:1-(q-.18)/.82);if(q<1)requestAnimationFrame(tick);else flash.remove();}requestAnimationFrame(tick);}
+  function launchRevivalAirburst(){const now=performance.now();if(now-lastTrigger<800)return;lastTrigger=now;suppressRevivalUntil=now+1500;const doc=frame.contentDocument;if(!doc)return;ensureAirburstStyle(doc);const vw=doc.documentElement.clientWidth||innerWidth,vh=doc.documentElement.clientHeight||innerHeight;const startX=lastSenkuRect?lastSenkuRect.left+lastSenkuRect.width*.55:vw*.72;const startY=lastSenkuRect?lastSenkuRect.top+lastSenkuRect.height*.38:vh*.62;const endX=startX+(startX>vw*.5?-70:70);const endY=Math.max(vh*.28,startY-150);const bottle=doc.createElement('img');bottle.className='bb-revival-bottle';bottle.src='assets/characters/senku/vfx/jutsu/chemical_reaction/projectile/frame_01.png';bottle.style.left=(startX-19)+'px';bottle.style.top=(startY-15)+'px';doc.body.appendChild(bottle);logDev('info','Revival Formula manual airburst launched');const start=performance.now(),duration=650;function tick(t){const q=Math.min(1,(t-start)/duration),x=(endX-startX)*q,y=(endY-startY)*q-95*Math.sin(Math.PI*q),rot=360*q;bottle.style.transform=`translate(${x}px,${y}px) rotate(${rot}deg)`;bottle.style.opacity=String(q<.88?1:1-(q-.88)/.12);if(q<1)requestAnimationFrame(tick);else{bottle.remove();playGreenFlash(doc,endX,endY);}}requestAnimationFrame(tick);}
+  function drawBombScaled(original,ctx,image,args){if(args.length===2){const [dx,dy]=args,[ow,oh]=sourceSize(image),nw=ow*BOMB_SCALE,nh=oh*BOMB_SCALE;return original.call(ctx,image,dx-(nw-ow)/2,dy-(nh-oh)/2,nw,nh);}if(args.length===4){const [dx,dy,dw,dh]=args,nw=dw*BOMB_SCALE,nh=dh*BOMB_SCALE;return original.call(ctx,image,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);}if(args.length===8){const [sx,sy,sw,sh,dx,dy,dw,dh]=args,nw=dw*BOMB_SCALE,nh=dh*BOMB_SCALE;return original.call(ctx,image,sx,sy,sw,sh,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);}return original.call(ctx,image,...args);}
+  function wrapDrawImage(original){if(typeof original!=='function'||original.__senkuAirburstWrappedV6)return original;function patchedDrawImage(image,...args){if(looksLikeSenkuBody(image))lastSenkuRect=destinationFromArgs(this,args);if(performance.now()<suppressRevivalUntil&&looksLikeRevivalAsset(image))return;if(looksLikeSenkuBombForScale(image))return drawBombScaled(original,this,image,args);return original.call(this,image,...args);}patchedDrawImage.__senkuAirburstWrappedV6=true;return patchedDrawImage;}
+  function hookRevivalButton(doc){if(doc.__bbRevivalHookedV4)return;doc.__bbRevivalHookedV4=true;doc.addEventListener('click',e=>{if(!e.isTrusted)return;const target=e.target instanceof Element?e.target:null;if(!target||target.closest('#bb-dev-monitor'))return;const control=target.closest('button,[role="button"],input[type="button"],input[type="submit"]');if(!control)return;const txt=String(control.textContent||control.value||'').replace(/\s+/g,' ').trim();if(txt.startsWith('Revival Formula'))setTimeout(launchRevivalAirburst,120);},true);}
+  function installBossStyle(doc){if(!doc.getElementById('bb-ornate-boss-style')){const style=doc.createElement('style');style.id='bb-ornate-boss-style';style.textContent=`.bb-ornate-boss-hp{position:relative!important;height:18px!important;min-height:18px!important;max-height:18px!important;margin-top:3px!important;overflow:visible!important;border:2px solid #a9772e!important;border-radius:5px!important;background:linear-gradient(180deg,#170708 0%,#090303 55%,#160607 100%)!important}.bb-ornate-boss-hp::before,.bb-ornate-boss-hp::after{content:'';position:absolute;z-index:8;top:50%;width:9px;height:9px;background:#2a130b;border:1px solid #c19443;transform:translateY(-50%) rotate(45deg)}.bb-ornate-boss-hp::before{left:-6px}.bb-ornate-boss-hp::after{right:-6px}.bb-ornate-boss-fill{height:10px!important;top:2px!important;background:linear-gradient(180deg,#ff3b3b 0%,#d51220 46%,#8e0712 100%)!important}.bb-ornate-boss-label{z-index:10!important;color:#f6cf55!important;font-size:13px!important}`;doc.head.appendChild(style);}const labels=[...doc.querySelectorAll('*')].filter(el=>el.children.length===0&&el.textContent.trim()==='BOSS');labels.forEach(label=>{label.classList.add('bb-ornate-boss-label');let bar=null;for(let el=label.parentElement;el&&el!==doc.body;el=el.parentElement){const r=el.getBoundingClientRect();if(r.width>250&&r.height>=12&&r.height<=55){bar=el;break;}}if(!bar)return;bar.classList.add('bb-ornate-boss-hp');const br=bar.getBoundingClientRect();let fill=null,best=0;[...bar.children].filter(el=>el!==label).forEach(el=>{const r=el.getBoundingClientRect(),score=r.width*r.height;if(r.width>20&&r.height>4&&r.height<=br.height+8&&score>best){best=score;fill=el;}});if(fill)fill.classList.add('bb-ornate-boss-fill');});}
   function installDevMonitor(doc){if(doc.getElementById('bb-dev-monitor-loader')||doc.getElementById('bb-dev-monitor'))return;const s=doc.createElement('script');s.id='bb-dev-monitor-loader';s.src='runtime/dev/dev-monitor.js?v=6ca0761';doc.head.appendChild(s);}
-
-  function install(){
-    try{
-      const win=frame.contentWindow,doc=frame.contentDocument;if(!win||!doc)return;
-      ensureAirburstStyle(doc);hookRevivalButton(doc);
-      if(win.CanvasRenderingContext2D){const proto=win.CanvasRenderingContext2D.prototype;if(!proto.__senkuAirburstPatchedV5){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__senkuAirburstPatchedV5=true;}}
-      doc.querySelectorAll('canvas').forEach(c=>{try{const ctx=c.getContext('2d');if(ctx&&!ctx.__senkuAirburstPatchedV5){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuAirburstPatchedV5=true;}}catch(_){}});
-      installBossStyle(doc);installDevMonitor(doc);
-      const pre=win.__BB_DEV_PREBOOT__;
-      boot.textContent=pre?`DEV READY • FULL CHAKRA • SPEED 200 • ${pre.speedEdits}/${pre.chakraEdits}`:'DEV READY • PREBOOT CHECKING';
-      setTimeout(()=>boot.style.opacity='0',1400);
-    }catch(e){boot.textContent='DEV PATCH ACCESS ERROR';boot.style.opacity='1';}
-  }
+  function install(){try{const win=frame.contentWindow,doc=frame.contentDocument;if(!win||!doc)return;ensureAirburstStyle(doc);hookRevivalButton(doc);if(win.CanvasRenderingContext2D){const proto=win.CanvasRenderingContext2D.prototype;if(!proto.__senkuAirburstPatchedV6){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__senkuAirburstPatchedV6=true;}}doc.querySelectorAll('canvas').forEach(c=>{try{const ctx=c.getContext('2d');if(ctx&&!ctx.__senkuAirburstPatchedV6){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuAirburstPatchedV6=true;}}catch(_){}});installBossStyle(doc);installDevMonitor(doc);const pre=win.__BB_DEV_PREBOOT__;boot.textContent=pre?`DEV READY • PLAYERS SPEED 200 • FULL CHAKRA • BOSS NORMAL • ${pre.bossSpeedSkips||0} BOSS SPEED SKIPS`:'DEV READY • PREBOOT CHECKING';setTimeout(()=>boot.style.opacity='0',1500);}catch(e){boot.textContent='DEV PATCH ACCESS ERROR';boot.style.opacity='1';}}
   frame.addEventListener('load',()=>{install();[50,150,300,600,1000,2000,4000].forEach(ms=>setTimeout(install,ms));setInterval(install,750);});
   setTimeout(()=>{if(boot.textContent==='DEV LOADING…')boot.textContent='DEV GAME LOAD FAILED';},10000);
 })();
