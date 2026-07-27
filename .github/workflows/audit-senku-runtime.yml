@@ -20,57 +20,36 @@ jobs:
           ref: dev
           fetch-depth: 0
 
-      - name: Extract Senku runtime contexts
+      - name: Extract small Senku runtime snippets
         shell: python
         run: |
           from pathlib import Path
-          import re
+          import json,re
 
-          src = Path('index.html').read_text(encoding='utf-8').splitlines()
-          terms = [
-              'Senku', 'senku', 'chakra', 'Chakra', 'jutsu', 'Jutsu',
-              'Revival Formula', 'Ally Heal', 'chemical_reaction', 'heal', 'Heal',
-              'speed', 'turnSpeed', 'initiative', 'meter', 'charge', 'energy',
-              'ATTACK_SPRITES', 'SPECIAL', 'special', 'boss', 'BOSS'
+          text=Path('index.html').read_text(encoding='utf-8')
+          # Remove embedded font/image data so searches don't hit encoded junk.
+          clean=re.sub(r'data:[^;]+;base64,[A-Za-z0-9+/=]+','<DATA_URL_REMOVED>',text)
+          patterns=[
+            r'Senku',r'chakra',r'Revival Formula',r'chemical_reaction',r'heal',
+            r'ATTACK_SPRITES',r'special',r'speed',r'initiative',r'turn meter',r'Basic builds chakra'
           ]
-
-          # Full audit with broader context.
-          hits = []
-          for i, line in enumerate(src):
-              if any(term in line for term in terms):
-                  hits.append((max(0, i-8), min(len(src), i+9)))
-          merged=[]
-          for lo,hi in sorted(hits):
-              if not merged or lo > merged[-1][1] + 1: merged.append([lo,hi])
-              else: merged[-1][1]=max(merged[-1][1],hi)
-          out=['# Senku Runtime Audit','Generated from dev/index.html.']
-          for lo,hi in merged:
-              out += [f'\n## Lines {lo+1}-{hi}','```html']
-              out += [f'{n+1:05d}: {src[n]}' for n in range(lo,hi)]
-              out += ['```']
-
-          # Compact findings: exact matching lines plus two lines around each match.
-          compact=[]
-          seen=set()
-          for i,line in enumerate(src):
-              if any(term in line for term in terms):
-                  for n in range(max(0,i-2),min(len(src),i+3)):
-                      if n in seen: continue
-                      seen.add(n)
-                      compact.append(f'{n+1:05d}: {src[n]}')
-          # Keep this file connector-friendly; prioritize lines most relevant to state/execution.
-          priority=[]
-          rx=re.compile(r'senku|chakra|jutsu|revival formula|ally heal|chemical_reaction|heal|speed|initiative|meter|special',re.I)
-          for row in compact:
-              if rx.search(row): priority.append(row)
+          items=[];seen=set()
+          for pat in patterns:
+            for m in re.finditer(pat,clean,re.I):
+              lo=max(0,m.start()-700);hi=min(len(clean),m.end()+900)
+              snippet=clean[lo:hi].replace('\r','')
+              key=snippet[:180]
+              if key in seen: continue
+              seen.add(key)
+              items.append({'term':pat,'offset':m.start(),'snippet':snippet})
+              if sum(1 for x in items if x['term']==pat)>=12: break
           Path('dev-tools').mkdir(exist_ok=True)
-          Path('dev-tools/senku-runtime-audit.md').write_text('\n'.join(out),encoding='utf-8')
-          Path('dev-tools/senku-runtime-findings.txt').write_text('\n'.join(priority[:500]),encoding='utf-8')
+          Path('dev-tools/senku-runtime-snippets.json').write_text(json.dumps(items,indent=2),encoding='utf-8')
 
       - name: Commit audit report
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dev-tools/senku-runtime-audit.md dev-tools/senku-runtime-findings.txt
-          git commit -m "Generate compact Senku runtime findings" || exit 0
+          git add dev-tools/senku-runtime-snippets.json
+          git commit -m "Generate Senku runtime snippets" || exit 0
           git push origin HEAD:dev
