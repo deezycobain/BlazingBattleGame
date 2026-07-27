@@ -4,13 +4,14 @@ import path from 'node:path';
 const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
 
-// Attack geometry is positional strategy, not auto-aim. Rectangles/cones keep
-// their authored battlefield orientation. Senku is the exception only in VISUAL
-// facing because his attack field is circular, so rotating him does not rotate
-// or distort the actual hit area.
+// Attack geometry is positional strategy, not auto-aim.
+// IMPORTANT: battle pairs also contain empty reserve placeholders and some stages
+// contain non-canonical enemies. Never let a presentation lookup throw during render.
 const facingRx=/function updateFacing\(\)\{[\s\S]*?\n\}\n\nfunction battleSpriteFor/;
 if(!facingRx.test(html))throw new Error('Static hitbox pass: updateFacing() block not found');
 const facingReplacement=`function updateFacing(){
+  // Moving a unit changes only the authored attack-shape origin.
+  // Proximity never rotates or snaps the attack field toward a target.
   function fixedAttackRotation(actor,fallbackDeg){
     let deg=fallbackDeg;
     try{
@@ -18,85 +19,35 @@ const facingReplacement=`function updateFacing(){
         const combat=canonicalUnit(actor.name)?.combat||{};
         if(Number.isFinite(combat.basic_rotation_deg))deg=combat.basic_rotation_deg;
       }
-    }catch(_){ }
+    }catch(_){
+      // Empty reserve slots and stage-only enemies intentionally use the fallback.
+    }
     return deg*Math.PI/180;
   }
-
   S.pairs.forEach(pair=>{
-    let active=null;
-    try{active=front(pair)}catch(_){ }
-
-    // Senku's bomb owns a circular range. Only the nearest enemy already inside
-    // that circle is his target, and Senku visually faces that locked target.
-    if(active?.name==='Senku'){
-      let shape={type:'circle',r:140};
-      try{shape=canonicalUnit('senku')?.combat?.basic_shape||shape}catch(_){ }
-      const rawCandidates=(S.enemies||[]).filter(e=>e&&e.hp>0 && rawHits(pair,{shape,rotation:0},{x:e.x,y:e.y,r:e.r||19}));
-      const nearest=rawCandidates.sort((a,b)=>d(pair,a)-d(pair,b))[0]||null;
-      if(nearest){
-        const angle=Math.atan2(nearest.y-pair.y,nearest.x-pair.x);
-        pair.rotation=angle;
-        (pair.units||[]).forEach(unit=>{if(unit)unit.rotation=angle;});
-        return;
-      }
-    }
-
-    (pair.units||[]).forEach(unit=>{if(unit)unit.rotation=fixedAttackRotation(unit,-90);});
+    (pair.units||[]).forEach(u=>{if(u)u.rotation=fixedAttackRotation(u,-90);});
   });
-
   (S.enemies||[]).forEach(e=>{if(e)e.rotation=fixedAttackRotation(e,90);});
 }
 
 function battleSpriteFor`;
 html=html.replace(facingRx,facingReplacement);
 
-// Make canonical single-target range semantics apply everywhere that calls hits(),
-// including the white target indicators. IMPORTANT: the legacy geometry helper
-// calls hits() recursively for some shape types. Rename those internal recursive
-// calls too, otherwise the wrapper re-enters itself and blows up the renderer when
-// Senku's movement/attack overlay is drawn.
-const hitsStart=html.indexOf('function hits(');
-if(hitsStart<0)throw new Error('Single-target pass: hits() function not found');
-const hitsBodyStart=hitsStart+'function hits('.length;
-const nextFunction=html.indexOf('\nfunction ',hitsBodyStart);
-if(nextFunction<0)throw new Error('Single-target pass: could not find end of hits() function');
-let rawHitsFn=html.slice(hitsStart,nextFunction);
-rawHitsFn=rawHitsFn.replace('function hits(','function rawHits(').replace(/\bhits\(/g,'rawHits(');
-html=html.slice(0,hitsStart)+rawHitsFn+html.slice(nextFunction);
-const wrapper=`
-function hits(a,u,b){
-  const base=rawHits(a,u,b);
-  if(!base)return false;
-  try{
-    let actor=null;
-    if(a?.units)actor=front(a);
-    else if(a?.name)actor=a;
-    const basic=actor?.name?canonicalUnit(actor.name)?.abilities?.basic:null;
-    if(basic?.target_mode==='single' && basic?.single_target_selector==='nearest_in_shape' && u?.shape?.type==='circle' && a?.units){
-      const candidates=(S.enemies||[]).filter(e=>e&&e.hp>0 && rawHits(a,u,{x:e.x,y:e.y,r:e.r||19}));
-      if(!candidates.length)return false;
-      const nearest=candidates.sort((x,y)=>d(a,x)-d(a,y))[0];
-      return Math.abs((b?.x??Infinity)-nearest.x)<0.01 && Math.abs((b?.y??Infinity)-nearest.y)<0.01;
-    }
-  }catch(_){ }
-  return true;
-}
-`;
-html=html.slice(0,nextFunction)+wrapper+html.slice(nextFunction);
-
-// Keep action resolution aligned with the same canonical single-target rule.
+// A basic attack may own a static multi-unit RANGE SHAPE while still resolving
+// only one actual target. This is driven by canonical ability data so future
+// single-target units can reuse the same behavior WITHOUT modifying global hits().
 const targetRx=/(\n\s*)if\(!targets\.length\)\{\s*\n\s*S\.log=`\$\{u\.name\} committed the move but caught no target\.`;return finishAction\(\)\s*\n\s*\}/;
 if(!targetRx.test(html))throw new Error('Single-target pass: player target-resolution anchor not found');
 html=html.replace(targetRx,(_match,indent)=>`${indent}if(!useJutsu){
- ${indent} let basicAbility={};
- ${indent} try{basicAbility=canonicalUnit(u.name)?.abilities?.basic||{}}catch(_){}
- ${indent} if(basicAbility.target_mode==='single' && targets.length>1){
- ${indent}  targets=[...targets].sort((a,b)=>d(p,a)-d(p,b)).slice(0,1);
- ${indent} }
- ${indent}}
- ${indent}if(!targets.length){
- ${indent} S.log=\`${'${u.name}'} committed the move but caught no target.\`;return finishAction()
- ${indent}}`);
+${indent} let basicAbility={};
+${indent} try{basicAbility=canonicalUnit(u.name)?.abilities?.basic||{}}catch(_){}
+${indent} if(basicAbility.target_mode==='single' && targets.length>1){
+${indent}  targets=[...targets].sort((a,b)=>d(p,a)-d(p,b)).slice(0,1);
+${indent} }
+${indent}}
+${indent}if(!targets.length){
+${indent} S.log=\`\${u.name} committed the move but caught no target.\`;return finishAction()
+${indent}}`);
 
 // Preserve the approved Senku bomb visual size curve.
 const bombStart=html.indexOf("else if(f.kind==='senkuBombProjectile'){");
@@ -116,4 +67,4 @@ if(sizeAt>=0 && sizeAt-bombStart<5000){
 }
 
 await fs.writeFile(file,html);
-console.log('Gameplay presentation pass: safe Senku nearest-target highlight/facing + Lebee multi-target lane retained');
+console.log('Gameplay presentation pass: renderer-safe static hitboxes + canonical single-target resolution + Senku bomb size curve applied');
