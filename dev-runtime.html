@@ -14,43 +14,36 @@
   const DEV_CHAKRA=8;
   const status=document.getElementById('status');
   try{
-    const res=await fetch('./index.html?v=dev-runtime-source-playerboost-4',{cache:'no-store'});
+    const res=await fetch('./index.html?v=dev-runtime-source-corebridge-6',{cache:'no-store'});
     if(!res.ok) throw new Error(`index fetch ${res.status}`);
     let html=await res.text();
-    let speedEdits=0,bossSpeedSkips=0,chakraEdits=0,maxEdits=0,initEdits=0,senkuEdits=0;
+    let chakraEdits=0,maxEdits=0,senkuLocalizedEdits=0,senkuSpeedEdits=0;
 
-    // DEV BASELINE: boost authored PLAYER unit speeds only. Boss/enemy/opponent records stay untouched.
-    const speedPattern=/((?:["']?(?:speed|spd|meterSpeed|turnSpeed|initiativeSpeed|gaugeSpeed|atbSpeed|actionSpeed)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi;
-    html=html.replace(speedPattern,(match,prefix,value,offset,whole)=>{
-      const near=whole.slice(Math.max(0,offset-1400),Math.min(whole.length,offset+1400)).toLowerCase();
-      const isBoss=/\bboss\b|\benemy\b|\bopponent\b|anubis|side\s*[:=]\s*["']enemy["']|role\s*[:=]\s*["']boss["']|role\s*[:=]\s*["']enemy["']/.test(near);
-      if(isBoss){bossSpeedSkips++;return match;}
-      speedEdits++;return prefix+DEV_SPEED;
-    });
+    // DEV CHAKRA BASELINE. Cover the common legacy spellings before the game executes.
+    const currentNames='chakra|currentChakra|chakraCurrent|chakraNow|chakra_start|chakraStart|startingChakra|startChakra|energy|currentEnergy|ki|currentKi|charge|charges';
+    const maxNames='chakraMax|maxChakra|chakra_max|max_chakra|max_chakra_points|energyMax|maxEnergy|kiMax|maxKi|maxCharge|maxCharges';
+    html=html.replace(new RegExp('((["\\\']?(?:'+currentNames+')["\\\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{chakraEdits++;return p+DEV_CHAKRA;});
+    html=html.replace(new RegExp('((["\\\']?(?:'+maxNames+')["\\\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{maxEdits++;return p+DEV_CHAKRA;});
 
-    // Full chakra for all player-side unit/resource values in dev.
-    const currentNames='chakra|currentChakra|chakraCurrent|chakraNow|chakra_start|chakraStart|energy|currentEnergy|ki|currentKi';
-    const maxNames='chakraMax|maxChakra|chakra_max|max_chakra|energyMax|maxEnergy|kiMax|maxKi';
-    html=html.replace(new RegExp('((?:["\']?(?:'+currentNames+')["\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p,v,offset,whole)=>{
-      const near=whole.slice(Math.max(0,offset-1100),Math.min(whole.length,offset+1100)).toLowerCase();
-      if(/\bboss\b|\benemy\b|\bopponent\b|anubis/.test(near)) return m;
-      chakraEdits++;return p+DEV_CHAKRA;
-    });
-    html=html.replace(new RegExp('((?:["\']?(?:'+maxNames+')["\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p,v,offset,whole)=>{
-      const near=whole.slice(Math.max(0,offset-1100),Math.min(whole.length,offset+1100)).toLowerCase();
-      if(/\bboss\b|\benemy\b|\bopponent\b|anubis/.test(near)) return m;
-      maxEdits++;return p+DEV_CHAKRA;
-    });
-    html=html.replace(/((?:chakra|currentChakra|chakraCurrent|chakraNow)\s*=\s*)(?:0|null|undefined|[^;\n]+?\?\?\s*0)(?=\s*[;,\n])/gi,(m,p)=>{initEdits++;return p+DEV_CHAKRA;});
+    // Senku-specific bridge for the legacy standalone runtime. Canonical unit.json is 8/8,
+    // but the old monolithic runtime still carries its own copy of some values.
+    // Patch only text regions surrounding Senku so boss speed is never touched here.
+    const lower=html.toLowerCase();
+    const spans=[]; let pos=0;
+    while((pos=lower.indexOf('senku',pos))!==-1){spans.push([Math.max(0,pos-2200),Math.min(html.length,pos+2600)]);pos+=5;}
+    const merged=[];
+    spans.sort((a,b)=>a[0]-b[0]).forEach(s=>{const last=merged[merged.length-1];if(last&&s[0]<=last[1])last[1]=Math.max(last[1],s[1]);else merged.push(s.slice());});
+    for(let i=merged.length-1;i>=0;i--){
+      const [a,b]=merged[i]; let block=html.slice(a,b);
+      block=block.replace(/((?:["']?(?:chakra|currentChakra|chakraCurrent|chakraNow|chakra_start|chakraStart|startingChakra|startChakra|energy|currentEnergy|ki|currentKi|charge|charges|chakraMax|maxChakra|chakra_max|max_chakra)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{senkuLocalizedEdits++;return p+DEV_CHAKRA;});
+      block=block.replace(/((?:["']?(?:speed|spd|meterSpeed|turnSpeed|initiativeSpeed|gaugeSpeed|atbSpeed|actionSpeed)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{senkuSpeedEdits++;return p+DEV_SPEED;});
+      html=html.slice(0,a)+block+html.slice(b);
+    }
 
-    // Senku explicit legacy bridge: canonical unit core is 8/8, and legacy runtime is forced to match it.
-    html=html.replace(/((?:senku(?:Current)?Chakra|senku_chakra|senkuChakraCurrent|senkuChakra|senku\.chakra|senku\.currentChakra)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{senkuEdits++;return p+DEV_CHAKRA;});
-
-    const marker=`<script>window.__BB_DEV_PREBOOT__={speed:${DEV_SPEED},chakra:${DEV_CHAKRA},speedEdits:${speedEdits},bossSpeedSkips:${bossSpeedSkips},chakraEdits:${chakraEdits},maxEdits:${maxEdits},initEdits:${initEdits},senkuEdits:${senkuEdits}};<\/script>`;
-    html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}`);
-
-    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startFullChakra:true,startingChakra:${DEV_CHAKRA},unitSpeed:${DEV_SPEED},boostBossSpeed:false,senkuStartsMaxChakra:true});<\/script>`;
-    html=html.replace(marker,marker+config);
+    // Pre-execution dev contract. New resolver-backed code can consume this directly.
+    const marker=`<script>window.__BB_DEV_PREBOOT__={chakra:${DEV_CHAKRA},chakraEdits:${chakraEdits},maxEdits:${maxEdits},senkuLocalizedEdits:${senkuLocalizedEdits},senkuSpeedEdits:${senkuSpeedEdits}};<\/script>`;
+    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startFullChakra:true,startingChakra:${DEV_CHAKRA},senkuSpeed:${DEV_SPEED},boostBossSpeed:false,senkuStartsMaxChakra:true});<\/script>`;
+    html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}${config}`);
 
     document.open();
     document.write(html);
