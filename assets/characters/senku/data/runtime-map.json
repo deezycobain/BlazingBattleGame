@@ -18,6 +18,12 @@
       "vfx": {
         "projectile": "senku.vfx.basic.explosive_bomb.projectile",
         "impact": "senku.vfx.basic.explosive_bomb.impact"
+      },
+      "projectile_presentation": {
+        "trajectory": "arc",
+        "arc_height_px": 86,
+        "scale": 2.0,
+        "duration_source": "abilities.basic.presentation.flight_duration_ms"
       }
     },
     "revival_formula": {
@@ -36,6 +42,12 @@
       "vfx": {
         "projectile": "senku.vfx.jutsu.revival_formula.projectile",
         "impact": "senku.vfx.jutsu.revival_formula.impact"
+      },
+      "projectile_presentation": {
+        "trajectory": "arc",
+        "arc_height_px": 86,
+        "scale": 1.0,
+        "duration_source": "abilities.jutsu.presentation.flight_duration_ms"
       }
     }
   },
