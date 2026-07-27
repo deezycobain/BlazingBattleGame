@@ -33,6 +33,24 @@ const facingReplacement=`function updateFacing(){
 function battleSpriteFor`;
 html=html.replace(facingRx,facingReplacement);
 
+// Senku's basic is a circular POSITIONING FIELD but a SINGLE-TARGET projectile.
+// If more than one enemy stands inside the circle, pick the closest enemy inside
+// that already-valid field. The field itself never rotates/snaps to that target.
+const targetAnchor=" if(!targets.length){\n   S.log=`${u.name} committed the move but caught no target.`;return finishAction()\n  }";
+if(!html.includes(targetAnchor))throw new Error('Single-target pass: player target-resolution anchor not found');
+const targetReplacement=` if(!useJutsu){
+   let basicAbility={};
+   try{basicAbility=canonicalUnit(u.name)?.abilities?.basic||{}}catch(_){}
+   if(basicAbility.target_mode==='single' && targets.length>1){
+    targets=[...targets].sort((a,b)=>d(p,a)-d(p,b)).slice(0,1);
+   }
+  }
+
+  if(!targets.length){
+   S.log=\`${'${u.name}'} committed the move but caught no target.\`;return finishAction()
+  }`;
+html=html.replace(targetAnchor,targetReplacement);
+
 // Preserve the currently-approved Senku bomb size without depending on the
 // entire legacy renderer block. Only replace the height calculation inside the
 // bomb projectile section, and leave the arc/timing/render routing untouched.
@@ -52,5 +70,31 @@ if(sizeAt>=0 && sizeAt-bombStart<5000){
   throw new Error('Presentation pass: Senku bomb size anchor not found or already changed unexpectedly');
 }
 
+// Projectile cleanup must happen even if the action token is retired while a
+// bomb is in flight. Previously the token guard ran first, leaving a late/second
+// bomb floater permanently on screen after a multi-target sequence.
+const bombFnStart=html.indexOf('function animateSenkuBomb(');
+const bombFnEnd=html.indexOf('function setMeteorFullscreenFlash',bombFnStart);
+if(bombFnStart<0||bombFnEnd<0)throw new Error('Senku bomb cleanup pass: function bounds not found');
+let bombFn=html.slice(bombFnStart,bombFnEnd);
+const unsafeCleanup=`setTimeout(()=>{
+      if(!actionTokenAlive(token))return;
+
+      S.floaters=S.floaters.filter(x=>x!==projectile);
+      const targetGroundY=`;
+const safeCleanup=`setTimeout(()=>{
+      // Always remove the projectile first; action cancellation must never strand VFX.
+      S.floaters=S.floaters.filter(x=>x!==projectile);
+      if(!actionTokenAlive(token))return;
+
+      const targetGroundY=`;
+if(!bombFn.includes(unsafeCleanup) && !bombFn.includes('action cancellation must never strand VFX')){
+  throw new Error('Senku bomb cleanup pass: projectile cleanup anchor not found');
+}
+if(bombFn.includes(unsafeCleanup)){
+  bombFn=bombFn.replace(unsafeCleanup,safeCleanup);
+  html=html.slice(0,bombFnStart)+bombFn+html.slice(bombFnEnd);
+}
+
 await fs.writeFile(file,html);
-console.log('Gameplay presentation pass: safe static per-unit attack orientations + Senku bomb size curve applied');
+console.log('Gameplay presentation pass: static hitboxes + Senku single-target bomb + safe projectile cleanup applied');
