@@ -102,9 +102,12 @@
         "impact_duration_ms": 620,
         "screen_dim_alpha": 0.12
       },
-      "target": "all_allies",
-      "effect": "heal_full",
-      "heal_percent": 1.0
+      "target": "all_living_allies",
+      "effect": "heal_percent_max_hp",
+      "heal_percent": 0.3,
+      "include_caster": true,
+      "dead_target_behavior": "ignore",
+      "revive": false
     }
   },
   "assets": {
@@ -130,7 +133,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "Dev checkpoint: approved Senku bomb visual scale locked at 2x. Basic impact uses cleaned six-frame Small Explosion sequence. Arc, flight timing, rotation, damage timing, body animation, and targeting remain unchanged.",
+    "notes": "Dev checkpoint: approved Senku bomb visual scale locked at 2x. Basic impact uses cleaned six-frame Small Explosion sequence. Revival Formula costs 4 chakra and heals each living ally, including Senku, for 30% of that unit's max HP; defeated allies are ignored and revival is reserved for Senku's ultimate.",
     "animation_map": true
   },
   "balance": {
@@ -215,7 +218,10 @@
             },
             {
               "event": "on_impact",
-              "action": "heal_all_allies_full"
+              "action": "heal_all_living_allies_percent_max_hp",
+              "value": 0.3,
+              "include_caster": true,
+              "dead_target_behavior": "ignore"
             }
           ]
         }
