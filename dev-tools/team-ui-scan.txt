@@ -1,0 +1,1912 @@
+
+===== Save Team =====
+
+===== SAVE TEAM =====
+
+===== save team =====
+
+===== Team saved =====
+
+===== TEAM SAVED =====
+
+--- match 1 @ 52332290 ---
+tElementById('editTeamBtn').addEventListener('click',showTeamEditor);
+ document.getElementById('teamBackBtn').addEventListener('click',showInventory);
+ document.getElementById('teamHomeBtn').addEventListener('click',showMenu);
+ document.querySelectorAll('.teamSlot[data-team-slot]').forEach(slot=>{
+   slot.addEventListener('click',()=>{
+     selectedTeamSlot=Number(slot.dataset.teamSlot);
+     renderTeamEditor();
+   });
+ });
+ document.getElementById('saveTeamBtn').addEventListener('click',()=>{
+   const saved=setActiveTeam(teamDraft);
+   document.getElementById('teamSaved').textContent=`ACTIVE TEAM SAVED: ${saved.join(' · ')}`;
+   renderTeamEditor();
+ });
+
+ document.getElementById('inventoryBackBtn').addEventListener('click',showMenu);
+ document.getElementById('inventoryHomeBtn').addEventListener('click',showMenu);
+ document.getElementById('unitCardBackBtn').addEventListener('click',showInventory);
+ document.getElementById('unitCardHomeBtn').addEventListener('click',showMenu);
+ document.getElementById('viewArtworkBtn').addEventListener('click',viewArt);
+ document.getElementById('artViewCloseBtn').addEventListener('click',()=>{artViewScreen.style.display='none';unitCardScreen.style.display='block'});
+ document.querySelectorAll('.unitTile[data-unit]').forEach(b=>b.addEventListener('click',()=>openUnit(b.dataset.unit)));
+})();
+</script>
+</body></html>
+
+===== team saved =====
+
+===== Crimson =====
+
+--- match 1 @ 4141621 ---
+ize:9px;padding:4px;}
+#battleScreen .log{font-size:10px;min-height:28px;margin-top:4px;padding:5px 8px;}
+@media(max-width:700px){body{overflow-x:hidden}#battleScreen .wrap{padding-left:0;padding-right:0}#battleScreen canvas#game{max-height:none;width:100vw;}}
+
+/* ==============================================================
+   v0.5.1 — MOBILE FIT + ASSET ORGANIZATION PASS
+   ============================================================== */
+html,body{width:100%;min-height:100%;margin:0;overscroll-behavior:none}
+body{overflow:hidden;background:#05070a}
+.screen{width:100%;min-height:100dvh}
+
+/* Crimson now has a dedicated portrait menu composition. */
+#menuScreen{
+  width:100vw;
+  height:100dvh;
+  min-height:100dvh;
+  background-size:cover;
+  background-position:center center;
+  background-repeat:no-repeat;
+}
+#menuScreen::before{
+  background:
+    linear-gradient(180deg,rgba(5,7,10,.10),rgba(5,7,10,.08) 44%,rgba(5,7,10,.43)),
+    radial-gradient(circle at 50% 50%,rgba(5,7,10,.02),rgba(5,7,10,.25) 78%);
+}
+
+/* Entire combat experience fits inside one phone viewport. */
+#battleScreen{
+  width:100vw;
+  height:100dvh !important;
+  min-height:100dvh !important;
+  max-height:100dvh !important;
+  overflow:hidden !important;
+}
+#battleScreen .wrap{
+  box-sizing:border-box;
+  width:min(100vw,520px) !important;
+  height:100dvh !important;
+  max-height:100dvh !important;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom) !important;
+  margin:0 auto !important;
+  display:flex !importa
+
+--- match 2 @ 4162063 ---
+
+  min-height:100dvh;
+  margin:0;
+  overflow:hidden;
+  overscroll-behavior:none;
+  -webkit-tap-highlight-color:transparent;
+}
+button{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+#menuScreen,#battleScreen,#summonScreen,#summonPullScreen{
+  width:100vw;
+  min-height:100dvh;
+  max-width:100vw;
+}
+#battleScreen canvas#game{
+  touch-action:none;
+  -webkit-user-select:none;
+  user-select:none;
+}
+
+
+/* v0.5.19 CORE ROSTER SAFE MODE ---------------------------------------
+   Old summon/card systems remain in source for rollback, but are hidden.
+   Active build exposes only Crimson, Sub-Zero, Anubis and ghost enemies. */
+#summonScreen .summonRatesPanel,
+#summonScreen .summonHeroArea,
+#summonScreen .rarityGuide,
+#summonScreen .summonBottomBar,
+#summonScreen #summonResults,
+#summonScreen #pullHistory{display:none!important}
+#coreSummonNotice{
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  min-height:calc(100dvh - 92px);padding:28px 22px;text-align:center;gap:12px;
+}
+#coreSummonNotice .coreBadge{font-family:'BambooBrush';font-size:28px;color:#ffbd4a;letter-spacing:.04em}
+#coreSummonNotice h2{margin:0;font-size:22px}
+#coreSummonNotice p{margin:0;max-width:430px;color:#aeb8c2;line-height:1.45}
+#coreSummonNotice .coreRoster{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+#coreSummonNotice .coreRoster span{border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:8px 12px;background:rgba(255,255,255,
+
+--- match 3 @ 4185564 ---
+>
+    <div class="collectionTitle">INVENTORY<small>OWNED FIGHTERS</small></div>
+    <button id="inventoryHomeBtn" class="collectionHome" aria-label="Home">⌂</button>
+  </header>
+  <main class="inventoryBody">
+    <div class="inventorySummary">
+      <div class="inventoryCount">FIGHTERS <span>4</span> / 4</div>
+      <div class="inventoryTools">
+        <button id="editTeamBtn" class="editTeamBtn">EDIT TEAM</button>
+        <div class="inventoryFilter">ALL ▾</div>
+      </div>
+    </div>
+    <section class="unitGrid" aria-label="Owned units">
+      <button class="unitTile legendary" data-unit="Crimson" aria-label="Open Crimson">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">🔥</span>
+        <img id="inventoryCrimsonThumb" alt="Crimson">
+        <span class="unitTileText"><b>CRIMSON</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile ice" data-unit="Sub-Zero" aria-label="Open Sub-Zero">
+        <span class="unitStars">★★★★★</span><span class="unitElement">❄️</span>
+        <img id="inventorySubzeroThumb" alt="Sub-Zero">
+        <span class="unitTileText"><b>SUB-ZERO</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile cosmic" data-unit="Lebee" aria-label="Open Lebee">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">✦</span>
+        <img id="inventoryLebeeThumb" alt="Lebee">
+        <span class="unitTileText"><
+
+--- match 4 @ 4185590 ---
+onTitle">INVENTORY<small>OWNED FIGHTERS</small></div>
+    <button id="inventoryHomeBtn" class="collectionHome" aria-label="Home">⌂</button>
+  </header>
+  <main class="inventoryBody">
+    <div class="inventorySummary">
+      <div class="inventoryCount">FIGHTERS <span>4</span> / 4</div>
+      <div class="inventoryTools">
+        <button id="editTeamBtn" class="editTeamBtn">EDIT TEAM</button>
+        <div class="inventoryFilter">ALL ▾</div>
+      </div>
+    </div>
+    <section class="unitGrid" aria-label="Owned units">
+      <button class="unitTile legendary" data-unit="Crimson" aria-label="Open Crimson">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">🔥</span>
+        <img id="inventoryCrimsonThumb" alt="Crimson">
+        <span class="unitTileText"><b>CRIMSON</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile ice" data-unit="Sub-Zero" aria-label="Open Sub-Zero">
+        <span class="unitStars">★★★★★</span><span class="unitElement">❄️</span>
+        <img id="inventorySubzeroThumb" alt="Sub-Zero">
+        <span class="unitTileText"><b>SUB-ZERO</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile cosmic" data-unit="Lebee" aria-label="Open Lebee">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">✦</span>
+        <img id="inventoryLebeeThumb" alt="Lebee">
+        <span class="unitTileText"><b>LEBEE</b><small>LEGENDAR
+
+--- match 5 @ 4185707 ---
+abel="Home">⌂</button>
+  </header>
+  <main class="inventoryBody">
+    <div class="inventorySummary">
+      <div class="inventoryCount">FIGHTERS <span>4</span> / 4</div>
+      <div class="inventoryTools">
+        <button id="editTeamBtn" class="editTeamBtn">EDIT TEAM</button>
+        <div class="inventoryFilter">ALL ▾</div>
+      </div>
+    </div>
+    <section class="unitGrid" aria-label="Owned units">
+      <button class="unitTile legendary" data-unit="Crimson" aria-label="Open Crimson">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">🔥</span>
+        <img id="inventoryCrimsonThumb" alt="Crimson">
+        <span class="unitTileText"><b>CRIMSON</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile ice" data-unit="Sub-Zero" aria-label="Open Sub-Zero">
+        <span class="unitStars">★★★★★</span><span class="unitElement">❄️</span>
+        <img id="inventorySubzeroThumb" alt="Sub-Zero">
+        <span class="unitTileText"><b>SUB-ZERO</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile cosmic" data-unit="Lebee" aria-label="Open Lebee">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">✦</span>
+        <img id="inventoryLebeeThumb" alt="Lebee">
+        <span class="unitTileText"><b>LEBEE</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile legendary" data-un
+
+--- match 6 @ 4185726 ---
+on>
+  </header>
+  <main class="inventoryBody">
+    <div class="inventorySummary">
+      <div class="inventoryCount">FIGHTERS <span>4</span> / 4</div>
+      <div class="inventoryTools">
+        <button id="editTeamBtn" class="editTeamBtn">EDIT TEAM</button>
+        <div class="inventoryFilter">ALL ▾</div>
+      </div>
+    </div>
+    <section class="unitGrid" aria-label="Owned units">
+      <button class="unitTile legendary" data-unit="Crimson" aria-label="Open Crimson">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">🔥</span>
+        <img id="inventoryCrimsonThumb" alt="Crimson">
+        <span class="unitTileText"><b>CRIMSON</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile ice" data-unit="Sub-Zero" aria-label="Open Sub-Zero">
+        <span class="unitStars">★★★★★</span><span class="unitElement">❄️</span>
+        <img id="inventorySubzeroThumb" alt="Sub-Zero">
+        <span class="unitTileText"><b>SUB-ZERO</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile cosmic" data-unit="Lebee" aria-label="Open Lebee">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">✦</span>
+        <img id="inventoryLebeeThumb" alt="Lebee">
+        <span class="unitTileText"><b>LEBEE</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile legendary" data-unit="Senku" aria-lab
+
+--- match 7 @ 15385205 ---
+973fXyOel0W+LIY8Pf92amHnm416tVEZtOO/sA2g15exWxHoO3qIOe28bLTB22N2zpXDL2MySQMJM8jpma1BGEO2EbH9e5zRjboVPbMYZ2t1sBZWevAF+3WYhSJHcE5+/ymLiyTJkSPuXXf7LMTG5v5234y8zoyIDoA+AjrgR/5xWCVNWR9V2PDwhzbFYb1ZUpMYfcRgkZp8zpKX6euqyMn/Bu3Ju0bFhbckGrfRIv3egakDyUOejvTpOpwt81tsvUZ3qKOd1pe3+iTQ5V/K9ZOiV10IU84wVvnvENrLErzwYgM2YCT+SIrEILhOT6WWBM1j5C+LuE9Auec5RcP4YK1EIr89DxwA0vkxhf2nCi2yPT6iBsX55B8XW1+y1AzH3g46fI1zkug7MMflZk8j4z9I5RFIrQiSEgh83AGxNE0VcUZiZuKEmQRM4sF9R5O09HS8jWYfMWhM7r+E5cVQxq6giPwFOATqBk/I3fQoOJ5rHgdHwe4Ep1PKQb4PIWfYsE1GjnFxGcjoOgKy5TNtP/AwAA//+eap9ZAAAABklEQVQDANS/rm883xEjAAAAAElFTkSuQmCC"},"ui":{"menuCrimsonPortrait":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAnkBJIDASIAAhEBAxEB/8QAHgAAAQUBAQEBAQAAAAAAAAAABAIDBQYHAQAICQr/xABKEAABAwMDAwMEAAUDAwMAAhMBAgMEAAURBhIhBzFBEyJRCBQyYRUjQnGBCZGhFjNSJGKxF0PBNHIlU5LhChgmgtHxVPAnRFWT/8QAHQEAAQUBAQEBAAAAAAAAAAAAAgABAwQFBgcICf/EAD4RAAEEAQQBBAEDAgUEAQMCBwEAAgMRBAUSITFBBhMiUWEUMnEHIxVCgZGhM1KxwSQW0eEXU2I0Q1Ry8PH/2gAMAwEAAhEDEQA/APwsuCi/JChjHalpaKECkoaClZ54pfqYT/aq5K3Imm7K6UZ7V1JyKQXcn90oncOO9AR5VgUU3MBSkGlNApj7s8CkyDgDdzSggqikc89qRQt5KFmSUvK2oOVUIzHUttS/Ka69GVDf3KzzTmfShqV5NSjpZ0hO42o65uD1B81JWFoiMVHiotpozZO0fNTrLQYYCU9xSkNCkOG3c/cUtILj6RRkg7UpSaHhI3ubv/GnnMPLz8VAtmMClxQ2kZ+KWhRAJ4rhAURnxXktgnzxTlTgJ1lRUoAdzXJaSDj/AHpTSU+on5p66RAhtKs96EnmlKGHYSFHq4UBXjxSygECkLT8dh
+
+--- match 8 @ 19572284 ---
+Kw6yIwa63qR6yMs3bhJIYRIiDzGiST0Y7Ldy3sxh2f9BcbPfJY8Rv3lH2KoySRglxaGY0CQDYOXqD3b//8p2PX7rM9+Vz7a4DgNq/HwA0gnUhMc1f+Hx09/lgp3l5oCKEOHAvnO+6zWJ1FY/uPgegNtVbXQfJMCGZMID6OkhpkN45etPxGvfCee46YcmMJsFcWDUDncUyo8nBrYPOCgMpUBjX7Rd9F0hM8TpQ7WZWWFAvgVoXVghkM2dCIJVuNpACJaPj2r5LqUDdDMTWODRQU412glcOdpRNOZS7WFgrCrKeZHTciDjAgMYgnShbDwLQdkIpVsLMcjzvOEKIQ8WljyDrqxzs8H2VFqR0qUBMvbJYbIDy4IIqcVGUV9W3AICvEl8MrkAicp3yqvq27eBEkVpZCiEOZQIBakXSmsXEQQXheceRysEOZftKO9UBXV9OU+nTv1FdXf4DAJD48vOe+kCIQ5PfXuRt9dqOLdBU2qXV1+/4lkq7NJV2e/lvUlRur8d2QqP0n90CQCrtcouR6fI3T6uv3wEAprNf+9pUaUHK3u5ggxl0/gd2c0HWIyM35AAAAABJRU5ErkJggg==","Crimson":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFoCAYAAAAmbyLxAAEAAElEQVR42uy9ebhdVX3//1prj2e+c3IzjwTCYBiMTBpkUHCs2uCIUAewVbSiOFRpiNAWtdUiVQuISlu0cmtRHEAFIYLMYyBzyECmmzvfM+x5rfX749ybL22tta3tz8J+Pc958jwnN/fe7LX353zG9wdycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJyXgCsWbPGBTj//PN/cMEFF3wGEKtWrbLzK5OTk/NCoHD88cc7wDWvfvWrzaWXXvr2KcOYG8Gc5zUyvwQvaBxjjPXiF7/4L4HEsqx3BkEQpmmaX5mcnJznLxdffLG3evVq98///M//ZsWKFeaoo46KPvWpT707/2DMycl53nt+AC9/+cuvmj9/vgF0qVT6wNTfuYD4Db6HAHjkkUeKK1eurHZ1dVWXLFlSXblyZXXlypXVk08+ubJmzZqqMUbklzvnd5U8x/PC9P4KWZaVb7nlFj+OY12r1aRlWbRaLQGYqdevNX7GGHHaaaeVfvjDHz4WBMFSpRRhGNJsNnEch8nJSZRSfP7zn+8HBvOrnvO7SB7qPH/5N57XdLX3+Bcd++GR4ZGxgwcPfnB8fDyZO3cup556qgTM8ccf/5t8b/OlL32p3Gg0Hvurv/qrpdu2bUuTJGF0dJTBwcHRwcH
+
+--- match 9 @ 19833345 ---
+CsdPzk6l0jIZxAZ7RObw7Gh3BqF9jt3OxTNGxTWpPFDdzgWcnJ1qmx/ybIOTlFEy1mAWcyg82+zZJi/V9sM2ozwTwPDekDTanQHwPqQCmGjUk9GY9yaaxYc8m57Dbo6Zr+zC57Ne6IajwGp3BgACoHEAowe5KrEsGUuUJX+eqDqHjTNZVHo2PCepMctASFpsdsOSTe1Dnk3WyMBxfYYRPSjvXmwyGkdmLR3nV5FprdFKtX8IGZQngxh7tj21IqxwIIP2HaDJaAy1RguCYE3SeGAmgIJgTbatisbJCz3IYEOLEttlBvEduy55MQlHTd06CxADodZoGUnZbK0rbWR9UNoY9GTYVASuiLUPelBeHhRH5aTsySIvXf2flTSfR1p35sdNVMApkuegBxWhkk5b99isf6wwqOjyQokhQDvqQS7J0hiDTPmP7Z1nOycx3ZN06EG7BFAeGzuRQUXMYi4wBxmUN0BsSQgl5oi8TG2QMCqxrCxy4XUE9KC8Jcavdqi2Hi69M+aUB6UFxuQeAOs/+g8Amfcxiy+5mNwggR7kEoNEJmXxNVvX+h+8yHfg1r1SMwAAAABJRU5ErkJggg=="],"Crimson":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFoCAYAAAAmbyLxAAEAAElEQVR42uy9ebhdVX3//1prj2e+c3IzjwTCYBiMTBpkUHCs2uCIUAewVbSiOFRpiNAWtdUiVQuISlu0cmtRHEAFIYLMYyBzyECmmzvfM+x5rfX749ybL22tta3tz8J+Pc958jwnN/fe7LX353zG9wdycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJyXgCsWbPGBTj//PN/cMEFF3wGEKtWrbLzK5OTk/NCoHD88cc7wDWvfvWrzaWXXvr2KcOYG8Gc5zUyvwQvaBxjjPXiF7/4L4HEsqx3BkEQpmmaX5mcnJznLxdffLG3evVq98///M//ZsWKFeaoo46KPvWpT707/2DMycl53nt+AC9/+cuvmj9/vgF0qVT6wNTfuYD4Db6HAHjkkUeKK1eurHZ1dVWXLFlSXblyZXXlypXVk08+ubJmzZqqMUbklzvnd5U8x/PC9P4KWZaVb7nlFj+OY12r1aRlWbRaLQGYqdevNX7GGHHaaaeVfvjDHz4WBMFSpRRhGNJsNnEch8nJSZRSfP7zn+8HBvOrnvO7SB7qPH/5N57XdLX3+Bcd++GR4ZGxgwcPfnB8fDyZO3cup556qgTM8ccf/5t8b/OlL32p3Gg0Hvurv/qrpdu2bUuTJGF0dJTBwcHRwc
+
+--- match 10 @ 24053271 ---
+SA04od3cfvpA8x+8d7tfvg3jvdr98H2hs8Tbz9Q7uP0yet/U9OGnFDu7j99IDRihn1Vxn/KkDzH7x3u1++DeO92v3wfaGzxNvP1Du4/TJ639T0wVNu+kW9NlVx2qsUaMw4/PkVB5xuOwy2nUpx1TvJSlKUqUpSuSnSMZ8QNozBHDSgNSalfEO9a0/HJcWj2VMZqbjpGlZEtyS2rpdlJON5KSpRuElZKS2ojzGjk3XTLJTi1EZcxqPiOMyLPgNKq1w650Sx0kLY1Xd0+zQalRq3rHx5NPE1i7+lTJPHPaSvPG65TjZO2ZYDKCahWpBqC1sEhKic1yFElPTLpqIlG4pGRGRaUoy44297rdYTFmSTyIjEnW5h8lqKmorJlmmcrnLpVT5tPPNUzLLM7KculSQAAaZrAAAABHM+2IAAI5mIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiZ5iAAAAAAAAAA//Z","Crimson":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAICAgICAQICAgIDAgIDAwYEAwMDAwcFBQQGCAcJCAgHCAgJCg0LCQoMCggICw8LDA0ODg8OCQsQERAOEQ0ODg7/2wBDAQIDAwMDAwcEBAcOCQgJDg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg7/wAARCAQaAu4DASIAAhEBAxEB/8QAHgAAAAYDAQEAAAAAAAAAAAAAAwQFBgcIAAIJAQr/xABdEAABAwMDAgQDBQMKAwQFAhcCAQMEAAUGBxESCCETIjFBFDJRCRUjQmFScYEWJDNicpGhscHRF+HwQ4KS8RglNFNjc4OiJpMKGTY3VLInNURHZMLS0+JXZYSUo//EAB0BAAEFAQEBAQAAAAAAAAAAAAUCAwQGBwEACAn/xABJEQABBAEDAgMEBggFAgQFBQEBAAIDBBEFEiETMQYiQRQyUWFCcYGRofAVI1KSscHR4QcWM2KCcqIkQ8LxNERT0uIXJTVUsnP/2gAMAwEAAhEDEQA/AJFZyLVmReReK0NK4Pv4lOJu96pEimdrb8Qfq52ri211YaqR5oGF6k8Nv26VoPWhqVbHn/HukiQ6foSnttXyTJ/h9rJOWhpX0CzxVUYdriu1bF51HK1hKetjfxf5RRztR8brqsslr4i0sg7/ANnsdcYYvWnrDIjeFCZkznEXknHkv+SUBK6zNcnbkyzNclRZHo0ioYL/AJUPd/h5rcnDg394J0+KKpXbOPM1ZcuDjcyzRgD8v4i0sRmdRG1RyTa4wIn7Di1w8Tq76h3JitQjnznA9FRDc/ypZY6xepi3kMmZa7gbC/WM4n
+
+--- match 11 @ 24605357 ---
+ttle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":false,"notes":"Boss definition. Existing combat code remains authoritative until migration.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png"],"frame_ms":180,"loop":true,"events":[]}},"vfx":{}}},"crimson":{"schema_version":2,"id":"crimson","display_name":"Crimson","title":"Blazing Vanguard","role":"playable","archetype":"assassin_melee","element":"Fire","rarity":"Legendary","collection":{"owned":true,"inventory_visible":true,"battle_ready":true},"stats":{"level":1,"hp":118,"attack":35,"defense":18,"speed":68},"combat":{"mark":"V","movement_range":96,"basic_shape":{"type":"cone","r":182,"a":1.0},"jutsu_shape":{"type":"rect","w":310,"h":86},"chakra_max":8},"render":{"scale":1.0},"abilities":{"basic":{"id":"basic_strike","name":"Basic Strike","damage_multiplier":1.0,"chakra_gain":1,"delivery":"melee"},"jutsu":{"id":"current_jutsu","name":"Crimson Jutsu","cost":4,"damage_multiplier":1.9,"delivery":"forward_area","category":"jutsu","ultimate":false}},"assets":{"art":"art/current_collection_art.jpg","card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"spr
+
+--- match 12 @ 24605949 ---
+_name":"Crimson","title":"Blazing Vanguard","role":"playable","archetype":"assassin_melee","element":"Fire","rarity":"Legendary","collection":{"owned":true,"inventory_visible":true,"battle_ready":true},"stats":{"level":1,"hp":118,"attack":35,"defense":18,"speed":68},"combat":{"mark":"V","movement_range":96,"basic_shape":{"type":"cone","r":182,"a":1.0},"jutsu_shape":{"type":"rect","w":310,"h":86},"chakra_max":8},"render":{"scale":1.0},"abilities":{"basic":{"id":"basic_strike","name":"Basic Strike","damage_multiplier":1.0,"chakra_gain":1,"delivery":"melee"},"jutsu":{"id":"current_jutsu","name":"Crimson Jutsu","cost":4,"damage_multiplier":1.9,"delivery":"forward_area","category":"jutsu","ultimate":false}},"assets":{"art":"art/current_collection_art.jpg","card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/","jutsu_cast":"assets/characters/crimson/sprites/runtime/jutsu/cast.png"},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":false,"notes":"v0.5.47: Crimson special animation corrected to Crimson-only Jutsu asset. Strict per-character routing prevents Lebee/Sub-Zero body frames from resolving on Crimson.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standa
+
+--- match 13 @ 24606529 ---
+rent_jutsu","name":"Crimson Jutsu","cost":4,"damage_multiplier":1.9,"delivery":"forward_area","category":"jutsu","ultimate":false}},"assets":{"art":"art/current_collection_art.jpg","card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/","jutsu_cast":"assets/characters/crimson/sprites/runtime/jutsu/cast.png"},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":false,"notes":"v0.5.47: Crimson special animation corrected to Crimson-only Jutsu asset. Strict per-character routing prevents Lebee/Sub-Zero body frames from resolving on Crimson.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png","sprites/runtime/idle/frame_02.png"],"frame_ms":180,"loop":true,"events":[]},"basic_attack":{"frames":["sprites/runtime/attack/basic/frame_01.png"],"frame_ms":120,"loop":false,"events":[{"frame":1,"event":"release_projectile_or_apply_melee"}]},"jutsu":{"current":{"frames":["sprites/runtime/jutsu/current/frame_01.png"],"frame_ms":150,"loop":false,"events":[{"frame":1,"event":"release_jutsu_vfx"}]}}},"vfx":{}}},"lebee":
+
+--- match 14 @ 24606568 ---
+t":4,"damage_multiplier":1.9,"delivery":"forward_area","category":"jutsu","ultimate":false}},"assets":{"art":"art/current_collection_art.jpg","card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/","jutsu_cast":"assets/characters/crimson/sprites/runtime/jutsu/cast.png"},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":false,"notes":"v0.5.47: Crimson special animation corrected to Crimson-only Jutsu asset. Strict per-character routing prevents Lebee/Sub-Zero body frames from resolving on Crimson.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png","sprites/runtime/idle/frame_02.png"],"frame_ms":180,"loop":true,"events":[]},"basic_attack":{"frames":["sprites/runtime/attack/basic/frame_01.png"],"frame_ms":120,"loop":false,"events":[{"frame":1,"event":"release_projectile_or_apply_melee"}]},"jutsu":{"current":{"frames":["sprites/runtime/jutsu/current/frame_01.png"],"frame_ms":150,"loop":false,"events":[{"frame":1,"event":"release_jutsu_vfx"}]}}},"vfx":{}}},"lebee":{"schema_version":2,"id":"lebee","displ
+
+--- match 15 @ 24606677 ---
+"art/current_collection_art.jpg","card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/","jutsu_cast":"assets/characters/crimson/sprites/runtime/jutsu/cast.png"},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":false,"notes":"v0.5.47: Crimson special animation corrected to Crimson-only Jutsu asset. Strict per-character routing prevents Lebee/Sub-Zero body frames from resolving on Crimson.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png","sprites/runtime/idle/frame_02.png"],"frame_ms":180,"loop":true,"events":[]},"basic_attack":{"frames":["sprites/runtime/attack/basic/frame_01.png"],"frame_ms":120,"loop":false,"events":[{"frame":1,"event":"release_projectile_or_apply_melee"}]},"jutsu":{"current":{"frames":["sprites/runtime/jutsu/current/frame_01.png"],"frame_ms":150,"loop":false,"events":[{"frame":1,"event":"release_jutsu_vfx"}]}}},"vfx":{}}},"lebee":{"schema_version":2,"id":"lebee","display_name":"Lebee","title":"Cosmic Wish","role":"playable","archetype":"caster_aoe","element":"Cosmic","rarity"
+
+--- match 16 @ 24613614 ---
+tatus_effect":"freeze","status_chance":1.0,"category":"jutsu","ultimate":false}},"assets":{"art":"art/full_art_absolute_zero_v2.jpeg","card":"cards/unit_details_absolute_zero_v2.jpeg","portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":true,"notes":"v0.5.46: battlefield render scale reduced to 0.88 so Sub-Zero visually matches the current Crimson/Lebee team footprint. Applies consistently to all body animations.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png"],"frame_ms":180,"loop":true,"events":[]},"basic_attack":{"frames":["sprites/runtime/attack/basic/frame_01.png","sprites/runtime/attack/basic/frame_01_alt.png"],"frame_ms":120,"loop":false,"events":[{"frame":1,"event":"release_projectile_or_apply_melee"}]}},"vfx":{"jutsu/freeze_blast/projectile":{"frames":["vfx/jutsu/freeze_blast/projectile/frame_01.png","vfx/jutsu/freeze_blast/projectile/frame_02.png","vfx/jutsu/freeze_blast/projectile/frame_03.png"],"frame_ms":90,"loop":false,"body_asset":false}}}
+
+--- match 17 @ 24622273 ---
+ge();
+  img.src=src;
+  SPRITES[name]=img;
+}
+
+const CARD_DATA=window.BLAZING_ASSETS.cards;
+const IDLE_DATA=window.BLAZING_ASSETS.idle;
+const VICTORY_IMAGE=new Image();
+VICTORY_IMAGE.src=(window.BLAZING_ASSETS.fx&&window.BLAZING_ASSETS.fx.victory)||'';
+
+const IDLE_SPRITES={};
+for(const [name,frames] of Object.entries(IDLE_DATA)){
+  IDLE_SPRITES[name]=(frames||[]).map(src=>{
+    const img=new Image();
+    img.src=src;
+    return img;
+  });
+}
+
+function makeImageFrames(list){
+  return (list||[]).map(src=>{
+    const img=new Image();
+    img.src=src;
+    return img;
+  });
+}
+const ATTACK_SPRITES={
+  Crimson:{
+    punch:makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABQCAYAAACpv3NFAAAbiklEQVR42u2cabhdZZXnf++e95nnO0+5yU1IQkIChjCqQZQGcSiwtPSx7NLW0sfSEssup65S6+luu7QcqxBxKK12aMVCcZ4QEYkgIlMGQoabmzvfe+Zxn3328PaHWCiNIhAksXV9Oufsc9691v/9r2GvtfeBP8of5UkXVdXkH6zxhmH8YRr/ohe+RJqmKQEJMD46JgEGhgZlMpk6aaAoT8ZJrrn2ajk7d4wtm7bwrIsv4rT1UxIgl03Lr3z5eur1mvjw1R86KSCIJ+MkG6Y2SCnANDVq5RqqpiIETM8ce9J0OKkMODJ9GL1T5f779qKZOqqm4fvBSTf+dwbAyMiw/MQnPymj0Yg0TUN6vs/Cao14IsWxuTm6rksQ+GQzablmcuKkBsUnbAfG14zJt7317/j0Jz/F3n33EYvFjh+QEjti43a7KEJycc/jU6UKffl+ookIhw8fEb/3AGSTOZnKpDB0hUPT05iaxjMveSZHj84S+D2azRamaeJ0XZaXVtiz/17WT2046fQ/YRfYs2efBOj1PNatHefIzAwRy2TrGVuZnZtjYmwMQ7dQNRVFVfD9HuMDo1xw/lNPmfR8QgCcu/McADk5NcX0zAye5xGPJ/ADH13VWF5ZBAViiTiBHzA6PkIgQ8rl0v8fAHzhS59j/drNrF83QaPZZHAgz/JqkdNP34yiKmQyKcIgpOt00Q2D1eUSXugThpDP5uXvPQCXXXq5qNar3HnnnWSFwjVXvYob/tdbuPf227F0m4XFFdpOCwXJyvIKUkqcrsO1H74GVVGJn8QK8Ak
+
+--- match 18 @ 28585649 ---
+MtqYuHicLcgylGRpXZALOvpyPw2faEGuDe8JpI7DqOKh/iBBnaDqMczlOHNPp9cpkWzGHnKwk5a/eb9AsY3Zdcymf1in52d9VJyeBTu+5d2GPI4uXY+gWBvCyJzmxLy5RUOPN/pXQbxXSYRK1tbNvBXkjyEFk8C7Kecyto8ZUeVJspU+Yln4X4uMJPgupyDH0k4WoSKWDWSdKtNCjV+vqUxaBU7NjlfeJKF5zUnGTbfRiTKgKkTUe1L3Y3VINWpJDFOj0O9d/1JLtpl+CmCMyuIn5wDTAAAAAElFTkSuQmCC"]),
+    // No dedicated Jutsu/casting sprite exists in the supplied Sub-Zero pack yet.
+    // Keep the idle/cast body visible rather than incorrectly reusing the punch frame.
+    special:makeImageFrames([])
+  }
+};
+
+
+// v0.5.18 — grounded sprite / attack presentation pass.
+// Uses the user-supplied Crimson sheet: frame 3 for basic strikes and frame 4 for Jutsu/cast.
+// Runtime frames are normalized to a shared canvas so Crimson does not change footprint mid-action.
+ATTACK_SPRITES.Crimson={
+  punch:makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFoCAYAAAAmbyLxAAEAAElEQVR42uy9Z7xeVZn3/11r7XrX009yctJDC0UBCShqgiKioI46AQuKNdjQYRx11HGOGbuPiowOAg4qKqJEx4bISJGIggKhcyAhlNTTy113X+v/4j7JOD7OjFP+z1j29/M5L5IcksPe+/7ta13ld0FOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk7OnwgbN250AM4444yLLrjgAvPWt771ZQAjIyNWfnVycnL+qFm8eHFhZGTEAT6/es1q8/SnP/1lAOvXr88FMOePFplfgj9tjj/+eBvgGSc/42M333hTJKV8neu6eJ5n51cnJxfAnD9qSqWSe8455xRvuukmd+vPbzHLly1r/flL/7x16qmnJgAbNmzIL1JOTs4fF+eee64H8J53vecTT3/qyQZoVSsV09/T/5r/6svx//yf/1N88YtfPNDd3V0d
+
+--- match 19 @ 28585773 ---
+xLy5RUOPN/pXQbxXSYRK1tbNvBXkjyEFk8C7Kecyto8ZUeVJspU+Yln4X4uMJPgupyDH0k4WoSKWDWSdKtNCjV+vqUxaBU7NjlfeJKF5zUnGTbfRiTKgKkTUe1L3Y3VINWpJDFOj0O9d/1JLtpl+CmCMyuIn5wDTAAAAAElFTkSuQmCC"]),
+    // No dedicated Jutsu/casting sprite exists in the supplied Sub-Zero pack yet.
+    // Keep the idle/cast body visible rather than incorrectly reusing the punch frame.
+    special:makeImageFrames([])
+  }
+};
+
+
+// v0.5.18 — grounded sprite / attack presentation pass.
+// Uses the user-supplied Crimson sheet: frame 3 for basic strikes and frame 4 for Jutsu/cast.
+// Runtime frames are normalized to a shared canvas so Crimson does not change footprint mid-action.
+ATTACK_SPRITES.Crimson={
+  punch:makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFoCAYAAAAmbyLxAAEAAElEQVR42uy9Z7xeVZn3/11r7XrX009yctJDC0UBCShqgiKioI46AQuKNdjQYRx11HGOGbuPiowOAg4qKqJEx4bISJGIggKhcyAhlNTTy113X+v/4j7JOD7OjFP+z1j29/M5L5IcksPe+/7ta13ld0FOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk7OnwgbN250AM4444yLLrjgAvPWt771ZQAjIyNWfnVycnL+qFm8eHFhZGTEAT6/es1q8/SnP/1lAOvXr88FMOePFplfgj9tjj/+eBvgGSc/42M333hTJKV8neu6eJ5n51cnJxfAnD9qSqWSe8455xRvuukmd+vPbzHLly1r/flL/7x16qmnJgAbNmzIL1JOTs4fF+eee64H8J53vecTT3/qyQZoVSsV09/T/5r/6svx//yf/1N88YtfPNDd3V0dGhrqBSqvfOUrK8YYkV/xnN9H8vzOnybiiiuuSABny5YthSBoZ0B6xGFHcMQRh/nLVq6Uo6Oj1pYtW+J/7y8xxgghhNm0aVPfbbfdlt1333333XzzzcNZliGESNas
+
+--- match 20 @ 28585834 ---
+PgupyDH0k4WoSKWDWSdKtNCjV+vqUxaBU7NjlfeJKF5zUnGTbfRiTKgKkTUe1L3Y3VINWpJDFOj0O9d/1JLtpl+CmCMyuIn5wDTAAAAAElFTkSuQmCC"]),
+    // No dedicated Jutsu/casting sprite exists in the supplied Sub-Zero pack yet.
+    // Keep the idle/cast body visible rather than incorrectly reusing the punch frame.
+    special:makeImageFrames([])
+  }
+};
+
+
+// v0.5.18 — grounded sprite / attack presentation pass.
+// Uses the user-supplied Crimson sheet: frame 3 for basic strikes and frame 4 for Jutsu/cast.
+// Runtime frames are normalized to a shared canvas so Crimson does not change footprint mid-action.
+ATTACK_SPRITES.Crimson={
+  punch:makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFoCAYAAAAmbyLxAAEAAElEQVR42uy9Z7xeVZn3/11r7XrX009yctJDC0UBCShqgiKioI46AQuKNdjQYRx11HGOGbuPiowOAg4qKqJEx4bISJGIggKhcyAhlNTTy113X+v/4j7JOD7OjFP+z1j29/M5L5IcksPe+/7ta13ld0FOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk7OnwgbN250AM4444yLLrjgAvPWt771ZQAjIyNWfnVycnL+qFm8eHFhZGTEAT6/es1q8/SnP/1lAOvXr88FMOePFplfgj9tjj/+eBvgGSc/42M333hTJKV8neu6eJ5n51cnJxfAnD9qSqWSe8455xRvuukmd+vPbzHLly1r/flL/7x16qmnJgAbNmzIL1JOTs4fF+eee64H8J53vecTT3/qyQZoVSsV09/T/5r/6svx//yf/1N88YtfPNDd3V0dGhrqBSqvfOUrK8YYkV/xnN9H8vzOnybiiiuuSABny5YthSBoZ0B6xGFHcMQRh/nLVq6Uo6Oj1pYtW+J/7y8xxgghhNm0aVPfbbfdlt1333333XzzzcNZliGESNasWWNHUcSrX/3qPmAmv+w5OTn/6+IHSGOMc9xxx/390OJFpqtcCR3bzl79qlcF3
+
+--- match 21 @ 41741660 ---
+izgnMA+jdTvztGAyPXcYgjCfxDdVTvd9wqthWspittpWHoQXq6KkU0F0+hrL8OEWSxe5s7fapp284DkFA/V2lmJ3fXeqrqXp/Nza+HybGAHdYe7c9T3oHl7oVFidpnand0JLKKXLG+zUft7/D1UnNx5NxFTuAAAAAElFTkSuQmCC"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick
+
+--- match 22 @ 41741706 ---
+QXq6KkU0F0+hrL8OEWSxe5s7fapp284DkFA/V2lmJ3fXeqrqXp/Nza+HybGAHdYe7c9T3oHl7oVFidpnand0JLKKXLG+zUft7/D1UnNx5NxFTuAAAAAElFTkSuQmCC"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special
+
+--- match 23 @ 41741773 ---
+T3oHl7oVFidpnand0JLKKXLG+zUft7/D1UnNx5NxFTuAAAAAElFTkSuQmCC"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[
+
+--- match 24 @ 41741819 ---
+AAElFTkSuQmCC"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  r
+
+--- match 25 @ 41741867 ---
+ta accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+
+
+===== Senku =====
+
+--- match 1 @ 4186618 ---
+ent">❄️</span>
+        <img id="inventorySubzeroThumb" alt="Sub-Zero">
+        <span class="unitTileText"><b>SUB-ZERO</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile cosmic" data-unit="Lebee" aria-label="Open Lebee">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">✦</span>
+        <img id="inventoryLebeeThumb" alt="Lebee">
+        <span class="unitTileText"><b>LEBEE</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile legendary" data-unit="Senku" aria-label="Open Senku">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">🍃</span>
+        <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QCMRXhpZgAATU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAABXqgAwAEAAAAAQAABGIAAAAA/+0AOFBob3Rvc2hvcCAzLjAAOEJJTQQEAAAAAAAAOEJJTQQlAAAAAAAQ1B2M2Y8AsgTpgAmY7PhCfv/AABEIBGIFegMBIgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY
+
+--- match 2 @ 4186642 ---
+img id="inventorySubzeroThumb" alt="Sub-Zero">
+        <span class="unitTileText"><b>SUB-ZERO</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile cosmic" data-unit="Lebee" aria-label="Open Lebee">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">✦</span>
+        <img id="inventoryLebeeThumb" alt="Lebee">
+        <span class="unitTileText"><b>LEBEE</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <button class="unitTile legendary" data-unit="Senku" aria-label="Open Senku">
+        <span class="unitStars">★★★★★★</span><span class="unitElement">🍃</span>
+        <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QCMRXhpZgAATU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAABXqgAwAEAAAAAQAABGIAAAAA/+0AOFBob3Rvc2hvcCAzLjAAOEJJTQQEAAAAAAAAOEJJTQQlAAAAAAAQ1B2M2Y8AsgTpgAmY7PhCfv/AABEIBGIFegMBIgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1h
+
+--- match 3 @ 5583847 ---
+B++foMV9Tf8E+Ly8tfgN8WrC2leOBxpjNGrEIWErAEqOCQO9fMnx9/wCRv13/ALCdx/6OevpL/gn/AP8AJEfix/u6b/6Oav6pn8cf+3P/AEqJ+AZr/wAkjU9Y/mj8pP26dH0jSfjfew6Vaw2ySBWZYkVAxPUkKBkmvjZxushu5yRmvtr9vn/kud1/up/SviU/8eQ/3hX8h5v/AMjSv/iZ/bvDn/Ijwf8Ahj+Rm2nyW8ipwMngV6v8J5ZLbxdaS27GNhKBlTg4PUZFeUW3+of6mvU/hd/yNVp/12WuHBf7xT9UfSZr/uGI/wAL/I/Vb4cu4k1WIE7EKMo7A46gdj71+Q2vKsfizVUjG1ReTcDp/rDX67/Dr/X6v/wD+VfkT4h/5G7Vf+v2b/0Ya+o4h3pfM/DOB/8Aesf/ANufqdTo3+tB7gZH510UhIuTjueffrXO6N/rP+A/+zV0Mn/Hz+Jr5ej8KP22ruzbmYi2XB9RXHayzGBCT0yf512E/wDx7L9TXHax/qF/H+tPE/wjkw38Qx9RJNkynpz/AFrmYlUxKSOwrpdR/wCPNvx/rXNw/wCqX6Cvnqu6Pfp7M//Z" alt="Senku">
+        <span class="unitTileText"><b>SENKU</b><small>LEGENDARY <span class="unitLevel">LV 1</span></small></span>
+      </button>
+      <div class="lockedSlot">＋</div><div class="lockedSlot">＋</div>
+    </section>
+  </main>
+</div>
+
+
+<div id="teamScreen" class="screen">
+  <header class="collectionHeader">
+    <button id="teamBackBtn" class="collectionBack" aria-label="Back">‹</button>
+    <div class="collectionTitle">EDIT TEAM<small>ACTIVE BATTLE SQUAD</small></div>
+    <button id="teamHomeBtn" class="collectionHome" aria-label="Home">⌂</button>
+  </header>
+  <main class="teamBody">
+    <div class="teamIntro">
+      <b>Choose your active three.</b> Tap a slot, then tap an owned battle-ready fighter.
+      Selecting a fighter already in another slot swaps their positions.
+    </div>
+    <section id="teamSlots" class="teamSlots" aria-label="Active team slots">
+      <button class="teamS
+
+--- match 4 @ 24598671 ---
+Z5BhrqYTK1mZ2PDQcwmxwkalrIhAPM7UCvf74MLdcrB7UFyJwBCQkJCYn0g+aEYAl0BlmCPIHoHyFAAaHspTlwDx8uvQLSMyAhISEhkXHGqWs3OzxgRAhA3POsSHDSJXS/dzoKTj5REgHpGZCQkJCQyEQ4BvRnwaK8FohAtBnb1d5nTb0GhTffJImAJAMSEhISEpkKpijAxGPb9dq8qdPQ45FHJRGQZEBCQkJCItNReuXViY0XRfoSRpcYem64AcUzZzLGJBeQZEBCQkJCIuORf+hvWda4MYCgZpeAaNZXh7ncKPrrQ+jx4F8lC2gHZKMiCQkJCYm0hb5hA2088ECIunrrBOvNAc/NBc/NhdajDI4hQ+AYOgSek05kSn6+HLB24v8BpFi13jUgJKsAAAAASUVORK5CYII="}};</script>
+<div id="meteorScreenFlash" aria-hidden="true"></div>
+<script id="blazing-unit-data">window.BLAZING_UNIT_DATA={"senku":{"schema_version":2,"id":"senku","display_name":"Senku","title":"The Kingdom of Science","role":"playable","archetype":"ranged_tactician","element":"Nature","rarity":"Legendary","collection":{"owned":true,"inventory_visible":true,"battle_ready":true},"stats":{"level":1,"hp":180,"attack":38,"defense":28,"speed":64},"combat":{"mark":"S","movement_range":92,"basic_shape":{"type":"rect","w":255,"h":58,"offset_x":116},"jutsu_shape":{"type":"screen_rect","scope":"all_allies"},"chakra_max":8},"render":{"scale":1.3},"abilities":{"basic":{"id":"explosive_bomb","name":"Explosive Bomb","damage_multiplier":1.0,"chakra_gain":1,"delivery":"ranged_projectile","range_presentation":"forward_lane","presentation":{"cast_duration_ms":560,"flight_duration_ms":620,"impact_duration_ms":360,"arc_height_px":86,"release_frame":3,"projectile_rotation":true,"impact_anchor":{"target":"feet","x":0.5,"y":0.96,"ground_offset_y_px":3,"layer":"ground"},"impact_vfx_mode":"si
+
+--- match 5 @ 36595792 ---
+8Y53yLlz5zZdceVXn/3ud74/OtVSVjMPHc+NLTlPI4bmEFIKSC+ApIDLQyrevLFfb35lR6p3c4TjTzr+ifPOO/ezpy88806gmnn9s382h8PhcOxhMLO0Xw/r7Lz8qhkzZ3DLpBSP268uPvrUGfqUcw/XC887XJ9wzmw97fBmHjOtnuceezAfMfeQX3z5y1+6qOahRLVs6XA4HA7HXwDX7E//0jcvP/nsjnd++ROfuoinHjiJ60ZlONMScNukZv7Xj/3rIIB3fuE/vtCR3D+fz3u1xzscDofD8VfBzOKCCy5I1fx7ytvf/vbJ6XR6CoApBx1x0BRmHldzCC1atMj/x79Sh8PhcOwTzJ8/38Mf7st6LityOBwOxz8MG3CGXVwQcjgcDofD4XA4HA6Hw+FwOBwOh8PhcDgcDofD4XA4HA6Hw+FwOBwOh8PhcDgcDofD4XA4HA6Hw+FwOBwOh8PhcDgcDofD4XA4HA6Hw+FwOBwOh8PhcDgcDofD4XA4HA6Hw+FwOBwOh8PhcDgcDofD4XA4HA6Hw+FwOPZR/j+JbczxX871nwAAAABJRU5ErkJggg=="])};
+
+
+// v0.6.8 — Senku isolated animation/VFX package.
+IDLE_SPRITES.Senku=makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAYAAAB+TFE1AAEAAElEQVR42uz9dZjdV733/z/X+sjW2bPH3WITlyZp2qSpuwttKQWKlBY/QHFKkwDF7aClUDfqTl3i1jTunsm4bpePrN8fSe7TL78j3Oc+cAqsx3XlSnN1Zs/OnpV57fd7GWiapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmma9m6jlBIA69fvbPjgBz+46MknnzxfKWUALFiwQP61vt7R/5744x//+JsXXHDBl5VSsT///5qmado/kWOho5Rq+PgnblzV3NKU/PgnbrhNKVVy9EP+JwNCHP1a9g9/9sMbj59//N6WtlZ10003PX3s6+lA0jRN06GEUmruccfPyI1qH6Wuev9VjyqlTlJKyf+h
+
+--- match 6 @ 36595843 ---
+ApIDLQyrevLFfb35lR6p3c4TjTzr+ifPOO/ezpy88806gmnn9s382h8PhcOxhMLO0Xw/r7Lz8qhkzZ3DLpBSP268uPvrUGfqUcw/XC887XJ9wzmw97fBmHjOtnuceezAfMfeQX3z5y1+6qOahRLVs6XA4HA7HXwDX7E//0jcvP/nsjnd++ROfuoinHjiJ60ZlONMScNukZv7Xj/3rIIB3fuE/vtCR3D+fz3u1xzscDofD8VfBzOKCCy5I1fx7ytvf/vbJ6XR6CoApBx1x0BRmHldzCC1atMj/x79Sh8PhcOwTzJ8/38Mf7st6LityOBwOxz8MG3CGXVwQcjgcDofD4XA4HA6Hw+FwOBwOh8PhcDgcDofD4XA4HA6Hw+FwOBwOh8PhcDgcDofD4XA4HA6Hw+FwOBwOh8PhcDgcDofD4XA4HA6Hw+FwOBwOh8PhcDgcDofD4XA4HA6Hw+FwOBwOh8PhcDgcDofD4XA4HA6Hw+FwOPZR/j+JbczxX871nwAAAABJRU5ErkJggg=="])};
+
+
+// v0.6.8 — Senku isolated animation/VFX package.
+IDLE_SPRITES.Senku=makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAYAAAB+TFE1AAEAAElEQVR42uz9dZjdV733/z/X+sjW2bPH3WITlyZp2qSpuwttKQWKlBY/QHFKkwDF7aClUDfqTl3i1jTunsm4bpePrN8fSe7TL78j3Oc+cAqsx3XlSnN1Zs/OnpV57fd7GWiapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmma9m6jlBIA69fvbPjgBz+46MknnzxfKWUALFiwQP61vt7R/5744x//+JsXXHDBl5VSsT///5qmado/kWOho5Rq+PgnblzV3NKU/PgnbrhNKVVy9EP+JwNCHP1a9g9/9sMbj59//N6WtlZ10003PX3s6+lA0jRN06GEUmruccfPyI1qH6Wuev9VjyqlTlJKyf+hkDgWRhNu+PRHn22bMqowetJodflVl/9JKVWtw0jTNE07FgRCKVX
+
+--- match 7 @ 37035815 ---
+7xsFwYoaYUOdZqDXy+9s3HNsp5dRLWw4r96u6Mixn+anp6fnB49BjMAKCcDHVZKstbnrV69cvn/vztHhVL9YLuWUNkk/40ipdEY9GTlaVymXUi6blYyVIyvPsUq7VlGUqN1LqevKeI5rXddX0req1erOH4srijqOiqNjwYGDh+6eOnHqrDEm5u2DIAH4ZJySJJn+9czpn58/eXS4342La2EoOVbl/JCqI3kVsr4K+WH5Gcn1HHmerzhu6X2zpXWlFXVixe1YzVZXb4OmPNdf2jo5GR6ePfRkbu6X28aYFxtCyJVBIEgAvhinvS9/e7nz5o2bU37O37dWr/eePX1sunFDQ+mUPFcyRur3HHU7iZx0RpXquC1Vx1KF4eKrfN5/PjK+1b144fxDSX9Jag620RtrrYgRCBKAz/r33XLWWlfSqAY7F5ejSIqk1mA8K2l0NLdxCkdSOBgyxphgw1zf/EFjAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwv/gHrL5oMbKG9EsAAAAASUVORK5CYII="]);
+ATTACK_SPRITES.Senku={punch:makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAYAAAB+TFE1AAEAAElEQVR42uzdd5jeVb33+/dav3r36X3SOymEkNBJQq+KJRHFLkUBFbdiQd2T2BWxoKiAIhYEMypF6UIChISSkN7rTMr0evdfW+ePhH085+zt1n2eZ2/0Wa/r4srFXMlk5nevyef+rvVda4GmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaf8NlFLy2muvtZRSQj8NTdM07Y0STjqUNE3TtP/+ygjgueeeO3vJkncs6+joaPrLj2uapmnaf4s777zTAnjttVduO2neHHX5FZe9pJRq0U9G0/7X0O/sNO1vdPTo0RBg7tz590yYNq5n7StrT/nWN279
+
+--- match 8 @ 38471985 ---
+natGmT2b59u2ppaTFnlx1wZjG9Bjjd0XHttsd//eHDh498oLqqeonRPseOtdDR3k40EiZgGYK2wVaA9lFANBwmGAgC4LounvYw+Pha47iKWEkFS5ddOJ3L6TiK1rr6+uc+dv2ns6vXrvvZTKUmvZEkkIQQ4oy3z+p86xDfrl271N3fuVuFVMisWbOm4uoNa+/qOX06MT46qQt5h3whTyFfwDMalGLe3Lmm4X3zw7Yd6Hpq+/YHVl55hXvrljuuCdqcAl5WSo28/W9v2rRJSxgJIYTgLUFkbdmyJfj//bn9w+Mb9re2zgFoamwM7dy5MzAzO1C+QAshhPjLGhsbraamJtsYc3bdm9V4ZmjP4kyLm//r63/WzZ39XDm6Qggh3s3Ky5ZW5UIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCHOG/8N+CNC2p07irIAAAAASUVORK5CYII="])};
+HIT_SPRITES.Senku=makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAYAAAB+TFE1AAEAAElEQVR42uz9dZjdV733/z/X+sjW2bPH3WITlyZp2qSpuwttKQWKlBY/QHFKkwDF7aClUDfqTl3i1jTunsm4bpePrN8fSe7TL78j3Oc+cAqsx3XlSnN1Zs/OnpV57fd7GWiapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmmapmma9m6jlBIA69fvbPjgBz+46MknnzxfKWUALFiwQP61vt7R/5744x//+JsXXHDBl5VSsT///5qmado/kWOho5Rq+PgnblzV3NKU/PgnbrhNKVVy9EP+JwNCHP1a9g9/9sMbj59//N6WtlZ10003PX3s6+lA0jRN06GEUmruccfPyI1qH6Wuev9VjyqlTlJKyf+hkDgWRhNu+PRHn22bMqowetJodflVl/9JKVWtw0jTNE07FgRCKVX
+
+--- match 9 @ 38908478 ---
+CgU8ECCLQAbMglIMsESAmrZEKsFE4YtSUXDRDpXgKYJFDUZllyRraoJv9C9a+c3jhx55GkiMrk2EuNAYoz9sntSCCGkfzp27KbU0ty+8cRoS3ZlZddyasFdVxtp18vlMJVLWtjrkuAQZMk2CSHB0ol0Q5DD6SRfMEBFtZxNFXLp6uoG1dD1i6pO4127dl/+9Gf+8dlqL62X4ZCJiDdWZdcFHkNi7Poi1qbH2wDOCCHODjx7PvDUwJciLofTs6+nZ+/YpfG20dfOl4TlUjTTIENIsmVAIluRIBRqijYru966R56anhp55jtPJu7509usnp7br37o/e9aJCLr0S99AQBkIYTNYcS4h8QY+9WpdG2R6noF3p8/VnEkHrdQjEiJ11NUGcgQAHS0t1JLUwPFDt5AACQiyv6iez4Wi0lr6454mjdjjLH/ezAJIWhtobH0G5xCjsVicl9fnySE4BdQxj0kxthvL6AAgIh+1W/++wbnrYAYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcbY78Z/AhhkdOGAHr9zAAAAAElFTkSuQmCC"]);
+SPRITES.Senku=IDLE_SPRITES.Senku[0];
+const SENKU_BOMB_FRAMES=makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAADk0lEQVR42u3aTWtjVRgH8Oe83BdumreJpklNDTLanZRAg9CudGbtYqAU3HRfcNMvkLUfwI246WIWJZtKXQ1ulO6syAjWWtAQi03bhAwhN8m59557jgtHERkRwTaj8//t7oVzn8Nz3i+HCAAAAAAAAAAAAAAAAAAAAAAAAADgX8PmGbvVar2yv7//xWg0yhCRwzm3ZC2lxkhGZKTjxEIIQUTJTCmfM5a4rkuMMR5FkXBdN2WMmSRJHGttbNJUuJ5njDEyTVMmhOBSyng6nTIiEkEQaK21SJKEHMfRjDGutZa9Xq8wryTIOTaAPTw8fH84HL5GRNRoNB4NBoOa4PyJkHISBJmF6XSSKZVK6vT09M3lWu0sm82OcrmciaLoZWMMXV9f62KxmPierx9/8/itSrV6ViwWx3EczYrFO6FSKnd+fn63Uql8LaV8iYhcx3E4Y+xCa/3qeDxO6/X6DwcHB3NLgphX4N3d3eXj4+OPwzB0hBCz9fX1z8vl8qRer5/XarWwVLrTl1IOqouLw16vV3nn3r1P+/2+1+12y4VC4btms3k2Ho8jpVR69/U3vu31LmrLy/UvFxYyqlwu/zibzfJENKhUKhe5XE4tLS2dCyFCz/N6i4uLP/X7/VIhX/h5dXX1+6Ojo89euClobW3t4eXl5XucczLGkO/75LkuzZSiOI5JCEFBEExn05kkso6QkiVJQkREnufFSZK4jLFECMGMMZIxRkQsEUJYIusqpUhrTdlsdsIYC7TWjIgo
+
+--- match 10 @ 38908497 ---
+AmrZEKsFE4YtSUXDRDpXgKYJFDUZllyRraoJv9C9a+c3jhx55GkiMrk2EuNAYoz9sntSCCGkfzp27KbU0ty+8cRoS3ZlZddyasFdVxtp18vlMJVLWtjrkuAQZMk2CSHB0ol0Q5DD6SRfMEBFtZxNFXLp6uoG1dD1i6pO4127dl/+9Gf+8dlqL62X4ZCJiDdWZdcFHkNi7Poi1qbH2wDOCCHODjx7PvDUwJciLofTs6+nZ+/YpfG20dfOl4TlUjTTIENIsmVAIluRIBRqijYru966R56anhp55jtPJu7509usnp7br37o/e9aJCLr0S99AQBkIYTNYcS4h8QY+9WpdG2R6noF3p8/VnEkHrdQjEiJ11NUGcgQAHS0t1JLUwPFDt5AACQiyv6iez4Wi0lr6454mjdjjLH/ezAJIWhtobH0G5xCjsVicl9fnySE4BdQxj0kxthvL6AAgIh+1W/++wbnrYAYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcbY78Z/AhhkdOGAHr9zAAAAAElFTkSuQmCC"]);
+SPRITES.Senku=IDLE_SPRITES.Senku[0];
+const SENKU_BOMB_FRAMES=makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAADk0lEQVR42u3aTWtjVRgH8Oe83BdumreJpklNDTLanZRAg9CudGbtYqAU3HRfcNMvkLUfwI246WIWJZtKXQ1ulO6syAjWWtAQi03bhAwhN8m59557jgtHERkRwTaj8//t7oVzn8Nz3i+HCAAAAAAAAAAAAAAAAAAAAAAAAADgX8PmGbvVar2yv7//xWg0yhCRwzm3ZC2lxkhGZKTjxEIIQUTJTCmfM5a4rkuMMR5FkXBdN2WMmSRJHGttbNJUuJ5njDEyTVMmhOBSyng6nTIiEkEQaK21SJKEHMfRjDGutZa9Xq8wryTIOTaAPTw8fH84HL5GRNRoNB4NBoOa4PyJkHISBJmF6XSSKZVK6vT09M3lWu0sm82OcrmciaLoZWMMXV9f62KxmPierx9/8/itSrV6ViwWx3EczYrFO6FSKnd+fn63Uql8LaV8iYhcx3E4Y+xCa/3qeDxO6/X6DwcHB3NLgphX4N3d3eXj4+OPwzB0hBCz9fX1z8vl8qRer5/XarWwVLrTl1IOqouLw16vV3nn3r1P+/2+1+12y4VC4btms3k2Ho8jpVR69/U3vu31LmrLy/UvFxYyqlwu/zibzfJENKhUKhe5XE4tLS2dCyFCz/N6i4uLP/X7/VIhX/h5dXX1+6Ojo89euClobW3t4eXl5XucczLGkO/75LkuzZSiOI5JCEFBEExn05kkso6QkiVJQkREnufFSZK4jLFECMGMMZIxRkQsEUJYIusqpUhrTdlsdsIYC7TWjIgoTVNKdKIZMSaltEQkO50
+
+--- match 11 @ 41742430 ---
+ck||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAADcCAYAAAA/StUtAADWKklEQVR4nOz9d5xd13mfiz+r7L1Pmz4DDHojQRIAK0BRoigRULdsy5Zt0jeOJZfEcqJfchMn9o2vb2KAyY2T2I7tm9iJJVuSuyXAKlYXJRFQYR+wohC9l+ntlN3Wen9/7DMUJVG2ZJEASZzn8yEHc+aUtc/ZZ7/rbd8XOnTo0KFDhw4dng8RUZd7DR06dOjQoQPQMUodOnTo0OEyIiJKREzj9MSyy72WDh06dLjU6Mu9gA7f4MjnjoRKKXfm8PH3n3/48H+AjqfUoUOHK4eOQXqJICLmifoTuUzJ6+yMW51M1/+jiCillFzutXXo0KH
+
+--- match 12 @ 41742474 ---
+?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAADcCAYAAAA/StUtAADWKklEQVR4nOz9d5xd13mfiz+r7L1Pmz4DDHojQRIAK0BRoigRULdsy5Zt0jeOJZfEcqJfchMn9o2vb2KAyY2T2I7tm9iJJVuSuyXAKlYXJRFQYR+wohC9l+ntlN3Wen9/7DMUJVG2ZJEASZzn8yEHc+aUtc/ZZ7/rbd8XOnTo0KFDhw4dng8RUZd7DR06dOjQoQPQMUodOnTo0OEyIiJKREzj9MSyy72WDh06dLjU6Mu9gA7f4MjnjoRKKXfm8PH3n3/48H+AjqfUoUOHK4eOQXqJICLmifoTuUzJ6+yMW51M1/+jiCillFzutXXo0KHDpaBjkF4q7N9v7r77bofwph5V2XD6wOGLgL3cy+rQoUO
+
+--- match 13 @ 41742539 ---
+IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAADcCAYAAAA/StUtAADWKklEQVR4nOz9d5xd13mfiz+r7L1Pmz4DDHojQRIAK0BRoigRULdsy5Zt0jeOJZfEcqJfchMn9o2vb2KAyY2T2I7tm9iJJVuSuyXAKlYXJRFQYR+wohC9l+ntlN3Wen9/7DMUJVG2ZJEASZzn8yEHc+aUtc/ZZ7/rbd8XOnTo0KFDhw4dng8RUZd7DR06dOjQoQPQMUodOnTo0OEyIiJKREzj9MSyy72WDh06dLjU6Mu9gA7f4MjnjoRKKXfm8PH3n3/48H+AjqfUoUOHK4eOQXqJICLmifoTuUzJ6+yMW51M1/+jiCillFzutXXo0KHDpaBjkF4q7N9v7r77bofwph5V2XD6wOGLgL3cy+rQoUOHS0XHIL1UOND+OecuzF8cl8bUXKCUyi7rmjp06NDhEtIxSC8BREQxtNGLSB/Hzt08
+
+--- match 14 @ 41742583 ---
+ect.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAADcCAYAAAA/StUtAADWKklEQVR4nOz9d5xd13mfiz+r7L1Pmz4DDHojQRIAK0BRoigRULdsy5Zt0jeOJZfEcqJfchMn9o2vb2KAyY2T2I7tm9iJJVuSuyXAKlYXJRFQYR+wohC9l+ntlN3Wen9/7DMUJVG2ZJEASZzn8yEHc+aUtc/ZZ7/rbd8XOnTo0KFDhw4dng8RUZd7DR06dOjQoQPQMUodOnTo0OEyIiJKREzj9MSyy72WDh06dLjU6Mu9gA7f4MjnjoRKKXfm8PH3n3/48H+AjqfUoUOHK4eOQXqJICLmifoTuUzJ6+yMW51M1/+jiCillFzutXXo0KHDpaBjkF4q7N9v7r77bofwph5V2XD6wOGLgL3cy+rQoUOHS0XHIL1UOND+OecuzF8cl8bUXKCUyi7rmjp06NDhEtIxSC8BREQxtNGLSB/Hzt08c+S0+Nk4lDPpq5/9e4cOHTq8wukYpJcGWm1TOZPcmjfT
+
+--- match 15 @ 41742672 ---
+['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAADcCAYAAAA/StUtAADWKklEQVR4nOz9d5xd13mfiz+r7L1Pmz4DDHojQRIAK0BRoigRULdsy5Zt0jeOJZfEcqJfchMn9o2vb2KAyY2T2I7tm9iJJVuSuyXAKlYXJRFQYR+wohC9l+ntlN3Wen9/7DMUJVG2ZJEASZzn8yEHc+aUtc/ZZ7/rbd8XOnTo0KFDhw4dng8RUZd7DR06dOjQoQPQMUodOnTo0OEyIiJKREzj9MSyy72WDh06dLjU6Mu9gA7f4MjnjoRKKXfm8PH3n3/48H+AjqfUoUOHK4eOQXqJICLmifoTuUzJ6+yMW51M1/+jiCillFzutXXo0KHDpaBjkF4q7N9v7r77bofwph5V2XD6wOGLgL3cy+rQoUOHS0XHIL1UOND+OecuzF8cl8bUXKCUyi7rmjp06NDhEtIxSC8BREQxtNGLSB/Hzt08c+S0+Nk4lDPpq5/9e4cOHTq8wukYpJcGWm1TOZPcmjfT9xx/8PFkwJa7/MTUX7X/bi7r6jp06NDhEtDJUbwU2LULgNaJU43Z0QtuzVVrlU4dzTMXxgDYs+cyLq5Dhw4dLg0dD
+
+--- match 16 @ 43516794 ---
+omData(id,name,x,y,mark,overrides={}){
+ const d=canonicalUnit(id),base=d.stats,combat=d.combat;
+ const hp=overrides.hp??base.hp;
+ return{name:name||d.display_name,spriteKey:d.display_name,mark:mark||combat.mark,x,y,r:overrides.r??19,
+  hp,maxHp:hp,speed:overrides.speed??base.speed,attack:overrides.attack??base.attack,defense:overrides.defense??base.defense,
+  gauge:0,shape:overrides.shape??combat.basic_shape,archetype:d.archetype};
+}
+
+// v0.5.19 core-roster whitelist. Legacy units stay in BATTLE_ROSTER for rollback only.
+const ACTIVE_PLAYABLE_UNITS=Object.freeze(['Crimson','Sub-Zero','Lebee','Senku']);
+const DEFAULT_ACTIVE_TEAM=Object.freeze(['Crimson','Lebee','Sub-Zero']);
+
+function validatePlayableRosterRegistration(){
+ const missing=ACTIVE_PLAYABLE_UNITS.filter(name=>!BATTLE_ROSTER[name]);
+ if(missing.length){
+   console.error('Playable roster registration missing:',missing);
+   return false;
+ }
+ return true;
+}
+const PLAYABLE_ROSTER_VALID=validatePlayableRosterRegistration();
+const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v1';
+
+function validActiveTeam(team){
+ return Array.isArray(team)
+   && team.length===3
+   && new Set(team).size===3
+   && team.every(name=>ACTIVE_PLAYABLE_UNITS.includes(name));
+}
+function getActiveTeam(){
+ if(validActiveTeam(window.BLAZING_ACTIVE_TEAM))return [...window.BLAZING_ACTIVE_TEAM];
+ try{
+   const saved=JSON.parse(localStorage.getItem(TEAM_STORAGE_KEY)||'null');
+   if(validActiveTeam(saved)){
+     window.BLAZING_ACTIVE_TEAM=[...saved];
+     return
+
+--- match 17 @ 43582890 ---
+e.now(),duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   setTimeout(()=>{
+     if(!actionTokenAlive(token))return;
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Lebee star blast impact failed:',err);return recoverAction('Lebee basic impact')}
+     const st=ensureAnimState();if(st.attackPose)delete st.attackPose[unitName];
+     setTimeout(()=>{if(actionTokenAlive(token)){try{onDone&&onDone()}catch(err){recoverAction('Lebee basic completion')}}},90);
+   },flightDuration);
+ },castDuration*.48);
+}
+
+
+function animateSenkuChemicalReaction(unitName,from,target,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const meta=canonicalUnit('senku').abilities.jutsu.presentation||{};
+ const castDuration=meta.cast_duration_ms||680;
+ const flightDuration=meta.flight_duration_ms||420;
+ const impactDuration=meta.impact_duration_ms||620;
+
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={kind:'special',start:performance.now(),duration:castDuration};
+
+ if(meta.screen_dim_alpha){
+   S.jutsuDim={start:performance.now(),alpha:meta.screen_dim_alpha,end:null};
+ }
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+
+   const projectile={
+     kind:'senkuChemProjectile',
+     from:{x:from.x,y:from.y-30},
+     to:{x:target.x,y:target.y-10},
+     start:performance.now(),
+     duration:flightDuration,
+     life:1
+   };
+   S.floaters.push(projectile);
+
+   setTimeout(()
+
+--- match 18 @ 43584171 ---
+ind:'senkuChemProjectile',
+     from:{x:from.x,y:from.y-30},
+     to:{x:target.x,y:target.y-10},
+     start:performance.now(),
+     duration:flightDuration,
+     life:1
+   };
+   S.floaters.push(projectile);
+
+   setTimeout(()=>{
+     if(!actionTokenAlive(token))return;
+
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     const impact={
+       kind:'senkuChemImpact',
+       x:target.x,
+       y:target.y,
+       start:performance.now(),
+       duration:impactDuration,
+       life:1
+     };
+     S.floaters.push(impact);
+
+     try{onImpact&&onImpact()}
+     catch(err){
+       console.error('Senku Chemical Reaction impact failed:',err);
+       return recoverAction('Senku Chemical Reaction impact');
+     }
+
+     setTimeout(()=>{
+       S.floaters=S.floaters.filter(x=>x!==impact);
+       if(S.jutsuDim)S.jutsuDim.end=performance.now();
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+
+       if(actionTokenAlive(token)){
+         try{onDone&&onDone()}
+         catch(err){recoverAction('Senku Chemical Reaction completion')}
+       }
+     },impactDuration);
+   },flightDuration);
+ },castDuration*.70);
+}
+
+function animateSenkuBomb(unitName,from,enemy,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ const meta=canonicalUnit('senku')?.abilities?.basic?.presentation||{};
+ const castDuration=meta.cast_duration_ms||560;
+ const flightDuration=meta.flight_duration_ms||620;
+ const blastDuration=meta.impact_duration_ms||430;
+ const 
+
+--- match 19 @ 43584246 ---
+get.x,y:target.y-10},
+     start:performance.now(),
+     duration:flightDuration,
+     life:1
+   };
+   S.floaters.push(projectile);
+
+   setTimeout(()=>{
+     if(!actionTokenAlive(token))return;
+
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     const impact={
+       kind:'senkuChemImpact',
+       x:target.x,
+       y:target.y,
+       start:performance.now(),
+       duration:impactDuration,
+       life:1
+     };
+     S.floaters.push(impact);
+
+     try{onImpact&&onImpact()}
+     catch(err){
+       console.error('Senku Chemical Reaction impact failed:',err);
+       return recoverAction('Senku Chemical Reaction impact');
+     }
+
+     setTimeout(()=>{
+       S.floaters=S.floaters.filter(x=>x!==impact);
+       if(S.jutsuDim)S.jutsuDim.end=performance.now();
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+
+       if(actionTokenAlive(token)){
+         try{onDone&&onDone()}
+         catch(err){recoverAction('Senku Chemical Reaction completion')}
+       }
+     },impactDuration);
+   },flightDuration);
+ },castDuration*.70);
+}
+
+function animateSenkuBomb(unitName,from,enemy,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ const meta=canonicalUnit('senku')?.abilities?.basic?.presentation||{};
+ const castDuration=meta.cast_duration_ms||560;
+ const flightDuration=meta.flight_duration_ms||620;
+ const blastDuration=meta.impact_duration_ms||430;
+ const arcHeight=meta.arc_height_px||86;
+
+ const state=ensureAnimState();
+ if(!sta
+
+--- match 20 @ 43584611 ---
+w(),
+       duration:impactDuration,
+       life:1
+     };
+     S.floaters.push(impact);
+
+     try{onImpact&&onImpact()}
+     catch(err){
+       console.error('Senku Chemical Reaction impact failed:',err);
+       return recoverAction('Senku Chemical Reaction impact');
+     }
+
+     setTimeout(()=>{
+       S.floaters=S.floaters.filter(x=>x!==impact);
+       if(S.jutsuDim)S.jutsuDim.end=performance.now();
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+
+       if(actionTokenAlive(token)){
+         try{onDone&&onDone()}
+         catch(err){recoverAction('Senku Chemical Reaction completion')}
+       }
+     },impactDuration);
+   },flightDuration);
+ },castDuration*.70);
+}
+
+function animateSenkuBomb(unitName,from,enemy,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ const meta=canonicalUnit('senku')?.abilities?.basic?.presentation||{};
+ const castDuration=meta.cast_duration_ms||560;
+ const flightDuration=meta.flight_duration_ms||620;
+ const blastDuration=meta.impact_duration_ms||430;
+ const arcHeight=meta.arc_height_px||86;
+
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={
+   kind:attackKind,
+   start:performance.now(),
+   duration:castDuration
+ };
+
+ // Release near the final throwing pose rather than halfway through the cast.
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+
+   const projectile={
+     kind:'senkuBombProjectile',
+     from:{x:from.x,y:from.y-3
+
+--- match 21 @ 43584745 ---
+r){
+       console.error('Senku Chemical Reaction impact failed:',err);
+       return recoverAction('Senku Chemical Reaction impact');
+     }
+
+     setTimeout(()=>{
+       S.floaters=S.floaters.filter(x=>x!==impact);
+       if(S.jutsuDim)S.jutsuDim.end=performance.now();
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+
+       if(actionTokenAlive(token)){
+         try{onDone&&onDone()}
+         catch(err){recoverAction('Senku Chemical Reaction completion')}
+       }
+     },impactDuration);
+   },flightDuration);
+ },castDuration*.70);
+}
+
+function animateSenkuBomb(unitName,from,enemy,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ const meta=canonicalUnit('senku')?.abilities?.basic?.presentation||{};
+ const castDuration=meta.cast_duration_ms||560;
+ const flightDuration=meta.flight_duration_ms||620;
+ const blastDuration=meta.impact_duration_ms||430;
+ const arcHeight=meta.arc_height_px||86;
+
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={
+   kind:attackKind,
+   start:performance.now(),
+   duration:castDuration
+ };
+
+ // Release near the final throwing pose rather than halfway through the cast.
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+
+   const projectile={
+     kind:'senkuBombProjectile',
+     from:{x:from.x,y:from.y-31},
+     to:{x:enemy.x,y:enemy.y-12},
+     start:performance.now(),
+     duration:flightDuration,
+     arcHeight,
+     life:1
+   };
+  
+
+--- match 22 @ 43586225 ---
+ght,
+     life:1
+   };
+   S.floaters.push(projectile);
+
+   setTimeout(()=>{
+     if(!actionTokenAlive(token))return;
+
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     const targetGroundY=(enemy.feetY??enemy.groundY??enemy.y);
+     const blast={
+       kind:'senkuExplosion',
+       x:enemy.x,
+       y:targetGroundY,
+       layer:'ground',
+       start:performance.now(),
+       duration:360,
+       life:1
+     };
+     S.floaters.push(blast);
+
+     // Damage and target recoil happen only when the bomb lands.
+     try{
+       onImpact&&onImpact();
+     }catch(err){
+       console.error('Senku bomb impact failed:',err);
+       return recoverAction('Senku bomb impact');
+     }
+
+     setTimeout(()=>{
+       S.floaters=S.floaters.filter(x=>x!==blast);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+
+       if(actionTokenAlive(token)){
+         try{
+           onDone&&onDone();
+         }catch(err){
+           recoverAction('Senku bomb completion');
+         }
+       }
+     },blastDuration);
+   },flightDuration);
+ },castDuration*.76);
+}
+
+function setMeteorFullscreenFlash(color,opacity=1,transition='none'){
+ const el=getMeteorScreenFlash();
+ if(!el)return;
+ el.classList.add('active');
+ el.style.transition=transition;
+ el.style.background=color;
+ el.style.opacity=String(opacity);
+}
+
+function clearMeteorFullscreenFlash(){
+ const el=getMeteorScreenFlash();
+ if(!el)return;
+ el.style.transition='none';
+ el.style.opacity='0';
+ el.style.backgrou
+
+--- match 23 @ 43586287 ---
+Timeout(()=>{
+     if(!actionTokenAlive(token))return;
+
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     const targetGroundY=(enemy.feetY??enemy.groundY??enemy.y);
+     const blast={
+       kind:'senkuExplosion',
+       x:enemy.x,
+       y:targetGroundY,
+       layer:'ground',
+       start:performance.now(),
+       duration:360,
+       life:1
+     };
+     S.floaters.push(blast);
+
+     // Damage and target recoil happen only when the bomb lands.
+     try{
+       onImpact&&onImpact();
+     }catch(err){
+       console.error('Senku bomb impact failed:',err);
+       return recoverAction('Senku bomb impact');
+     }
+
+     setTimeout(()=>{
+       S.floaters=S.floaters.filter(x=>x!==blast);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+
+       if(actionTokenAlive(token)){
+         try{
+           onDone&&onDone();
+         }catch(err){
+           recoverAction('Senku bomb completion');
+         }
+       }
+     },blastDuration);
+   },flightDuration);
+ },castDuration*.76);
+}
+
+function setMeteorFullscreenFlash(color,opacity=1,transition='none'){
+ const el=getMeteorScreenFlash();
+ if(!el)return;
+ el.classList.add('active');
+ el.style.transition=transition;
+ el.style.background=color;
+ el.style.opacity=String(opacity);
+}
+
+function clearMeteorFullscreenFlash(){
+ const el=getMeteorScreenFlash();
+ if(!el)return;
+ el.style.transition='none';
+ el.style.opacity='0';
+ el.style.background='transparent';
+ el.classList.remove('active');
+}
+
+function 
+
+--- match 24 @ 43586608 ---
+      duration:360,
+       life:1
+     };
+     S.floaters.push(blast);
+
+     // Damage and target recoil happen only when the bomb lands.
+     try{
+       onImpact&&onImpact();
+     }catch(err){
+       console.error('Senku bomb impact failed:',err);
+       return recoverAction('Senku bomb impact');
+     }
+
+     setTimeout(()=>{
+       S.floaters=S.floaters.filter(x=>x!==blast);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+
+       if(actionTokenAlive(token)){
+         try{
+           onDone&&onDone();
+         }catch(err){
+           recoverAction('Senku bomb completion');
+         }
+       }
+     },blastDuration);
+   },flightDuration);
+ },castDuration*.76);
+}
+
+function setMeteorFullscreenFlash(color,opacity=1,transition='none'){
+ const el=getMeteorScreenFlash();
+ if(!el)return;
+ el.classList.add('active');
+ el.style.transition=transition;
+ el.style.background=color;
+ el.style.opacity=String(opacity);
+}
+
+function clearMeteorFullscreenFlash(){
+ const el=getMeteorScreenFlash();
+ if(!el)return;
+ el.style.transition='none';
+ el.style.opacity='0';
+ el.style.background='transparent';
+ el.classList.remove('active');
+}
+
+function playLebeeMeteorImpactFlash(done){
+ const meta=canonicalUnit('lebee').abilities.jutsu.presentation||{};
+ const whiteHold=meta.final_flash_white_hold_ms||170;
+ const whiteFade=meta.final_flash_white_fade_ms||620;
+
+ // Final meteor: snap to full white.
+ setMeteorFullscreenFlash('#ffffff',1,'none');
+
+ setTimeout(()=>{
+   co
+
+--- match 25 @ 43593199 ---
+h chakra.`;S.action='normal';return finishAction()
+ }
+
+ if(supportJutsu){
+  u.chakra-=u.jutsuCost;
+
+  const allies=alivePairs().filter(pair=>front(pair).hp>0);
+  if(!allies.length){
+   S.log=`${u.name} activated ${u.jutsuName||'Jutsu'}, but no allies can be healed.`;
+   return finishAction();
+  }
+
+  const teamCenter={
+   x:allies.reduce((sum,pair)=>sum+pair.x,0)/allies.length,
+   y:allies.reduce((sum,pair)=>sum+pair.y,0)/allies.length-18
+  };
+
+  const from={x:p.x,y:p.y};
+  S.log=`${u.name} activated ${u.jutsuName||'Revival Formula'} — restoring all active allies to full HP.`;
+
+  return animateSenkuChemicalReaction(
+   u.name,from,teamCenter,
+   ()=>{
+    allies.forEach(pair=>{
+     const ally=front(pair);
+     const healed=Math.max(0,ally.maxHp-ally.hp);
+     ally.hp=ally.maxHp;
+
+     addImpactFlash(pair.x,pair.y-18,'#64ff7d');
+     if(healed>0){
+      addFloat(pair.x,pair.y-40,`+${healed}`,'#74ff91');
+     }else{
+      addFloat(pair.x,pair.y-40,'FULL','#74ff91');
+     }
+    });
+   },
+   ()=>finishAction()
+  );
+ }
+
+ if(!targets.length){
+  S.log=`${u.name} committed the move but caught no target.`;return finishAction()
+ }
+
+ if(useJutsu){
+  u.chakra-=u.jutsuCost;
+
+  if(u.name==='Lebee'){
+   S.log=`Lebee activated Meteor Jutsu — ${targets.length} target${targets.length===1?'':'s'} caught in the cosmic impact zone.`;
+   const from={x:p.x,y:p.y};
+   return animateLebeeMeteorJutsu(
+    u.name,from,targets,
+    ()=>{
+     targets.forEach(enemy=>{
+      if(enemy.hp<=0)return;
+      enemy.
+
+===== localStorage =====
+
+--- match 1 @ 43517564 ---
+lter(name=>!BATTLE_ROSTER[name]);
+ if(missing.length){
+   console.error('Playable roster registration missing:',missing);
+   return false;
+ }
+ return true;
+}
+const PLAYABLE_ROSTER_VALID=validatePlayableRosterRegistration();
+const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v1';
+
+function validActiveTeam(team){
+ return Array.isArray(team)
+   && team.length===3
+   && new Set(team).size===3
+   && team.every(name=>ACTIVE_PLAYABLE_UNITS.includes(name));
+}
+function getActiveTeam(){
+ if(validActiveTeam(window.BLAZING_ACTIVE_TEAM))return [...window.BLAZING_ACTIVE_TEAM];
+ try{
+   const saved=JSON.parse(localStorage.getItem(TEAM_STORAGE_KEY)||'null');
+   if(validActiveTeam(saved)){
+     window.BLAZING_ACTIVE_TEAM=[...saved];
+     return [...saved];
+   }
+ }catch(_){}
+ window.BLAZING_ACTIVE_TEAM=[...DEFAULT_ACTIVE_TEAM];
+ return [...DEFAULT_ACTIVE_TEAM];
+}
+function setActiveTeam(team){
+ if(!validActiveTeam(team))throw new Error('Invalid active team');
+ window.BLAZING_ACTIVE_TEAM=[...team];
+ try{localStorage.setItem(TEAM_STORAGE_KEY,JSON.stringify(team));}catch(_){}
+ return [...team];
+}
+function teamSpawnOptions(name){
+ // Current development test configuration: Lebee and Sub-Zero remain Jutsu-ready.
+ return (name==='Lebee'||name==='Sub-Zero')?{startingChakra:'full'}:{};
+}
+function buildPlayerPairs(y){
+ const xs=[95,240,385];
+ const team=getActiveTeam();
+
+ return team.map((name,i)=>{
+   if(!BATTLE_ROSTER[name]){
+     console.error(`Team unit "${name}" is not registered in BATTLE_ROSTER.`);
+     const 
+
+--- match 2 @ 43517961 ---
+eam.every(name=>ACTIVE_PLAYABLE_UNITS.includes(name));
+}
+function getActiveTeam(){
+ if(validActiveTeam(window.BLAZING_ACTIVE_TEAM))return [...window.BLAZING_ACTIVE_TEAM];
+ try{
+   const saved=JSON.parse(localStorage.getItem(TEAM_STORAGE_KEY)||'null');
+   if(validActiveTeam(saved)){
+     window.BLAZING_ACTIVE_TEAM=[...saved];
+     return [...saved];
+   }
+ }catch(_){}
+ window.BLAZING_ACTIVE_TEAM=[...DEFAULT_ACTIVE_TEAM];
+ return [...DEFAULT_ACTIVE_TEAM];
+}
+function setActiveTeam(team){
+ if(!validActiveTeam(team))throw new Error('Invalid active team');
+ window.BLAZING_ACTIVE_TEAM=[...team];
+ try{localStorage.setItem(TEAM_STORAGE_KEY,JSON.stringify(team));}catch(_){}
+ return [...team];
+}
+function teamSpawnOptions(name){
+ // Current development test configuration: Lebee and Sub-Zero remain Jutsu-ready.
+ return (name==='Lebee'||name==='Sub-Zero')?{startingChakra:'full'}:{};
+}
+function buildPlayerPairs(y){
+ const xs=[95,240,385];
+ const team=getActiveTeam();
+
+ return team.map((name,i)=>{
+   if(!BATTLE_ROSTER[name]){
+     console.error(`Team unit "${name}" is not registered in BATTLE_ROSTER.`);
+     const fallback=DEFAULT_ACTIVE_TEAM.find(n=>BATTLE_ROSTER[n]&&!team.includes(n))
+       || DEFAULT_ACTIVE_TEAM.find(n=>BATTLE_ROSTER[n])
+       || Object.keys(BATTLE_ROSTER)[0];
+     name=fallback;
+   }
+
+   return {
+     x:xs[i],y,active:0,gauge:0,units:[
+       makeRosterUnit(name,teamSpawnOptions(name)),
+       emptyReserve()
+     ]
+   };
+ });
+}
+const ACTIVE_BOSSES=Object.freeze(['Anubis']);
+const A
+
+===== savedTeam =====
+
+===== selectedTeam =====
+
+--- match 1 @ 52327803 ---
+tXFpdwym3Vfu10nhXpRdf8hCT8a6aa925Ldj/2Q==";
+ let selected='Crimson';
+ function hideCollection(){inventoryScreen.style.display='none';unitCardScreen.style.display='none';artViewScreen.style.display='none';teamScreen.style.display='none'}
+ function showMenu(){hideCollection();mainMenu.style.display='grid';mainMenu.classList.remove('leaving')}
+ function showInventory(){mainMenu.style.display='none';unitCardScreen.style.display='none';artViewScreen.style.display='none';teamScreen.style.display='none';inventoryScreen.style.display='block';window.scrollTo(0,0)}
+
+ let teamDraft=getActiveTeam();
+ let selectedTeamSlot=0;
+
+ function fighterDisplayName(name){return owned[name]?.name||name.toUpperCase()}
+ function fighterTeamImage(name){return owned[name]?.card||''}
+
+ function renderTeamEditor(){
+   const slots=[...document.querySelectorAll('.teamSlot[data-team-slot]')];
+   slots.forEach((slot,i)=>{
+     const name=teamDraft[i];
+     slot.classList.toggle('selected',i===selectedTeamSlot);
+     const img=slot.querySelector('img');
+     const label=slot.querySelector('.teamSlotName');
+     img.src=fighterTeamImage(name);
+     img.alt=name;
+     label.textContent=fighterDisplayName(name);
+   });
+
+   const roster=document.getElementById('teamCandidates');
+   roster.innerHTML=ACTIVE_PLAYABLE_UNITS.map(name=>{
+     const active=teamDraft.includes(name)?' inTeam':'';
+     return `<button class="teamCandidate${active}" data-team-fighter="${name}">
+       <img src="${fighterTeamImage(name)}" alt="${name}">
+ 
+
+--- match 2 @ 52328176 ---
+Menu.style.display='none';unitCardScreen.style.display='none';artViewScreen.style.display='none';teamScreen.style.display='none';inventoryScreen.style.display='block';window.scrollTo(0,0)}
+
+ let teamDraft=getActiveTeam();
+ let selectedTeamSlot=0;
+
+ function fighterDisplayName(name){return owned[name]?.name||name.toUpperCase()}
+ function fighterTeamImage(name){return owned[name]?.card||''}
+
+ function renderTeamEditor(){
+   const slots=[...document.querySelectorAll('.teamSlot[data-team-slot]')];
+   slots.forEach((slot,i)=>{
+     const name=teamDraft[i];
+     slot.classList.toggle('selected',i===selectedTeamSlot);
+     const img=slot.querySelector('img');
+     const label=slot.querySelector('.teamSlotName');
+     img.src=fighterTeamImage(name);
+     img.alt=name;
+     label.textContent=fighterDisplayName(name);
+   });
+
+   const roster=document.getElementById('teamCandidates');
+   roster.innerHTML=ACTIVE_PLAYABLE_UNITS.map(name=>{
+     const active=teamDraft.includes(name)?' inTeam':'';
+     return `<button class="teamCandidate${active}" data-team-fighter="${name}">
+       <img src="${fighterTeamImage(name)}" alt="${name}">
+       <span>${fighterDisplayName(name)}</span>
+     </button>`;
+   }).join('');
+
+   roster.querySelectorAll('[data-team-fighter]').forEach(btn=>{
+     btn.addEventListener('click',()=>{
+       const name=btn.dataset.teamFighter;
+       const existing=teamDraft.indexOf(name);
+       if(existing===selectedTeamSlot)return;
+       if(existing>=0){
+         [teamDraft[selecte
+
+--- match 3 @ 52329012 ---
+ roster=document.getElementById('teamCandidates');
+   roster.innerHTML=ACTIVE_PLAYABLE_UNITS.map(name=>{
+     const active=teamDraft.includes(name)?' inTeam':'';
+     return `<button class="teamCandidate${active}" data-team-fighter="${name}">
+       <img src="${fighterTeamImage(name)}" alt="${name}">
+       <span>${fighterDisplayName(name)}</span>
+     </button>`;
+   }).join('');
+
+   roster.querySelectorAll('[data-team-fighter]').forEach(btn=>{
+     btn.addEventListener('click',()=>{
+       const name=btn.dataset.teamFighter;
+       const existing=teamDraft.indexOf(name);
+       if(existing===selectedTeamSlot)return;
+       if(existing>=0){
+         [teamDraft[selectedTeamSlot],teamDraft[existing]]=[teamDraft[existing],teamDraft[selectedTeamSlot]];
+       }else{
+         teamDraft[selectedTeamSlot]=name;
+       }
+       renderTeamEditor();
+     });
+   });
+ }
+
+ function showTeamEditor(){
+   mainMenu.style.display='none';
+   inventoryScreen.style.display='none';
+   unitCardScreen.style.display='none';
+   artViewScreen.style.display='none';
+   teamScreen.style.display='block';
+   teamDraft=getActiveTeam();
+   selectedTeamSlot=0;
+   document.getElementById('teamSaved').textContent='';
+   renderTeamEditor();
+   window.scrollTo(0,0);
+ }
+
+ function renderPanel(u){
+   const cost=u.cost==='—'?'—':`${u.cost} ◆`;
+   const note=u.collectionOnly?`<div class="collectionStatus">COLLECTION READY • BATTLE KIT NOT YET ACTIVATED</div>`:'';
+   return `<div class="statGrid"><div class="stat"><b>LEVEL</b><spa
+
+--- match 4 @ 52329081 ---
+L=ACTIVE_PLAYABLE_UNITS.map(name=>{
+     const active=teamDraft.includes(name)?' inTeam':'';
+     return `<button class="teamCandidate${active}" data-team-fighter="${name}">
+       <img src="${fighterTeamImage(name)}" alt="${name}">
+       <span>${fighterDisplayName(name)}</span>
+     </button>`;
+   }).join('');
+
+   roster.querySelectorAll('[data-team-fighter]').forEach(btn=>{
+     btn.addEventListener('click',()=>{
+       const name=btn.dataset.teamFighter;
+       const existing=teamDraft.indexOf(name);
+       if(existing===selectedTeamSlot)return;
+       if(existing>=0){
+         [teamDraft[selectedTeamSlot],teamDraft[existing]]=[teamDraft[existing],teamDraft[selectedTeamSlot]];
+       }else{
+         teamDraft[selectedTeamSlot]=name;
+       }
+       renderTeamEditor();
+     });
+   });
+ }
+
+ function showTeamEditor(){
+   mainMenu.style.display='none';
+   inventoryScreen.style.display='none';
+   unitCardScreen.style.display='none';
+   artViewScreen.style.display='none';
+   teamScreen.style.display='block';
+   teamDraft=getActiveTeam();
+   selectedTeamSlot=0;
+   document.getElementById('teamSaved').textContent='';
+   renderTeamEditor();
+   window.scrollTo(0,0);
+ }
+
+ function renderPanel(u){
+   const cost=u.cost==='—'?'—':`${u.cost} ◆`;
+   const note=u.collectionOnly?`<div class="collectionStatus">COLLECTION READY • BATTLE KIT NOT YET ACTIVATED</div>`:'';
+   return `<div class="statGrid"><div class="stat"><b>LEVEL</b><span>1 / 100</span></div><div class="stat"><b>HP</b><span>${u.hp}</span>
+
+--- match 5 @ 52329151 ---
+es(name)?' inTeam':'';
+     return `<button class="teamCandidate${active}" data-team-fighter="${name}">
+       <img src="${fighterTeamImage(name)}" alt="${name}">
+       <span>${fighterDisplayName(name)}</span>
+     </button>`;
+   }).join('');
+
+   roster.querySelectorAll('[data-team-fighter]').forEach(btn=>{
+     btn.addEventListener('click',()=>{
+       const name=btn.dataset.teamFighter;
+       const existing=teamDraft.indexOf(name);
+       if(existing===selectedTeamSlot)return;
+       if(existing>=0){
+         [teamDraft[selectedTeamSlot],teamDraft[existing]]=[teamDraft[existing],teamDraft[selectedTeamSlot]];
+       }else{
+         teamDraft[selectedTeamSlot]=name;
+       }
+       renderTeamEditor();
+     });
+   });
+ }
+
+ function showTeamEditor(){
+   mainMenu.style.display='none';
+   inventoryScreen.style.display='none';
+   unitCardScreen.style.display='none';
+   artViewScreen.style.display='none';
+   teamScreen.style.display='block';
+   teamDraft=getActiveTeam();
+   selectedTeamSlot=0;
+   document.getElementById('teamSaved').textContent='';
+   renderTeamEditor();
+   window.scrollTo(0,0);
+ }
+
+ function renderPanel(u){
+   const cost=u.cost==='—'?'—':`${u.cost} ◆`;
+   const note=u.collectionOnly?`<div class="collectionStatus">COLLECTION READY • BATTLE KIT NOT YET ACTIVATED</div>`:'';
+   return `<div class="statGrid"><div class="stat"><b>LEVEL</b><span>1 / 100</span></div><div class="stat"><b>HP</b><span>${u.hp}</span></div><div class="stat"><b>ATK</b><span>${u.atk}</span></div><div clas
+
+--- match 6 @ 52329204 ---
+amCandidate${active}" data-team-fighter="${name}">
+       <img src="${fighterTeamImage(name)}" alt="${name}">
+       <span>${fighterDisplayName(name)}</span>
+     </button>`;
+   }).join('');
+
+   roster.querySelectorAll('[data-team-fighter]').forEach(btn=>{
+     btn.addEventListener('click',()=>{
+       const name=btn.dataset.teamFighter;
+       const existing=teamDraft.indexOf(name);
+       if(existing===selectedTeamSlot)return;
+       if(existing>=0){
+         [teamDraft[selectedTeamSlot],teamDraft[existing]]=[teamDraft[existing],teamDraft[selectedTeamSlot]];
+       }else{
+         teamDraft[selectedTeamSlot]=name;
+       }
+       renderTeamEditor();
+     });
+   });
+ }
+
+ function showTeamEditor(){
+   mainMenu.style.display='none';
+   inventoryScreen.style.display='none';
+   unitCardScreen.style.display='none';
+   artViewScreen.style.display='none';
+   teamScreen.style.display='block';
+   teamDraft=getActiveTeam();
+   selectedTeamSlot=0;
+   document.getElementById('teamSaved').textContent='';
+   renderTeamEditor();
+   window.scrollTo(0,0);
+ }
+
+ function renderPanel(u){
+   const cost=u.cost==='—'?'—':`${u.cost} ◆`;
+   const note=u.collectionOnly?`<div class="collectionStatus">COLLECTION READY • BATTLE KIT NOT YET ACTIVATED</div>`:'';
+   return `<div class="statGrid"><div class="stat"><b>LEVEL</b><span>1 / 100</span></div><div class="stat"><b>HP</b><span>${u.hp}</span></div><div class="stat"><b>ATK</b><span>${u.atk}</span></div><div class="stat"><b>DEF</b><span>${u.def??'—'}</span></div><d
+
+--- match 7 @ 52329536 ---
+ighter;
+       const existing=teamDraft.indexOf(name);
+       if(existing===selectedTeamSlot)return;
+       if(existing>=0){
+         [teamDraft[selectedTeamSlot],teamDraft[existing]]=[teamDraft[existing],teamDraft[selectedTeamSlot]];
+       }else{
+         teamDraft[selectedTeamSlot]=name;
+       }
+       renderTeamEditor();
+     });
+   });
+ }
+
+ function showTeamEditor(){
+   mainMenu.style.display='none';
+   inventoryScreen.style.display='none';
+   unitCardScreen.style.display='none';
+   artViewScreen.style.display='none';
+   teamScreen.style.display='block';
+   teamDraft=getActiveTeam();
+   selectedTeamSlot=0;
+   document.getElementById('teamSaved').textContent='';
+   renderTeamEditor();
+   window.scrollTo(0,0);
+ }
+
+ function renderPanel(u){
+   const cost=u.cost==='—'?'—':`${u.cost} ◆`;
+   const note=u.collectionOnly?`<div class="collectionStatus">COLLECTION READY • BATTLE KIT NOT YET ACTIVATED</div>`:'';
+   return `<div class="statGrid"><div class="stat"><b>LEVEL</b><span>1 / 100</span></div><div class="stat"><b>HP</b><span>${u.hp}</span></div><div class="stat"><b>ATK</b><span>${u.atk}</span></div><div class="stat"><b>DEF</b><span>${u.def??'—'}</span></div><div class="stat"><b>SPD</b><span>${u.spd}</span></div><div class="stat"><b>RANGE</b><span>${u.range}</span></div><div class="stat"><b>JUTSU COST</b><span>${cost}</span></div><div class="stat"><b>ARCHETYPE</b><span>${String(u.archetype||'—').replaceAll('_',' ').toUpperCase()}</span></div></div>`+
+   u.skills.map(s=>`<div class="skil
+
+--- match 8 @ 52332033 ---
+ument.getElementById('artViewImage').src=u.art;document.getElementById('artViewLabel').textContent=`${u.name} • FULL ART`;unitCardScreen.style.display='none';artViewScreen.style.display='block'}
+ invBtn?.addEventListener('click',showInventory);
+ document.getElementById('editTeamBtn').addEventListener('click',showTeamEditor);
+ document.getElementById('teamBackBtn').addEventListener('click',showInventory);
+ document.getElementById('teamHomeBtn').addEventListener('click',showMenu);
+ document.querySelectorAll('.teamSlot[data-team-slot]').forEach(slot=>{
+   slot.addEventListener('click',()=>{
+     selectedTeamSlot=Number(slot.dataset.teamSlot);
+     renderTeamEditor();
+   });
+ });
+ document.getElementById('saveTeamBtn').addEventListener('click',()=>{
+   const saved=setActiveTeam(teamDraft);
+   document.getElementById('teamSaved').textContent=`ACTIVE TEAM SAVED: ${saved.join(' · ')}`;
+   renderTeamEditor();
+ });
+
+ document.getElementById('inventoryBackBtn').addEventListener('click',showMenu);
+ document.getElementById('inventoryHomeBtn').addEventListener('click',showMenu);
+ document.getElementById('unitCardBackBtn').addEventListener('click',showInventory);
+ document.getElementById('unitCardHomeBtn').addEventListener('click',showMenu);
+ document.getElementById('viewArtworkBtn').addEventListener('click',viewArt);
+ document.getElementById('artViewCloseBtn').addEventListener('click',()=>{artViewScreen.style.display='none';unitCardScreen.style.display='block'});
+ document.querySelectorAll('.unitTile
+
+===== teamSlots =====
+
+--- match 1 @ 4165923 ---
+n-items:center;gap:7px}
+.editTeamBtn{border:1px solid #6fcfff;background:linear-gradient(180deg,#18344a,#102332);color:#dff6ff;border-radius:9px;padding:7px 11px;font-size:11px;font-weight:950;letter-spacing:.06em}
+#teamScreen{display:none;min-height:100dvh;width:100vw;overflow:auto;background:#090d12;color:#f5f7fa}
+.teamBody{padding:14px 12px calc(30px + env(safe-area-inset-bottom));max-width:620px;margin:auto}
+.teamIntro{border:1px solid #2d3b47;border-radius:13px;background:#101720;padding:11px 12px;margin-bottom:12px;color:#aeb9c2;font-size:12px;line-height:1.45}
+.teamIntro b{color:#fff}
+.teamSlots{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}
+.teamSlot{position:relative;min-height:156px;border-radius:13px;border:1px solid #465663;background:linear-gradient(160deg,#151f29,#0a0e13);overflow:hidden;padding:0;color:#fff;box-shadow:0 8px 18px #0007}
+.teamSlot.selected{border-color:#75dcff;box-shadow:0 0 0 2px #256b8a,0 8px 20px #0009}
+.teamSlot::before{content:attr(data-slot-label);position:absolute;z-index:4;left:7px;top:6px;font:900 9px/1 system-ui,sans-serif;letter-spacing:.13em;color:#7edcff;background:#071018cc;border:1px solid #2a6079;border-radius:999px;padding:4px 6px}
+.teamSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;padding:12px 3px 34px;box-sizing:border-box;filter:drop-shadow(0 7px 5px #000b)}
+.teamSlot::after{content:'';position:absolute;inset:auto 0 0;height:44%;background:linear
+
+--- match 2 @ 5584665 ---
+ion>
+  </main>
+</div>
+
+
+<div id="teamScreen" class="screen">
+  <header class="collectionHeader">
+    <button id="teamBackBtn" class="collectionBack" aria-label="Back">‹</button>
+    <div class="collectionTitle">EDIT TEAM<small>ACTIVE BATTLE SQUAD</small></div>
+    <button id="teamHomeBtn" class="collectionHome" aria-label="Home">⌂</button>
+  </header>
+  <main class="teamBody">
+    <div class="teamIntro">
+      <b>Choose your active three.</b> Tap a slot, then tap an owned battle-ready fighter.
+      Selecting a fighter already in another slot swaps their positions.
+    </div>
+    <section id="teamSlots" class="teamSlots" aria-label="Active team slots">
+      <button class="teamSlot selected" data-team-slot="0" data-slot-label="SLOT 1"><img alt=""><span class="teamSlotName">—</span></button>
+      <button class="teamSlot" data-team-slot="1" data-slot-label="SLOT 2"><img alt=""><span class="teamSlotName">—</span></button>
+      <button class="teamSlot" data-team-slot="2" data-slot-label="SLOT 3"><img alt=""><span class="teamSlotName">—</span></button>
+    </section>
+    <div class="teamRosterTitle">OWNED FIGHTERS</div>
+    <section id="teamCandidates" class="teamCandidates" aria-label="Battle-ready fighters"></section>
+    <div class="teamActions">
+      <button id="saveTeamBtn" class="saveTeamBtn">SAVE ACTIVE TEAM</button>
+      <div id="teamSaved" class="teamSaved" aria-live="polite"></div>
+    </div>
+  </main>
+</div>
+
+<div id="unitCardScreen" class="screen">
+  <header class="collecti
+
+--- match 3 @ 5584683 ---
+iv>
+
+
+<div id="teamScreen" class="screen">
+  <header class="collectionHeader">
+    <button id="teamBackBtn" class="collectionBack" aria-label="Back">‹</button>
+    <div class="collectionTitle">EDIT TEAM<small>ACTIVE BATTLE SQUAD</small></div>
+    <button id="teamHomeBtn" class="collectionHome" aria-label="Home">⌂</button>
+  </header>
+  <main class="teamBody">
+    <div class="teamIntro">
+      <b>Choose your active three.</b> Tap a slot, then tap an owned battle-ready fighter.
+      Selecting a fighter already in another slot swaps their positions.
+    </div>
+    <section id="teamSlots" class="teamSlots" aria-label="Active team slots">
+      <button class="teamSlot selected" data-team-slot="0" data-slot-label="SLOT 1"><img alt=""><span class="teamSlotName">—</span></button>
+      <button class="teamSlot" data-team-slot="1" data-slot-label="SLOT 2"><img alt=""><span class="teamSlotName">—</span></button>
+      <button class="teamSlot" data-team-slot="2" data-slot-label="SLOT 3"><img alt=""><span class="teamSlotName">—</span></button>
+    </section>
+    <div class="teamRosterTitle">OWNED FIGHTERS</div>
+    <section id="teamCandidates" class="teamCandidates" aria-label="Battle-ready fighters"></section>
+    <div class="teamActions">
+      <button id="saveTeamBtn" class="saveTeamBtn">SAVE ACTIVE TEAM</button>
+      <div id="teamSaved" class="teamSaved" aria-live="polite"></div>
+    </div>
+  </main>
+</div>
+
+<div id="unitCardScreen" class="screen">
+  <header class="collectionHeader">
+    <bu
+
+===== defaultTeam =====
+
+===== playerTeam =====
