@@ -12,7 +12,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
 </head>
 <body>
 <div id="status">CLEAN DEV LOADING…</div>
-<iframe id="game" src="./index.html?v=clean-preview-1" title="Blazing Battle"></iframe>
+<iframe id="game" src="./index.html?v=clean-preview-2" title="Blazing Battle"></iframe>
 <script>
 (()=>{
   const frame=document.getElementById('game');
@@ -55,6 +55,79 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
     return patchedDrawImage;
   }
 
+  function installBossStyle(doc){
+    if(!doc.getElementById('bb-ornate-boss-style')){
+      const style=doc.createElement('style');
+      style.id='bb-ornate-boss-style';
+      style.textContent=`
+        .bb-ornate-boss-hp{
+          position:relative!important;
+          height:20px!important;
+          min-height:20px!important;
+          max-height:20px!important;
+          margin-top:3px!important;
+          overflow:visible!important;
+          border:2px solid #a9772e!important;
+          border-radius:5px!important;
+          background:linear-gradient(180deg,#170708 0%,#090303 55%,#160607 100%)!important;
+          box-shadow:inset 0 0 0 1px #241008,inset 0 2px 4px rgba(255,255,255,.08),0 0 0 1px #050505!important;
+        }
+        .bb-ornate-boss-hp::before,.bb-ornate-boss-hp::after{
+          content:'';
+          position:absolute;
+          z-index:8;
+          top:50%;
+          width:10px;
+          height:10px;
+          background:#2a130b;
+          border:1px solid #c19443;
+          transform:translateY(-50%) rotate(45deg);
+          pointer-events:none;
+        }
+        .bb-ornate-boss-hp::before{left:-6px}
+        .bb-ornate-boss-hp::after{right:-6px}
+        .bb-ornate-boss-fill{
+          height:12px!important;
+          top:2px!important;
+          bottom:auto!important;
+          border-radius:2px!important;
+          background:linear-gradient(180deg,#ff3b3b 0%,#d51220 46%,#8e0712 100%)!important;
+          box-shadow:inset 0 1px 1px rgba(255,255,255,.42),inset 0 -2px 3px rgba(65,0,0,.55)!important;
+        }
+        .bb-ornate-boss-label{
+          z-index:10!important;
+          color:#f6cf55!important;
+          text-shadow:1px 1px 0 #000,-1px 1px 0 #000,1px -1px 0 #000,-1px -1px 0 #000!important;
+          transform:translateY(-1px)!important;
+          font-size:14px!important;
+          line-height:18px!important;
+        }
+      `;
+      doc.head.appendChild(style);
+    }
+
+    const labels=[...doc.querySelectorAll('*')].filter(el=>el.children.length===0&&el.textContent.trim()==='BOSS');
+    labels.forEach(label=>{
+      label.classList.add('bb-ornate-boss-label');
+      let bar=null;
+      for(let el=label.parentElement;el&&el!==doc.body;el=el.parentElement){
+        const r=el.getBoundingClientRect();
+        if(r.width>250&&r.height>=12&&r.height<=55){bar=el;break;}
+      }
+      if(!bar)return;
+      bar.classList.add('bb-ornate-boss-hp');
+      const br=bar.getBoundingClientRect();
+      const kids=[...bar.children].filter(el=>el!==label);
+      let fill=null,best=0;
+      kids.forEach(el=>{
+        const r=el.getBoundingClientRect();
+        const score=r.width*r.height;
+        if(r.width>20&&r.height>4&&r.height<=br.height+8&&score>best){best=score;fill=el;}
+      });
+      if(fill)fill.classList.add('bb-ornate-boss-fill');
+    });
+  }
+
   function install(){
     try{
       const win=frame.contentWindow,doc=frame.contentDocument;
@@ -75,13 +148,15 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
           }
         }catch(_){ }
       });
-      status.textContent='DEV • BOMB 2× • CLEAN IMPACT TEST';
+      installBossStyle(doc);
+      status.textContent='DEV • BOMB 2× • ORNATE BOSS HP';
     }catch(e){status.textContent='DEV PATCH ACCESS ERROR';}
   }
 
   frame.addEventListener('load',()=>{
     install();
     [50,150,300,600,1000,2000,4000].forEach(ms=>setTimeout(install,ms));
+    setInterval(install,1000);
   });
   setTimeout(()=>{if(status.textContent==='CLEAN DEV LOADING…')status.textContent='DEV GAME LOAD FAILED';},8000);
 })();
