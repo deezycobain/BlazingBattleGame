@@ -20,24 +20,29 @@ jobs:
           ref: dev
           fetch-depth: 0
 
-      - name: Inject runtime module before game initialization
+      - name: Inject cache-busted runtime module before game initialization
         shell: python
         run: |
           from pathlib import Path
 
           path = Path('index.html')
           html = path.read_text(encoding='utf-8')
-          tag = '<script src="./runtime/senku-basic-runtime-patch.js"></script>'
+          old_tag = '<script src="./runtime/senku-basic-runtime-patch.js"></script>'
+          new_tag = '<script src="./runtime/senku-basic-runtime-patch.js?v=d8d3168"></script>'
 
-          if tag in html:
-              print('Senku runtime module already linked; no change needed.')
+          if new_tag in html:
+              print('Cache-busted Senku runtime module already linked; no change needed.')
+          elif old_tag in html:
+              html = html.replace(old_tag, new_tag, 1)
+              path.write_text(html, encoding='utf-8')
+              print('Replaced Senku runtime module link with cache-busted URL.')
           else:
               marker = '</head>'
               if marker not in html:
                   raise SystemExit('Could not find </head> in index.html')
-              html = html.replace(marker, f'  {tag}\n{marker}', 1)
+              html = html.replace(marker, f'  {new_tag}\n{marker}', 1)
               path.write_text(html, encoding='utf-8')
-              print('Injected Senku runtime module into index.html')
+              print('Injected cache-busted Senku runtime module into index.html')
 
       - name: Commit integration
         run: |
@@ -48,7 +53,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "Integrate approved Senku basic runtime into dev game"
+          git commit -m "Cache-bust approved Senku runtime in dev game"
           git push origin HEAD:dev
 
 # One-shot integration helper for the current Senku checkpoint.
