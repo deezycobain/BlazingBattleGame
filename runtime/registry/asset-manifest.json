@@ -1,6 +1,17 @@
 {
   "schema_version": 1,
   "root": "assets/characters",
+  "shared": {
+    "vfx": {
+      "heal_green_flash": {
+        "resource_id": "shared.vfx.heal.green_flash",
+        "type": "procedural",
+        "renderer": "radial_flash",
+        "duration_ms": 420,
+        "usage": "Reusable party-heal confirmation flash"
+      }
+    }
+  },
   "units": {
     "senku": {
       "animations": {
