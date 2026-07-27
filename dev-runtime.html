@@ -12,32 +12,39 @@
 (async()=>{
   const DEV_PLAYER_SPEED=200;
   const status=document.getElementById('status');
+  const bust=()=>`bbdev=${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  async function getJson(path){
+    const r=await fetch(`${path}${path.includes('?')?'&':'?'}${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
+    if(!r.ok)throw new Error(`${path} ${r.status}`);
+    return r.json();
+  }
   try{
-    const indexRes=await fetch('./runtime/registry/unit-index.json?v=unit-core-v3',{cache:'no-store'});
-    if(!indexRes.ok)throw new Error(`unit index ${indexRes.status}`);
-    const unitIndex=await indexRes.json();
+    const unitIndex=await getJson('./runtime/registry/unit-index.json');
     const core={};
     for(const entry of unitIndex.units||[]){
-      const r=await fetch('./'+entry.path+'?v=unit-core-v3',{cache:'no-store'});
-      if(!r.ok)throw new Error(`${entry.id} unit ${r.status}`);
-      const u=await r.json();
-      const max=u?.combat?.chakra_max,start=u?.combat?.chakra_start;
+      let u=await getJson('./'+entry.path);
+      let max=u?.combat?.chakra_max,start=u?.combat?.chakra_start;
+      // RawGitHack/Edge can occasionally hand back a stale branch object. Retry once with a fresh URL
+      // before treating canonical unit data as invalid.
+      if(u.schema_version<3||!Number.isInteger(max)||!Number.isInteger(start)||start<0||start>max){
+        u=await getJson('./'+entry.path);
+        max=u?.combat?.chakra_max;start=u?.combat?.chakra_start;
+      }
       if(u.schema_version<3||!Number.isInteger(max)||!Number.isInteger(start)||start<0||start>max)throw new Error(`${entry.id} invalid chakra core`);
       core[u.id]={id:u.id,name:u.display_name,role:u.role,max,start,speed:u.stats?.speed};
     }
 
-    const res=await fetch('./index.html?v=dev-runtime-unit-core-v8',{cache:'no-store'});
+    const res=await fetch(`./index.html?${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
     if(!res.ok)throw new Error(`index fetch ${res.status}`);
     let html=await res.text();
     let localizedEdits=0,arrayEdits=0,fillEdits=0,speedEdits=0;
 
-    // Transitional bridge for the monolithic legacy battle. Values come from each unit's
-    // canonical unit.json. No global chakra number is authored here.
+    // Transitional legacy bridge only. Canonical values are unit-owned; dev starts playable units at max.
     for(const unit of Object.values(core)){
       if(unit.role!=='playable')continue;
       const needles=[unit.id,String(unit.name||'').toLowerCase()].filter(Boolean);
       const lower=html.toLowerCase();const spans=[];
-      for(const needle of needles){let pos=0;while((pos=lower.indexOf(needle,pos))!==-1){spans.push([Math.max(0,pos-3600),Math.min(html.length,pos+4400)]);pos+=Math.max(1,needle.length);}}
+      for(const needle of needles){let pos=0;while((pos=lower.indexOf(needle,pos))!==-1){spans.push([Math.max(0,pos-5200),Math.min(html.length,pos+6200)]);pos+=Math.max(1,needle.length);}}
       const merged=[];spans.sort((a,b)=>a[0]-b[0]).forEach(s=>{const last=merged[merged.length-1];if(last&&s[0]<=last[1])last[1]=Math.max(last[1],s[1]);else merged.push(s.slice());});
       for(let i=merged.length-1;i>=0;i--){
         const [a,b]=merged[i];let block=html.slice(a,b);const max=unit.max;
@@ -52,7 +59,7 @@
     const payload=JSON.stringify(core).replace(/</g,'\\u003c');
     const marker=`<script>window.BB_UNIT_CORE=Object.freeze(${payload});window.__BB_DEV_PREBOOT__={unitCore:true,localizedEdits:${localizedEdits},arrayEdits:${arrayEdits},fillEdits:${fillEdits},speedEdits:${speedEdits}};<\/script>`;
     const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startPlayableAtMaxChakra:true,playerSpeed:${DEV_PLAYER_SPEED},boostBossSpeed:false});<\/script>`;
-    const factory=`<script src="runtime/core/unit-state.js?v=e359099"><\/script>`;
+    const factory=`<script src="runtime/core/unit-state.js?${bust()}"><\/script>`;
     html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}${config}${factory}`);
 
     document.open();document.write(html);document.close();
