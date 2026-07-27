@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "id": "crimson",
   "display_name": "Crimson",
   "title": "Blazing Vanguard",
@@ -32,7 +32,8 @@
       "w": 310,
       "h": 86
     },
-    "chakra_max": 8
+    "chakra_max": 8,
+    "chakra_start": 2
   },
   "render": {
     "scale": 1.0
@@ -76,7 +77,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": false,
-    "notes": "v0.5.47: Crimson special animation corrected to Crimson-only Jutsu asset. Strict per-character routing prevents Lebee/Sub-Zero body frames from resolving on Crimson.",
+    "notes": "v0.7 baseline: chakra_start is canonical unit data. Strict per-character animation routing retained.",
     "animation_map": true
   },
   "balance": {
