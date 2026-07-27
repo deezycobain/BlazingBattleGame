@@ -12,7 +12,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
 </head>
 <body>
 <div id="boot">DEV LOADING…</div>
-<iframe id="game" src="./index.html?v=dev-playtest-allboost-1" title="Blazing Battle"></iframe>
+<iframe id="game" src="./dev-runtime.html?v=556d4a2" title="Blazing Battle"></iframe>
 <script>
 (()=>{
   const frame=document.getElementById('game');
@@ -33,8 +33,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
     return src.includes('/jutsu/chemical_reaction/')||src.includes('/jutsu/revival_formula/')||matchesSize(image,JUTSU_PROJECTILE_SIZE)||matchesSize(image,JUTSU_IMPACT_SIZE);
   }
   function looksLikeSenkuBody(image){
-    const src=sourceOf(image);if(src.includes('/senku/sprites/runtime/'))return true;
-    return false;
+    const src=sourceOf(image);return src.includes('/senku/sprites/runtime/');
   }
   function looksLikeSenkuBombForScale(image){
     if(!image||looksLikeRevivalAsset(image))return false;
@@ -90,20 +89,27 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
   }
 
   function wrapDrawImage(original){
-    if(typeof original!=='function'||original.__senkuAirburstWrappedV3)return original;
+    if(typeof original!=='function'||original.__senkuAirburstWrappedV4)return original;
     function patchedDrawImage(image,...args){
       if(looksLikeSenkuBody(image))lastSenkuRect=destinationFromArgs(this,args);
       if(performance.now()<suppressRevivalUntil&&looksLikeRevivalAsset(image))return;
       if(looksLikeSenkuBombForScale(image))return drawBombScaled(original,this,image,args);
       return original.call(this,image,...args);
     }
-    patchedDrawImage.__senkuAirburstWrappedV3=true;return patchedDrawImage;
+    patchedDrawImage.__senkuAirburstWrappedV4=true;return patchedDrawImage;
   }
 
   function hookRevivalButton(doc){
-    if(doc.__bbRevivalHooked)return;doc.__bbRevivalHooked=true;
-    const handler=e=>{let el=e.target;for(let i=0;i<5&&el;i++,el=el.parentElement){const txt=String(el.textContent||'').trim();if(txt.includes('Revival Formula')){setTimeout(launchRevivalAirburst,120);break;}}};
-    doc.addEventListener('click',handler,true);doc.addEventListener('pointerup',handler,true);
+    if(doc.__bbRevivalHookedV2)return;doc.__bbRevivalHookedV2=true;
+    const handler=e=>{
+      const target=e.target instanceof Element?e.target:null;
+      if(!target||target.closest('#bb-dev-monitor'))return;
+      const control=target.closest('button,[role="button"],input[type="button"],input[type="submit"]');
+      if(!control)return;
+      const txt=String(control.textContent||control.value||'').replace(/\s+/g,' ').trim();
+      if(/^Revival Formula(?:\s*·\s*4|\s*4)?$/i.test(txt)||txt.startsWith('Revival Formula'))setTimeout(launchRevivalAirburst,120);
+    };
+    doc.addEventListener('click',handler,true);
   }
 
   function installBossStyle(doc){
@@ -111,13 +117,21 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
     const labels=[...doc.querySelectorAll('*')].filter(el=>el.children.length===0&&el.textContent.trim()==='BOSS');labels.forEach(label=>{label.classList.add('bb-ornate-boss-label');let bar=null;for(let el=label.parentElement;el&&el!==doc.body;el=el.parentElement){const r=el.getBoundingClientRect();if(r.width>250&&r.height>=12&&r.height<=55){bar=el;break;}}if(!bar)return;bar.classList.add('bb-ornate-boss-hp');const br=bar.getBoundingClientRect();let fill=null,best=0;[...bar.children].filter(el=>el!==label).forEach(el=>{const r=el.getBoundingClientRect(),score=r.width*r.height;if(r.width>20&&r.height>4&&r.height<=br.height+8&&score>best){best=score;fill=el;}});if(fill)fill.classList.add('bb-ornate-boss-fill');});
   }
   function installDevMonitor(doc){if(doc.getElementById('bb-dev-monitor-loader')||doc.getElementById('bb-dev-monitor'))return;const s=doc.createElement('script');s.id='bb-dev-monitor-loader';s.src='runtime/dev/dev-monitor.js?v=6ca0761';doc.head.appendChild(s);}
-  function installDevCombatOverrides(doc){if(doc.getElementById('bb-dev-combat-overrides')||frame.contentWindow?.__BB_DEV_COMBAT_OVERRIDES__)return;const s=doc.createElement('script');s.id='bb-dev-combat-overrides';s.src='runtime/dev/dev-combat-overrides.js?v=1b4b5596';s.onerror=()=>{boot.textContent='DEV COMBAT OVERRIDE LOAD ERROR';boot.style.opacity='1';};doc.head.appendChild(s);}
 
   function install(){
-    try{const win=frame.contentWindow,doc=frame.contentDocument;if(!win||!doc)return;ensureAirburstStyle(doc);hookRevivalButton(doc);if(win.CanvasRenderingContext2D){const proto=win.CanvasRenderingContext2D.prototype;if(!proto.__senkuAirburstPatchedV3){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__senkuAirburstPatchedV3=true;}}doc.querySelectorAll('canvas').forEach(c=>{try{const ctx=c.getContext('2d');if(ctx&&!ctx.__senkuAirburstPatchedV3){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuAirburstPatchedV3=true;}}catch(_){}});installBossStyle(doc);installDevMonitor(doc);installDevCombatOverrides(doc);boot.textContent='DEV READY • ALL UNITS FULL CHAKRA • SPEED 200';setTimeout(()=>boot.style.opacity='0',1200);}catch(e){boot.textContent='DEV PATCH ACCESS ERROR';boot.style.opacity='1';}
+    try{
+      const win=frame.contentWindow,doc=frame.contentDocument;if(!win||!doc)return;
+      ensureAirburstStyle(doc);hookRevivalButton(doc);
+      if(win.CanvasRenderingContext2D){const proto=win.CanvasRenderingContext2D.prototype;if(!proto.__senkuAirburstPatchedV4){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__senkuAirburstPatchedV4=true;}}
+      doc.querySelectorAll('canvas').forEach(c=>{try{const ctx=c.getContext('2d');if(ctx&&!ctx.__senkuAirburstPatchedV4){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuAirburstPatchedV4=true;}}catch(_){}});
+      installBossStyle(doc);installDevMonitor(doc);
+      const pre=win.__BB_DEV_PREBOOT__;
+      boot.textContent=pre?`DEV READY • FULL CHAKRA • SPEED 200 • ${pre.speedEdits}/${pre.chakraEdits}`:'DEV READY • PREBOOT CHECKING';
+      setTimeout(()=>boot.style.opacity='0',1400);
+    }catch(e){boot.textContent='DEV PATCH ACCESS ERROR';boot.style.opacity='1';}
   }
   frame.addEventListener('load',()=>{install();[50,150,300,600,1000,2000,4000].forEach(ms=>setTimeout(install,ms));setInterval(install,750);});
-  setTimeout(()=>{if(boot.textContent==='DEV LOADING…')boot.textContent='DEV GAME LOAD FAILED';},8000);
+  setTimeout(()=>{if(boot.textContent==='DEV LOADING…')boot.textContent='DEV GAME LOAD FAILED';},10000);
 })();
 </script>
 </body>
