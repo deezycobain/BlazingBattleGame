@@ -4,27 +4,86 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Blazing Battle — Dev Preview</title>
-<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}#game{display:block;width:100%;height:100%;border:0}#status{position:fixed;z-index:999999;top:8px;right:8px;padding:5px 8px;border-radius:8px;font:700 11px/1.2 system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.72);pointer-events:none}</style>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
+#game{display:block;width:100%;height:100%;border:0}
+#status{position:fixed;z-index:2147483647;top:8px;right:8px;padding:5px 8px;border-radius:8px;font:700 11px/1.2 system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.72);pointer-events:none}
+</style>
 </head>
 <body>
 <div id="status">DEV PREVIEW LOADING…</div>
 <iframe id="game" src="./index.html" title="Blazing Battle"></iframe>
 <script>
 (()=>{
- const frame=document.getElementById('game'),status=document.getElementById('status');
- const SCALE=2,EXPLOSION_MS=75;
- const frames=[1,2,3,4,5,6].map(n=>`./assets/characters/senku/vfx/bomb/small_explosion_6f/frame_0${n}.png`);
- function install(){
-  const win=frame.contentWindow,doc=frame.contentDocument;if(!win||!doc||!win.CanvasRenderingContext2D||win.__senkuDevPreviewInstalled)return;
-  win.__senkuDevPreviewInstalled=true;
-  const proto=win.CanvasRenderingContext2D.prototype,original=proto.drawImage;let last=null,timer=null,count=0;
-  function isBomb(image){if(!image)return false;const src=String(image.currentSrc||image.src||'');if(src.includes('projectile_clean'))return true;const w=image.naturalWidth||image.videoWidth||image.width||0,h=image.naturalHeight||image.videoHeight||image.height||0;return w===96&&h===96}
-  function getDest(args,image){if(args.length===2){const[dx,dy]=args;return{dx,dy,dw:image.naturalWidth||image.width||0,dh:image.naturalHeight||image.height||0}}if(args.length===4){const[dx,dy,dw,dh]=args;return{dx,dy,dw,dh}}if(args.length===8){const[,,,,dx,dy,dw,dh]=args;return{dx,dy,dw,dh}}return null}
-  function play(canvas,d){if(!canvas||!d)return;count++;status.textContent=`DEV • BOMB 2× • EXPLOSIONS ${count}`;const r=canvas.getBoundingClientRect(),sx=r.width/canvas.width,sy=r.height/canvas.height,x=r.left+(d.dx+d.dw/2)*sx,y=r.top+(d.dy+d.dh)*sy,img=doc.createElement('img');img.style.cssText=`position:fixed;z-index:2147483646;pointer-events:none;object-fit:contain;left:${x}px;top:${y}px;width:132px;height:73px;transform:translate(-50%,-100%);transform-origin:50% 100%;`;doc.body.appendChild(img);let i=0;const step=()=>{if(i>=frames.length){img.remove();return}img.src=frames[i++];setTimeout(step,EXPLOSION_MS)};step()}
-  proto.drawImage=function(image,...args){if(!isBomb(image))return original.call(this,image,...args);const d=getDest(args,image);if(d){last={canvas:this.canvas,d};if(timer)clearTimeout(timer);timer=setTimeout(()=>{if(last)play(last.canvas,last.d);last=null},95)}if(args.length===2){const[dx,dy]=args,ow=image.naturalWidth||image.width||0,oh=image.naturalHeight||image.height||0,nw=ow*SCALE,nh=oh*SCALE;return original.call(this,image,dx-(nw-ow)/2,dy-(nh-oh)/2,nw,nh)}if(args.length===4){const[dx,dy,dw,dh]=args,nw=dw*SCALE,nh=dh*SCALE;return original.call(this,image,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh)}if(args.length===8){const[sx,sy,sw,sh,dx,dy,dw,dh]=args,nw=dw*SCALE,nh=dh*SCALE;return original.call(this,image,sx,sy,sw,sh,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh)}return original.call(this,image,...args)};
-  status.textContent='DEV • BOMB 2× • EXPLOSIONS 0';
- }
- frame.addEventListener('load',()=>{install();[100,300,700,1500].forEach(ms=>setTimeout(install,ms))});
+  const frame=document.getElementById('game');
+  const status=document.getElementById('status');
+  const SCALE=2;
+
+  function looksLikeSenkuBomb(image){
+    if(!image)return false;
+    const src=String(image.currentSrc||image.src||'');
+    if(src.includes('/senku/')&&src.includes('bomb'))return true;
+    if(src.includes('projectile_clean'))return true;
+    const w=image.naturalWidth||image.videoWidth||image.width||0;
+    const h=image.naturalHeight||image.videoHeight||image.height||0;
+    return w===96&&h===96;
+  }
+
+  function wrapDrawImage(original){
+    if(typeof original!=='function'||original.__senkuBombHotfixWrapped)return original;
+    function patchedDrawImage(image,...args){
+      if(!looksLikeSenkuBomb(image))return original.call(this,image,...args);
+      if(args.length===2){
+        const [dx,dy]=args;
+        const ow=image.naturalWidth||image.width||0;
+        const oh=image.naturalHeight||image.height||0;
+        const nw=ow*SCALE,nh=oh*SCALE;
+        return original.call(this,image,dx-(nw-ow)/2,dy-(nh-oh)/2,nw,nh);
+      }
+      if(args.length===4){
+        const [dx,dy,dw,dh]=args;
+        const nw=dw*SCALE,nh=dh*SCALE;
+        return original.call(this,image,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
+      }
+      if(args.length===8){
+        const [sx,sy,sw,sh,dx,dy,dw,dh]=args;
+        const nw=dw*SCALE,nh=dh*SCALE;
+        return original.call(this,image,sx,sy,sw,sh,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
+      }
+      return original.call(this,image,...args);
+    }
+    patchedDrawImage.__senkuBombHotfixWrapped=true;
+    return patchedDrawImage;
+  }
+
+  function installPatch(){
+    try{
+      const win=frame.contentWindow,doc=frame.contentDocument;
+      if(!win||!doc)return;
+      if(win.CanvasRenderingContext2D){
+        const proto=win.CanvasRenderingContext2D.prototype;
+        if(!proto.__senkuBombHotfixPatched){
+          proto.drawImage=wrapDrawImage(proto.drawImage);
+          proto.__senkuBombHotfixPatched=true;
+        }
+      }
+      doc.querySelectorAll('canvas').forEach(canvas=>{
+        try{
+          const ctx=canvas.getContext('2d');
+          if(ctx&&!ctx.__senkuBombHotfixPatched){
+            ctx.drawImage=wrapDrawImage(ctx.drawImage);
+            ctx.__senkuBombHotfixPatched=true;
+          }
+        }catch(_){ }
+      });
+      status.textContent='DEV • SENKU BOMB 2× LOCKED';
+    }catch(e){status.textContent='DEV PATCH ACCESS ERROR';}
+  }
+
+  frame.addEventListener('load',()=>{
+    [0,50,150,300,600,1000,2000,4000].forEach(ms=>setTimeout(installPatch,ms));
+  });
+  setTimeout(()=>{if(status.textContent==='DEV PREVIEW LOADING…')status.textContent='DEV GAME LOAD FAILED';},8000);
 })();
 </script>
 </body>
