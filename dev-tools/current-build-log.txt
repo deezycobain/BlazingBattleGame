@@ -1,5 +1,5 @@
 
-added 38 packages, and audited 39 packages in 6s
+added 38 packages, and audited 39 packages in 8s
 
 7 packages are looking for funding
   run `npm fund` for details
@@ -22,5 +22,5 @@ Canonical unit sync applied: senku, crimson, subzero, lebee, anubis
 Base team updated to Senku/Lebee/Sub-Zero; team-save feedback moved above button
 Preview overrides applied for local: playable chakra=max, player speed=200, boss speed=50
 Build metadata embedded: branch=local commit=local
-Gameplay presentation pass: static hitboxes + canonical single-target basics + safe Senku projectile cleanup applied
+Gameplay presentation pass: static hitboxes + canonical single-target basics + Senku bomb size curve applied
 EXIT_STATUS=0
