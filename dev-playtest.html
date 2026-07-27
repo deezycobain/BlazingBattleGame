@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Blazing Battle — Dev Playtest</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
+#game{display:block;width:100%;height:100%;border:0}
+#boot{position:fixed;z-index:2147483647;top:8px;right:8px;padding:4px 7px;border-radius:8px;font:700 10px/1.2 system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.7);pointer-events:none;transition:opacity .35s}
+</style>
+</head>
+<body>
+<div id="boot">DEV LOADING…</div>
+<iframe id="game" src="./index.html?v=dev-playtest-1" title="Blazing Battle"></iframe>
+<script>
+(()=>{
+  const frame=document.getElementById('game');
+  const boot=document.getElementById('boot');
+  const SCALE=2;
+
+  function looksLikeSenkuBombForScale(image){
+    if(!image)return false;
+    const src=String(image.currentSrc||image.src||'');
+    if(src.includes('/senku/')&&src.includes('bomb'))return true;
+    if(src.includes('projectile_clean'))return true;
+    const w=image.naturalWidth||image.videoWidth||image.width||0;
+    const h=image.naturalHeight||image.videoHeight||image.height||0;
+    return w===96&&h===96;
+  }
+
+  function wrapDrawImage(original){
+    if(typeof original!=='function'||original.__senkuScaleOnlyWrapped)return original;
+    function patchedDrawImage(image,...args){
+      if(!looksLikeSenkuBombForScale(image))return original.call(this,image,...args);
+      if(args.length===2){
+        const [dx,dy]=args;
+        const ow=image.naturalWidth||image.width||0,oh=image.naturalHeight||image.height||0;
+        const nw=ow*SCALE,nh=oh*SCALE;
+        return original.call(this,image,dx-(nw-ow)/2,dy-(nh-oh)/2,nw,nh);
+      }
+      if(args.length===4){
+        const [dx,dy,dw,dh]=args;
+        const nw=dw*SCALE,nh=dh*SCALE;
+        return original.call(this,image,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
+      }
+      if(args.length===8){
+        const [sx,sy,sw,sh,dx,dy,dw,dh]=args;
+        const nw=dw*SCALE,nh=dh*SCALE;
+        return original.call(this,image,sx,sy,sw,sh,dx-(nw-dw)/2,dy-(nh-dh)/2,nw,nh);
+      }
+      return original.call(this,image,...args);
+    }
+    patchedDrawImage.__senkuScaleOnlyWrapped=true;
+    return patchedDrawImage;
+  }
+
+  function installBossStyle(doc){
+    if(!doc.getElementById('bb-ornate-boss-style')){
+      const style=doc.createElement('style');
+      style.id='bb-ornate-boss-style';
+      style.textContent=`
+        .bb-ornate-boss-hp{position:relative!important;height:18px!important;min-height:18px!important;max-height:18px!important;margin-top:3px!important;overflow:visible!important;border:2px solid #a9772e!important;border-radius:5px!important;background:linear-gradient(180deg,#170708 0%,#090303 55%,#160607 100%)!important;box-shadow:inset 0 0 0 1px #241008,inset 0 2px 4px rgba(255,255,255,.08),0 0 0 1px #050505!important}
+        .bb-ornate-boss-hp::before,.bb-ornate-boss-hp::after{content:'';position:absolute;z-index:8;top:50%;width:9px;height:9px;background:#2a130b;border:1px solid #c19443;transform:translateY(-50%) rotate(45deg);pointer-events:none}
+        .bb-ornate-boss-hp::before{left:-6px}.bb-ornate-boss-hp::after{right:-6px}
+        .bb-ornate-boss-fill{height:10px!important;top:2px!important;bottom:auto!important;border-radius:2px!important;background:linear-gradient(180deg,#ff3b3b 0%,#d51220 46%,#8e0712 100%)!important;box-shadow:inset 0 1px 1px rgba(255,255,255,.42),inset 0 -2px 3px rgba(65,0,0,.55)!important}
+        .bb-ornate-boss-label{z-index:10!important;color:#f6cf55!important;text-shadow:1px 1px 0 #000,-1px 1px 0 #000,1px -1px 0 #000,-1px -1px 0 #000!important;transform:translateY(-1px)!important;font-size:13px!important;line-height:16px!important}
+      `;
+      doc.head.appendChild(style);
+    }
+    const labels=[...doc.querySelectorAll('*')].filter(el=>el.children.length===0&&el.textContent.trim()==='BOSS');
+    labels.forEach(label=>{
+      label.classList.add('bb-ornate-boss-label');
+      let bar=null;
+      for(let el=label.parentElement;el&&el!==doc.body;el=el.parentElement){
+        const r=el.getBoundingClientRect();
+        if(r.width>250&&r.height>=12&&r.height<=55){bar=el;break;}
+      }
+      if(!bar)return;
+      bar.classList.add('bb-ornate-boss-hp');
+      const br=bar.getBoundingClientRect();
+      const kids=[...bar.children].filter(el=>el!==label);
+      let fill=null,best=0;
+      kids.forEach(el=>{const r=el.getBoundingClientRect();const score=r.width*r.height;if(r.width>20&&r.height>4&&r.height<=br.height+8&&score>best){best=score;fill=el;}});
+      if(fill)fill.classList.add('bb-ornate-boss-fill');
+    });
+  }
+
+  function installDevMonitor(doc){
+    if(doc.getElementById('bb-dev-monitor-loader')||doc.getElementById('bb-dev-monitor'))return;
+    const script=doc.createElement('script');
+    script.id='bb-dev-monitor-loader';
+    script.src='runtime/dev/dev-monitor.js?v=6ca0761';
+    script.onerror=()=>{boot.textContent='DEV MONITOR LOAD ERROR';boot.style.opacity='1';};
+    doc.head.appendChild(script);
+  }
+
+  function install(){
+    try{
+      const win=frame.contentWindow,doc=frame.contentDocument;
+      if(!win||!doc)return;
+      if(win.CanvasRenderingContext2D){
+        const proto=win.CanvasRenderingContext2D.prototype;
+        if(!proto.__senkuScaleOnlyPatched){proto.drawImage=wrapDrawImage(proto.drawImage);proto.__senkuScaleOnlyPatched=true;}
+      }
+      doc.querySelectorAll('canvas').forEach(canvas=>{try{const ctx=canvas.getContext('2d');if(ctx&&!ctx.__senkuScaleOnlyPatched){ctx.drawImage=wrapDrawImage(ctx.drawImage);ctx.__senkuScaleOnlyPatched=true;}}catch(_){}});
+      installBossStyle(doc);
+      installDevMonitor(doc);
+      boot.textContent='DEV READY';
+      setTimeout(()=>boot.style.opacity='0',900);
+    }catch(e){boot.textContent='DEV PATCH ACCESS ERROR';boot.style.opacity='1';}
+  }
+
+  frame.addEventListener('load',()=>{
+    install();
+    [50,150,300,600,1000,2000,4000].forEach(ms=>setTimeout(install,ms));
+    setInterval(install,1000);
+  });
+  setTimeout(()=>{if(boot.textContent==='DEV LOADING…')boot.textContent='DEV GAME LOAD FAILED';},8000);
+})();
+</script>
+</body>
+</html>
