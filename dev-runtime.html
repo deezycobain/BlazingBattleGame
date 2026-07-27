@@ -10,7 +10,7 @@
 <div id="status">DEV RUNTIME PREPARING…</div>
 <script>
 (async()=>{
-  const DEV_PLAYER_SPEED=200;
+  const DEV_PLAYER_SPEED=200,DEV_BOSS_SPEED=50;
   const status=document.getElementById('status');
   const bust=()=>`bbdev=${Date.now()}-${Math.random().toString(36).slice(2)}`;
   async function getJson(path){
@@ -34,10 +34,10 @@
     const res=await fetch(`./index.html?${bust()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});
     if(!res.ok)throw new Error(`index fetch ${res.status}`);
     let html=await res.text();
-    let localizedEdits=0,arrayEdits=0,fillEdits=0,speedEdits=0;
+    let localizedEdits=0,arrayEdits=0,fillEdits=0;
 
-    // Transitional bridge for the legacy monolithic battle. Dev player objects are forced to their
-    // canonical maximum chakra, but canonical unit files remain the source of max/start values.
+    // Transitional chakra-only bridge. Do NOT rewrite speed in source text: broad source windows
+    // can overlap other combatants. Speed is applied by identity at runtime in playtest-patch.js.
     const resourceNames='chakra|currentChakra|chakraCurrent|chakraNow|current_chakra|chakra_start|chakraStart|startingChakra|startChakra|chakraPips|chakraOrbs|chakraSegments|chakraCount|chakraPoints|chakraGauge|energy|currentEnergy|ki|currentKi|charge|charges|pips|orbs|segments|cp|ch';
     const maxNames='chakraMax|maxChakra|chakra_max|max_chakra|max_chakra_points|energyMax|maxEnergy|kiMax|maxKi|maxCharge|maxCharges';
     for(const unit of Object.values(core)){
@@ -49,7 +49,6 @@
       for(let i=merged.length-1;i>=0;i--){
         const [a,b]=merged[i];let block=html.slice(a,b);const max=unit.max;
         block=block.replace(new RegExp('((?:["\\\']?(?:'+resourceNames+'|'+maxNames+')["\\\']?)\\s*[:=]\\s*)(-?\\d+(?:\\.\\d+)?)','gi'),(m,p)=>{localizedEdits++;return p+max;});
-        block=block.replace(/((?:["']?(?:speed|spd|meterSpeed|turnSpeed|initiativeSpeed|gaugeSpeed|atbSpeed|actionSpeed)["']?)\s*[:=]\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{speedEdits++;return p+DEV_PLAYER_SPEED;});
         block=block.replace(new RegExp('((?:["\\\']?(?:'+resourceNames+')["\\\']?)\\s*[:=]\\s*)\\[((?:\\s*(?:true|false|0|1)\\s*,?){2,})\\]','gi'),(m,p,items)=>{const boolMode=/true|false/i.test(items);arrayEdits++;return p+'['+Array(max).fill(boolMode?'true':'1').join(',')+']';});
         block=block.replace(new RegExp('((?:["\\\']?(?:'+resourceNames+')["\\\']?)\\s*[:=]\\s*)((?:new\\s+)?Array\\(\\s*\\d+\\s*\\)\\.fill\\(\\s*(false|0)\\s*\\))','gi'),(m,p,expr,seed)=>{fillEdits++;return p+`Array(${max}).fill(${String(seed).toLowerCase()==='false'?'true':'1'})`;});
         html=html.slice(0,a)+block+html.slice(b);
@@ -57,8 +56,8 @@
     }
 
     const payload=JSON.stringify(core).replace(/</g,'\\u003c');
-    const marker=`<script>window.BB_UNIT_CORE=Object.freeze(${payload});window.__BB_DEV_PREBOOT__={unitCore:true,localizedEdits:${localizedEdits},arrayEdits:${arrayEdits},fillEdits:${fillEdits},speedEdits:${speedEdits},migrationWarnings:${JSON.stringify(migrationWarnings)}};<\/script>`;
-    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startPlayableAtMaxChakra:true,playerSpeed:${DEV_PLAYER_SPEED},boostBossSpeed:false});<\/script>`;
+    const marker=`<script>window.BB_UNIT_CORE=Object.freeze(${payload});window.__BB_DEV_PREBOOT__={unitCore:true,localizedEdits:${localizedEdits},arrayEdits:${arrayEdits},fillEdits:${fillEdits},migrationWarnings:${JSON.stringify(migrationWarnings)}};<\/script>`;
+    const config=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startPlayableAtMaxChakra:true,playerSpeed:${DEV_PLAYER_SPEED},bossSpeed:${DEV_BOSS_SPEED}});<\/script>`;
     const factory=`<script src="runtime/core/unit-state.js?${bust()}"><\/script>`;
     html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}${config}${factory}`);
 
