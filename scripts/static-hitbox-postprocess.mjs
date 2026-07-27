@@ -33,6 +33,53 @@ const facingReplacement=`function updateFacing(){
 function battleSpriteFor`;
 html=html.replace(facingRx,facingReplacement);
 
+// UI-only target filtering. Never wrap or replace global hits(): the geometry helper
+// recursively calls itself for compound shapes, and altering that path can take down
+// the renderer. previewHits() calls the untouched geometry helper and only narrows the
+// VISUAL enemy marker for canonical nearest-in-shape single-target basics such as Senku.
+const previewHelper=`function previewHits(a,u,b){
+  const base=hits(a,u,b);
+  if(!base)return false;
+  try{
+    const actor=a?.units?front(a):(a?.name?a:null);
+    const basic=actor?.name?canonicalUnit(actor.name)?.abilities?.basic:null;
+    if(basic?.target_mode==='single' && basic?.single_target_selector==='nearest_in_shape' && a?.units){
+      const candidates=(S.enemies||[]).filter(e=>e&&e.hp>0&&hits(a,u,{x:e.x,y:e.y,r:e.r||19}));
+      if(!candidates.length)return false;
+      const nearest=[...candidates].sort((x,y)=>d(a,x)-d(a,y))[0];
+      return b===nearest || (Math.abs((b?.x??Infinity)-nearest.x)<0.01 && Math.abs((b?.y??Infinity)-nearest.y)<0.01);
+    }
+  }catch(_){ }
+  return true;
+}
+
+`;
+const facingAnchor='function updateFacing(){';
+const facingAt=html.indexOf(facingAnchor);
+if(facingAt<0)throw new Error('Highlight pass: updateFacing insertion anchor not found');
+html=html.slice(0,facingAt)+previewHelper+html.slice(facingAt);
+
+// Swap hits() -> previewHits() only inside renderer functions that both draw to ctx
+// and inspect S.enemies. Gameplay resolution and the geometry engine stay untouched.
+const hitCallRx=/\bhits\(/g;
+const visualHitIndices=[];
+let hitMatch;
+while((hitMatch=hitCallRx.exec(html))){
+  const idx=hitMatch.index;
+  if(html.slice(Math.max(0,idx-9),idx)==='function ')continue;
+  const fnStart=html.lastIndexOf('\nfunction ',idx);
+  const nextFn=html.indexOf('\nfunction ',idx+5);
+  if(fnStart<0)continue;
+  const fnEnd=nextFn<0?html.length:nextFn;
+  const fnBody=html.slice(fnStart,fnEnd);
+  if(fnBody.includes('ctx.') && fnBody.includes('S.enemies'))visualHitIndices.push(idx);
+}
+if(!visualHitIndices.length)throw new Error('Highlight pass: no renderer-local hits() calls found');
+for(let i=visualHitIndices.length-1;i>=0;i--){
+  const idx=visualHitIndices[i];
+  html=html.slice(0,idx)+'previewHits('+html.slice(idx+'hits('.length);
+}
+
 // A basic attack may own a static multi-unit RANGE SHAPE while still resolving
 // only one actual target. This is driven by canonical ability data so future
 // single-target units can reuse the same behavior WITHOUT modifying global hits().
@@ -67,4 +114,4 @@ if(sizeAt>=0 && sizeAt-bombStart<5000){
 }
 
 await fs.writeFile(file,html);
-console.log('Gameplay presentation pass: renderer-safe static hitboxes + canonical single-target resolution + Senku bomb size curve applied');
+console.log(`Gameplay presentation pass: renderer-safe static hitboxes + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku bomb size curve applied`);
