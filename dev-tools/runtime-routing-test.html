@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Blazing Battle Runtime Routing Test</title>
 <style>
-body{margin:0;background:#0d0f12;color:#f1f1f1;font-family:system-ui,-apple-system,sans-serif;padding:18px}
+body{margin:0;background:#0d0f12;color:#f1f1f1;font-family:system-ui,-apple-system,sans-serif;padding:18px;padding-bottom:118px}
 h1{font-size:20px;margin:0 0 12px}.card{background:#171a1f;border:1px solid #303640;border-radius:12px;padding:14px;margin:10px 0}.ok{color:#79e58c}.bad{color:#ff7474}.warn{color:#ffd36f}code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}pre{white-space:pre-wrap;word-break:break-word;background:#0b0d10;padding:10px;border-radius:8px}.row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #282d35;padding:7px 0}.row:last-child{border-bottom:0}.label{color:#aeb7c4}.value{text-align:right}.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#20252d;font-size:12px}
 </style>
 </head>
@@ -13,22 +13,30 @@ h1{font-size:20px;margin:0 0 12px}.card{background:#171a1f;border:1px solid #303
 <h1>Runtime Routing Validation</h1>
 <div id="summary" class="card">Loading registries…</div>
 <div id="results"></div>
+<script src="../runtime/dev/dev-monitor.js?v=1"></script>
 <script src="../runtime/resource-resolver.js"></script>
 <script>
 (async()=>{
   const summary=document.getElementById('summary');
   const results=document.getElementById('results');
   const base='../';
+  const dev=()=>window.__BLAZING_DEV_MONITOR__;
+  const log=(type,msg)=>dev()?.record(type,msg);
 
   const loadJson=async path=>{
+    log('info',`registry load → ${path}`);
     const res=await fetch(base+path+'?v='+Date.now(),{cache:'no-store'});
     if(!res.ok)throw new Error(`${path}: HTTP ${res.status}`);
-    return res.json();
+    const data=await res.json();
+    log('ok',`registry ready → ${path}`);
+    return data;
   };
 
   const testAsset=async path=>{
     const url=base+path+'frame_01.png?v='+Date.now();
+    log('info',`asset probe → ${path}frame_01.png`);
     const res=await fetch(url,{cache:'no-store'});
+    log(res.ok?'ok':'warn',`asset ${res.ok?'ready':'failed'} → ${path}frame_01.png`);
     return {url,status:res.status,ok:res.ok};
   };
 
@@ -36,6 +44,7 @@ h1{font-size:20px;margin:0 0 12px}.card{background:#171a1f;border:1px solid #303
   const card=(title,body)=>`<div class="card"><div class="badge">${title}</div>${body}</div>`;
 
   try{
+    log('info','routing validation started');
     const [actionRegistry,assetManifest,unitMap,unitData]=await Promise.all([
       loadJson('runtime/registry/action-registry.json'),
       loadJson('runtime/registry/asset-manifest.json'),
@@ -43,10 +52,15 @@ h1{font-size:20px;margin:0 0 12px}.card{background:#171a1f;border:1px solid #303
       loadJson('assets/characters/senku/data/unit.json')
     ]);
 
+    log('info','constructing resource resolver');
     const resolver=new BlazingResourceResolver({actionRegistry,assetManifest,unitMap,unitData});
     const validation=resolver.validate();
+    log(validation.ok?'ok':'warn',`resolver validation ${validation.ok?'passed':'returned issues'}`);
+
     const basic=resolver.resolveAbility('explosive_bomb');
+    log('ok','resolved ability → explosive_bomb');
     const jutsu=resolver.resolveAbility('revival_formula');
+    log('ok','resolved ability → revival_formula');
 
     const resources=[
       basic.animation,
@@ -70,6 +84,7 @@ h1{font-size:20px;margin:0 0 12px}.card{background:#171a1f;border:1px solid #303
     const allOk=validation.ok && failedAssets.length===0 && logicOk;
 
     summary.innerHTML=`<strong class="${allOk?'ok':'bad'}">${allOk?'PASS — routing is healthy':'FAIL — routing needs attention'}</strong><br><small>${resources.length} resources checked • ${Object.keys(unitMap.abilities).length} abilities resolved</small>`;
+    log(allOk?'ok':'error',allOk?'routing test complete — healthy':'routing test complete — attention required');
 
     results.innerHTML+=card('Senku • Explosive Bomb',
       row('Animation ID',basic.animation.resource_id,'ok')+
@@ -96,13 +111,16 @@ h1{font-size:20px;margin:0 0 12px}.card{background:#171a1f;border:1px solid #303
 
     if(validation.warnings.length){
       results.innerHTML+=card('Migration Warnings',validation.warnings.map(w=>`<div class="warn">⚠ ${w}</div>`).join(''));
+      validation.warnings.forEach(w=>log('warn',w));
     }
     if(validation.errors.length){
       results.innerHTML+=card('Resolver Errors',validation.errors.map(e=>`<div class="bad">✕ ${e}</div>`).join(''));
+      validation.errors.forEach(e=>log('error',e));
     }
 
     window.__BLAZING_ROUTING_TEST__={allOk,validation,basic,jutsu,assetChecks};
   }catch(error){
+    log('error',`TEST CRASHED • ${String(error.message||error)}`);
     summary.innerHTML=`<strong class="bad">TEST CRASHED</strong><pre>${String(error.stack||error)}</pre>`;
   }
 })();
