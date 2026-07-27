@@ -7,6 +7,21 @@ let html=await fs.readFile(file,'utf8');
 const branch=process.env.WORKERS_CI_BRANCH||process.env.BB_BRANCH||'local';
 const commit=process.env.WORKERS_CI_COMMIT_SHA||'local';
 const isProduction=branch==='main';
+const readJson=async p=>JSON.parse(await fs.readFile(path.join(ROOT,p),'utf8'));
+
+// Every indexed character file becomes authoritative in the deployed runtime.
+const unitIndex=await readJson('runtime/registry/unit-index.json');
+const unitTag=/(<script id="blazing-unit-data">window\.BLAZING_UNIT_DATA=)(\{.*?\})(;<\/script>)/s;
+const match=html.match(unitTag);
+if(!match)throw new Error('Postprocess: embedded unit data tag missing');
+const embedded=JSON.parse(match[2]);
+for(const entry of unitIndex.units||[]){
+  const unit=await readJson(entry.path);
+  if(unit.id!==entry.id)throw new Error(`Postprocess: unit id mismatch for ${entry.path}`);
+  embedded[entry.id]=unit;
+}
+html=html.replace(unitTag,(_,a,_json,c)=>a+JSON.stringify(embedded)+c);
+console.log(`Canonical unit sync applied: ${(unitIndex.units||[]).map(x=>x.id).join(', ')}`);
 
 const meta=`<script>window.BB_BUILD_META=Object.freeze({branch:${JSON.stringify(branch)},commit:${JSON.stringify(commit)},environment:${JSON.stringify(isProduction?'production':'preview')},canonicalRuntime:true});<\/script>`;
 html=html.replace(/<head([^>]*)>/i,`<head$1>${meta}`);
@@ -27,7 +42,7 @@ if(!isProduction){
   html=html.replace(/<head([^>]*)>/i,`<head$1>${devConfig}`);
   console.log(`Preview overrides applied for ${branch}: playable chakra=max, player speed=200, boss speed=50`);
 }else{
-  console.log('Production build: no dev combat overrides applied');
+  console.log('Production build: canonical unit starts/speeds only; no dev combat overrides');
 }
 
 await fs.writeFile(file,html);
