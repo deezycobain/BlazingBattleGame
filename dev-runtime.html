@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Blazing Battle — Dev Runtime</title>
+<style>html,body{margin:0;width:100%;height:100%;background:#000;color:#fff;font:12px system-ui,sans-serif}#status{position:fixed;z-index:2147483647;top:8px;left:8px;padding:5px 8px;border-radius:7px;background:rgba(0,0,0,.78)}</style>
+</head>
+<body>
+<div id="status">DEV RUNTIME PREPARING…</div>
+<script>
+(async()=>{
+  const status=document.getElementById('status');
+  try{
+    const res=await fetch('./index.html?v=dev-runtime-source-1',{cache:'no-store'});
+    if(!res.ok) throw new Error(`index fetch ${res.status}`);
+    let html=await res.text();
+    let speedEdits=0,chakraEdits=0,maxEdits=0;
+
+    // DEV ONLY: rewrite unit speed before the game executes so closure/private runtime
+    // copies inherit the test values. This is deliberately broader than post-load scans.
+    html=html.replace(/((?:["']?speed["']?)\s*:\s*)(-?\d+(?:\.\d+)?)/gi,(m,p)=>{speedEdits++;return p+'200';});
+
+    // DEV ONLY: start every combatant/resource object with full 8 chakra/energy.
+    // Cost fields (chakraCost/cost) are intentionally not matched.
+    const currentResource=/((?:["']?(?:chakra|currentChakra|chakraCurrent|energy|currentEnergy|ki|currentKi)["']?)\s*:\s*)(-?\d+(?:\.\d+)?)/gi;
+    html=html.replace(currentResource,(m,p)=>{chakraEdits++;return p+'8';});
+
+    const maxResource=/((?:["']?(?:chakraMax|maxChakra|chakra_max|energyMax|maxEnergy|kiMax|maxKi)["']?)\s*:\s*)(-?\d+(?:\.\d+)?)/gi;
+    html=html.replace(maxResource,(m,p)=>{maxEdits++;return p+'8';});
+
+    // Install a marker before the game scripts run so the outer launcher/dev monitor
+    // can confirm this pre-execution bootstrap was actually used.
+    const marker=`<script>window.__BB_DEV_PREBOOT__={speed:200,chakra:8,speedEdits:${speedEdits},chakraEdits:${chakraEdits},maxEdits:${maxEdits}};<\/script>`;
+    html=html.replace(/<head([^>]*)>/i,`<head$1>${marker}`);
+
+    document.open();
+    document.write(html);
+    document.close();
+  }catch(err){
+    status.textContent='DEV RUNTIME LOAD FAILED • '+(err?.message||err);
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>
