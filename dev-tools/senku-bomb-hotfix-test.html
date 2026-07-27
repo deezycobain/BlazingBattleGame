@@ -12,7 +12,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
 </head>
 <body>
 <div id="status">HOTFIX LOADING…</div>
-<iframe id="game" src="../index.html" title="Blazing Battle"></iframe>
+<iframe id="game" src="/deezycobain/BlazingBattleGame/dev/index.html" title="Blazing Battle"></iframe>
 <script>
 (()=>{
   const frame=document.getElementById('game');
@@ -57,30 +57,33 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
   }
 
   function installPatch(){
-    const win=frame.contentWindow,doc=frame.contentDocument;
-    if(!win||!doc)return;
-    if(win.CanvasRenderingContext2D){
-      const proto=win.CanvasRenderingContext2D.prototype;
-      if(!proto.__senkuBombHotfixPatched){
-        proto.drawImage=wrapDrawImage(proto.drawImage);
-        proto.__senkuBombHotfixPatched=true;
-      }
-    }
-    doc.querySelectorAll('canvas').forEach(canvas=>{
-      try{
-        const ctx=canvas.getContext('2d');
-        if(ctx&&!ctx.__senkuBombHotfixPatched){
-          ctx.drawImage=wrapDrawImage(ctx.drawImage);
-          ctx.__senkuBombHotfixPatched=true;
+    try{
+      const win=frame.contentWindow,doc=frame.contentDocument;
+      if(!win||!doc)return;
+      if(win.CanvasRenderingContext2D){
+        const proto=win.CanvasRenderingContext2D.prototype;
+        if(!proto.__senkuBombHotfixPatched){
+          proto.drawImage=wrapDrawImage(proto.drawImage);
+          proto.__senkuBombHotfixPatched=true;
         }
-      }catch(_){ }
-    });
-    status.textContent='SENKU HOTFIX • BOMB 2×';
+      }
+      doc.querySelectorAll('canvas').forEach(canvas=>{
+        try{
+          const ctx=canvas.getContext('2d');
+          if(ctx&&!ctx.__senkuBombHotfixPatched){
+            ctx.drawImage=wrapDrawImage(ctx.drawImage);
+            ctx.__senkuBombHotfixPatched=true;
+          }
+        }catch(_){ }
+      });
+      status.textContent='SENKU HOTFIX • BOMB 2×';
+    }catch(e){status.textContent='HOTFIX ACCESS ERROR';}
   }
 
   frame.addEventListener('load',()=>{
     [0,50,150,300,600,1000,2000,4000].forEach(ms=>setTimeout(installPatch,ms));
   });
+  setTimeout(()=>{if(status.textContent==='HOTFIX LOADING…')status.textContent='GAME LOAD FAILED';},8000);
 })();
 </script>
 </body>
