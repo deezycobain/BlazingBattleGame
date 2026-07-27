@@ -96,9 +96,6 @@
       if (looksLikeLegacySenkuImpact(image)) return;
 
       const dest = destRect(args, image);
-
-      // Explosion tracking stays strict to Senku's canonical projectile path so
-      // unrelated 96x96 UI images can never spawn impact VFX.
       if (hasExactSenkuBombPath(image) && dest) {
         lastBombDraw = { canvas: this.canvas, dest };
         if (impactTimer) clearTimeout(impactTimer);
@@ -108,7 +105,6 @@
         }, 95);
       }
 
-      // Scaling intentionally mirrors the exact hotfix build Rich approved.
       if (!looksLikeSenkuBombForScale(image)) return original.call(this, image, ...args);
 
       if (args.length === 2) {
@@ -119,26 +115,45 @@
         const nh = oh * BOMB_SCALE;
         return original.call(this, image, dx - (nw - ow) / 2, dy - (nh - oh) / 2, nw, nh);
       }
-
       if (args.length === 4) {
         const [dx, dy, dw, dh] = args;
         const nw = dw * BOMB_SCALE;
         const nh = dh * BOMB_SCALE;
         return original.call(this, image, dx - (nw - dw) / 2, dy - (nh - dh) / 2, nw, nh);
       }
-
       if (args.length === 8) {
         const [sx, sy, sw, sh, dx, dy, dw, dh] = args;
         const nw = dw * BOMB_SCALE;
         const nh = dh * BOMB_SCALE;
         return original.call(this, image, sx, sy, sw, sh, dx - (nw - dw) / 2, dy - (nh - dh) / 2, nw, nh);
       }
-
       return original.call(this, image, ...args);
     }
 
     patchedDrawImage.__senkuApproved2xWrapped = true;
     return patchedDrawImage;
+  }
+
+  function patchContext(ctx) {
+    if (!ctx || ctx.__senkuApproved2xPatched) return ctx;
+    try {
+      ctx.drawImage = wrapDrawImage(ctx.drawImage);
+      ctx.__senkuApproved2xPatched = true;
+    } catch (_) {}
+    return ctx;
+  }
+
+  // Critical fix: patch EVERY 2D context at the moment it is created.
+  // The boss battle canvas is created well after page load, which is why the
+  // previous time-limited startup patch could work in the wrapper but fail in
+  // the real game after navigating into battle.
+  if (window.HTMLCanvasElement && !HTMLCanvasElement.prototype.__senkuGetContextPatched) {
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(type, ...args) {
+      const ctx = originalGetContext.call(this, type, ...args);
+      return type === '2d' ? patchContext(ctx) : ctx;
+    };
+    HTMLCanvasElement.prototype.__senkuGetContextPatched = true;
   }
 
   function installApprovedPatch() {
@@ -149,20 +164,14 @@
         proto.__senkuApproved2xPatched = true;
       }
     }
-
     document.querySelectorAll('canvas').forEach(canvas => {
-      try {
-        const ctx = canvas.getContext('2d');
-        if (ctx && !ctx.__senkuApproved2xPatched) {
-          ctx.drawImage = wrapDrawImage(ctx.drawImage);
-          ctx.__senkuApproved2xPatched = true;
-        }
-      } catch (_) {}
+      try { patchContext(canvas.getContext('2d')); } catch (_) {}
     });
   }
 
-  // Same timing strategy as the approved hotfix. This catches canvases created
-  // or replaced after initial page load instead of relying on one early patch.
   installApprovedPatch();
-  [50,150,300,600,1000,2000,4000].forEach(ms => setTimeout(installApprovedPatch, ms));
+  window.addEventListener('load', installApprovedPatch);
+  // Keep a low-frequency safety pass because the legacy runtime can replace
+  // canvas/context objects during screen transitions.
+  setInterval(installApprovedPatch, 1000);
 })();
