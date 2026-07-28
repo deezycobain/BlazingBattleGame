@@ -5,9 +5,11 @@ on:
     paths-ignore:
       - 'dev-tools/pass2-shell-scan.txt'
       - 'dev-tools/pass2-extraction-report.json'
+      - 'dev-tools/pass2-migration-report.json'
       - 'assets/characters/lebee/vfx/basic/star_blast/projectile/**'
       - 'assets/characters/lebee/vfx/jutsu/meteor/**'
       - 'assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/**'
+      - 'index.html'
   pull_request:
     branches: [main]
 permissions:
@@ -22,10 +24,12 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
       - name: Extract approved shell-owned assets byte-for-byte
         run: node scripts/pass2-extract-shell-assets.mjs
-      - name: Commit extracted assets and report
+      - name: Migrate shell references and renderer branches
+        run: node scripts/pass2-migrate-shell.mjs
+      - name: Commit extracted assets and migrated shell
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add assets/characters/lebee/vfx/basic/star_blast/projectile assets/characters/lebee/vfx/jutsu/meteor assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast dev-tools/pass2-extraction-report.json
-          git diff --cached --quiet || git commit -m "Extract Pass 2 shell-owned runtime assets"
+          git add index.html assets/characters/lebee/vfx/basic/star_blast/projectile assets/characters/lebee/vfx/jutsu/meteor assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast dev-tools/pass2-extraction-report.json dev-tools/pass2-migration-report.json
+          git diff --cached --quiet || git commit -m "Migrate Pass 2 animation and VFX assets out of shell"
           git push
