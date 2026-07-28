@@ -1,0 +1,22 @@
+{
+  "status": "success",
+  "before_bytes": 52333570,
+  "after_bytes": 50086243,
+  "removed_bytes": 2247327,
+  "extracted": {
+    "star": 1,
+    "meteor": 3,
+    "meteorImpact": 3,
+    "finale": 1,
+    "aftermath": 1,
+    "subzeroFreezeCast": 4
+  },
+  "delegated_floaters": [
+    "lebeeStarProjectile",
+    "lebeeMeteor",
+    "lebeeMeteorImpact",
+    "lebeeMeteorFinale",
+    "lebeeMeteorAftermath",
+    "iceProjectile"
+  ]
+}
