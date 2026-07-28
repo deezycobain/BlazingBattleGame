@@ -41,6 +41,11 @@ if(lebee.abilities?.basic?.id!=='star_blast'||lebee.abilities?.basic?.target_mod
 if(lebee.combat?.basic_shape?.type!=='rect'||lebee.combat?.basic_rotation_deg!==0)fail('Lebee basic must use a static horizontal rectangle');
 if(lebee.abilities?.jutsu?.id!=='meteor_jutsu'||lebee.abilities?.jutsu?.aoe!==true)fail('Lebee Meteor Jutsu must remain battlefield AoE');
 
+const subzero=units.subzero;
+if(!subzero)fail('Sub-Zero missing from unit registry');
+if(subzero.combat?.basic_shape?.type!=='cone'||subzero.combat?.basic_rotation_deg!==0)fail('Sub-Zero basic must use a static horizontal cone');
+if(subzero.abilities?.basic?.target_mode!=='single'||subzero.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Sub-Zero basic must resolve exactly one nearest target inside the cone');
+
 const resourceIds=new Set();
 const collect=(entry)=>{if(!entry?.resource_id)return;if(resourceIds.has(entry.resource_id))fail(`duplicate resource id ${entry.resource_id}`);resourceIds.add(entry.resource_id)};
 for(const group of Object.values(assetManifest.shared||{}))for(const entry of Object.values(group||{}))collect(entry);
@@ -68,4 +73,4 @@ for(const token of forbidden){
   if(canonical.includes(token))fail(`legacy token remains in canonical runtime data: ${token}`);
 }
 
-console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical Senku Ally Heal, canonical Lebee Star Blast/Meteor, explicit chakra starts.`);
+console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical Senku Ally Heal, canonical Lebee Star Blast/Meteor, horizontal single-target Sub-Zero basic, explicit chakra starts.`);
