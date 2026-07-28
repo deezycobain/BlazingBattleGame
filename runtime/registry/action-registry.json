@@ -1,21 +1,24 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "actions": {
     "damage_target": {
       "kind": "damage",
       "target_scope": "selected_target",
-      "parameters": ["multiplier"]
+      "parameters": ["multiplier"],
+      "runtime_handler": "damage_target"
     },
     "damage_targets": {
       "kind": "damage",
       "target_scope": "resolved_targets",
-      "parameters": ["multiplier"]
+      "parameters": ["multiplier"],
+      "runtime_handler": "damage_targets"
     },
     "reduce_target_gauge": {
       "kind": "gauge_control",
       "target_scope": "selected_target",
       "parameters": ["amount"],
-      "rules": {"minimum_gauge": 0}
+      "rules": {"minimum_gauge": 0},
+      "runtime_handler": "reduce_target_gauge"
     },
     "heal_party_percent": {
       "kind": "heal",
@@ -26,27 +29,32 @@
         "ignore_defeated_units": true,
         "can_revive": false,
         "cap_at_max_hp": true
-      }
+      },
+      "runtime_handler": "heal_party_percent"
     },
     "revive_ally": {
       "kind": "revive",
       "target_scope": "defeated_ally",
-      "parameters": ["restore_percent_of_max_hp"]
+      "parameters": ["restore_percent_of_max_hp"],
+      "execution_status": "declared_not_wired"
     },
     "apply_status": {
       "kind": "status",
       "target_scope": "selected_target",
-      "parameters": ["status_id", "chance", "duration"]
+      "parameters": ["status_id", "chance", "duration"],
+      "execution_status": "declared_not_wired"
     },
     "buff_party": {
       "kind": "buff",
       "target_scope": "living_allies",
-      "parameters": ["stat", "amount", "duration"]
+      "parameters": ["stat", "amount", "duration"],
+      "execution_status": "declared_not_wired"
     },
     "debuff_target": {
       "kind": "debuff",
       "target_scope": "selected_target",
-      "parameters": ["stat", "amount", "duration"]
+      "parameters": ["stat", "amount", "duration"],
+      "execution_status": "declared_not_wired"
     }
   }
 }
