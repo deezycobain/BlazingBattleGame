@@ -35,26 +35,37 @@ if(heal?.effect!=='heal_percent_max_hp'||heal?.heal_percent!==0.3)fail('Senku Al
 if(heal?.target!=='all_living_allies'||heal?.revive!==false)fail('Senku Ally Heal must target living allies and never revive');
 if(senku.combat.chakra_start!==8)fail('Senku canonical chakra_start must be 8');
 
+const lebee=units.lebee;
+if(!lebee)fail('Lebee missing from unit registry');
+if(lebee.abilities?.basic?.id!=='star_blast'||lebee.abilities?.basic?.target_mode!=='multi')fail('Lebee Star Blast must remain multi-target');
+if(lebee.combat?.basic_shape?.type!=='rect'||lebee.combat?.basic_rotation_deg!==0)fail('Lebee basic must use a static horizontal rectangle');
+if(lebee.abilities?.jutsu?.id!=='meteor_jutsu'||lebee.abilities?.jutsu?.aoe!==true)fail('Lebee Meteor Jutsu must remain battlefield AoE');
+
 const resourceIds=new Set();
 const collect=(entry)=>{if(!entry?.resource_id)return;if(resourceIds.has(entry.resource_id))fail(`duplicate resource id ${entry.resource_id}`);resourceIds.add(entry.resource_id)};
 for(const group of Object.values(assetManifest.shared||{}))for(const entry of Object.values(group||{}))collect(entry);
 for(const unit of Object.values(assetManifest.units||{}))for(const groupName of ['animations','vfx'])for(const entry of Object.values(unit?.[groupName]||{})){collect(entry);if(entry.path&&!(await exists(entry.path)))fail(`missing asset path ${entry.path}`)}
 
-const senkuMapPath='assets/characters/senku/data/runtime-map.json';
-if(!(await exists(senkuMapPath)))fail('Senku runtime-map.json missing');
-const senkuMap=await readJson(senkuMapPath);
-if(senkuMap.unit_id!=='senku')fail('Senku runtime map unit_id mismatch');
-for(const [abilityId,mapping] of Object.entries(senkuMap.abilities||{})){
-  if(!Object.values(senku.abilities||{}).some(a=>a?.id===abilityId))fail(`runtime map references unknown Senku ability ${abilityId}`);
-  if(!resourceIds.has(mapping.animation_id))fail(`${abilityId} references unknown animation ${mapping.animation_id}`);
-  for(const resourceId of Object.values(mapping.vfx||{}))if(!resourceIds.has(resourceId))fail(`${abilityId} references unknown VFX ${resourceId}`);
-  for(const action of mapping.gameplay_actions||[])if(!actionRegistry.actions?.[action.action_id])fail(`${abilityId} references unknown action ${action.action_id}`);
+const runtimeMapUnits=['senku','lebee'];
+for(const unitId of runtimeMapUnits){
+  const mapPath=`assets/characters/${unitId}/data/runtime-map.json`;
+  if(!(await exists(mapPath)))fail(`${unitId} runtime-map.json missing`);
+  const runtimeMap=await readJson(mapPath);
+  if(runtimeMap.unit_id!==unitId)fail(`${unitId} runtime map unit_id mismatch`);
+  const unit=units[unitId];
+  for(const [abilityId,mapping] of Object.entries(runtimeMap.abilities||{})){
+    if(!Object.values(unit.abilities||{}).some(a=>a?.id===abilityId))fail(`runtime map references unknown ${unitId} ability ${abilityId}`);
+    if(!resourceIds.has(mapping.animation_id))fail(`${unitId}.${abilityId} references unknown animation ${mapping.animation_id}`);
+    for(const resourceId of Object.values(mapping.vfx||{}))if(!resourceIds.has(resourceId))fail(`${unitId}.${abilityId} references unknown VFX ${resourceId}`);
+    for(const action of mapping.gameplay_actions||[])if(!actionRegistry.actions?.[action.action_id])fail(`${unitId}.${abilityId} references unknown action ${action.action_id}`);
+  }
 }
 
+const senkuMap=await readJson('assets/characters/senku/data/runtime-map.json');
 const forbidden=['Revival Formula','revival_formula','heal_all_allies_full'];
 for(const token of forbidden){
   const canonical=JSON.stringify({senku,senkuMap,assetManifest});
   if(canonical.includes(token))fail(`legacy token remains in canonical runtime data: ${token}`);
 }
 
-console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical Senku Ally Heal, explicit chakra starts.`);
+console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical Senku Ally Heal, canonical Lebee Star Blast/Meteor, explicit chakra starts.`);
