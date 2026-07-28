@@ -1,0 +1,48 @@
+{
+  "schema_version": 3,
+  "unit_id": "lebee",
+  "source_unit_data": "assets/characters/lebee/data/unit.json",
+  "abilities": {
+    "star_blast": {
+      "slot": "basic",
+      "animation_id": "lebee.animation.basic_attack",
+      "runtime_handler": "animateLebeeStarBlast",
+      "gameplay_actions": [
+        {
+          "event": "on_projectile_arrival",
+          "action_id": "damage_target",
+          "parameters": {"multiplier_source": "abilities.basic.damage_multiplier"}
+        }
+      ],
+      "vfx": {"projectile": "lebee.vfx.basic.star_blast.projectile"},
+      "projectile_presentation": {"trajectory": "shallow_arc", "cast_duration_ms": 320, "flight_duration_ms": 300}
+    },
+    "meteor_jutsu": {
+      "slot": "jutsu",
+      "animation_id": "lebee.animation.jutsu.meteor.cast",
+      "runtime_handler": "animateLebeeMeteorJutsu",
+      "cost_source": "abilities.jutsu.cost",
+      "gameplay_actions": [
+        {
+          "event": "on_final_meteor_impact",
+          "action_id": "damage_targets",
+          "parameters": {"multiplier_source": "abilities.jutsu.damage_multiplier"}
+        }
+      ],
+      "vfx": {
+        "meteor": "lebee.vfx.jutsu.meteor.field",
+        "final_flash": "shared.vfx.fullscreen_flash"
+      },
+      "presentation_sources": {
+        "cast_duration_ms": "abilities.jutsu.presentation.cast_duration_ms",
+        "fall_duration_ms": "abilities.jutsu.presentation.meteor_fall_duration_ms",
+        "meteor_count": "abilities.jutsu.presentation.meteor_count",
+        "stagger_ms": "abilities.jutsu.presentation.meteor_stagger_ms"
+      }
+    }
+  },
+  "states": {
+    "idle": "lebee.animation.idle",
+    "recoil": "lebee.animation.recoil"
+  }
+}
