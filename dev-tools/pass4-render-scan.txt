@@ -1,0 +1,3681 @@
+
+===== renderWhileKO @ 377057 =====
+u(unit){
+ if(!unit)return false;
+ try{
+   const ability=canonicalUnit(unit.name)?.abilities?.jutsu;
+   return ability?.target==='all_allies' || ability?.effect==='heal_full';
+ }catch(_){
+   return false;
+ }
+}
+
+
+function ensureFront(p){
+ if(front(p).hp>0)return true;
+ if(front(p).hp<=0 && koAnimating(front(p).name))return true;
+ if(back(p).hp>0){p.active=1-p.active;return true}
+ return false
+}
+function fxMap(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.unitFX)S.anim.unitFX={};
+ return S.anim.unitFX;
+}
+function unitFX(name){
+ return S.anim?.unitFX?.[name]||null;
+}
+function koAnimating(name){
+ let fx=unitFX(name);
+ return !!(fx&&fx.kind==='ko'&&(performance.now()-fx.start)<fx.duration);
+}
+function renderWhileKO(name){
+ let fx=unitFX(name);
+ return !!(fx&&fx.kind==='ko'&&(performance.now()-fx.start)<fx.duration+90);
+}
+function startHitReaction(name,dir=1,strong=false){
+ fxMap()[name]={kind:'hit',start:performance.now(),duration:strong?230:180,dir:dir||1,strong:!!strong};
+}
+function startKOReaction(name,dir=1){
+ fxMap()[name]={kind:'ko',start:performance.now(),duration:520,dir:dir||1};
+}
+function pairRenderable(p){
+ return pairAlive(p)||renderWhileKO(front(p).name)||renderWhileKO(back(p).name);
+}
+function handleKO(p,defeatedName,dir=1){
+ addFloat(p.x,p.y-58,'KO','#ff7272');
+ startKOReaction(defeatedName,dir);
+ p.gauge=0;
+ if(back(p).hp>0){
+   S.log=`${defeatedName} was knocked out — ${back(p).name} is preparing to move to the front.`;
+   setTimeout(()=>{
+     if(front(p).name===defeatedName && back(p).hp>0){
+       p.active=1-p.active;
+       S.log=`${defeatedName} was knocked out — ${front(p).name} automatically moved to the front.`;
+     }
+   },380);
+ }else{
+   S.log=`${defeatedName} was knocked out — that pair has been defeated.`;
+ }
+}
+function handleEnemyKO(e,dir=1){
+ addFloat(e.x,e.y-46,'KO','#ff7272');
+ startKOReaction(e.name,dir);
+ e.gauge=0;
+ S.log=`${e.name} was defeated.`;
+}
+
+function local(p,u,e){let a=-(u.rotation||0),dx=e.x-p.x,dy=e.y-p.y;return{x:dx*Math.cos(a)-dy*Math.sin(a),y:dx*Math.sin(a)+dy*Math.cos(a)}}
+function circleRect(q,r,hw,hh){let x=clamp(q.x,-hw,hw),y=clamp(q.y,-hh,hh);return Math.hypot(q.x-x,q.y-y)<=r}
+function hits(p,u,e){let s=u.shape,q=local(p,u,e),er=e.r||20;
+ if(s.type==='screen_rect')return e.x>=BATTLE_BOUNDS.left&&e.x<=BATTLE_BOUNDS.right&&e.y>=BATTLE_BOUNDS.top&&e.y<=BATTLE_BOUNDS.bottom;
+ if(s.type==='circle')return d(p,e)<=s.r+er;
+ if(s.type==='rect'){
+   const rq={x:q.x-(s.offset_x||0),y:q.y-(s.offset_y||0)};
+   return circleRect(rq,er,s.w/2,s.h/2);
+ }
+ if(s.type==='square')return circleRect(q,er,s.s/2,s.s/2);
+ if(s.type==='cross')return circleRect(q,er,s.l/2,s.t/2)||circleRect(q,er,s.t/2,s.l/2);
+ if(s.type==='donut'){let z=Math.hypot(q.x,q.y);return z+er>=s.i&&z-er<=s.o}
+ if(s.type==='cone'){let z=Math.hypot(q.x,q.y),ang=Math.abs(Math.atan2(q.y,q.x)),pad=Math.asin(Math.min(1,er/Math.max(z,.01)));return q.x+er>=0&&z-er<=s.r&&ang<=s.a/2+pad}
+ return false}
+function drawField(){
+  const img=S.bossBattle?ANUBIS_PORTRAIT_MAP:LEVEL1_PORTRAIT_MAP;
+  if(img.complete && img.naturalWidth>0){
+    ctx.imageSmoothingEnabled=true;
+    // Portrait maps are authored for the phone battlefield: crop only if aspect ratios differ slightly.
+    const ir=img.naturalWidth/img.naturalHeight, cr=W/H;
+    let sx=0,sy=0,sw=img.naturalWidth,sh=img.naturalHeight;
+    if(ir>cr){sw=img.naturalHeight*cr;sx=(img.naturalWidth-sw)/2;}
+    else if(ir<cr){sh=img.naturalWidth/cr;sy=(img.naturalHeight-sh)/2;}
+    // Camera zoom: retain the same battlefield coordinates, but crop the art
+    // slightly tighter so combat reads closer on a phone.
+    const baseSw=sw,baseSh=sh;
+    sw=baseSw/MAP_ZOOM; sh=baseSh/MAP_ZOOM;
+    sx+=(baseSw-sw)/2; sy+=(baseSh-sh)/2;
+    ctx.drawImage(img,sx,sy,sw,sh,0,0,W,H);
+    ctx.fillStyle='rgba(7,10,12,.025)';ctx.fillRect(0,0,W,H);
+    return;
+  }
+  // Keep canvas transparent until the stage image is decoded; CSS background is the fallback.
+  ctx.clearRect(0,0,W,H);
+}
+function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
+ let s=u.shape;
+ let pulse=1+Math.sin(performance.now()/180)*0.014;
+ let breathe=.5+.5*Math.sin(performance.now()/230);
+
+ // Battlefield AOE: fixed screen-space rectangle, not centered on the caster.
+ if(s.type==='screen_rect'){
+   const pad=s.padding??18;
+   const x=BATTLE_BOUNDS.left+pad,y=BATTLE_BOUNDS.top+pad;
+   const w=(BATTLE_BOUNDS.right-BATTLE_BOUNDS.left)-pad*2;
+   const h=(BATTLE_BOUNDS.bottom-BATTLE_BOUNDS.top)-pad*2;
+   ctx.save();
+   const ultimateRed=color==='#ff3548'||color==='#ff3348';
+   ctx.shadowColor=color;ctx.shadowBlur=glow?18:6;
+   ctx.fillStyle=glow
+     ? (ultimateRed?'rgba(255,53,72,.10)':'rgba(69,215,255,.10)')
+     : 'rgba(255,255,255,.045)';
+   ctx.strokeStyle=glow
+     ? (ultimateRed?`rgba(255,110,126,${.82+.10*breathe})`:`rgba(132,235,255,${.80+.12*breathe})`)
+     : 'rgba(255,255,255,.78)';
+   ctx.lineWidth=glow?2.2:1.25;
+   ctx.beginPath();ctx.roundRect(x,y,w,h,13);ctx.fill();ctx.stroke();
+   // inner line makes the full-field AOE readable without becoming a giant solid overlay.
+   ctx.shadowBlur=3;ctx.globalAlpha=.62+.18*breathe;ctx.lineWidth=1;
+   ctx.beginPath();ctx.roundRect(x+5,y+5,w-10,h-10,10);ctx.stroke();
+   ctx.restore();
+   return;
+ }
+
+ ctx.save();
+ ctx.translate(p.x,p.y+visualOffsetY);
+ ctx.rotate(u.rotation||0);
+ ctx.scale(pulse,pulse);
+
+ if(glow){
+   const ultimateRed=color==='#ff3548'||color==='#ff3348';
+   ctx.shadowColor=ultimateRed?'rgba(255,28,52,.95)':color;
+   ctx.shadowBlur=18+6*breathe;
+   ctx.fillStyle=ultimateRed
+     ? `rgba(255,38,72,${0.10+0.04*breathe})`
+     : `rgba(40,210,255,${0.105+0.035*breathe})`;
+   ctx.strokeStyle=ultimateRed
+     ? `rgba(255,96,112,${0.78+0.16*breathe})`
+     : `rgba(105,229,255,${0.72+0.18*breathe})`;
+   ctx.lineWidth=2.0;
+ }else{
+   ctx.shadowColor=color;
+   ctx.shadowBlur=1.5+1.5*breathe;
+   ctx.fillStyle='rgba(255,255,255,.035)';
+   ctx.strokeStyle='rgba(255,255,255,.82)';
+   ctx.globalAlpha=.62+.14*breathe;
+   ctx.lineWidth=1.05;
+ }
+
+ function path(){
+   ctx.beginPath();
+   if(s.type==='circle')ctx.arc(0,0,s.r,0,Math.PI*2);
+   else if(s.type==='rect')ctx.rect((s.offset_x||0)-s.w/2,(s.offset_y||0)-s.h/2,s.w,s.h);
+   else if(s.type==='square')ctx.rect(-s.s/2,-s.s/2,s.s,s.s);
+   else if(s.type==='cross'){
+     let h=s.l/2,t=s.t/2;
+     ctx.rect(-h,-t,s.l,s.t);
+     ctx.rect(-t,-h,s.t,s.l)
+   }
+   else if(s.type==='donut'){
+     ctx.arc(0,0,s.o,0,Math.PI*2);
+     ctx.arc(0,0,s.i,0,Math.PI*2,true)
+   }
+   else if(s.type==='cone'){
+     ctx.moveTo(0,0);
+     ctx.arc(0,0,s.r,-s.a/2,s.a/2);
+     ctx.closePath()
+   }
+ }
+
+ path();
+ ctx.fill('evenodd');
+ ctx.stroke();
+
+ if(glow){
+   // Crisp inner edge over the diffused aura.
+   ctx.shadowBlur=5;
+   ctx.globalAlpha=.92;
+   ctx.strokeStyle=(color==='#ff3548'||color==='#ff3348')?'rgba(255,162,172,.94)':'rgba(174,242,255,.92)';
+   ctx.lineWidth=1.05;
+   path();
+   ctx.stroke();
+ }
+
+ ctx.restore()
+}
+function actorPos(p,u){if(S.anim&&S.anim.positions&&S.anim.positions[u.name])return S.anim.positions[u.name];return p}
+
+function facingFlip(rot,name=null){
+ let dir=Math.cos(rot||0)>=0?1:-1;
+ // Some source art faces screen-left by default. Invert those assets while
+ // keeping mechanical facing/range logic unchanged.
+ if(name==='Crimson'||name==='Anubis')dir*=-1;
+ return dir;
+}
+
+function nearestEnemyPoint(x,y){
+ let alive=S.enemies.filter(e=>e.hp>0);
+ if(!alive.length)return null;
+ return alive.reduce((best,e)=>!best||d({x,y},e)<d({x,y},best)?e:best,null);
+}
+
+
+// v0.5.10: sprites are normalized during the asset-production step.
+// Never scan/crop millions of pixels on the phone gameplay thread.
+function getRenderableSprite(asset,spriteName=null){ return asset; }
+
+func
+
+===== drawField @ 379305 =====
+een_rect')return e.x>=BATTLE_BOUNDS.left&&e.x<=BATTLE_BOUNDS.right&&e.y>=BATTLE_BOUNDS.top&&e.y<=BATTLE_BOUNDS.bottom;
+ if(s.type==='circle')return d(p,e)<=s.r+er;
+ if(s.type==='rect'){
+   const rq={x:q.x-(s.offset_x||0),y:q.y-(s.offset_y||0)};
+   return circleRect(rq,er,s.w/2,s.h/2);
+ }
+ if(s.type==='square')return circleRect(q,er,s.s/2,s.s/2);
+ if(s.type==='cross')return circleRect(q,er,s.l/2,s.t/2)||circleRect(q,er,s.t/2,s.l/2);
+ if(s.type==='donut'){let z=Math.hypot(q.x,q.y);return z+er>=s.i&&z-er<=s.o}
+ if(s.type==='cone'){let z=Math.hypot(q.x,q.y),ang=Math.abs(Math.atan2(q.y,q.x)),pad=Math.asin(Math.min(1,er/Math.max(z,.01)));return q.x+er>=0&&z-er<=s.r&&ang<=s.a/2+pad}
+ return false}
+function drawField(){
+  const img=S.bossBattle?ANUBIS_PORTRAIT_MAP:LEVEL1_PORTRAIT_MAP;
+  if(img.complete && img.naturalWidth>0){
+    ctx.imageSmoothingEnabled=true;
+    // Portrait maps are authored for the phone battlefield: crop only if aspect ratios differ slightly.
+    const ir=img.naturalWidth/img.naturalHeight, cr=W/H;
+    let sx=0,sy=0,sw=img.naturalWidth,sh=img.naturalHeight;
+    if(ir>cr){sw=img.naturalHeight*cr;sx=(img.naturalWidth-sw)/2;}
+    else if(ir<cr){sh=img.naturalWidth/cr;sy=(img.naturalHeight-sh)/2;}
+    // Camera zoom: retain the same battlefield coordinates, but crop the art
+    // slightly tighter so combat reads closer on a phone.
+    const baseSw=sw,baseSh=sh;
+    sw=baseSw/MAP_ZOOM; sh=baseSh/MAP_ZOOM;
+    sx+=(baseSw-sw)/2; sy+=(baseSh-sh)/2;
+    ctx.drawImage(img,sx,sy,sw,sh,0,0,W,H);
+    ctx.fillStyle='rgba(7,10,12,.025)';ctx.fillRect(0,0,W,H);
+    return;
+  }
+  // Keep canvas transparent until the stage image is decoded; CSS background is the fallback.
+  ctx.clearRect(0,0,W,H);
+}
+function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
+ let s=u.shape;
+ let pulse=1+Math.sin(performance.now()/180)*0.014;
+ let breathe=.5+.5*Math.sin(performance.now()/230);
+
+ // Battlefield AOE: fixed screen-space rectangle, not centered on the caster.
+ if(s.type==='screen_rect'){
+   const pad=s.padding??18;
+   const x=BATTLE_BOUNDS.left+pad,y=BATTLE_BOUNDS.top+pad;
+   const w=(BATTLE_BOUNDS.right-BATTLE_BOUNDS.left)-pad*2;
+   const h=(BATTLE_BOUNDS.bottom-BATTLE_BOUNDS.top)-pad*2;
+   ctx.save();
+   const ultimateRed=color==='#ff3548'||color==='#ff3348';
+   ctx.shadowColor=color;ctx.shadowBlur=glow?18:6;
+   ctx.fillStyle=glow
+     ? (ultimateRed?'rgba(255,53,72,.10)':'rgba(69,215,255,.10)')
+     : 'rgba(255,255,255,.045)';
+   ctx.strokeStyle=glow
+     ? (ultimateRed?`rgba(255,110,126,${.82+.10*breathe})`:`rgba(132,235,255,${.80+.12*breathe})`)
+     : 'rgba(255,255,255,.78)';
+   ctx.lineWidth=glow?2.2:1.25;
+   ctx.beginPath();ctx.roundRect(x,y,w,h,13);ctx.fill();ctx.stroke();
+   // inner line makes the full-field AOE readable without becoming a giant solid overlay.
+   ctx.shadowBlur=3;ctx.globalAlpha=.62+.18*breathe;ctx.lineWidth=1;
+   ctx.beginPath();ctx.roundRect(x+5,y+5,w-10,h-10,10);ctx.stroke();
+   ctx.restore();
+   return;
+ }
+
+ ctx.save();
+ ctx.translate(p.x,p.y+visualOffsetY);
+ ctx.rotate(u.rotation||0);
+ ctx.scale(pulse,pulse);
+
+ if(glow){
+   const ultimateRed=color==='#ff3548'||color==='#ff3348';
+   ctx.shadowColor=ultimateRed?'rgba(255,28,52,.95)':color;
+   ctx.shadowBlur=18+6*breathe;
+   ctx.fillStyle=ultimateRed
+     ? `rgba(255,38,72,${0.10+0.04*breathe})`
+     : `rgba(40,210,255,${0.105+0.035*breathe})`;
+   ctx.strokeStyle=ultimateRed
+     ? `rgba(255,96,112,${0.78+0.16*breathe})`
+     : `rgba(105,229,255,${0.72+0.18*breathe})`;
+   ctx.lineWidth=2.0;
+ }else{
+   ctx.shadowColor=color;
+   ctx.shadowBlur=1.5+1.5*breathe;
+   ctx.fillStyle='rgba(255,255,255,.035)';
+   ctx.strokeStyle='rgba(255,255,255,.82)';
+   ctx.globalAlpha=.62+.14*breathe;
+   ctx.lineWidth=1.05;
+ }
+
+ function path(){
+   ctx.beginPath();
+   if(s.type==='circle')ctx.arc(0,0,s.r,0,Math.PI*2);
+   else if(s.type==='rect')ctx.rect((s.offset_x||0)-s.w/2,(s.offset_y||0)-s.h/2,s.w,s.h);
+   else if(s.type==='square')ctx.rect(-s.s/2,-s.s/2,s.s,s.s);
+   else if(s.type==='cross'){
+     let h=s.l/2,t=s.t/2;
+     ctx.rect(-h,-t,s.l,s.t);
+     ctx.rect(-t,-h,s.t,s.l)
+   }
+   else if(s.type==='donut'){
+     ctx.arc(0,0,s.o,0,Math.PI*2);
+     ctx.arc(0,0,s.i,0,Math.PI*2,true)
+   }
+   else if(s.type==='cone'){
+     ctx.moveTo(0,0);
+     ctx.arc(0,0,s.r,-s.a/2,s.a/2);
+     ctx.closePath()
+   }
+ }
+
+ path();
+ ctx.fill('evenodd');
+ ctx.stroke();
+
+ if(glow){
+   // Crisp inner edge over the diffused aura.
+   ctx.shadowBlur=5;
+   ctx.globalAlpha=.92;
+   ctx.strokeStyle=(color==='#ff3548'||color==='#ff3348')?'rgba(255,162,172,.94)':'rgba(174,242,255,.92)';
+   ctx.lineWidth=1.05;
+   path();
+   ctx.stroke();
+ }
+
+ ctx.restore()
+}
+function actorPos(p,u){if(S.anim&&S.anim.positions&&S.anim.positions[u.name])return S.anim.positions[u.name];return p}
+
+function facingFlip(rot,name=null){
+ let dir=Math.cos(rot||0)>=0?1:-1;
+ // Some source art faces screen-left by default. Invert those assets while
+ // keeping mechanical facing/range logic unchanged.
+ if(name==='Crimson'||name==='Anubis')dir*=-1;
+ return dir;
+}
+
+function nearestEnemyPoint(x,y){
+ let alive=S.enemies.filter(e=>e.hp>0);
+ if(!alive.length)return null;
+ return alive.reduce((best,e)=>!best||d({x,y},e)<d({x,y},best)?e:best,null);
+}
+
+
+// v0.5.10: sprites are normalized during the asset-production step.
+// Never scan/crop millions of pixels on the phone gameplay thread.
+function getRenderableSprite(asset,spriteName=null){ return asset; }
+
+function spriteDims(asset){
+ return{
+   w:asset?(asset.naturalWidth||asset.width||0):0,
+   h:asset?(asset.naturalHeight||asset.height||0):0
+ };
+}
+
+function nearestPlayerPoint(x,y){
+ let alive=S.pairs.filter(p=>pairAlive(p));
+ if(!alive.length)return null;
+ return alive.reduce((best,p)=>!best||d({x,y},p)<d({x,y},best)?p:best,null);
+}
+
+function updateFacing(){
+ S.pairs.forEach(pair=>{
+   pair.units.forEach(u=>{
+     let pos=actorPos(pair,u);
+     let target=nearestEnemyPoint(pos.x,pos.y);
+     if(target)u.rotation=Math.atan2(target.y-pos.y,target.x-pos.x);
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   let target=nearestPlayerPoint(e.x,e.y);
+   if(target)e.rotation=Math.atan2(target.y-e.y,target.x-e.x);
+ });
+}
+
+function battleSpriteFor(name){
+ return (name && SPRITE_DATA[name]) ? SPRITE_DATA[name] : null;
+}
+function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=false,flipX=1,sizeScale=1){
+ // Body sprites must always begin from a clean canvas state.
+ ctx.globalCompositeOperation='source-over';
+ if(!Number.isFinite(ctx.globalAlpha) || ctx.globalAlpha<=0)ctx.globalAlpha=1;
+ let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;
+ let activePulse=1;
+ let fx=name?unitFX(name):null;
+
+ // Deterministic per-character idle timing offset.
+ // This MUST be initialized before any transform code references it.
+ let idlePhase=0;
+ if(name){
+   for(let i=0;i<name.length;i++)idlePhase+=name.charCodeAt(i)*(i+3);
+ }
+
+ if(active && !visual){
+   activePulse=1+Math.sin(performance.now()/170)*.018;
+ }
+
+ // PLAYER GROUND SHADOW — v0.5.18
+ // The sprite artwork is anchored with its feet at local y≈12. Keep the shadow
+ // directly on that contact point instead of floating well below the character.
+ // Width follows the same render scale used by the body so larger units receive
+ // a proportionally larger footprint without turning into a detached blob.
+ if(!isEnemy){
+   let liftRatio=clamp(lift/17,0,1);
+   let bodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let shadowW=clamp(10.5*bodyScale,10,18.5);
+   let shadowH=clamp(2.55*bodyScale,2.5,4.25);
+   let shadowAlpha=.24-.08*liftRatio;
+
+   ctx.save();
+   ctx.translate(x,y+11.5);
+   ctx.fillStyle=`rgba(
+
+===== drawShape @ 380331 =====
+;
+    let sx=0,sy=0,sw=img.naturalWidth,sh=img.naturalHeight;
+    if(ir>cr){sw=img.naturalHeight*cr;sx=(img.naturalWidth-sw)/2;}
+    else if(ir<cr){sh=img.naturalWidth/cr;sy=(img.naturalHeight-sh)/2;}
+    // Camera zoom: retain the same battlefield coordinates, but crop the art
+    // slightly tighter so combat reads closer on a phone.
+    const baseSw=sw,baseSh=sh;
+    sw=baseSw/MAP_ZOOM; sh=baseSh/MAP_ZOOM;
+    sx+=(baseSw-sw)/2; sy+=(baseSh-sh)/2;
+    ctx.drawImage(img,sx,sy,sw,sh,0,0,W,H);
+    ctx.fillStyle='rgba(7,10,12,.025)';ctx.fillRect(0,0,W,H);
+    return;
+  }
+  // Keep canvas transparent until the stage image is decoded; CSS background is the fallback.
+  ctx.clearRect(0,0,W,H);
+}
+function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
+ let s=u.shape;
+ let pulse=1+Math.sin(performance.now()/180)*0.014;
+ let breathe=.5+.5*Math.sin(performance.now()/230);
+
+ // Battlefield AOE: fixed screen-space rectangle, not centered on the caster.
+ if(s.type==='screen_rect'){
+   const pad=s.padding??18;
+   const x=BATTLE_BOUNDS.left+pad,y=BATTLE_BOUNDS.top+pad;
+   const w=(BATTLE_BOUNDS.right-BATTLE_BOUNDS.left)-pad*2;
+   const h=(BATTLE_BOUNDS.bottom-BATTLE_BOUNDS.top)-pad*2;
+   ctx.save();
+   const ultimateRed=color==='#ff3548'||color==='#ff3348';
+   ctx.shadowColor=color;ctx.shadowBlur=glow?18:6;
+   ctx.fillStyle=glow
+     ? (ultimateRed?'rgba(255,53,72,.10)':'rgba(69,215,255,.10)')
+     : 'rgba(255,255,255,.045)';
+   ctx.strokeStyle=glow
+     ? (ultimateRed?`rgba(255,110,126,${.82+.10*breathe})`:`rgba(132,235,255,${.80+.12*breathe})`)
+     : 'rgba(255,255,255,.78)';
+   ctx.lineWidth=glow?2.2:1.25;
+   ctx.beginPath();ctx.roundRect(x,y,w,h,13);ctx.fill();ctx.stroke();
+   // inner line makes the full-field AOE readable without becoming a giant solid overlay.
+   ctx.shadowBlur=3;ctx.globalAlpha=.62+.18*breathe;ctx.lineWidth=1;
+   ctx.beginPath();ctx.roundRect(x+5,y+5,w-10,h-10,10);ctx.stroke();
+   ctx.restore();
+   return;
+ }
+
+ ctx.save();
+ ctx.translate(p.x,p.y+visualOffsetY);
+ ctx.rotate(u.rotation||0);
+ ctx.scale(pulse,pulse);
+
+ if(glow){
+   const ultimateRed=color==='#ff3548'||color==='#ff3348';
+   ctx.shadowColor=ultimateRed?'rgba(255,28,52,.95)':color;
+   ctx.shadowBlur=18+6*breathe;
+   ctx.fillStyle=ultimateRed
+     ? `rgba(255,38,72,${0.10+0.04*breathe})`
+     : `rgba(40,210,255,${0.105+0.035*breathe})`;
+   ctx.strokeStyle=ultimateRed
+     ? `rgba(255,96,112,${0.78+0.16*breathe})`
+     : `rgba(105,229,255,${0.72+0.18*breathe})`;
+   ctx.lineWidth=2.0;
+ }else{
+   ctx.shadowColor=color;
+   ctx.shadowBlur=1.5+1.5*breathe;
+   ctx.fillStyle='rgba(255,255,255,.035)';
+   ctx.strokeStyle='rgba(255,255,255,.82)';
+   ctx.globalAlpha=.62+.14*breathe;
+   ctx.lineWidth=1.05;
+ }
+
+ function path(){
+   ctx.beginPath();
+   if(s.type==='circle')ctx.arc(0,0,s.r,0,Math.PI*2);
+   else if(s.type==='rect')ctx.rect((s.offset_x||0)-s.w/2,(s.offset_y||0)-s.h/2,s.w,s.h);
+   else if(s.type==='square')ctx.rect(-s.s/2,-s.s/2,s.s,s.s);
+   else if(s.type==='cross'){
+     let h=s.l/2,t=s.t/2;
+     ctx.rect(-h,-t,s.l,s.t);
+     ctx.rect(-t,-h,s.t,s.l)
+   }
+   else if(s.type==='donut'){
+     ctx.arc(0,0,s.o,0,Math.PI*2);
+     ctx.arc(0,0,s.i,0,Math.PI*2,true)
+   }
+   else if(s.type==='cone'){
+     ctx.moveTo(0,0);
+     ctx.arc(0,0,s.r,-s.a/2,s.a/2);
+     ctx.closePath()
+   }
+ }
+
+ path();
+ ctx.fill('evenodd');
+ ctx.stroke();
+
+ if(glow){
+   // Crisp inner edge over the diffused aura.
+   ctx.shadowBlur=5;
+   ctx.globalAlpha=.92;
+   ctx.strokeStyle=(color==='#ff3548'||color==='#ff3348')?'rgba(255,162,172,.94)':'rgba(174,242,255,.92)';
+   ctx.lineWidth=1.05;
+   path();
+   ctx.stroke();
+ }
+
+ ctx.restore()
+}
+function actorPos(p,u){if(S.anim&&S.anim.positions&&S.anim.positions[u.name])return S.anim.positions[u.name];return p}
+
+function facingFlip(rot,name=null){
+ let dir=Math.cos(rot||0)>=0?1:-1;
+ // Some source art faces screen-left by default. Invert those assets while
+ // keeping mechanical facing/range logic unchanged.
+ if(name==='Crimson'||name==='Anubis')dir*=-1;
+ return dir;
+}
+
+function nearestEnemyPoint(x,y){
+ let alive=S.enemies.filter(e=>e.hp>0);
+ if(!alive.length)return null;
+ return alive.reduce((best,e)=>!best||d({x,y},e)<d({x,y},best)?e:best,null);
+}
+
+
+// v0.5.10: sprites are normalized during the asset-production step.
+// Never scan/crop millions of pixels on the phone gameplay thread.
+function getRenderableSprite(asset,spriteName=null){ return asset; }
+
+function spriteDims(asset){
+ return{
+   w:asset?(asset.naturalWidth||asset.width||0):0,
+   h:asset?(asset.naturalHeight||asset.height||0):0
+ };
+}
+
+function nearestPlayerPoint(x,y){
+ let alive=S.pairs.filter(p=>pairAlive(p));
+ if(!alive.length)return null;
+ return alive.reduce((best,p)=>!best||d({x,y},p)<d({x,y},best)?p:best,null);
+}
+
+function updateFacing(){
+ S.pairs.forEach(pair=>{
+   pair.units.forEach(u=>{
+     let pos=actorPos(pair,u);
+     let target=nearestEnemyPoint(pos.x,pos.y);
+     if(target)u.rotation=Math.atan2(target.y-pos.y,target.x-pos.x);
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   let target=nearestPlayerPoint(e.x,e.y);
+   if(target)e.rotation=Math.atan2(target.y-e.y,target.x-e.x);
+ });
+}
+
+function battleSpriteFor(name){
+ return (name && SPRITE_DATA[name]) ? SPRITE_DATA[name] : null;
+}
+function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=false,flipX=1,sizeScale=1){
+ // Body sprites must always begin from a clean canvas state.
+ ctx.globalCompositeOperation='source-over';
+ if(!Number.isFinite(ctx.globalAlpha) || ctx.globalAlpha<=0)ctx.globalAlpha=1;
+ let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;
+ let activePulse=1;
+ let fx=name?unitFX(name):null;
+
+ // Deterministic per-character idle timing offset.
+ // This MUST be initialized before any transform code references it.
+ let idlePhase=0;
+ if(name){
+   for(let i=0;i<name.length;i++)idlePhase+=name.charCodeAt(i)*(i+3);
+ }
+
+ if(active && !visual){
+   activePulse=1+Math.sin(performance.now()/170)*.018;
+ }
+
+ // PLAYER GROUND SHADOW — v0.5.18
+ // The sprite artwork is anchored with its feet at local y≈12. Keep the shadow
+ // directly on that contact point instead of floating well below the character.
+ // Width follows the same render scale used by the body so larger units receive
+ // a proportionally larger footprint without turning into a detached blob.
+ if(!isEnemy){
+   let liftRatio=clamp(lift/17,0,1);
+   let bodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let shadowW=clamp(10.5*bodyScale,10,18.5);
+   let shadowH=clamp(2.55*bodyScale,2.5,4.25);
+   let shadowAlpha=.24-.08*liftRatio;
+
+   ctx.save();
+   ctx.translate(x,y+11.5);
+   ctx.fillStyle=`rgba(0,0,0,${shadowAlpha})`;
+   ctx.shadowColor=`rgba(0,0,0,${.14+.04*(1-liftRatio)})`;
+   ctx.shadowBlur=1.5+4.5*liftRatio;
+   ctx.beginPath();
+   ctx.ellipse(0,0,shadowW,shadowH,0,0,Math.PI*2);
+   ctx.fill();
+   ctx.restore();
+ }
+
+ ctx.save();
+ ctx.translate(x,y-lift);
+
+ if(!visual){
+   let t=(performance.now()+idlePhase*5);
+   // Lebee's supplied idle sheet already contains floating motion.
+   if(name!=='Lebee'){
+     ctx.translate(0,Math.sin(t/420)*.55);
+     ctx.rotate(Math.sin(t/610)*.004);
+   }
+ }
+
+ if(fx){
+   let elapsed=performance.now()-fx.start;
+   if(elapsed<fx.duration){
+     if(fx.kind==='hit'){
+       let t=elapsed/fx.duration;
+       let bump=Math.sin(t*Math.PI);
+       ctx.translate((fx.dir||1)*7*bump,-1.6*bump);
+       ctx.rotate((fx.dir||1)*0.14*bump*(fx.strong?1.15:1));
+       scale*=1 + (fx.strong?.06:.035)*Math.sin(t*Math.PI*1.2);
+     }else if(fx.kind==='ko'){
+       let t=elapsed/fx.duration;
+       let ease=1-Math.pow(1-t,3);
+       ctx.translate((fx.dir||1)*(28*ease), -10*ease);
+       ctx.
+
+===== drawUnit @ 384863 =====
+ralHeight||asset.height||0):0
+ };
+}
+
+function nearestPlayerPoint(x,y){
+ let alive=S.pairs.filter(p=>pairAlive(p));
+ if(!alive.length)return null;
+ return alive.reduce((best,p)=>!best||d({x,y},p)<d({x,y},best)?p:best,null);
+}
+
+function updateFacing(){
+ S.pairs.forEach(pair=>{
+   pair.units.forEach(u=>{
+     let pos=actorPos(pair,u);
+     let target=nearestEnemyPoint(pos.x,pos.y);
+     if(target)u.rotation=Math.atan2(target.y-pos.y,target.x-pos.x);
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   let target=nearestPlayerPoint(e.x,e.y);
+   if(target)e.rotation=Math.atan2(target.y-e.y,target.x-e.x);
+ });
+}
+
+function battleSpriteFor(name){
+ return (name && SPRITE_DATA[name]) ? SPRITE_DATA[name] : null;
+}
+function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=false,flipX=1,sizeScale=1){
+ // Body sprites must always begin from a clean canvas state.
+ ctx.globalCompositeOperation='source-over';
+ if(!Number.isFinite(ctx.globalAlpha) || ctx.globalAlpha<=0)ctx.globalAlpha=1;
+ let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;
+ let activePulse=1;
+ let fx=name?unitFX(name):null;
+
+ // Deterministic per-character idle timing offset.
+ // This MUST be initialized before any transform code references it.
+ let idlePhase=0;
+ if(name){
+   for(let i=0;i<name.length;i++)idlePhase+=name.charCodeAt(i)*(i+3);
+ }
+
+ if(active && !visual){
+   activePulse=1+Math.sin(performance.now()/170)*.018;
+ }
+
+ // PLAYER GROUND SHADOW — v0.5.18
+ // The sprite artwork is anchored with its feet at local y≈12. Keep the shadow
+ // directly on that contact point instead of floating well below the character.
+ // Width follows the same render scale used by the body so larger units receive
+ // a proportionally larger footprint without turning into a detached blob.
+ if(!isEnemy){
+   let liftRatio=clamp(lift/17,0,1);
+   let bodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let shadowW=clamp(10.5*bodyScale,10,18.5);
+   let shadowH=clamp(2.55*bodyScale,2.5,4.25);
+   let shadowAlpha=.24-.08*liftRatio;
+
+   ctx.save();
+   ctx.translate(x,y+11.5);
+   ctx.fillStyle=`rgba(0,0,0,${shadowAlpha})`;
+   ctx.shadowColor=`rgba(0,0,0,${.14+.04*(1-liftRatio)})`;
+   ctx.shadowBlur=1.5+4.5*liftRatio;
+   ctx.beginPath();
+   ctx.ellipse(0,0,shadowW,shadowH,0,0,Math.PI*2);
+   ctx.fill();
+   ctx.restore();
+ }
+
+ ctx.save();
+ ctx.translate(x,y-lift);
+
+ if(!visual){
+   let t=(performance.now()+idlePhase*5);
+   // Lebee's supplied idle sheet already contains floating motion.
+   if(name!=='Lebee'){
+     ctx.translate(0,Math.sin(t/420)*.55);
+     ctx.rotate(Math.sin(t/610)*.004);
+   }
+ }
+
+ if(fx){
+   let elapsed=performance.now()-fx.start;
+   if(elapsed<fx.duration){
+     if(fx.kind==='hit'){
+       let t=elapsed/fx.duration;
+       let bump=Math.sin(t*Math.PI);
+       ctx.translate((fx.dir||1)*7*bump,-1.6*bump);
+       ctx.rotate((fx.dir||1)*0.14*bump*(fx.strong?1.15:1));
+       scale*=1 + (fx.strong?.06:.035)*Math.sin(t*Math.PI*1.2);
+     }else if(fx.kind==='ko'){
+       let t=elapsed/fx.duration;
+       let ease=1-Math.pow(1-t,3);
+       ctx.translate((fx.dir||1)*(28*ease), -10*ease);
+       ctx.rotate((fx.dir||1)*(.72*ease));
+       scale*=1 - .18*ease;
+       ctx.globalAlpha=t<.6 ? 1 : 1-((t-.6)/.4);
+     }
+   }else if(S.anim?.unitFX){
+     delete S.anim.unitFX[name];
+   }
+ }
+
+ ctx.rotate(rot);
+ ctx.scale((flipX||1)*scale*activePulse,scale*activePulse);
+
+ // CPU enemies retain their small orientation shadow.
+ if(isEnemy){
+   ctx.beginPath();
+   ctx.ellipse(0,17,16,6,0,0,Math.PI*2);
+   ctx.fillStyle='rgba(0,0,0,.22)';
+   ctx.fill();
+ }
+
+ let sprite=name?SPRITES[name]:null;
+ let idleFrames=name?unitIdleFrames(name):null;
+ let attackState=(name&&S.anim?.attackPose)?S.anim.attackPose[name]:null;
+ let attackFrames=(name&&attackState)?unitAttackFrames(name,attackState.kind):null;
+
+ // Lebee has a real recoil sheet. Hit art temporarily overrides idle/attack art,
+ // but uses the same normalized canvas so her footprint stays stable.
+ if(!visual&&fx?.kind==='hit'&&HIT_SPRITES[name]?.length){
+   const hitElapsed=performance.now()-fx.start;
+   const hitProgress=clamp(hitElapsed/fx.duration,0,1);
+   const hitIndex=Math.min(HIT_SPRITES[name].length-1,Math.floor(hitProgress*HIT_SPRITES[name].length));
+   const hitSprite=HIT_SPRITES[name][hitIndex];
+   if(hitSprite?.complete&&hitSprite.naturalWidth>0)sprite=hitSprite;
+ }
+
+ // Attack art overrides idle only when a REAL, loaded attack frame exists.
+ // Previously every attack set attackState, which suppressed the idle art even
+ // for units such as Deezy that have no dedicated attack frames. The renderer
+ // then fell back to an older padded base sprite and the unit appeared to shrink.
+ let usingAttackSprite=false;
+ let attackProgress=0;
+ if(!visual&&attackState){
+   let elapsed=performance.now()-attackState.start;
+   attackProgress=clamp(elapsed/attackState.duration,0,1);
+
+   // Crimson's supplied sheet contains distinct idle / basic / Jutsu poses.
+   // Briefly hold the second idle pose as anticipation, then snap into the
+   // supplied action pose. This makes the frame change readable at phone scale
+   // instead of showing one static pose for the entire lunge.
+   if(name==='Crimson'&&idleFrames?.length){
+     const anticipation=attackState.kind==='special'?.16:.22;
+     if(attackProgress<anticipation){
+       let prep=idleFrames[Math.min(1,idleFrames.length-1)];
+       if(prep?.complete&&prep.naturalWidth>0){
+         sprite=prep;
+         usingAttackSprite=true;
+       }
+     }
+   }
+
+   if(!usingAttackSprite&&attackFrames?.length){
+     let frameIndex=Math.min(attackFrames.length-1,Math.floor(attackProgress*attackFrames.length));
+     let candidate=attackFrames[frameIndex];
+     if(candidate?.complete&&candidate.naturalWidth>0){
+       sprite=candidate;
+       usingAttackSprite=true;
+     }
+   }
+ }
+
+ // Keep the normalized idle animation visible whenever no valid attack frame
+ // is available. This guarantees a consistent battlefield footprint during
+ // lunges and Jutsu casts instead of silently swapping to legacy sprite art.
+ if(!usingAttackSprite && idleFrames?.length){
+   const idleMs=name==='Lebee'?520:185;
+   let frameIndex=Math.floor((performance.now()+idlePhase*7)/idleMs)%idleFrames.length;
+   let candidate=idleFrames[frameIndex];
+   if(candidate?.complete && candidate.naturalWidth>0)sprite=candidate;
+ }
+
+ let spriteRef=sprite?getRenderableSprite(sprite,name):null;
+ let dims=spriteDims(spriteRef);
+
+ if(spriteRef && dims.w>0 && dims.h>0){
+   let playerScale=isEnemy?1:1.07;
+   // v0.5.18: shared player scale; Crimson uses the same battlefield height target as Sub-Zero.
+   let playerRenderBonus=isEnemy?1:PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let h=(isEnemy?62:68)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus,
+       w=(isEnemy?42:48)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus;
+   let ratio=dims.w/dims.h;
+   if(ratio>0)w=h*ratio;
+   // Normalized action frames keep the exact same battlefield footprint as idle.
+
+   ctx.imageSmoothingEnabled=true;
+
+   // Deezy does not yet have a dedicated action-art pack. Give the existing
+   // sprite a real attack performance rather than simply translating the whole
+   // unit unchanged. Because this transform lives inside the already-facing
+   // coordinate system, it automatically follows his attack direction.
+   if(!visual&&attackState&&name==='Deezy'){
+     let p=attackProgress;
+     let strike=Math.sin(clamp(p/.78,0,1)*Math.PI);
+     let recoil=p>.72?Math.sin(((p-.72)/.28)*Math.PI)*.35:0;
+     let strength=attackState.kind==='special'?1.35:1;
+     ctx.translate((8.5*strength*strike)-(2.5*reco
+
+===== drawOverheadLinkIcon @ 395082 =====
+airAlive(pair))return 0;
+
+ if(pair===active){
+   let best=0;
+   S.pairs.forEach(other=>{
+     if(other!==active&&pairAlive(other)&&unitsMutuallyLinked(active,other))
+       best=Math.max(best,pairLinkVisualStrength(active,other));
+   });
+   return best;
+ }
+
+ return pairLinkVisualStrength(active,pair);
+}
+
+
+function playerSpriteTopY(pair,isActive=false){
+ const useDrag=isActive&&(S.drag||S.anim?.settle)&&S.dragVisual;
+ const scale=useDrag?(S.dragVisual.scale||1):1;
+ const lift=useDrag?(S.dragVisual.lift||0):0;
+
+ // Player sprites are drawn 68px high with their bottom at local y=12.
+ // This follows the real transformed top edge instead of using a fixed offset.
+ return pair.y-lift-56*scale;
+}
+
+function drawOverheadLinkIcon(x,y,strength){
+ strength=clamp(strength,0,1);
+ const pulse=.5+.5*Math.sin(performance.now()/190);
+ const sat=Math.round(28+72*strength);
+ const light=Math.round(50+8*strength);
+ const alpha=.24+.76*strength;
+ const color=`hsla(143,${sat}%,${light}%,${alpha})`;
+
+ ctx.save();
+ ctx.translate(x,y);
+ ctx.rotate(-.38);
+ ctx.strokeStyle=color;
+ ctx.shadowColor=`hsla(143,100%,56%,${.10+.75*strength})`;
+ ctx.shadowBlur=1+10*strength+1.5*pulse*strength;
+ ctx.lineWidth=1.15+.55*strength;
+
+ ctx.beginPath();
+ ctx.ellipse(-3.6,0,5.6,3,0,0,Math.PI*2);
+ ctx.stroke();
+ ctx.beginPath();
+ ctx.ellipse(3.6,0,5.6,3,0,0,Math.PI*2);
+ ctx.stroke();
+ ctx.restore();
+}
+
+function drawActiveLinkSummary(pair,pos,spriteTop){
+ if(S.phase!=='player'||S.ready?.kind!=='pair'||S.ready.ref!==pair)
+   return;
+
+ const previewing=(S.drag||S.action==='jutsu');
+ if(!previewing)return;
+
+ const members=comboMembers(null,pair);
+ if(members.length<=1)return;
+
+ const u=front(pair);
+ let damage=0,baseDamage=0;
+
+ if(S.action==='jutsu'){
+   const helpers=members.filter(p=>p!==pair);
+   damage=u.jutsuDamage+helpers.reduce((sum,p)=>sum+buffedNormalDamage(p).damage,0);
+   baseDamage=u.jutsuDamage+helpers.reduce((sum,p)=>sum+front(p).attack,0);
+ }else{
+   damage=members.reduce((sum,p)=>sum+buffedNormalDamage(p).damage,0);
+   baseDamage=members.reduce((sum,p)=>sum+front(p).attack,0);
+ }
+
+ const bonus=baseDamage>0?Math.max(0,damage/baseDamage-1):0;
+ const strength=linkVisualStrength(pair);
+ const sat=Math.round(28+72*strength);
+ const alpha=.45+.50*strength;
+ const accent=`hsla(143,${sat}%,58%,${alpha})`;
+
+ const label=`LINK ×${members.length} · ${damage} DMG${bonus>0?` · +${Math.round(bonus*100)}%`:''}`;
+ const y=spriteTop-27;
+
+ ctx.save();
+ ctx.font='bold 9px system-ui';
+ ctx.textAlign='center';
+ const width=Math.max(84,ctx.measureText(label).width+12);
+
+ ctx.fillStyle='rgba(7,10,12,.68)';
+ ctx.fillRect(pos.x-width/2,y-12,width,17);
+
+ ctx.strokeStyle=accent;
+ ctx.lineWidth=.8;
+ ctx.strokeRect(pos.x-width/2+.5,y-11.5,width-1,16);
+
+ ctx.fillStyle=accent;
+ ctx.fillText(label,pos.x,y);
+ ctx.restore();
+}
+
+function drawCompactHP(p,u){
+ let x=p.x,y=p.y+27,w=34,h=3;
+ ctx.save();
+
+ ctx.fillStyle='rgba(5,9,11,.55)';
+ ctx.fillRect(x-w/2,y,w,h);
+
+ let ratio=Math.max(0,u.hp/u.maxHp);
+ ctx.fillStyle=ratio>.5?'#53dc72':ratio>.25?'#ffbd4a':'#ff616a';
+ ctx.fillRect(x-w/2,y,w*ratio,h);
+
+ ctx.restore()
+}
+
+function drawPlayerResources(p,u,linkState={linked:false,count:0},active=false,pairRef=null){
+ const strength=pairRef?linkVisualStrength(pairRef):0;
+
+ // Keep battlefield HUD minimal: no unit nameplates or numeric text.
+ // Linked-state feedback remains above the fighter.
+ if(linkState.linked){
+   const spriteTop=pairRef?playerSpriteTopY(pairRef,active):p.y-56;
+   drawOverheadLinkIcon(p.x,spriteTop-10,strength);
+ }
+
+ const x=p.x;
+ const hpY=p.y+19;
+ const hpW=52;
+ const hpH=4;
+ const hpRatio=clamp(u.hp/u.maxHp,0,1);
+
+ ctx.save();
+
+ // Health bar sits immediately beneath the feet/shadow.
+ ctx.fillStyle='rgba(4,9,13,.72)';
+ ctx.fillRect(x-hpW/2,hpY,hpW,hpH);
+ ctx.strokeStyle='rgba(255,255,255,.34)';
+ ctx.lineWidth=.55;
+ ctx.strokeRect(x-hpW/2+.25,hpY+.25,hpW-.5,hpH-.5);
+ ctx.fillStyle=hpRatio>.5?'#53dc72':hpRatio>.25?'#ffbd4a':'#ff616a';
+ ctx.fillRect(x-hpW/2,hpY,hpW*hpRatio,hpH);
+
+ // Neon-blue chakra pips sit on their own row below HP.
+ const pipW=5,pipH=4,gap=2,total=u.maxChakra;
+ const chakraY=hpY+8;
+ const start=x-((pipW+gap)*total-gap)/2;
+ for(let i=0;i<total;i++){
+   if(i<u.chakra){
+     ctx.fillStyle='#23c9ff';
+     ctx.shadowColor='rgba(35,201,255,.88)';
+     ctx.shadowBlur=3.5;
+   }else{
+     ctx.fillStyle='rgba(12,25,33,.72)';
+     ctx.shadowBlur=0;
+   }
+   ctx.fillRect(start+i*(pipW+gap),chakraY,pipW,pipH);
+ }
+
+ ctx.restore();
+}
+
+function drawMoveReturnCue(){
+ if(!S.drag||!S.dragOrigin||S.ready?.kind!=='pair')return;
+
+ const p=S.ready.ref;
+ const dist=d(p,S.dragOrigin);
+ const hint=dist<=MOVE_RETURN_HINT_RADIUS;
+ const cancelReady=dist<=MOVE_CANCEL_RADIUS;
+ const proximity=1-clamp(dist/MOVE_RETURN_HINT_RADIUS,0,1);
+
+ ctx.save();
+ ctx.translate(S.dragOrigin.x,S.dragOrigin.y+18);
+
+ // The home point is always faintly visible while dragging.
+ // It progressively brightens as the held piece approaches it.
+ const alpha=.045 + proximity*.11 + (cancelReady?.10:0);
+ ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+ ctx.shadowColor='rgba(255,255,255,.78)';
+ ctx.shadowBlur=cancelReady?8:hint?3:1;
+
+ ctx.beginPath();
+ ctx.ellipse(
+   0,0,
+   cancelReady?10.5:hint?9:7.5,
+   cancelReady?4.1:hint?3.4:2.7,
+   0,0,Math.PI*2
+ );
+ ctx.fill();
+
+ // The cancel symbol appears ONLY inside the true snap/cancel core.
+ if(cancelReady){
+   ctx.save();
+   ctx.translate(0,-10);
+   ctx.rotate(-.55);
+
+   ctx.shadowBlur=0;
+   ctx.strokeStyle='rgba(255,255,255,.94)';
+   ctx.lineWidth=1.45;
+   ctx.beginPath();
+   ctx.arc(0,0,4.8,.35,5.55);
+   ctx.stroke();
+
+   ctx.beginPath();
+   ctx.moveTo(3.9,-3.9);
+   ctx.lineTo(7.5,-4.3);
+   ctx.lineTo(5.8,-.9);
+   ctx.closePath();
+   ctx.fillStyle='rgba(255,255,255,.96)';
+   ctx.fill();
+
+   ctx.beginPath();
+   ctx.arc(0,0,1.05,0,Math.PI*2);
+   ctx.fillStyle='rgba(255,255,255,.90)';
+   ctx.fill();
+
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+
+function startVictorySequence(){
+ if(S.victoryFX)return;
+
+ S.victoryFX={
+   start:performance.now(),
+   textFade:700,
+   dimFade:2400,
+   maxDim:.55
+ };
+
+ S.phase='resolve';
+ S.log='Victory — all enemies defeated.';
+}
+
+function checkVictoryKillshot(){
+ if(!S.victoryFX && !aliveEnemies().length){
+   startVictorySequence();
+   return true;
+ }
+ return false;
+}
+
+function drawVictoryOverlay(){
+ if(!S.victoryFX)return;
+
+ const now=performance.now();
+ const elapsed=now-S.victoryFX.start;
+
+ // Battlefield darkening is intentionally slower than the victory text.
+ const dimT=clamp(elapsed/S.victoryFX.dimFade,0,1);
+ const dimEase=1-Math.pow(1-dimT,3);
+ const dimAlpha=S.victoryFX.maxDim*dimEase;
+
+ ctx.save();
+ ctx.fillStyle=`rgba(2,5,8,${dimAlpha})`;
+ ctx.fillRect(0,0,W,H);
+
+ // VICTORY begins fading immediately on the killshot.
+ const textT=clamp(elapsed/S.victoryFX.textFade,0,1);
+ const textEase=1-Math.pow(1-textT,3);
+
+ const scale=.92+.08*textEase;
+
+ if(VICTORY_IMAGE.complete && VICTORY_IMAGE.naturalWidth>0){
+   const maxW=W*.62;
+   const maxH=H*.30;
+   const ratio=VICTORY_IMAGE.naturalWidth/VICTORY_IMAGE.naturalHeight;
+
+   let w=maxW;
+   let h=w/ratio;
+   if(h>maxH){
+     h=maxH;
+     w=h*ratio;
+   }
+
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.shadowColor=`rgba(225,0,0,${.20*textEase})`;
+   ctx.shadowBlur=13*textEase;
+   ctx.drawImage(VICTORY_IMAGE,-w/2,-h/2,w,h);
+   ctx.restore();
+ }else{
+   // Edge/iOS fallback: victory is never invisible because an image decode lagged.
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.font='64px BambooBrush, Impact, system-ui';
+   ctx.fillStyle='#e31820';
+   ctx.
+
+===== drawActiveLinkSummary @ 395763 =====
+-lift-56*scale;
+}
+
+function drawOverheadLinkIcon(x,y,strength){
+ strength=clamp(strength,0,1);
+ const pulse=.5+.5*Math.sin(performance.now()/190);
+ const sat=Math.round(28+72*strength);
+ const light=Math.round(50+8*strength);
+ const alpha=.24+.76*strength;
+ const color=`hsla(143,${sat}%,${light}%,${alpha})`;
+
+ ctx.save();
+ ctx.translate(x,y);
+ ctx.rotate(-.38);
+ ctx.strokeStyle=color;
+ ctx.shadowColor=`hsla(143,100%,56%,${.10+.75*strength})`;
+ ctx.shadowBlur=1+10*strength+1.5*pulse*strength;
+ ctx.lineWidth=1.15+.55*strength;
+
+ ctx.beginPath();
+ ctx.ellipse(-3.6,0,5.6,3,0,0,Math.PI*2);
+ ctx.stroke();
+ ctx.beginPath();
+ ctx.ellipse(3.6,0,5.6,3,0,0,Math.PI*2);
+ ctx.stroke();
+ ctx.restore();
+}
+
+function drawActiveLinkSummary(pair,pos,spriteTop){
+ if(S.phase!=='player'||S.ready?.kind!=='pair'||S.ready.ref!==pair)
+   return;
+
+ const previewing=(S.drag||S.action==='jutsu');
+ if(!previewing)return;
+
+ const members=comboMembers(null,pair);
+ if(members.length<=1)return;
+
+ const u=front(pair);
+ let damage=0,baseDamage=0;
+
+ if(S.action==='jutsu'){
+   const helpers=members.filter(p=>p!==pair);
+   damage=u.jutsuDamage+helpers.reduce((sum,p)=>sum+buffedNormalDamage(p).damage,0);
+   baseDamage=u.jutsuDamage+helpers.reduce((sum,p)=>sum+front(p).attack,0);
+ }else{
+   damage=members.reduce((sum,p)=>sum+buffedNormalDamage(p).damage,0);
+   baseDamage=members.reduce((sum,p)=>sum+front(p).attack,0);
+ }
+
+ const bonus=baseDamage>0?Math.max(0,damage/baseDamage-1):0;
+ const strength=linkVisualStrength(pair);
+ const sat=Math.round(28+72*strength);
+ const alpha=.45+.50*strength;
+ const accent=`hsla(143,${sat}%,58%,${alpha})`;
+
+ const label=`LINK ×${members.length} · ${damage} DMG${bonus>0?` · +${Math.round(bonus*100)}%`:''}`;
+ const y=spriteTop-27;
+
+ ctx.save();
+ ctx.font='bold 9px system-ui';
+ ctx.textAlign='center';
+ const width=Math.max(84,ctx.measureText(label).width+12);
+
+ ctx.fillStyle='rgba(7,10,12,.68)';
+ ctx.fillRect(pos.x-width/2,y-12,width,17);
+
+ ctx.strokeStyle=accent;
+ ctx.lineWidth=.8;
+ ctx.strokeRect(pos.x-width/2+.5,y-11.5,width-1,16);
+
+ ctx.fillStyle=accent;
+ ctx.fillText(label,pos.x,y);
+ ctx.restore();
+}
+
+function drawCompactHP(p,u){
+ let x=p.x,y=p.y+27,w=34,h=3;
+ ctx.save();
+
+ ctx.fillStyle='rgba(5,9,11,.55)';
+ ctx.fillRect(x-w/2,y,w,h);
+
+ let ratio=Math.max(0,u.hp/u.maxHp);
+ ctx.fillStyle=ratio>.5?'#53dc72':ratio>.25?'#ffbd4a':'#ff616a';
+ ctx.fillRect(x-w/2,y,w*ratio,h);
+
+ ctx.restore()
+}
+
+function drawPlayerResources(p,u,linkState={linked:false,count:0},active=false,pairRef=null){
+ const strength=pairRef?linkVisualStrength(pairRef):0;
+
+ // Keep battlefield HUD minimal: no unit nameplates or numeric text.
+ // Linked-state feedback remains above the fighter.
+ if(linkState.linked){
+   const spriteTop=pairRef?playerSpriteTopY(pairRef,active):p.y-56;
+   drawOverheadLinkIcon(p.x,spriteTop-10,strength);
+ }
+
+ const x=p.x;
+ const hpY=p.y+19;
+ const hpW=52;
+ const hpH=4;
+ const hpRatio=clamp(u.hp/u.maxHp,0,1);
+
+ ctx.save();
+
+ // Health bar sits immediately beneath the feet/shadow.
+ ctx.fillStyle='rgba(4,9,13,.72)';
+ ctx.fillRect(x-hpW/2,hpY,hpW,hpH);
+ ctx.strokeStyle='rgba(255,255,255,.34)';
+ ctx.lineWidth=.55;
+ ctx.strokeRect(x-hpW/2+.25,hpY+.25,hpW-.5,hpH-.5);
+ ctx.fillStyle=hpRatio>.5?'#53dc72':hpRatio>.25?'#ffbd4a':'#ff616a';
+ ctx.fillRect(x-hpW/2,hpY,hpW*hpRatio,hpH);
+
+ // Neon-blue chakra pips sit on their own row below HP.
+ const pipW=5,pipH=4,gap=2,total=u.maxChakra;
+ const chakraY=hpY+8;
+ const start=x-((pipW+gap)*total-gap)/2;
+ for(let i=0;i<total;i++){
+   if(i<u.chakra){
+     ctx.fillStyle='#23c9ff';
+     ctx.shadowColor='rgba(35,201,255,.88)';
+     ctx.shadowBlur=3.5;
+   }else{
+     ctx.fillStyle='rgba(12,25,33,.72)';
+     ctx.shadowBlur=0;
+   }
+   ctx.fillRect(start+i*(pipW+gap),chakraY,pipW,pipH);
+ }
+
+ ctx.restore();
+}
+
+function drawMoveReturnCue(){
+ if(!S.drag||!S.dragOrigin||S.ready?.kind!=='pair')return;
+
+ const p=S.ready.ref;
+ const dist=d(p,S.dragOrigin);
+ const hint=dist<=MOVE_RETURN_HINT_RADIUS;
+ const cancelReady=dist<=MOVE_CANCEL_RADIUS;
+ const proximity=1-clamp(dist/MOVE_RETURN_HINT_RADIUS,0,1);
+
+ ctx.save();
+ ctx.translate(S.dragOrigin.x,S.dragOrigin.y+18);
+
+ // The home point is always faintly visible while dragging.
+ // It progressively brightens as the held piece approaches it.
+ const alpha=.045 + proximity*.11 + (cancelReady?.10:0);
+ ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+ ctx.shadowColor='rgba(255,255,255,.78)';
+ ctx.shadowBlur=cancelReady?8:hint?3:1;
+
+ ctx.beginPath();
+ ctx.ellipse(
+   0,0,
+   cancelReady?10.5:hint?9:7.5,
+   cancelReady?4.1:hint?3.4:2.7,
+   0,0,Math.PI*2
+ );
+ ctx.fill();
+
+ // The cancel symbol appears ONLY inside the true snap/cancel core.
+ if(cancelReady){
+   ctx.save();
+   ctx.translate(0,-10);
+   ctx.rotate(-.55);
+
+   ctx.shadowBlur=0;
+   ctx.strokeStyle='rgba(255,255,255,.94)';
+   ctx.lineWidth=1.45;
+   ctx.beginPath();
+   ctx.arc(0,0,4.8,.35,5.55);
+   ctx.stroke();
+
+   ctx.beginPath();
+   ctx.moveTo(3.9,-3.9);
+   ctx.lineTo(7.5,-4.3);
+   ctx.lineTo(5.8,-.9);
+   ctx.closePath();
+   ctx.fillStyle='rgba(255,255,255,.96)';
+   ctx.fill();
+
+   ctx.beginPath();
+   ctx.arc(0,0,1.05,0,Math.PI*2);
+   ctx.fillStyle='rgba(255,255,255,.90)';
+   ctx.fill();
+
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+
+function startVictorySequence(){
+ if(S.victoryFX)return;
+
+ S.victoryFX={
+   start:performance.now(),
+   textFade:700,
+   dimFade:2400,
+   maxDim:.55
+ };
+
+ S.phase='resolve';
+ S.log='Victory — all enemies defeated.';
+}
+
+function checkVictoryKillshot(){
+ if(!S.victoryFX && !aliveEnemies().length){
+   startVictorySequence();
+   return true;
+ }
+ return false;
+}
+
+function drawVictoryOverlay(){
+ if(!S.victoryFX)return;
+
+ const now=performance.now();
+ const elapsed=now-S.victoryFX.start;
+
+ // Battlefield darkening is intentionally slower than the victory text.
+ const dimT=clamp(elapsed/S.victoryFX.dimFade,0,1);
+ const dimEase=1-Math.pow(1-dimT,3);
+ const dimAlpha=S.victoryFX.maxDim*dimEase;
+
+ ctx.save();
+ ctx.fillStyle=`rgba(2,5,8,${dimAlpha})`;
+ ctx.fillRect(0,0,W,H);
+
+ // VICTORY begins fading immediately on the killshot.
+ const textT=clamp(elapsed/S.victoryFX.textFade,0,1);
+ const textEase=1-Math.pow(1-textT,3);
+
+ const scale=.92+.08*textEase;
+
+ if(VICTORY_IMAGE.complete && VICTORY_IMAGE.naturalWidth>0){
+   const maxW=W*.62;
+   const maxH=H*.30;
+   const ratio=VICTORY_IMAGE.naturalWidth/VICTORY_IMAGE.naturalHeight;
+
+   let w=maxW;
+   let h=w/ratio;
+   if(h>maxH){
+     h=maxH;
+     w=h*ratio;
+   }
+
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.shadowColor=`rgba(225,0,0,${.20*textEase})`;
+   ctx.shadowBlur=13*textEase;
+   ctx.drawImage(VICTORY_IMAGE,-w/2,-h/2,w,h);
+   ctx.restore();
+ }else{
+   // Edge/iOS fallback: victory is never invisible because an image decode lagged.
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.font='64px BambooBrush, Impact, system-ui';
+   ctx.fillStyle='#e31820';
+   ctx.shadowColor='rgba(0,0,0,.88)';
+   ctx.shadowBlur=9;
+   ctx.fillText('VICTORY',0,0);
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+function render(){
+ try{
+ // Start every frame from a known-good canvas state.
+ ctx.globalAlpha=1;
+ ctx.globalCompositeOperation='source-over';
+ ctx.shadowBlur=0;
+ updateFacing();
+ drawField();
+ if(S.jutsuDim){
+   const now=performance.now();
+   const elapsed=now-S.jutsuDim.start;
+   const fadeIn=clamp(elapsed/220,0,1);
+   const fadeOut=S.jutsuDim.end?clamp((now-S.jutsuDim.end)/260,0,1):0;
+   const a=(S.jutsuDim.alpha||.42)*fadeIn*(1-fadeOut);
+   if(a>0){ctx.save();ctx.fillStyle=`rgba(3,2,10,${a})`;ctx.fillRect(0,0,W,H);ctx.restore()}
+   if(S.jutsuDi
+
+===== drawCompactHP @ 397195 =====
+th.max(0,damage/baseDamage-1):0;
+ const strength=linkVisualStrength(pair);
+ const sat=Math.round(28+72*strength);
+ const alpha=.45+.50*strength;
+ const accent=`hsla(143,${sat}%,58%,${alpha})`;
+
+ const label=`LINK ×${members.length} · ${damage} DMG${bonus>0?` · +${Math.round(bonus*100)}%`:''}`;
+ const y=spriteTop-27;
+
+ ctx.save();
+ ctx.font='bold 9px system-ui';
+ ctx.textAlign='center';
+ const width=Math.max(84,ctx.measureText(label).width+12);
+
+ ctx.fillStyle='rgba(7,10,12,.68)';
+ ctx.fillRect(pos.x-width/2,y-12,width,17);
+
+ ctx.strokeStyle=accent;
+ ctx.lineWidth=.8;
+ ctx.strokeRect(pos.x-width/2+.5,y-11.5,width-1,16);
+
+ ctx.fillStyle=accent;
+ ctx.fillText(label,pos.x,y);
+ ctx.restore();
+}
+
+function drawCompactHP(p,u){
+ let x=p.x,y=p.y+27,w=34,h=3;
+ ctx.save();
+
+ ctx.fillStyle='rgba(5,9,11,.55)';
+ ctx.fillRect(x-w/2,y,w,h);
+
+ let ratio=Math.max(0,u.hp/u.maxHp);
+ ctx.fillStyle=ratio>.5?'#53dc72':ratio>.25?'#ffbd4a':'#ff616a';
+ ctx.fillRect(x-w/2,y,w*ratio,h);
+
+ ctx.restore()
+}
+
+function drawPlayerResources(p,u,linkState={linked:false,count:0},active=false,pairRef=null){
+ const strength=pairRef?linkVisualStrength(pairRef):0;
+
+ // Keep battlefield HUD minimal: no unit nameplates or numeric text.
+ // Linked-state feedback remains above the fighter.
+ if(linkState.linked){
+   const spriteTop=pairRef?playerSpriteTopY(pairRef,active):p.y-56;
+   drawOverheadLinkIcon(p.x,spriteTop-10,strength);
+ }
+
+ const x=p.x;
+ const hpY=p.y+19;
+ const hpW=52;
+ const hpH=4;
+ const hpRatio=clamp(u.hp/u.maxHp,0,1);
+
+ ctx.save();
+
+ // Health bar sits immediately beneath the feet/shadow.
+ ctx.fillStyle='rgba(4,9,13,.72)';
+ ctx.fillRect(x-hpW/2,hpY,hpW,hpH);
+ ctx.strokeStyle='rgba(255,255,255,.34)';
+ ctx.lineWidth=.55;
+ ctx.strokeRect(x-hpW/2+.25,hpY+.25,hpW-.5,hpH-.5);
+ ctx.fillStyle=hpRatio>.5?'#53dc72':hpRatio>.25?'#ffbd4a':'#ff616a';
+ ctx.fillRect(x-hpW/2,hpY,hpW*hpRatio,hpH);
+
+ // Neon-blue chakra pips sit on their own row below HP.
+ const pipW=5,pipH=4,gap=2,total=u.maxChakra;
+ const chakraY=hpY+8;
+ const start=x-((pipW+gap)*total-gap)/2;
+ for(let i=0;i<total;i++){
+   if(i<u.chakra){
+     ctx.fillStyle='#23c9ff';
+     ctx.shadowColor='rgba(35,201,255,.88)';
+     ctx.shadowBlur=3.5;
+   }else{
+     ctx.fillStyle='rgba(12,25,33,.72)';
+     ctx.shadowBlur=0;
+   }
+   ctx.fillRect(start+i*(pipW+gap),chakraY,pipW,pipH);
+ }
+
+ ctx.restore();
+}
+
+function drawMoveReturnCue(){
+ if(!S.drag||!S.dragOrigin||S.ready?.kind!=='pair')return;
+
+ const p=S.ready.ref;
+ const dist=d(p,S.dragOrigin);
+ const hint=dist<=MOVE_RETURN_HINT_RADIUS;
+ const cancelReady=dist<=MOVE_CANCEL_RADIUS;
+ const proximity=1-clamp(dist/MOVE_RETURN_HINT_RADIUS,0,1);
+
+ ctx.save();
+ ctx.translate(S.dragOrigin.x,S.dragOrigin.y+18);
+
+ // The home point is always faintly visible while dragging.
+ // It progressively brightens as the held piece approaches it.
+ const alpha=.045 + proximity*.11 + (cancelReady?.10:0);
+ ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+ ctx.shadowColor='rgba(255,255,255,.78)';
+ ctx.shadowBlur=cancelReady?8:hint?3:1;
+
+ ctx.beginPath();
+ ctx.ellipse(
+   0,0,
+   cancelReady?10.5:hint?9:7.5,
+   cancelReady?4.1:hint?3.4:2.7,
+   0,0,Math.PI*2
+ );
+ ctx.fill();
+
+ // The cancel symbol appears ONLY inside the true snap/cancel core.
+ if(cancelReady){
+   ctx.save();
+   ctx.translate(0,-10);
+   ctx.rotate(-.55);
+
+   ctx.shadowBlur=0;
+   ctx.strokeStyle='rgba(255,255,255,.94)';
+   ctx.lineWidth=1.45;
+   ctx.beginPath();
+   ctx.arc(0,0,4.8,.35,5.55);
+   ctx.stroke();
+
+   ctx.beginPath();
+   ctx.moveTo(3.9,-3.9);
+   ctx.lineTo(7.5,-4.3);
+   ctx.lineTo(5.8,-.9);
+   ctx.closePath();
+   ctx.fillStyle='rgba(255,255,255,.96)';
+   ctx.fill();
+
+   ctx.beginPath();
+   ctx.arc(0,0,1.05,0,Math.PI*2);
+   ctx.fillStyle='rgba(255,255,255,.90)';
+   ctx.fill();
+
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+
+function startVictorySequence(){
+ if(S.victoryFX)return;
+
+ S.victoryFX={
+   start:performance.now(),
+   textFade:700,
+   dimFade:2400,
+   maxDim:.55
+ };
+
+ S.phase='resolve';
+ S.log='Victory — all enemies defeated.';
+}
+
+function checkVictoryKillshot(){
+ if(!S.victoryFX && !aliveEnemies().length){
+   startVictorySequence();
+   return true;
+ }
+ return false;
+}
+
+function drawVictoryOverlay(){
+ if(!S.victoryFX)return;
+
+ const now=performance.now();
+ const elapsed=now-S.victoryFX.start;
+
+ // Battlefield darkening is intentionally slower than the victory text.
+ const dimT=clamp(elapsed/S.victoryFX.dimFade,0,1);
+ const dimEase=1-Math.pow(1-dimT,3);
+ const dimAlpha=S.victoryFX.maxDim*dimEase;
+
+ ctx.save();
+ ctx.fillStyle=`rgba(2,5,8,${dimAlpha})`;
+ ctx.fillRect(0,0,W,H);
+
+ // VICTORY begins fading immediately on the killshot.
+ const textT=clamp(elapsed/S.victoryFX.textFade,0,1);
+ const textEase=1-Math.pow(1-textT,3);
+
+ const scale=.92+.08*textEase;
+
+ if(VICTORY_IMAGE.complete && VICTORY_IMAGE.naturalWidth>0){
+   const maxW=W*.62;
+   const maxH=H*.30;
+   const ratio=VICTORY_IMAGE.naturalWidth/VICTORY_IMAGE.naturalHeight;
+
+   let w=maxW;
+   let h=w/ratio;
+   if(h>maxH){
+     h=maxH;
+     w=h*ratio;
+   }
+
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.shadowColor=`rgba(225,0,0,${.20*textEase})`;
+   ctx.shadowBlur=13*textEase;
+   ctx.drawImage(VICTORY_IMAGE,-w/2,-h/2,w,h);
+   ctx.restore();
+ }else{
+   // Edge/iOS fallback: victory is never invisible because an image decode lagged.
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.font='64px BambooBrush, Impact, system-ui';
+   ctx.fillStyle='#e31820';
+   ctx.shadowColor='rgba(0,0,0,.88)';
+   ctx.shadowBlur=9;
+   ctx.fillText('VICTORY',0,0);
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+function render(){
+ try{
+ // Start every frame from a known-good canvas state.
+ ctx.globalAlpha=1;
+ ctx.globalCompositeOperation='source-over';
+ ctx.shadowBlur=0;
+ updateFacing();
+ drawField();
+ if(S.jutsuDim){
+   const now=performance.now();
+   const elapsed=now-S.jutsuDim.start;
+   const fadeIn=clamp(elapsed/220,0,1);
+   const fadeOut=S.jutsuDim.end?clamp((now-S.jutsuDim.end)/260,0,1):0;
+   const a=(S.jutsuDim.alpha||.42)*fadeIn*(1-fadeOut);
+   if(a>0){ctx.save();ctx.fillStyle=`rgba(3,2,10,${a})`;ctx.fillRect(0,0,W,H);ctx.restore()}
+   if(S.jutsuDim.end&&fadeOut>=1)S.jutsuDim=null;
+ }
+ drawMoveReturnCue();
+
+ const showPlayer=S.phase==='player'&&S.ready?.kind==='pair'&&(S.drag||S.action==='normal'||S.action==='jutsu');
+ const activePair=S.ready?.kind==='pair'?S.ready.ref:null;
+
+ // Attack/range fields live on the ground, so draw them before the pieces.
+ if(showPlayer&&activePair&&pairAlive(activePair)){
+   ensureFront(activePair);
+   const activeUnit=front(activePair);
+   const activePos=actorPos(activePair,activeUnit);
+   const proxy=attackProxy(activeUnit);
+   const jutsu=S.action==='jutsu';
+   const attackColor=!jutsu
+     ? '#ffffff'
+     : (isUltimateAction(activeUnit)?'#ff3548':'#45d7ff');
+   drawShape(activePos,proxy,attackColor,jutsu?.22:.12,jutsu,-22);
+ }
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   if(S.anim?.showEnemyRange===e)
+     drawShape(pos,{shape:normalShape(),rotation:0},'#ffffff',.14,false);
+ });
+
+ // Build ONE scene list so team identity never controls visual stacking.
+ const scene=[];
+
+ S.pairs.forEach((p,i)=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+   const lifted=selected&&((S.drag&&S.dragVisual)||(S.anim?.settle&&S.dragVisual));
+
+   scene.push({
+     kind:'player',
+     y:pos.y,
+     sortY:pos.y+(lifted?10000:0),
+     pair:p,index:i,u
+
+===== drawPlayerResources @ 397487 =====
+`;
+ const y=spriteTop-27;
+
+ ctx.save();
+ ctx.font='bold 9px system-ui';
+ ctx.textAlign='center';
+ const width=Math.max(84,ctx.measureText(label).width+12);
+
+ ctx.fillStyle='rgba(7,10,12,.68)';
+ ctx.fillRect(pos.x-width/2,y-12,width,17);
+
+ ctx.strokeStyle=accent;
+ ctx.lineWidth=.8;
+ ctx.strokeRect(pos.x-width/2+.5,y-11.5,width-1,16);
+
+ ctx.fillStyle=accent;
+ ctx.fillText(label,pos.x,y);
+ ctx.restore();
+}
+
+function drawCompactHP(p,u){
+ let x=p.x,y=p.y+27,w=34,h=3;
+ ctx.save();
+
+ ctx.fillStyle='rgba(5,9,11,.55)';
+ ctx.fillRect(x-w/2,y,w,h);
+
+ let ratio=Math.max(0,u.hp/u.maxHp);
+ ctx.fillStyle=ratio>.5?'#53dc72':ratio>.25?'#ffbd4a':'#ff616a';
+ ctx.fillRect(x-w/2,y,w*ratio,h);
+
+ ctx.restore()
+}
+
+function drawPlayerResources(p,u,linkState={linked:false,count:0},active=false,pairRef=null){
+ const strength=pairRef?linkVisualStrength(pairRef):0;
+
+ // Keep battlefield HUD minimal: no unit nameplates or numeric text.
+ // Linked-state feedback remains above the fighter.
+ if(linkState.linked){
+   const spriteTop=pairRef?playerSpriteTopY(pairRef,active):p.y-56;
+   drawOverheadLinkIcon(p.x,spriteTop-10,strength);
+ }
+
+ const x=p.x;
+ const hpY=p.y+19;
+ const hpW=52;
+ const hpH=4;
+ const hpRatio=clamp(u.hp/u.maxHp,0,1);
+
+ ctx.save();
+
+ // Health bar sits immediately beneath the feet/shadow.
+ ctx.fillStyle='rgba(4,9,13,.72)';
+ ctx.fillRect(x-hpW/2,hpY,hpW,hpH);
+ ctx.strokeStyle='rgba(255,255,255,.34)';
+ ctx.lineWidth=.55;
+ ctx.strokeRect(x-hpW/2+.25,hpY+.25,hpW-.5,hpH-.5);
+ ctx.fillStyle=hpRatio>.5?'#53dc72':hpRatio>.25?'#ffbd4a':'#ff616a';
+ ctx.fillRect(x-hpW/2,hpY,hpW*hpRatio,hpH);
+
+ // Neon-blue chakra pips sit on their own row below HP.
+ const pipW=5,pipH=4,gap=2,total=u.maxChakra;
+ const chakraY=hpY+8;
+ const start=x-((pipW+gap)*total-gap)/2;
+ for(let i=0;i<total;i++){
+   if(i<u.chakra){
+     ctx.fillStyle='#23c9ff';
+     ctx.shadowColor='rgba(35,201,255,.88)';
+     ctx.shadowBlur=3.5;
+   }else{
+     ctx.fillStyle='rgba(12,25,33,.72)';
+     ctx.shadowBlur=0;
+   }
+   ctx.fillRect(start+i*(pipW+gap),chakraY,pipW,pipH);
+ }
+
+ ctx.restore();
+}
+
+function drawMoveReturnCue(){
+ if(!S.drag||!S.dragOrigin||S.ready?.kind!=='pair')return;
+
+ const p=S.ready.ref;
+ const dist=d(p,S.dragOrigin);
+ const hint=dist<=MOVE_RETURN_HINT_RADIUS;
+ const cancelReady=dist<=MOVE_CANCEL_RADIUS;
+ const proximity=1-clamp(dist/MOVE_RETURN_HINT_RADIUS,0,1);
+
+ ctx.save();
+ ctx.translate(S.dragOrigin.x,S.dragOrigin.y+18);
+
+ // The home point is always faintly visible while dragging.
+ // It progressively brightens as the held piece approaches it.
+ const alpha=.045 + proximity*.11 + (cancelReady?.10:0);
+ ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+ ctx.shadowColor='rgba(255,255,255,.78)';
+ ctx.shadowBlur=cancelReady?8:hint?3:1;
+
+ ctx.beginPath();
+ ctx.ellipse(
+   0,0,
+   cancelReady?10.5:hint?9:7.5,
+   cancelReady?4.1:hint?3.4:2.7,
+   0,0,Math.PI*2
+ );
+ ctx.fill();
+
+ // The cancel symbol appears ONLY inside the true snap/cancel core.
+ if(cancelReady){
+   ctx.save();
+   ctx.translate(0,-10);
+   ctx.rotate(-.55);
+
+   ctx.shadowBlur=0;
+   ctx.strokeStyle='rgba(255,255,255,.94)';
+   ctx.lineWidth=1.45;
+   ctx.beginPath();
+   ctx.arc(0,0,4.8,.35,5.55);
+   ctx.stroke();
+
+   ctx.beginPath();
+   ctx.moveTo(3.9,-3.9);
+   ctx.lineTo(7.5,-4.3);
+   ctx.lineTo(5.8,-.9);
+   ctx.closePath();
+   ctx.fillStyle='rgba(255,255,255,.96)';
+   ctx.fill();
+
+   ctx.beginPath();
+   ctx.arc(0,0,1.05,0,Math.PI*2);
+   ctx.fillStyle='rgba(255,255,255,.90)';
+   ctx.fill();
+
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+
+function startVictorySequence(){
+ if(S.victoryFX)return;
+
+ S.victoryFX={
+   start:performance.now(),
+   textFade:700,
+   dimFade:2400,
+   maxDim:.55
+ };
+
+ S.phase='resolve';
+ S.log='Victory — all enemies defeated.';
+}
+
+function checkVictoryKillshot(){
+ if(!S.victoryFX && !aliveEnemies().length){
+   startVictorySequence();
+   return true;
+ }
+ return false;
+}
+
+function drawVictoryOverlay(){
+ if(!S.victoryFX)return;
+
+ const now=performance.now();
+ const elapsed=now-S.victoryFX.start;
+
+ // Battlefield darkening is intentionally slower than the victory text.
+ const dimT=clamp(elapsed/S.victoryFX.dimFade,0,1);
+ const dimEase=1-Math.pow(1-dimT,3);
+ const dimAlpha=S.victoryFX.maxDim*dimEase;
+
+ ctx.save();
+ ctx.fillStyle=`rgba(2,5,8,${dimAlpha})`;
+ ctx.fillRect(0,0,W,H);
+
+ // VICTORY begins fading immediately on the killshot.
+ const textT=clamp(elapsed/S.victoryFX.textFade,0,1);
+ const textEase=1-Math.pow(1-textT,3);
+
+ const scale=.92+.08*textEase;
+
+ if(VICTORY_IMAGE.complete && VICTORY_IMAGE.naturalWidth>0){
+   const maxW=W*.62;
+   const maxH=H*.30;
+   const ratio=VICTORY_IMAGE.naturalWidth/VICTORY_IMAGE.naturalHeight;
+
+   let w=maxW;
+   let h=w/ratio;
+   if(h>maxH){
+     h=maxH;
+     w=h*ratio;
+   }
+
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.shadowColor=`rgba(225,0,0,${.20*textEase})`;
+   ctx.shadowBlur=13*textEase;
+   ctx.drawImage(VICTORY_IMAGE,-w/2,-h/2,w,h);
+   ctx.restore();
+ }else{
+   // Edge/iOS fallback: victory is never invisible because an image decode lagged.
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.font='64px BambooBrush, Impact, system-ui';
+   ctx.fillStyle='#e31820';
+   ctx.shadowColor='rgba(0,0,0,.88)';
+   ctx.shadowBlur=9;
+   ctx.fillText('VICTORY',0,0);
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+function render(){
+ try{
+ // Start every frame from a known-good canvas state.
+ ctx.globalAlpha=1;
+ ctx.globalCompositeOperation='source-over';
+ ctx.shadowBlur=0;
+ updateFacing();
+ drawField();
+ if(S.jutsuDim){
+   const now=performance.now();
+   const elapsed=now-S.jutsuDim.start;
+   const fadeIn=clamp(elapsed/220,0,1);
+   const fadeOut=S.jutsuDim.end?clamp((now-S.jutsuDim.end)/260,0,1):0;
+   const a=(S.jutsuDim.alpha||.42)*fadeIn*(1-fadeOut);
+   if(a>0){ctx.save();ctx.fillStyle=`rgba(3,2,10,${a})`;ctx.fillRect(0,0,W,H);ctx.restore()}
+   if(S.jutsuDim.end&&fadeOut>=1)S.jutsuDim=null;
+ }
+ drawMoveReturnCue();
+
+ const showPlayer=S.phase==='player'&&S.ready?.kind==='pair'&&(S.drag||S.action==='normal'||S.action==='jutsu');
+ const activePair=S.ready?.kind==='pair'?S.ready.ref:null;
+
+ // Attack/range fields live on the ground, so draw them before the pieces.
+ if(showPlayer&&activePair&&pairAlive(activePair)){
+   ensureFront(activePair);
+   const activeUnit=front(activePair);
+   const activePos=actorPos(activePair,activeUnit);
+   const proxy=attackProxy(activeUnit);
+   const jutsu=S.action==='jutsu';
+   const attackColor=!jutsu
+     ? '#ffffff'
+     : (isUltimateAction(activeUnit)?'#ff3548':'#45d7ff');
+   drawShape(activePos,proxy,attackColor,jutsu?.22:.12,jutsu,-22);
+ }
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   if(S.anim?.showEnemyRange===e)
+     drawShape(pos,{shape:normalShape(),rotation:0},'#ffffff',.14,false);
+ });
+
+ // Build ONE scene list so team identity never controls visual stacking.
+ const scene=[];
+
+ S.pairs.forEach((p,i)=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+   const lifted=selected&&((S.drag&&S.dragVisual)||(S.anim?.settle&&S.dragVisual));
+
+   scene.push({
+     kind:'player',
+     y:pos.y,
+     sortY:pos.y+(lifted?10000:0),
+     pair:p,index:i,unit:u,pos,selected,lifted
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   scene.push({
+     kind:'enemy',
+     y:pos.y,
+     sortY:pos.y,
+     enemy:e,pos
+   });
+ });
+
+ // Higher on 
+
+===== drawMoveReturnCue @ 398849 =====
+);
+ ctx.strokeStyle='rgba(255,255,255,.34)';
+ ctx.lineWidth=.55;
+ ctx.strokeRect(x-hpW/2+.25,hpY+.25,hpW-.5,hpH-.5);
+ ctx.fillStyle=hpRatio>.5?'#53dc72':hpRatio>.25?'#ffbd4a':'#ff616a';
+ ctx.fillRect(x-hpW/2,hpY,hpW*hpRatio,hpH);
+
+ // Neon-blue chakra pips sit on their own row below HP.
+ const pipW=5,pipH=4,gap=2,total=u.maxChakra;
+ const chakraY=hpY+8;
+ const start=x-((pipW+gap)*total-gap)/2;
+ for(let i=0;i<total;i++){
+   if(i<u.chakra){
+     ctx.fillStyle='#23c9ff';
+     ctx.shadowColor='rgba(35,201,255,.88)';
+     ctx.shadowBlur=3.5;
+   }else{
+     ctx.fillStyle='rgba(12,25,33,.72)';
+     ctx.shadowBlur=0;
+   }
+   ctx.fillRect(start+i*(pipW+gap),chakraY,pipW,pipH);
+ }
+
+ ctx.restore();
+}
+
+function drawMoveReturnCue(){
+ if(!S.drag||!S.dragOrigin||S.ready?.kind!=='pair')return;
+
+ const p=S.ready.ref;
+ const dist=d(p,S.dragOrigin);
+ const hint=dist<=MOVE_RETURN_HINT_RADIUS;
+ const cancelReady=dist<=MOVE_CANCEL_RADIUS;
+ const proximity=1-clamp(dist/MOVE_RETURN_HINT_RADIUS,0,1);
+
+ ctx.save();
+ ctx.translate(S.dragOrigin.x,S.dragOrigin.y+18);
+
+ // The home point is always faintly visible while dragging.
+ // It progressively brightens as the held piece approaches it.
+ const alpha=.045 + proximity*.11 + (cancelReady?.10:0);
+ ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+ ctx.shadowColor='rgba(255,255,255,.78)';
+ ctx.shadowBlur=cancelReady?8:hint?3:1;
+
+ ctx.beginPath();
+ ctx.ellipse(
+   0,0,
+   cancelReady?10.5:hint?9:7.5,
+   cancelReady?4.1:hint?3.4:2.7,
+   0,0,Math.PI*2
+ );
+ ctx.fill();
+
+ // The cancel symbol appears ONLY inside the true snap/cancel core.
+ if(cancelReady){
+   ctx.save();
+   ctx.translate(0,-10);
+   ctx.rotate(-.55);
+
+   ctx.shadowBlur=0;
+   ctx.strokeStyle='rgba(255,255,255,.94)';
+   ctx.lineWidth=1.45;
+   ctx.beginPath();
+   ctx.arc(0,0,4.8,.35,5.55);
+   ctx.stroke();
+
+   ctx.beginPath();
+   ctx.moveTo(3.9,-3.9);
+   ctx.lineTo(7.5,-4.3);
+   ctx.lineTo(5.8,-.9);
+   ctx.closePath();
+   ctx.fillStyle='rgba(255,255,255,.96)';
+   ctx.fill();
+
+   ctx.beginPath();
+   ctx.arc(0,0,1.05,0,Math.PI*2);
+   ctx.fillStyle='rgba(255,255,255,.90)';
+   ctx.fill();
+
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+
+function startVictorySequence(){
+ if(S.victoryFX)return;
+
+ S.victoryFX={
+   start:performance.now(),
+   textFade:700,
+   dimFade:2400,
+   maxDim:.55
+ };
+
+ S.phase='resolve';
+ S.log='Victory — all enemies defeated.';
+}
+
+function checkVictoryKillshot(){
+ if(!S.victoryFX && !aliveEnemies().length){
+   startVictorySequence();
+   return true;
+ }
+ return false;
+}
+
+function drawVictoryOverlay(){
+ if(!S.victoryFX)return;
+
+ const now=performance.now();
+ const elapsed=now-S.victoryFX.start;
+
+ // Battlefield darkening is intentionally slower than the victory text.
+ const dimT=clamp(elapsed/S.victoryFX.dimFade,0,1);
+ const dimEase=1-Math.pow(1-dimT,3);
+ const dimAlpha=S.victoryFX.maxDim*dimEase;
+
+ ctx.save();
+ ctx.fillStyle=`rgba(2,5,8,${dimAlpha})`;
+ ctx.fillRect(0,0,W,H);
+
+ // VICTORY begins fading immediately on the killshot.
+ const textT=clamp(elapsed/S.victoryFX.textFade,0,1);
+ const textEase=1-Math.pow(1-textT,3);
+
+ const scale=.92+.08*textEase;
+
+ if(VICTORY_IMAGE.complete && VICTORY_IMAGE.naturalWidth>0){
+   const maxW=W*.62;
+   const maxH=H*.30;
+   const ratio=VICTORY_IMAGE.naturalWidth/VICTORY_IMAGE.naturalHeight;
+
+   let w=maxW;
+   let h=w/ratio;
+   if(h>maxH){
+     h=maxH;
+     w=h*ratio;
+   }
+
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.shadowColor=`rgba(225,0,0,${.20*textEase})`;
+   ctx.shadowBlur=13*textEase;
+   ctx.drawImage(VICTORY_IMAGE,-w/2,-h/2,w,h);
+   ctx.restore();
+ }else{
+   // Edge/iOS fallback: victory is never invisible because an image decode lagged.
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.font='64px BambooBrush, Impact, system-ui';
+   ctx.fillStyle='#e31820';
+   ctx.shadowColor='rgba(0,0,0,.88)';
+   ctx.shadowBlur=9;
+   ctx.fillText('VICTORY',0,0);
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+function render(){
+ try{
+ // Start every frame from a known-good canvas state.
+ ctx.globalAlpha=1;
+ ctx.globalCompositeOperation='source-over';
+ ctx.shadowBlur=0;
+ updateFacing();
+ drawField();
+ if(S.jutsuDim){
+   const now=performance.now();
+   const elapsed=now-S.jutsuDim.start;
+   const fadeIn=clamp(elapsed/220,0,1);
+   const fadeOut=S.jutsuDim.end?clamp((now-S.jutsuDim.end)/260,0,1):0;
+   const a=(S.jutsuDim.alpha||.42)*fadeIn*(1-fadeOut);
+   if(a>0){ctx.save();ctx.fillStyle=`rgba(3,2,10,${a})`;ctx.fillRect(0,0,W,H);ctx.restore()}
+   if(S.jutsuDim.end&&fadeOut>=1)S.jutsuDim=null;
+ }
+ drawMoveReturnCue();
+
+ const showPlayer=S.phase==='player'&&S.ready?.kind==='pair'&&(S.drag||S.action==='normal'||S.action==='jutsu');
+ const activePair=S.ready?.kind==='pair'?S.ready.ref:null;
+
+ // Attack/range fields live on the ground, so draw them before the pieces.
+ if(showPlayer&&activePair&&pairAlive(activePair)){
+   ensureFront(activePair);
+   const activeUnit=front(activePair);
+   const activePos=actorPos(activePair,activeUnit);
+   const proxy=attackProxy(activeUnit);
+   const jutsu=S.action==='jutsu';
+   const attackColor=!jutsu
+     ? '#ffffff'
+     : (isUltimateAction(activeUnit)?'#ff3548':'#45d7ff');
+   drawShape(activePos,proxy,attackColor,jutsu?.22:.12,jutsu,-22);
+ }
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   if(S.anim?.showEnemyRange===e)
+     drawShape(pos,{shape:normalShape(),rotation:0},'#ffffff',.14,false);
+ });
+
+ // Build ONE scene list so team identity never controls visual stacking.
+ const scene=[];
+
+ S.pairs.forEach((p,i)=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+   const lifted=selected&&((S.drag&&S.dragVisual)||(S.anim?.settle&&S.dragVisual));
+
+   scene.push({
+     kind:'player',
+     y:pos.y,
+     sortY:pos.y+(lifted?10000:0),
+     pair:p,index:i,unit:u,pos,selected,lifted
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   scene.push({
+     kind:'enemy',
+     y:pos.y,
+     sortY:pos.y,
+     enemy:e,pos
+   });
+ });
+
+ // Higher on map = farther away = rendered first.
+ // Lower on map = foreground = rendered later/on top.
+ scene.sort((a,b)=>{
+   if(a.sortY!==b.sortY)return a.sortY-b.sortY;
+   // Stable deterministic tie break when two baselines are essentially equal.
+   return a.kind==='enemy'&&b.kind==='player'?-1:
+          a.kind==='player'&&b.kind==='enemy'?1:0;
+ });
+
+ // BODY PASS — depth sorted.
+ scene.forEach(item=>{
+   if(item.kind==='player'){
+     const {pair:p,index:i,unit:u,pos,selected}=item;
+     const vis=((S.drag||S.anim?.settle)&&selected)?S.dragVisual:null;
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.shadowBlur=0;
+     ctx.globalAlpha=(activePair && !selected) ? .82 : 1;
+     drawUnit(
+       pos.x,pos.y,u.mark,COLORS[i],
+       S.phase==='player'&&selected,
+       vis,u.name,false,facingFlip(u.rotation,u.name),(u.renderScale||1)
+     );
+     ctx.restore();
+     return;
+   }
+
+   const e=item.enemy;
+   const pos=item.pos;
+   const activePlayer=S.ready?.kind==='pair'?front(S.ready.ref):null;
+   const proxy=activePlayer?attackProxy(activePlayer):null;
+   const supportJutsu=activePlayer&&S.action==='jutsu'&&isAllySupportJutsu(activePlayer);
+   const liveHit=showPlayer&&activePair&&!supportJutsu&&hits(activePair,proxy,e);
+
+   // Target feedback is part of the enemy's world layer.
+   if(liveHit){
+     const jutsu=S.action===
+
+===== drawVictoryOverlay @ 400647 =====
+x.stroke();
+
+   ctx.beginPath();
+   ctx.moveTo(3.9,-3.9);
+   ctx.lineTo(7.5,-4.3);
+   ctx.lineTo(5.8,-.9);
+   ctx.closePath();
+   ctx.fillStyle='rgba(255,255,255,.96)';
+   ctx.fill();
+
+   ctx.beginPath();
+   ctx.arc(0,0,1.05,0,Math.PI*2);
+   ctx.fillStyle='rgba(255,255,255,.90)';
+   ctx.fill();
+
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+
+function startVictorySequence(){
+ if(S.victoryFX)return;
+
+ S.victoryFX={
+   start:performance.now(),
+   textFade:700,
+   dimFade:2400,
+   maxDim:.55
+ };
+
+ S.phase='resolve';
+ S.log='Victory — all enemies defeated.';
+}
+
+function checkVictoryKillshot(){
+ if(!S.victoryFX && !aliveEnemies().length){
+   startVictorySequence();
+   return true;
+ }
+ return false;
+}
+
+function drawVictoryOverlay(){
+ if(!S.victoryFX)return;
+
+ const now=performance.now();
+ const elapsed=now-S.victoryFX.start;
+
+ // Battlefield darkening is intentionally slower than the victory text.
+ const dimT=clamp(elapsed/S.victoryFX.dimFade,0,1);
+ const dimEase=1-Math.pow(1-dimT,3);
+ const dimAlpha=S.victoryFX.maxDim*dimEase;
+
+ ctx.save();
+ ctx.fillStyle=`rgba(2,5,8,${dimAlpha})`;
+ ctx.fillRect(0,0,W,H);
+
+ // VICTORY begins fading immediately on the killshot.
+ const textT=clamp(elapsed/S.victoryFX.textFade,0,1);
+ const textEase=1-Math.pow(1-textT,3);
+
+ const scale=.92+.08*textEase;
+
+ if(VICTORY_IMAGE.complete && VICTORY_IMAGE.naturalWidth>0){
+   const maxW=W*.62;
+   const maxH=H*.30;
+   const ratio=VICTORY_IMAGE.naturalWidth/VICTORY_IMAGE.naturalHeight;
+
+   let w=maxW;
+   let h=w/ratio;
+   if(h>maxH){
+     h=maxH;
+     w=h*ratio;
+   }
+
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.shadowColor=`rgba(225,0,0,${.20*textEase})`;
+   ctx.shadowBlur=13*textEase;
+   ctx.drawImage(VICTORY_IMAGE,-w/2,-h/2,w,h);
+   ctx.restore();
+ }else{
+   // Edge/iOS fallback: victory is never invisible because an image decode lagged.
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.font='64px BambooBrush, Impact, system-ui';
+   ctx.fillStyle='#e31820';
+   ctx.shadowColor='rgba(0,0,0,.88)';
+   ctx.shadowBlur=9;
+   ctx.fillText('VICTORY',0,0);
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+function render(){
+ try{
+ // Start every frame from a known-good canvas state.
+ ctx.globalAlpha=1;
+ ctx.globalCompositeOperation='source-over';
+ ctx.shadowBlur=0;
+ updateFacing();
+ drawField();
+ if(S.jutsuDim){
+   const now=performance.now();
+   const elapsed=now-S.jutsuDim.start;
+   const fadeIn=clamp(elapsed/220,0,1);
+   const fadeOut=S.jutsuDim.end?clamp((now-S.jutsuDim.end)/260,0,1):0;
+   const a=(S.jutsuDim.alpha||.42)*fadeIn*(1-fadeOut);
+   if(a>0){ctx.save();ctx.fillStyle=`rgba(3,2,10,${a})`;ctx.fillRect(0,0,W,H);ctx.restore()}
+   if(S.jutsuDim.end&&fadeOut>=1)S.jutsuDim=null;
+ }
+ drawMoveReturnCue();
+
+ const showPlayer=S.phase==='player'&&S.ready?.kind==='pair'&&(S.drag||S.action==='normal'||S.action==='jutsu');
+ const activePair=S.ready?.kind==='pair'?S.ready.ref:null;
+
+ // Attack/range fields live on the ground, so draw them before the pieces.
+ if(showPlayer&&activePair&&pairAlive(activePair)){
+   ensureFront(activePair);
+   const activeUnit=front(activePair);
+   const activePos=actorPos(activePair,activeUnit);
+   const proxy=attackProxy(activeUnit);
+   const jutsu=S.action==='jutsu';
+   const attackColor=!jutsu
+     ? '#ffffff'
+     : (isUltimateAction(activeUnit)?'#ff3548':'#45d7ff');
+   drawShape(activePos,proxy,attackColor,jutsu?.22:.12,jutsu,-22);
+ }
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   if(S.anim?.showEnemyRange===e)
+     drawShape(pos,{shape:normalShape(),rotation:0},'#ffffff',.14,false);
+ });
+
+ // Build ONE scene list so team identity never controls visual stacking.
+ const scene=[];
+
+ S.pairs.forEach((p,i)=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+   const lifted=selected&&((S.drag&&S.dragVisual)||(S.anim?.settle&&S.dragVisual));
+
+   scene.push({
+     kind:'player',
+     y:pos.y,
+     sortY:pos.y+(lifted?10000:0),
+     pair:p,index:i,unit:u,pos,selected,lifted
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   scene.push({
+     kind:'enemy',
+     y:pos.y,
+     sortY:pos.y,
+     enemy:e,pos
+   });
+ });
+
+ // Higher on map = farther away = rendered first.
+ // Lower on map = foreground = rendered later/on top.
+ scene.sort((a,b)=>{
+   if(a.sortY!==b.sortY)return a.sortY-b.sortY;
+   // Stable deterministic tie break when two baselines are essentially equal.
+   return a.kind==='enemy'&&b.kind==='player'?-1:
+          a.kind==='player'&&b.kind==='enemy'?1:0;
+ });
+
+ // BODY PASS — depth sorted.
+ scene.forEach(item=>{
+   if(item.kind==='player'){
+     const {pair:p,index:i,unit:u,pos,selected}=item;
+     const vis=((S.drag||S.anim?.settle)&&selected)?S.dragVisual:null;
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.shadowBlur=0;
+     ctx.globalAlpha=(activePair && !selected) ? .82 : 1;
+     drawUnit(
+       pos.x,pos.y,u.mark,COLORS[i],
+       S.phase==='player'&&selected,
+       vis,u.name,false,facingFlip(u.rotation,u.name),(u.renderScale||1)
+     );
+     ctx.restore();
+     return;
+   }
+
+   const e=item.enemy;
+   const pos=item.pos;
+   const activePlayer=S.ready?.kind==='pair'?front(S.ready.ref):null;
+   const proxy=activePlayer?attackProxy(activePlayer):null;
+   const supportJutsu=activePlayer&&S.action==='jutsu'&&isAllySupportJutsu(activePlayer);
+   const liveHit=showPlayer&&activePair&&!supportJutsu&&hits(activePair,proxy,e);
+
+   // Target feedback is part of the enemy's world layer.
+   if(liveHit){
+     const jutsu=S.action==='jutsu';
+
+     const linkedCount=comboMembers(e,activePair).length;
+     const comboLinked=linkedCount>1;
+     const targetColor=!jutsu
+       ? (comboLinked?'#39ff88':'#ffffff')
+       : (isUltimateAction(activePlayer)?'#ff3548':'#45d7ff');
+
+     // Bubble feedback is isolated so it can never mask the enemy sprite.
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.globalAlpha=1;
+     ctx.shadowBlur=0;
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+14,0,Math.PI*2);
+     ctx.fillStyle=!jutsu
+       ? 'rgba(255,255,255,.08)'
+       : (isUltimateAction(activePlayer)?'rgba(255,53,72,.09)':'rgba(69,215,255,.08)');
+     ctx.fill();
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+10+1.5*Math.sin(performance.now()/145),0,Math.PI*2);
+     ctx.strokeStyle=targetColor;
+     ctx.shadowColor=targetColor;
+     ctx.shadowBlur=jutsu?10:(comboLinked?8:6);
+     ctx.lineWidth=jutsu?1.8:1.45;
+     ctx.stroke();
+     ctx.restore();
+   }
+
+   ctx.save();
+   ctx.globalAlpha=1;
+   drawUnit(
+     pos.x,pos.y,e.mark,'#d84b54',
+     S.phase==='cpu'&&S.ready?.ref===e,
+     null,(e.spriteKey||e.name),true,facingFlip(e.rotation,(e.spriteKey||e.name)),(e.sizeScale||1)
+   );
+   ctx.restore();
+ });
+
+ // HUD PASS — stays readable above the depth-sorted bodies.
+ const supportPreviewUnit=(S.ready?.kind==='pair')?front(S.ready.ref):null;
+ const showAllyHealTargets=S.phase==='player'&&S.action==='jutsu'&&supportPreviewUnit&&isAllySupportJutsu(supportPreviewUnit);
+
+ S.pairs.forEach(p=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   if(u.hp<=0)return;
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+
+   if(showAllyHealTargets){
+     const pulse=.5+.5*Math.sin(performance.now()/170);
+     ctx.save();
+     ctx.globalCompo
+
+===== render @ 402207 =====
+ave();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.shadowColor=`rgba(225,0,0,${.20*textEase})`;
+   ctx.shadowBlur=13*textEase;
+   ctx.drawImage(VICTORY_IMAGE,-w/2,-h/2,w,h);
+   ctx.restore();
+ }else{
+   // Edge/iOS fallback: victory is never invisible because an image decode lagged.
+   ctx.save();
+   ctx.globalAlpha=textEase;
+   ctx.translate(W/2,H/2-8);
+   ctx.scale(scale,scale);
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.font='64px BambooBrush, Impact, system-ui';
+   ctx.fillStyle='#e31820';
+   ctx.shadowColor='rgba(0,0,0,.88)';
+   ctx.shadowBlur=9;
+   ctx.fillText('VICTORY',0,0);
+   ctx.restore();
+ }
+
+ ctx.restore();
+}
+
+function render(){
+ try{
+ // Start every frame from a known-good canvas state.
+ ctx.globalAlpha=1;
+ ctx.globalCompositeOperation='source-over';
+ ctx.shadowBlur=0;
+ updateFacing();
+ drawField();
+ if(S.jutsuDim){
+   const now=performance.now();
+   const elapsed=now-S.jutsuDim.start;
+   const fadeIn=clamp(elapsed/220,0,1);
+   const fadeOut=S.jutsuDim.end?clamp((now-S.jutsuDim.end)/260,0,1):0;
+   const a=(S.jutsuDim.alpha||.42)*fadeIn*(1-fadeOut);
+   if(a>0){ctx.save();ctx.fillStyle=`rgba(3,2,10,${a})`;ctx.fillRect(0,0,W,H);ctx.restore()}
+   if(S.jutsuDim.end&&fadeOut>=1)S.jutsuDim=null;
+ }
+ drawMoveReturnCue();
+
+ const showPlayer=S.phase==='player'&&S.ready?.kind==='pair'&&(S.drag||S.action==='normal'||S.action==='jutsu');
+ const activePair=S.ready?.kind==='pair'?S.ready.ref:null;
+
+ // Attack/range fields live on the ground, so draw them before the pieces.
+ if(showPlayer&&activePair&&pairAlive(activePair)){
+   ensureFront(activePair);
+   const activeUnit=front(activePair);
+   const activePos=actorPos(activePair,activeUnit);
+   const proxy=attackProxy(activeUnit);
+   const jutsu=S.action==='jutsu';
+   const attackColor=!jutsu
+     ? '#ffffff'
+     : (isUltimateAction(activeUnit)?'#ff3548':'#45d7ff');
+   drawShape(activePos,proxy,attackColor,jutsu?.22:.12,jutsu,-22);
+ }
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   if(S.anim?.showEnemyRange===e)
+     drawShape(pos,{shape:normalShape(),rotation:0},'#ffffff',.14,false);
+ });
+
+ // Build ONE scene list so team identity never controls visual stacking.
+ const scene=[];
+
+ S.pairs.forEach((p,i)=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+   const lifted=selected&&((S.drag&&S.dragVisual)||(S.anim?.settle&&S.dragVisual));
+
+   scene.push({
+     kind:'player',
+     y:pos.y,
+     sortY:pos.y+(lifted?10000:0),
+     pair:p,index:i,unit:u,pos,selected,lifted
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   scene.push({
+     kind:'enemy',
+     y:pos.y,
+     sortY:pos.y,
+     enemy:e,pos
+   });
+ });
+
+ // Higher on map = farther away = rendered first.
+ // Lower on map = foreground = rendered later/on top.
+ scene.sort((a,b)=>{
+   if(a.sortY!==b.sortY)return a.sortY-b.sortY;
+   // Stable deterministic tie break when two baselines are essentially equal.
+   return a.kind==='enemy'&&b.kind==='player'?-1:
+          a.kind==='player'&&b.kind==='enemy'?1:0;
+ });
+
+ // BODY PASS — depth sorted.
+ scene.forEach(item=>{
+   if(item.kind==='player'){
+     const {pair:p,index:i,unit:u,pos,selected}=item;
+     const vis=((S.drag||S.anim?.settle)&&selected)?S.dragVisual:null;
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.shadowBlur=0;
+     ctx.globalAlpha=(activePair && !selected) ? .82 : 1;
+     drawUnit(
+       pos.x,pos.y,u.mark,COLORS[i],
+       S.phase==='player'&&selected,
+       vis,u.name,false,facingFlip(u.rotation,u.name),(u.renderScale||1)
+     );
+     ctx.restore();
+     return;
+   }
+
+   const e=item.enemy;
+   const pos=item.pos;
+   const activePlayer=S.ready?.kind==='pair'?front(S.ready.ref):null;
+   const proxy=activePlayer?attackProxy(activePlayer):null;
+   const supportJutsu=activePlayer&&S.action==='jutsu'&&isAllySupportJutsu(activePlayer);
+   const liveHit=showPlayer&&activePair&&!supportJutsu&&hits(activePair,proxy,e);
+
+   // Target feedback is part of the enemy's world layer.
+   if(liveHit){
+     const jutsu=S.action==='jutsu';
+
+     const linkedCount=comboMembers(e,activePair).length;
+     const comboLinked=linkedCount>1;
+     const targetColor=!jutsu
+       ? (comboLinked?'#39ff88':'#ffffff')
+       : (isUltimateAction(activePlayer)?'#ff3548':'#45d7ff');
+
+     // Bubble feedback is isolated so it can never mask the enemy sprite.
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.globalAlpha=1;
+     ctx.shadowBlur=0;
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+14,0,Math.PI*2);
+     ctx.fillStyle=!jutsu
+       ? 'rgba(255,255,255,.08)'
+       : (isUltimateAction(activePlayer)?'rgba(255,53,72,.09)':'rgba(69,215,255,.08)');
+     ctx.fill();
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+10+1.5*Math.sin(performance.now()/145),0,Math.PI*2);
+     ctx.strokeStyle=targetColor;
+     ctx.shadowColor=targetColor;
+     ctx.shadowBlur=jutsu?10:(comboLinked?8:6);
+     ctx.lineWidth=jutsu?1.8:1.45;
+     ctx.stroke();
+     ctx.restore();
+   }
+
+   ctx.save();
+   ctx.globalAlpha=1;
+   drawUnit(
+     pos.x,pos.y,e.mark,'#d84b54',
+     S.phase==='cpu'&&S.ready?.ref===e,
+     null,(e.spriteKey||e.name),true,facingFlip(e.rotation,(e.spriteKey||e.name)),(e.sizeScale||1)
+   );
+   ctx.restore();
+ });
+
+ // HUD PASS — stays readable above the depth-sorted bodies.
+ const supportPreviewUnit=(S.ready?.kind==='pair')?front(S.ready.ref):null;
+ const showAllyHealTargets=S.phase==='player'&&S.action==='jutsu'&&supportPreviewUnit&&isAllySupportJutsu(supportPreviewUnit);
+
+ S.pairs.forEach(p=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   if(u.hp<=0)return;
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+
+   if(showAllyHealTargets){
+     const pulse=.5+.5*Math.sin(performance.now()/170);
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y-15,31+3*pulse,0,Math.PI*2);
+     ctx.fillStyle='rgba(86,255,122,.10)';
+     ctx.fill();
+     ctx.strokeStyle='rgba(108,255,139,.92)';
+     ctx.shadowColor='#5dff76';
+     ctx.shadowBlur=10+4*pulse;
+     ctx.lineWidth=1.6;
+     ctx.stroke();
+
+     // Healing cross above each allied unit.
+     ctx.translate(pos.x,pos.y-58);
+     ctx.fillStyle='rgba(126,255,151,.96)';
+     ctx.shadowColor='#69ff82';
+     ctx.shadowBlur=8;
+     ctx.fillRect(-2.5,-8,5,16);
+     ctx.fillRect(-8,-2.5,16,5);
+     ctx.restore();
+   }
+
+   const linkState=playerLinkState(p);
+   drawPlayerResources(pos,u,linkState,selected,p);
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0)return;
+   if(renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+
+   ctx.save();
+   ctx.globalAlpha=S.phase==='player'?.92:1;
+   ctx.fillStyle='#222';
+   ctx.fillRect(pos.x-27,pos.y+29,54,6);
+   ctx.fillStyle='#ffbd4a';
+   ctx.fillRect(pos.x-27,pos.y+29,54*(e.hp/e.maxHp),6);
+   ctx.restore();
+ });
+
+ S.floaters.forEach(f=>{
+   ctx.save();
+   ctx.globalAlpha=f.life??1;
+   if(f.kind==='screenFlash'){
+     const elapsed=performance.now()-f.start;
+     const t=clamp(elapsed/f.duration,0,1);
+     ctx.setTransform(1,0,0,1,0,0);
+     ctx.globalCompositeOperation='source-over';
+     ctx.fillStyle=f.color||'#fff';
+     ctx.globalAlpha=f.fade?Math.max(0,1-t):1;
+     ctx.fillRect(0,0,W,H);
+   }else if(f.kind==='lebeeStarProjectile'){window.BlazingVfxRenderer.drawLebeeStarProjectile(ctx,
+
+===== updateUI @ 417004 =====
+max(...outgoing)*100)}%`,
+     tone:'buff'
+   });
+ }
+
+ // The ticker is intentionally generic so Field Skills / Buddy Skills /
+ // debuffs can append their own segments later without adding map clutter.
+ return items;
+}
+
+function updateTacticalTicker(){
+ if(!tacticalTicker)return;
+
+ const items=tacticalTickerItems();
+ if(!items.length){
+   tacticalTicker.classList.remove('show','linkActive');
+   tacticalTicker.innerHTML='';
+   return;
+ }
+
+ tacticalTicker.innerHTML=items
+   .map(item=>`<span class="tickerItem ${item.tone||'info'}">${item.text}</span>`)
+   .join('');
+
+ tacticalTicker.classList.add('show');
+ tacticalTicker.classList.toggle('linkActive',items.some(item=>item.tone==='link'));
+}
+
+function updateUI(){
+ updateMeter();
+ updateTacticalTicker();
+
+ // Boss-only health bar, driven by live Anubis HP.
+ if(bossHpHud&&bossHpFill){
+   const boss=S.bossBattle?S.enemies.find(e=>e.boss||e.name==='Anubis'):null;
+   if(boss){
+     bossHpHud.classList.add('active');
+     const ratio=clamp(boss.hp/boss.maxHp,0,1);
+     bossHpFill.style.width=`${ratio*100}%`;
+     bossHpHud.setAttribute('aria-label',`Anubis health ${boss.hp} of ${boss.maxHp}`);
+   }else{
+     bossHpHud.classList.remove('active');
+     bossHpFill.style.width='100%';
+   }
+ }
+ let active=S.ready?.kind==='pair'?front(S.ready.ref):S.ready?.ref;
+ phaseEl.textContent=S.phase==='charge'?'Turn meter charging…'
+   :S.phase==='player'?`${active.name}'s turn — Basic builds chakra; closer linked allies can amplify Link Attack buffs. Choose an action, preview its range, then drag and release.`
+   :S.phase==='cpu'?`${active.name} is acting…`:'Resolving attack…';
+ logEl.textContent=S.log;
+ normalBtn.classList.toggle('selected',S.action==='normal');
+ jutsuBtn.classList.toggle('selected',S.action==='jutsu');
+
+ let can=S.phase==='player'&&!S.drag&&!S.anim?.settle;
+ normalBtn.disabled=!can;swapBtn.disabled=!can||S.ready?.kind!=='pair'||back(S.ready.ref).hp<=0;
+
+ if(S.ready?.kind==='pair'){
+   let u=front(S.ready.ref);
+   jutsuBtn.textContent=`${u.jutsuName||'Jutsu'} · ${u.jutsuCost} ◆`;
+   jutsuBtn.disabled=!can||u.chakra<u.jutsuCost
+ }else{
+   jutsuBtn.textContent='Jutsu';jutsuBtn.disabled=true
+ }
+
+ statusEl.innerHTML=S.pairs.map((p,i)=>{
+   if(!pairAlive(p))return `<div class="card pair"><b>Pair ${i+1} defeated</b><br><span class="muted">Both fighters KO</span></div>`;
+   ensureFront(p);
+   let f=front(p),b=back(p);
+   if(b.name==='—')return `<div class="card pair ${S.ready?.ref===p?'activePair':''}">
+    <b>${f.name}</b><br>
+    <span class="muted">${f.hp}/${f.maxHp} HP · ${f.speed} SPD · <span class="chakraText">${f.chakra}/${f.maxChakra} ◆</span></span>
+   </div>`;
+   return `<div class="card pair ${S.ready?.ref===p?'activePair':''}">
+    <b>${f.name}</b> / ${b.name}<br>
+    <span class="muted">${f.hp}/${f.maxHp} HP · ${f.speed} SPD · <span class="chakraText">${f.chakra}/${f.maxChakra} ◆</span></span><br>
+    <span class="muted">Rear ${b.name}: ${b.hp}/${b.maxHp} HP · ${b.chakra}/${b.maxChakra} ◆</span>
+   </div>`
+ }).join('')
+}
+
+function addFloat(x,y,text,color){S.floaters.push({x,y,text,color,life:1});let f=S.floaters.at(-1);let id=setInterval(()=>{f.y-=1;f.life-=.025;if(f.life<=0){clearInterval(id);S.floaters=S.floaters.filter(x=>x!==f)}},16)}
+function tick(){
+ if(!gameStarted||S.phase!=='charge')return;
+ // v0.5.10 stability: charge is a non-animation state. A stale render animation
+ // must never stop the turn meter. Clear it defensively instead of freezing.
+ if(S.anim)S.anim=null;
+ let max=null;
+ S.pairs.forEach(p=>{if(!pairAlive(p))return;ensureFront(p);p.gauge+=front(p).speed*.018;if(p.gauge>=100&&(!max||p.gauge>max.g))max={kind:'pair',ref:p,g:p.gauge}});
+ S.enemies.forEach(e=>{if(e.hp<=0)return;e.gauge+=e.speed*.018;if(e.gauge>=100&&(!max||e.gauge>max.g))max={kind:'enemy',ref:e,g:e.gauge}});
+ // v0.5.11 hard rescue: a charge phase may never strand the battlefield.
+ if(!S._chargeSince)S._chargeSince=performance.now();
+ if(!max && performance.now()-S._chargeSince>3800){
+   const rescuePair=alivePairs().sort((a,b)=>b.gauge-a.gauge)[0];
+   if(rescuePair){rescuePair.gauge=100;max={kind:'pair',ref:rescuePair,g:100};S.log='Turn system recovered — player control restored.';}
+ }
+ if(max){
+   S.ready=max;
+   S._chargeSince=0;
+   S.readyStarted=performance.now();
+   S.dragOrigin=null;
+   S.phase=max.kind==='pair'?'player':'cpu';
+   if(max.kind==='enemy')setTimeout(cpuTurn,350)
+ }
+}
+setInterval(tick,30);
+function settleCollision(p){
+ const minDist=47;
+ const blockers=[...S.pairs.filter(other=>other!==p&&pairAlive(other)),...aliveEnemies()];
+ for(let pass=0;pass<3;pass++){
+  blockers.forEach(b=>{
+   let dx=p.x-b.x,dy=p.y-b.y,len=Math.hypot(dx,dy);
+   if(len<minDist){
+    if(len<.01){dx=1;dy=0;len=1}
+    let push=minDist-len;
+    p.x=clamp(p.x+(dx/len)*push,BATTLE_BOUNDS.left,BATTLE_BOUNDS.right);
+    p.y=clamp(p.y+(dy/len)*push,BATTLE_BOUNDS.top,BATTLE_BOUNDS.bottom)
+   }
+  })
+ }
+}
+function inputPoint(ev){
+ let r=cvs.getBoundingClientRect();
+ return {x:(ev.clientX-r.left)*W/r.width,y:(ev.clientY-r.top)*H/r.height};
+}
+
+// ===== v0.5.15 MOBILE INPUT =====
+// Battlefield interaction is touch-first: press the active unit, drag to position,
+// and release to commit the selected Normal/Jutsu action.
+cvs.addEventListener('pointerdown',ev=>{
+ if(S.phase!=='player'||S.anim?.settle)return;
+ let p=S.ready?.ref,pt=inputPoint(ev);
+ if(!p||!pairAlive(p)||d(pt,p)>UNIT_TOUCH_RADIUS)return;
+ ev.preventDefault();
+ S.drag=true;
+ S.dragOrigin={x:p.x,y:p.y};
+ S.dragVisual={scale:1.0,rot:0,lift:0,lastX:pt.x,lastY:pt.y,targetScale:1.34,targetLift:17};
+ try{cvs.setPointerCapture(ev.pointerId)}catch(_e){}
+});
+
+cvs.addEventListener('pointermove',ev=>{
+ if(!S.drag)return;
+ ev.preventDefault();
+ let p=S.ready.ref,pt=inputPoint(ev),v=S.dragVisual;
+ let dx=pt.x-v.lastX,dy=pt.y-v.lastY;
+ let targetRot=clamp(dx*.022,-.34,.34);
+ v.rot=clamp(v.rot*.58 + targetRot*.72,-.36,.36);
+ let flutter=clamp(Math.abs(dy)*.08,0,2.2);
+ v.scale+=(v.targetScale-v.scale)*.32;
+ v.lift+=(v.targetLift+flutter-v.lift)*.30;
+ v.lastX=pt.x;v.lastY=pt.y;
+ let legal=clampToBattlefield(pt);
+ p.x=legal.x;p.y=legal.y;
+});
+
+cvs.addEventListener('pointerup',ev=>{
+ if(!S.drag)return;
+ ev.preventDefault();
+ let p=S.ready.ref;
+ let v=S.dragVisual;
+ let origin=S.dragOrigin?{...S.dragOrigin}:{x:p.x,y:p.y};
+ let cancelMove=d(p,origin)<=MOVE_CANCEL_RADIUS;
+ S.drag=false;
+ try{if(cvs.hasPointerCapture?.(ev.pointerId))cvs.releasePointerCapture(ev.pointerId)}catch(_e){}
+
+ if(v){
+   const releasePos={x:p.x,y:p.y};
+   const settleDur=cancelMove?150:180;
+   S.anim={positions:{},settle:{pair:p,start:performance.now(),dur:settleDur}};
+
+   function settle(n){
+     if(!S.anim?.settle){S.dragVisual=null;return}
+     let t=Math.min(1,(n-S.anim.settle.start)/S.anim.settle.dur);
+     let ease=1-Math.pow(1-t,3);
+     let bounce=Math.sin(t*Math.PI)*(cancelMove?.025:.045);
+     if(cancelMove){
+       p.x=releasePos.x+(origin.x-releasePos.x)*ease;
+       p.y=releasePos.y+(origin.y-releasePos.y)*ease;
+     }
+     S.dragVisual={scale:1.34-(.34*t)+bounce,rot:(1-t)*v.rot,lift:17*(1-t)};
+     if(t<1){requestAnimationFrame(settle);return}
+
+     S.dragVisual=null;S.anim=null;
+     if(cancelMove){
+       p.x=origin.x;p.y=origin.y;S.dragOrigin=null;
+       S.log=`Move preview canceled — ${front(p).name} returned to the turn-start position.`;
+       updateUI();return;
+     }
+     S.dragOrigin=null;
+     settleCollision(p);
+     resolvePlayer();
+   }
+   requestAnimationFrame(settle);
+ }else{
+   S.dragOrigin=null;
+   if(cancelMove){p.x=origin.x;p.y=origin.y;updateUI()}
+   else{settleCollision(p);resolvePlayer()}
+ }
+});
+
+cvs.addEventListener('pointercancel',()=>{
+ if(!S.drag)return;
+ let p=S.ready?.ref;
+ if(p&&S.dra
+
+===== renderPulls @ 474249 =====
+are';
+ return 'common';
+}
+
+function rosterForRarity(rarity){
+ // v0.5.19 safe mode: legacy summon pool is offline until final cards are rebuilt.
+ if(rarity==='legendary')return ['Crimson'];
+ return ['Sub-Zero'];
+}
+
+function summonOne(forceRare=false){
+ const rarity=rarityRoll(forceRare);
+ const choices=rosterForRarity(rarity);
+ const name=choices[Math.floor(Math.random()*choices.length)];
+ return {name,rarity};
+}
+
+function rarityLabel(r){
+ return r==='legendary'?'LEGENDARY':r==='super'?'SUPER RARE':r==='rare'?'RARE':'COMMON';
+}
+
+function cardForSummon(name){
+ return CARD_DATA[name] || '';
+}
+
+function spriteForSummon(name){
+ return COMMON_SUMMON_SPRITES[name] || SPRITE_DATA[name] || '';
+}
+
+
+
+function renderPulls(pulls){
+ summonResults.innerHTML='<div class="pullGrid"></div>';
+ const grid=summonResults.querySelector('.pullGrid');
+
+ pulls.forEach((pull,i)=>{
+   const card=document.createElement('div');
+   card.className=`pullCard ${pull.rarity}${pull.name==='Lebee'?' lebeeCard':''}`;
+   card.style.animationDelay=`${i*55}ms`;
+   const imgSrc=cardForSummon(pull.name) || spriteForSummon(pull.name);
+   card.innerHTML=`
+     ${imgSrc?`<img class="resultTradingCard" src="${imgSrc}" alt="${pull.name} trading card">`:''}
+     <div class="rarity">${rarityLabel(pull.rarity)}</div>
+     <div class="charName">${pull.name}</div>
+   `;
+   grid.appendChild(card);
+ });
+
+ summonPulls+=pulls.length;
+ pullHistory.textContent=`Prototype summon history: ${summonPulls} total pull${summonPulls===1?'':'s'} this session.`;
+}
+
+function spendEmbers(amount){
+ if(summonEmbers<amount){
+   summonResults.innerHTML='<div class="resultPrompt" style="color:#ff7272">NOT ENOUGH EMBERS.</div>';
+   return false;
+ }
+ summonEmbers-=amount;
+ emberCount.textContent=summonEmbers;
+ if(pullEmberCount)pullEmberCount.textContent=summonEmbers;
+ return true;
+}
+
+
+
+
+function populateSummonShopArt(){
+ const lebee=cardForSummon('Lebee')||spriteForSummon('Lebee');
+ const blaze=cardForSummon('Blazehood')||spriteForSummon('Blazehood');
+ const anubis=cardForSummon('Anubis')||spriteForSummon('Anubis');
+
+ [featuredLebeeImage,bannerLebeeImage,superExampleImg,pullSuperExampleImg,pullBannerLebeeImage]
+   .forEach(img=>{if(img)img.src=lebee});
+ [rareExampleImg,pullRareExampleImg].forEach(img=>{if(img)img.src=blaze});
+ [legendaryExampleImg,pullLegendaryExampleImg].forEach(img=>{if(img)img.src=anubis});
+}
+
+function rarityStars(rarity){
+ if(rarity==='legendary')return '★★★★★★';
+ if(rarity==='super')return '★★★★★';
+ if(rarity==='rare')return '★★★';
+ return '★';
+}
+
+function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+
+let revealGlitterTimer=null;
+function stopRevealGlitter(){
+ if(revealGlitterTimer){clearInterval(revealGlitterTimer);revealGlitterTimer=null;}
+}
+function startRevealGlitter(rarity){
+ stopRevealGlitter();
+ if(rarity==='common')return;
+ revealGlitterTimer=setInterval(()=>{
+   const s=document.createElement('span');
+   s.className=`pullSpark glitter spark-${rarity}`;
+   const side=Math.random()<.5?0:1;
+   s.style.left=`${side?78+Math.random()*14:8+Math.random()*14}%`;
+   s.style.top=`${18+Math.random()*66}%`;
+   s.style.setProperty('--dx',`${(Math.random()-.5)*90}px`);
+   s.style.setProperty('--dy',`${-25-Math.random()*90}px`);
+   s.style.setProperty('--sparkSize',`${rarity==='legendary'?3+Math.random()*3.5:2+Math.random()*2.8}px`);
+   s.style.animation=`pullSparkBurst ${.75+Math.random()*.65}s ease-out forwards`;
+   pullSparkField.appendChild(s);
+   setTimeout(()=>s.remove(),1500);
+ }, rarity==='legendary'?360:rarity==='super'?460:620);
+}
+
+function resetPullSceneClasses(){
+ pullScene.className='summonShopShell pullShopShell pullScene';
+}
+
+function clearPullSparks(){
+ stopRevealGlitter();
+ pullSparkField.innerHTML='';
+}
+
+function makePullSparks(rarity,count=36){
+ clearPullSparks();
+ const boost=rarity==='legendary'?1.25:rarity==='super'?1.0:rarity==='rare'?.72:.38;
+ const total=Math.max(14,Math.floor(count*boost));
+
+ for(let i=0;i<total;i++){
+   const s=document.createElement('span');
+   s.className=`pullSpark spark-${rarity}`;
+   const edge=Math.floor(Math.random()*4);
+
+   let left,top;
+   if(edge===0){ left=8+Math.random()*18; top=18+Math.random()*62; }
+   else if(edge===1){ left=74+Math.random()*18; top=18+Math.random()*62; }
+   else if(edge===2){ left=18+Math.random()*64; top=13+Math.random()*17; }
+   else { left=18+Math.random()*64; top=73+Math.random()*17; }
+
+   s.style.left=`${left}%`;
+   s.style.top=`${top}%`;
+   s.style.setProperty('--dx',`${(Math.random()-.5)*120}px`);
+   s.style.setProperty('--dy',`${-30-Math.random()*150}px`);
+   s.style.setProperty('--sparkSize',`${2+Math.random()*(rarity==='legendary'?4.2:rarity==='super'?3.5:2.5)}px`);
+   s.style.animation=`pullSparkBurst ${.55+Math.random()*1.0}s ease-out ${Math.random()*.28}s forwards`;
+   pullSparkField.appendChild(s);
+ }
+}
+
+function setupPullCard(pull,index,total){
+ resetPullSceneClasses();
+ pullScene.classList.add(pull.rarity);
+ pullCounter.textContent=`${index+1} / ${total}`;
+ pullCardImage.src=cardForSummon(pull.name) || spriteForSummon(pull.name);
+ pullCardImage.alt=`${pull.name} ${rarityLabel(pull.rarity)} trading card`;
+ const badge=document.getElementById('pullNewBadge');if(badge)badge.textContent='NEW!';
+ pullRarity.textContent=rarityLabel(pull.rarity);
+ pullName.textContent=pull.name.toUpperCase();
+ pullStars.textContent=rarityStars(pull.rarity);
+ pullMessage.textContent='ENERGY GATHERING...';
+ pullResultsPanel.classList.remove('active');
+ nextPullBtn.style.visibility='hidden';
+ clearPullSparks();
+}
+
+
+let nextPullResolver=null;
+
+function waitForNextCard(isLast){
+ nextPullBtn.textContent=isLast?'VIEW RESULTS':'TAP TO CONTINUE';
+ nextPullBtn.style.visibility='hidden';
+ pullMessage.textContent=isLast?'FINAL CARD REVEALED!':'CARD REVEALED!';
+
+ return new Promise(resolve=>{
+   nextPullResolver=()=>{
+     nextPullResolver=null;
+     nextPullBtn.style.visibility='hidden';
+     resolve();
+   };
+ });
+}
+
+async function animatePullCard(pull,index,total,token){
+ setupPullCard(pull,index,total);
+ nextPullBtn.style.visibility='hidden';
+
+ pullScene.classList.add('phase-build');
+ makePullSparks(pull.rarity,pull.rarity==='legendary'?56:34);
+ await wait(pull.rarity==='legendary'?620:430);
+ if(token!==summonSequenceToken)return false;
+
+ pullScene.classList.remove('phase-build');
+ pullScene.classList.add('phase-form');
+ pullMessage.textContent='ENERGY FORMING...';
+ await wait(pull.rarity==='legendary'?680:480);
+ if(token!==summonSequenceToken)return false;
+
+ pullScene.classList.remove('phase-form');
+ pullScene.classList.add('phase-pop');
+ pullMessage.textContent='REVEAL!';
+ makePullSparks(pull.rarity,pull.rarity==='legendary'?86:54);
+ await wait(pull.rarity==='legendary'?480:340);
+ if(token!==summonSequenceToken)return false;
+
+ pullScene.classList.remove('phase-pop');
+ pullScene.classList.add('phase-reveal');
+ startRevealGlitter(pull.rarity);
+
+ // The card now remains on screen until the player explicitly advances.
+ await waitForNextCard(index===total-1);
+ stopRevealGlitter();
+
+ return token===summonSequenceToken;
+}
+
+function renderDedicatedResults(pulls){
+ resetPullSceneClasses();
+ pullScene.classList.add('resultsMode');
+ clearPullSparks();
+ nextPullBtn.style.visibility='hidden';
+
+ pullResultsGrid.innerHTML='';
+ pulls.forEach((pull,i)=>{
+   const card=document.createElement('div');
+   card.className=`pullCard ${pull.rarity}${pull.name==='Lebee'?' lebeeCard':''}`;
+   card.style.animationDelay=`${i*45}ms`;
+   const imgSrc=cardForSummon(pull.name) || spriteForSummon(pull.name);
+   card.innerHTML=`
+     ${imgSrc?`<img class="resultTradingCard" src="${imgSrc}" alt="${pull.name} trading card">`:''}
+     <div class="rarity">${rarityLabel(pull.r
+
+===== renderDedicatedResults @ 480616 =====
+.textContent='ENERGY FORMING...';
+ await wait(pull.rarity==='legendary'?680:480);
+ if(token!==summonSequenceToken)return false;
+
+ pullScene.classList.remove('phase-form');
+ pullScene.classList.add('phase-pop');
+ pullMessage.textContent='REVEAL!';
+ makePullSparks(pull.rarity,pull.rarity==='legendary'?86:54);
+ await wait(pull.rarity==='legendary'?480:340);
+ if(token!==summonSequenceToken)return false;
+
+ pullScene.classList.remove('phase-pop');
+ pullScene.classList.add('phase-reveal');
+ startRevealGlitter(pull.rarity);
+
+ // The card now remains on screen until the player explicitly advances.
+ await waitForNextCard(index===total-1);
+ stopRevealGlitter();
+
+ return token===summonSequenceToken;
+}
+
+function renderDedicatedResults(pulls){
+ resetPullSceneClasses();
+ pullScene.classList.add('resultsMode');
+ clearPullSparks();
+ nextPullBtn.style.visibility='hidden';
+
+ pullResultsGrid.innerHTML='';
+ pulls.forEach((pull,i)=>{
+   const card=document.createElement('div');
+   card.className=`pullCard ${pull.rarity}${pull.name==='Lebee'?' lebeeCard':''}`;
+   card.style.animationDelay=`${i*45}ms`;
+   const imgSrc=cardForSummon(pull.name) || spriteForSummon(pull.name);
+   card.innerHTML=`
+     ${imgSrc?`<img class="resultTradingCard" src="${imgSrc}" alt="${pull.name} trading card">`:''}
+     <div class="rarity">${rarityLabel(pull.rarity)}</div>
+     <div class="charName">${pull.name}</div>
+   `;
+   pullResultsGrid.appendChild(card);
+ });
+
+ summonPulls+=pulls.length;
+ pullHistory.textContent=`Prototype summon history: ${summonPulls} total pull${summonPulls===1?'':'s'} this session.`;
+ pullResultsPanel.classList.add('active');
+}
+
+async function launchSummonSequence(pulls){
+ const token=++summonSequenceToken;
+ populateSummonShopArt();
+ if(pullEmberCount)pullEmberCount.textContent=summonEmbers;
+
+ summonScreen.classList.remove('active');
+ summonPullScreen.classList.add('active');
+ window.scrollTo(0,0);
+
+ for(let i=0;i<pulls.length;i++){
+   const completed=await animatePullCard(pulls[i],i,pulls.length,token);
+   if(!completed)return;
+   if(i<pulls.length-1)await wait(120);
+ }
+
+ if(token!==summonSequenceToken)return;
+ renderDedicatedResults(pulls);
+}
+
+function spendEmbers(amount){
+ if(summonEmbers<amount){
+   summonResults.innerHTML='<div class="resultPrompt" style="color:#ff7272">NOT ENOUGH EMBERS.</div>';
+   return false;
+ }
+ summonEmbers-=amount;
+ emberCount.textContent=summonEmbers;
+ return true;
+}
+
+function openSummons(){
+ // Core-roster safe mode: do not load placeholder banner/card artwork.
+
+ emberCount.textContent=summonEmbers;
+ if(pullEmberCount)pullEmberCount.textContent=summonEmbers;
+ menuScreen.style.display='none';
+ summonPullScreen.classList.remove('active');
+ summonScreen.classList.add('active');
+ window.scrollTo(0,0);
+}
+
+function closeSummons(){
+ ++summonSequenceToken;
+ if(nextPullResolver){nextPullResolver();nextPullResolver=null;}
+ summonPullScreen.classList.remove('active');
+ summonScreen.classList.remove('active');
+ menuScreen.style.display='grid';
+ menuScreen.classList.remove('leaving');
+}
+
+function returnToSummonBanner(){
+ ++summonSequenceToken;
+ if(nextPullResolver){nextPullResolver();nextPullResolver=null;}
+ summonPullScreen.classList.remove('active');
+ summonScreen.classList.add('active');
+ resetPullSceneClasses();
+ pullResultsPanel.classList.remove('active');
+ clearPullSparks();
+ window.scrollTo(0,0);
+}
+
+summonsBtn.addEventListener('click',openSummons);
+summonBackBtn.addEventListener('click',closeSummons);
+returnToSummonsBtn.addEventListener('click',returnToSummonBanner);
+
+nextPullBtn.addEventListener('click',()=>{
+ if(nextPullResolver)nextPullResolver();
+});
+
+pullTapArea.addEventListener('click',(ev)=>{
+ if(!nextPullResolver)return;
+ if(ev.target.closest('button'))return;
+ nextPullResolver();
+});
+
+
+singleSummonBtn.addEventListener('click',()=>{
+ if(!spendEmbers(50))return;
+ launchSummonSequence([summonOne(false)]);
+});
+
+multiSummonBtn.addEventListener('click',()=>{
+ if(!spendEmbers(450))return;
+
+ // TEST SHOWCASE MODE:
+ // Every 10x contains at least one Common, Rare, Super Rare and Legendary
+ // so all card/flame/foil tiers can be reviewed in a single summon.
+ const guaranteedTiers=['common','rare','super','legendary'];
+ const pulls=guaranteedTiers.map(rarity=>{
+   const choices=rosterForRarity(rarity);
+   return {name:choices[Math.floor(Math.random()*choices.length)],rarity};
+ });
+
+ // Fill five normal slots.
+ for(let i=0;i<5;i++)pulls.push(summonOne(false));
+
+ // 10th slot remains Rare+.
+ pulls.push(summonOne(true));
+
+ // Shuffle the 10 cards so the guaranteed rarity locations are not obvious.
+ for(let i=pulls.length-1;i>0;i--){
+   const j=Math.floor(Math.random()*(i+1));
+   [pulls[i],pulls[j]]=[pulls[j],pulls[i]];
+ }
+
+ launchSummonSequence(pulls);
+});
+
+let menuTransitioning=false;
+function startBattle(kind){
+ if(menuTransitioning)return;
+ menuTransitioning=true;
+ const boss=kind==='boss';
+ const btn=boss?boss1Btn:level1Btn;
+ btn.classList.add('selected');
+ menuScreen.classList.add('leaving');
+
+ setTimeout(()=>{
+   // Reinitialize every battle from its canonical state. This intentionally
+   // ignores stale gameStarted values left by another screen/mode.
+   invalidateActions();
+   S=boss?freshBoss():fresh();
+   S._chargeSince=performance.now();
+   setBattleMap(boss?'boss':'level');
+   gameStarted=true;
+
+   battleScreen.classList.remove('visible');
+   battleScreen.classList.add('active');
+   menuScreen.style.display='none';
+
+   requestAnimationFrame(()=>requestAnimationFrame(()=>{
+     battleScreen.classList.add('visible');
+     menuTransitioning=false;
+     updateUI();
+   }));
+ },300);
+}
+level1Btn.addEventListener('click',()=>startBattle('level'));
+boss1Btn.addEventListener('click',()=>startBattle('boss'));
+
+// v0.5.15 global state watchdog. This is deliberately independent of sprite
+// animation so a visual callback can never permanently own the combat state.
+setInterval(()=>{
+ if(!gameStarted)return;
+ if(S.phase==='player'){
+   if(!S.ready || S.ready.kind!=='pair' || !pairAlive(S.ready.ref)){
+     const p=alivePairs().sort((a,b)=>b.gauge-a.gauge)[0];
+     if(p){S.ready={kind:'pair',ref:p,g:p.gauge};S.readyStarted=performance.now();S.anim=null;S.drag=false;S.phase='player';S.log='Player turn recovered.';}
+   }
+ }else if(S.phase==='charge'){
+   if(!S._chargeSince)S._chargeSince=performance.now();
+   if(performance.now()-S._chargeSince>5000){
+     const p=alivePairs().sort((a,b)=>b.gauge-a.gauge)[0];
+     if(p){p.gauge=100;S.ready={kind:'pair',ref:p,g:100};S.readyStarted=performance.now();S._chargeSince=0;S.anim=null;S.phase='player';S.log='Turn meter fallback restored player control.';updateUI();}
+   }
+ }
+},500);
+
+render();
+</script>
+<script>
+/* v0.5.25 inventory/navigation module. Does not touch battle state. */
+(()=>{
+ const inventoryScreen=document.getElementById('inventoryScreen');
+ const teamScreen=document.getElementById('teamScreen');
+ const unitCardScreen=document.getElementById('unitCardScreen');
+ const artViewScreen=document.getElementById('artViewScreen');
+ const mainMenu=document.getElementById('menuScreen');
+ const invBtn=document.getElementById('inventoryBtn');
+ const owned={
+   'Crimson':{
+     name:'CRIMSON',title:'BLAZING VANGUARD',element:'🔥 FIRE',stars:'★★★★★★',rarity:'LEGENDARY',
+     card:"<DATA_URI>",art:"<DATA_URI>",
+     hp:110,atk:32,spd:66,range:'CLOSE',cost:4,
+     skills:[
+       ['⚔','BASIC STRIKE','Close-range physical attack that builds chakra.','100%'],
+       ['🔥','CRIMSON JUTSU','Focused forward strike using Crimson’s current Jutsu field.','200%'],
+       ['✦','LINK ATTACK','Nearby allies can amplify a linked attack.','BONUS']
+     ]
+   },
+   'Sub-Zero':{
+     name:'SUB-ZERO',title:'ABSOLUTE ZERO',element:'❄️ ICE',s
+
+===== renderTeamEditor @ 490615 =====
+;
+ function hideCollection(){inventoryScreen.style.display='none';unitCardScreen.style.display='none';artViewScreen.style.display='none';teamScreen.style.display='none'}
+ function showMenu(){hideCollection();mainMenu.style.display='grid';mainMenu.classList.remove('leaving')}
+ function showInventory(){mainMenu.style.display='none';unitCardScreen.style.display='none';artViewScreen.style.display='none';teamScreen.style.display='none';inventoryScreen.style.display='block';window.scrollTo(0,0)}
+
+ let teamDraft=getActiveTeam();
+ let selectedTeamSlot=0;
+
+ function fighterDisplayName(name){return owned[name]?.name||name.toUpperCase()}
+ function fighterTeamImage(name){return owned[name]?.card||''}
+
+ function renderTeamEditor(){
+   const slots=[...document.querySelectorAll('.teamSlot[data-team-slot]')];
+   slots.forEach((slot,i)=>{
+     const name=teamDraft[i];
+     slot.classList.toggle('selected',i===selectedTeamSlot);
+     const img=slot.querySelector('img');
+     const label=slot.querySelector('.teamSlotName');
+     img.src=fighterTeamImage(name);
+     img.alt=name;
+     label.textContent=fighterDisplayName(name);
+   });
+
+   const roster=document.getElementById('teamCandidates');
+   roster.innerHTML=ACTIVE_PLAYABLE_UNITS.map(name=>{
+     const active=teamDraft.includes(name)?' inTeam':'';
+     return `<button class="teamCandidate${active}" data-team-fighter="${name}">
+       <img src="${fighterTeamImage(name)}" alt="${name}">
+       <span>${fighterDisplayName(name)}</span>
+     </button>`;
+   }).join('');
+
+   roster.querySelectorAll('[data-team-fighter]').forEach(btn=>{
+     btn.addEventListener('click',()=>{
+       const name=btn.dataset.teamFighter;
+       const existing=teamDraft.indexOf(name);
+       if(existing===selectedTeamSlot)return;
+       if(existing>=0){
+         [teamDraft[selectedTeamSlot],teamDraft[existing]]=[teamDraft[existing],teamDraft[selectedTeamSlot]];
+       }else{
+         teamDraft[selectedTeamSlot]=name;
+       }
+       renderTeamEditor();
+     });
+   });
+ }
+
+ function showTeamEditor(){
+   mainMenu.style.display='none';
+   inventoryScreen.style.display='none';
+   unitCardScreen.style.display='none';
+   artViewScreen.style.display='none';
+   teamScreen.style.display='block';
+   teamDraft=getActiveTeam();
+   selectedTeamSlot=0;
+   document.getElementById('teamSaved').textContent='';
+   renderTeamEditor();
+   window.scrollTo(0,0);
+ }
+
+ function renderPanel(u){
+   const cost=u.cost==='—'?'—':`${u.cost} ◆`;
+   const note=u.collectionOnly?`<div class="collectionStatus">COLLECTION READY • BATTLE KIT NOT YET ACTIVATED</div>`:'';
+   return `<div class="statGrid"><div class="stat"><b>LEVEL</b><span>1 / 100</span></div><div class="stat"><b>HP</b><span>${u.hp}</span></div><div class="stat"><b>ATK</b><span>${u.atk}</span></div><div class="stat"><b>DEF</b><span>${u.def??'—'}</span></div><div class="stat"><b>SPD</b><span>${u.spd}</span></div><div class="stat"><b>RANGE</b><span>${u.range}</span></div><div class="stat"><b>JUTSU COST</b><span>${cost}</span></div><div class="stat"><b>ARCHETYPE</b><span>${String(u.archetype||'—').replaceAll('_',' ').toUpperCase()}</span></div></div>`+
+   u.skills.map(s=>`<div class="skillRow"><div class="skillIcon">${s[0]}</div><div><b>${s[1]}</b><small>${s[2]}</small></div><div class="skillPower">${s[3]}</div></div>`).join('')+note;
+ }
+ function openUnit(name){
+   selected=name;const u=owned[name]; if(!u)return;
+   inventoryScreen.style.display='none';unitCardScreen.style.display='block';artViewScreen.style.display='none';
+   const hero=document.getElementById('unitHero');hero.classList.toggle('crimson',name==='Crimson');hero.classList.toggle('cosmic',name==='Lebee');
+   document.getElementById('unitCardHeroImage').src=u.card;
+   document.getElementById('unitDetailName').textContent=u.name;
+   document.getElementById('unitDetailTitle').textContent=u.title;
+   document.getElementById('unitElementPill').textContent=u.element;
+   document.getElementById('unitRarityLine').textContent=`${u.stars} • ${u.rarity}`;
+   document.getElementById('unitDetailPanel').innerHTML=renderPanel(u);
+   window.scrollTo(0,0);
+ }
+ function viewArt(){const u=owned[selected];document.getElementById('artViewImage').src=u.art;document.getElementById('artViewLabel').textContent=`${u.name} • FULL ART`;unitCardScreen.style.display='none';artViewScreen.style.display='block'}
+ invBtn?.addEventListener('click',showInventory);
+ document.getElementById('editTeamBtn').addEventListener('click',showTeamEditor);
+ document.getElementById('teamBackBtn').addEventListener('click',showInventory);
+ document.getElementById('teamHomeBtn').addEventListener('click',showMenu);
+ document.querySelectorAll('.teamSlot[data-team-slot]').forEach(slot=>{
+   slot.addEventListener('click',()=>{
+     selectedTeamSlot=Number(slot.dataset.teamSlot);
+     renderTeamEditor();
+   });
+ });
+ document.getElementById('saveTeamBtn').addEventListener('click',()=>{
+   const saved=setActiveTeam(teamDraft);
+   document.getElementById('teamSaved').textContent=`ACTIVE TEAM SAVED: ${saved.join(' · ')}`;
+   renderTeamEditor();
+ });
+
+ document.getElementById('inventoryBackBtn').addEventListener('click',showMenu);
+ document.getElementById('inventoryHomeBtn').addEventListener('click',showMenu);
+ document.getElementById('unitCardBackBtn').addEventListener('click',showInventory);
+ document.getElementById('unitCardHomeBtn').addEventListener('click',showMenu);
+ document.getElementById('viewArtworkBtn').addEventListener('click',viewArt);
+ document.getElementById('artViewCloseBtn').addEventListener('click',()=>{artViewScreen.style.display='none';unitCardScreen.style.display='block'});
+ document.querySelectorAll('.unitTile[data-unit]').forEach(b=>b.addEventListener('click',()=>openUnit(b.dataset.unit)));
+})();
+</script>
+</body></html>
+
+===== renderPanel @ 492310 =====
+=teamDraft.indexOf(name);
+       if(existing===selectedTeamSlot)return;
+       if(existing>=0){
+         [teamDraft[selectedTeamSlot],teamDraft[existing]]=[teamDraft[existing],teamDraft[selectedTeamSlot]];
+       }else{
+         teamDraft[selectedTeamSlot]=name;
+       }
+       renderTeamEditor();
+     });
+   });
+ }
+
+ function showTeamEditor(){
+   mainMenu.style.display='none';
+   inventoryScreen.style.display='none';
+   unitCardScreen.style.display='none';
+   artViewScreen.style.display='none';
+   teamScreen.style.display='block';
+   teamDraft=getActiveTeam();
+   selectedTeamSlot=0;
+   document.getElementById('teamSaved').textContent='';
+   renderTeamEditor();
+   window.scrollTo(0,0);
+ }
+
+ function renderPanel(u){
+   const cost=u.cost==='—'?'—':`${u.cost} ◆`;
+   const note=u.collectionOnly?`<div class="collectionStatus">COLLECTION READY • BATTLE KIT NOT YET ACTIVATED</div>`:'';
+   return `<div class="statGrid"><div class="stat"><b>LEVEL</b><span>1 / 100</span></div><div class="stat"><b>HP</b><span>${u.hp}</span></div><div class="stat"><b>ATK</b><span>${u.atk}</span></div><div class="stat"><b>DEF</b><span>${u.def??'—'}</span></div><div class="stat"><b>SPD</b><span>${u.spd}</span></div><div class="stat"><b>RANGE</b><span>${u.range}</span></div><div class="stat"><b>JUTSU COST</b><span>${cost}</span></div><div class="stat"><b>ARCHETYPE</b><span>${String(u.archetype||'—').replaceAll('_',' ').toUpperCase()}</span></div></div>`+
+   u.skills.map(s=>`<div class="skillRow"><div class="skillIcon">${s[0]}</div><div><b>${s[1]}</b><small>${s[2]}</small></div><div class="skillPower">${s[3]}</div></div>`).join('')+note;
+ }
+ function openUnit(name){
+   selected=name;const u=owned[name]; if(!u)return;
+   inventoryScreen.style.display='none';unitCardScreen.style.display='block';artViewScreen.style.display='none';
+   const hero=document.getElementById('unitHero');hero.classList.toggle('crimson',name==='Crimson');hero.classList.toggle('cosmic',name==='Lebee');
+   document.getElementById('unitCardHeroImage').src=u.card;
+   document.getElementById('unitDetailName').textContent=u.name;
+   document.getElementById('unitDetailTitle').textContent=u.title;
+   document.getElementById('unitElementPill').textContent=u.element;
+   document.getElementById('unitRarityLine').textContent=`${u.stars} • ${u.rarity}`;
+   document.getElementById('unitDetailPanel').innerHTML=renderPanel(u);
+   window.scrollTo(0,0);
+ }
+ function viewArt(){const u=owned[selected];document.getElementById('artViewImage').src=u.art;document.getElementById('artViewLabel').textContent=`${u.name} • FULL ART`;unitCardScreen.style.display='none';artViewScreen.style.display='block'}
+ invBtn?.addEventListener('click',showInventory);
+ document.getElementById('editTeamBtn').addEventListener('click',showTeamEditor);
+ document.getElementById('teamBackBtn').addEventListener('click',showInventory);
+ document.getElementById('teamHomeBtn').addEventListener('click',showMenu);
+ document.querySelectorAll('.teamSlot[data-team-slot]').forEach(slot=>{
+   slot.addEventListener('click',()=>{
+     selectedTeamSlot=Number(slot.dataset.teamSlot);
+     renderTeamEditor();
+   });
+ });
+ document.getElementById('saveTeamBtn').addEventListener('click',()=>{
+   const saved=setActiveTeam(teamDraft);
+   document.getElementById('teamSaved').textContent=`ACTIVE TEAM SAVED: ${saved.join(' · ')}`;
+   renderTeamEditor();
+ });
+
+ document.getElementById('inventoryBackBtn').addEventListener('click',showMenu);
+ document.getElementById('inventoryHomeBtn').addEventListener('click',showMenu);
+ document.getElementById('unitCardBackBtn').addEventListener('click',showInventory);
+ document.getElementById('unitCardHomeBtn').addEventListener('click',showMenu);
+ document.getElementById('viewArtworkBtn').addEventListener('click',viewArt);
+ document.getElementById('artViewCloseBtn').addEventListener('click',()=>{artViewScreen.style.display='none';unitCardScreen.style.display='block'});
+ document.querySelectorAll('.unitTile[data-unit]').forEach(b=>b.addEventListener('click',()=>openUnit(b.dataset.unit)));
+})();
+</script>
+</body></html>
