@@ -16,6 +16,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
+      - name: Fix bounded Jutsu-dim migration anchor
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const p='scripts/pass4-migrate-rendering.mjs';
+          let s=fs.readFileSync(p,'utf8');
+          const a=s.indexOf("replaceText(\n`  // Start every frame from a known-good canvas state.");
+          const b=s.indexOf("\n\nreplaceRx(\n  /    \\/\\/ Target feedback",a);
+          if(a<0||b<0)throw new Error('temporary anchor patch boundary missing');
+          const block=[
+            'replaceRx(',
+            '  /  \\/\\/ Start every frame from a known-good canvas state\\.\\n  ctx\\.globalAlpha=1;.*?\\n  \\}/s,',
+            '  `  // Start every frame from a known-good canvas state.\\n  window.BlazingBattlefieldRenderer.resetCanvasState(ctx);\\n  updateFacing();\\n  drawField();\\n  if(S.jutsuDim){\\n    const dim=window.BlazingBattlefieldRenderer.drawJutsuDim(ctx,{state:S.jutsuDim,W,H});\\n    if(dim.expired)S.jutsuDim=null;\\n  }`,',
+            "  'frame reset and Jutsu dim delegation'",
+            ');'
+          ].join('\n');
+          s=s.slice(0,a)+block+s.slice(b);
+          fs.writeFileSync(p,s);
+          NODE
       - name: Migrate rendering shell
         run: node scripts/pass4-migrate-rendering.mjs
       - name: Commit migrated shell
