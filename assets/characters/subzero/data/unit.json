@@ -23,16 +23,16 @@
     "mark": "SZ",
     "movement_range": 88,
     "basic_shape": {
-      "type": "cone",
-      "r": 150,
-      "a": 0.82
+      "type": "circle",
+      "r": 72
     },
     "basic_rotation_deg": 0,
     "jutsu_shape": {
       "type": "cone",
-      "r": 205,
-      "a": 1.05
+      "r": 180,
+      "a": 0.78
     },
+    "jutsu_rotation_deg": 0,
     "chakra_max": 8,
     "chakra_start": 2
   },
@@ -46,7 +46,7 @@
       "damage_multiplier": 1.0,
       "chakra_gain": 1,
       "delivery": "melee",
-      "range_presentation": "horizontal_cone",
+      "range_presentation": "close_circle",
       "target_mode": "single",
       "single_target_selector": "nearest_in_shape"
     },
@@ -56,6 +56,9 @@
       "cost": 4,
       "damage_multiplier": 2.1,
       "delivery": "projectile",
+      "range_presentation": "forward_cone",
+      "target_mode": "multi",
+      "projectile_behavior": "single_shot_pierce_targets_in_shape",
       "status_effect": "freeze",
       "status_chance": 1.0,
       "category": "jutsu",
@@ -82,13 +85,13 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "v0.7: basic attack uses a static horizontal cone and resolves exactly one nearest target inside the cone; chakra_start remains canonical unit data.",
+    "notes": "v0.7: basic attack uses a small static circle and resolves one nearest target; Freeze Blast uses a short forward cone and one ice-ball shot may damage/freeze multiple enemies inside that cone.",
     "animation_map": true
   },
   "balance": {
     "status": "provisional",
-    "pass": "v0.5.30",
-    "notes": "Initial archetype-based values. Tune freely during balance testing."
+    "pass": "v0.7.1",
+    "notes": "Sub-Zero geometry pass: close single-target basic, compact multi-target Freeze Blast cone. Tune after playtest."
   },
   "animation_standard": {
     "version": "v0.6.16",
