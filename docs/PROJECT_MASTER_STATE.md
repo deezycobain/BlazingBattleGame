@@ -33,11 +33,13 @@ Primary per-character unit files live at:
 
 `assets/characters/<unit>/data/unit.json`
 
-These per-character files are the preferred canonical source when they conflict with older aggregate data.
+The runtime unit list is defined by:
 
-### Known registry issue
+`runtime/registry/unit-index.json`
 
-`assets/data/units_registry.json` currently contains older data for at least Senku and is behind the current per-character `unit.json`. Do not use the stale Senku registry entry as the authority until the registry is intentionally regenerated/synchronized.
+The superseded aggregate file `assets/data/units_registry.json` has been removed. Do not recreate or consume a second aggregate gameplay registry; canonical unit data must come from the registered per-character files.
+
+Runtime validation now rejects missing canonical Senku ability/frame assets and rejects `legacy_embedded` resource entries, preventing metadata from declaring assets that are not actually present in the repository.
 
 ## Current Senku production state
 
@@ -63,15 +65,12 @@ Canonical file: `assets/characters/senku/data/unit.json`
 - Projectile rotation: enabled
 - Canonical projectile scale metadata: 2.0
 - Clean projectile frames live under `assets/characters/senku/vfx/bomb/projectile_clean/`
-- Six-frame Small Explosion assets are declared under `assets/characters/senku/vfx/bomb/small_explosion_6f/`
+- Current production impact asset: `assets/characters/senku/vfx/bomb/static_impact/explosion.png`
+- Impact timing, size, and ground anchor are canonical presentation metadata and are applied to the legacy-shell renderer during the production build.
 
-### Current runtime mismatch to resolve
+The previously declared six-frame Small Explosion sequence was removed from the production canonical data because those files were not present on `main`. A multi-frame impact may be introduced later only when the approved frames are committed to the active development line and validation passes.
 
-The canonical Senku unit data declares the six-frame Small Explosion sequence, but the current `index.html` runtime renderer still contains the older `SENKU_BASIC_STATIC_EXPLOSION` / static-hold-fade impact path for `senkuExplosion`.
-
-Therefore the next Senku basic-attack integration task is to wire the actual six-frame explosion VFX into the runtime without changing damage timing or target resolution.
-
-The runtime `animateSenkuBomb()` already reads canonical Senku presentation metadata for cast/flight/arc timing and applies damage on projectile arrival.
+The runtime `animateSenkuBomb()` reads canonical cast/flight/arc timing, applies damage on projectile arrival, and keeps the impact floater alive for the same canonical impact duration used to complete the attack.
 
 ### Jutsu — Ally Heal
 
@@ -83,6 +82,8 @@ Current approved behavior:
 - Heal amount: 30% max HP
 - Does not revive dead allies
 - Planted throw / bottle airburst presentation retained
+
+The logical ability is `ally_heal`. Some approved runtime PNGs still physically live under historical `chemical_reaction` storage directories; canonical metadata points to those real files until a deliberate asset-directory rename is performed.
 
 ## Runtime architecture notes
 
@@ -97,6 +98,8 @@ Useful Senku runtime identifiers include:
 - `SENKU_BOMB_FRAMES`
 - `SENKU_BASIC_STATIC_EXPLOSION`
 
+Build-time migration remains intentionally defensive: required anchors cause the build to fail if the historical shell changes unexpectedly rather than silently shipping mixed legacy/canonical behavior.
+
 ## Current immediate development checkpoint
 
 At this checkpoint:
@@ -105,9 +108,11 @@ At this checkpoint:
 2. v0.7.0 is the promoted baseline.
 3. Senku bomb targeting is stable: circular range, exactly one nearest target in range.
 4. Senku bomb projectile uses cleaned assets and canonical presentation metadata.
-5. Senku Ally Heal is stable and should not be disturbed while editing the basic attack.
-6. The six-frame Small Explosion is present in canonical asset/data structure but still needs final runtime rendering integration in place of the older static explosion path.
-7. The stale aggregate unit registry should eventually be synchronized with canonical per-character unit files.
+5. Senku bomb impact metadata now matches the production asset that actually exists.
+6. Senku Ally Heal is stable and its canonical frame paths resolve to real production files.
+7. The stale aggregate unit registry has been removed.
+8. Runtime validation rejects phantom Senku assets and `legacy_embedded` manifest resources.
+9. Build validation runs for pushes to `main` / `dev-v2` and for pull requests targeting `main`.
 
 ## New-chat handoff rule
 
