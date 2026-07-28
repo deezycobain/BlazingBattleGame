@@ -3,6 +3,8 @@ name: Runtime Inspect
 on:
   push:
     branches: [dev-v2]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
