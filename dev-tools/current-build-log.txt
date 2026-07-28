@@ -1,5 +1,5 @@
 
-added 38 packages, and audited 39 packages in 11s
+added 38 packages, and audited 39 packages in 6s
 
 7 packages are looking for funding
   run `npm fund` for details
@@ -13,7 +13,7 @@ found 0 vulnerabilities
 > validate
 > node scripts/validate-runtime.mjs
 
-Runtime validation PASS: 5 units, 12 resources, canonical attack runtime, Senku hybrid punch/bomb basic, Lebee Star Blast/Meteor, Sub-Zero punch chain basic + multi-target Freeze Blast, explicit chakra starts.
+Runtime validation PASS: 5 units, 12 resources, canonical attack runtime, target-facing chain lunges, clean Senku close melee / ranged bomb basic, Lebee Star Blast/Meteor, Sub-Zero punch chain basic + multi-target Freeze Blast, explicit chakra starts.
 Production migration: Senku 8/8 chakra core + approved Ally Heal runtime applied
 Cloudflare build: index 49.9 MiB -> 0.3 MiB
 Externalized 177 embedded assets (28.2 MiB decoded)
