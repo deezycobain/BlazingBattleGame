@@ -1,0 +1,46 @@
+name: Pass 3 combat scan
+on:
+  push:
+    branches: [agent/pass3-combat-runtime]
+    paths-ignore:
+      - 'dev-tools/pass3-combat-scan.txt'
+permissions:
+  contents: write
+jobs:
+  scan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan combat shell neighborhoods
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const needles=[
+            'calcDamage','hp-=','hp +=','hp+=','maxHp','chakra','gauge',
+            'animateSenkuBomb','animateLebeeStarBlast','animateFreezeBlast',
+            'heal','nearest_in_shape','target_mode','onImpact','cpuTurn','playerTurn'
+          ];
+          const clean=s=>s.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g,m=>`<DATA_URI ${m.length} chars>`);
+          let out='';
+          for(const needle of needles){
+            out+=`\n===== ${needle} =====\n`;
+            let from=0,count=0;
+            while(count<16){
+              const i=html.indexOf(needle,from);
+              if(i<0)break;
+              out+=`\n--- match ${count+1} @ ${i} ---\n${clean(html.slice(Math.max(0,i-2200),Math.min(html.length,i+needle.length+3200)))}\n`;
+              from=i+needle.length; count++;
+            }
+          }
+          fs.mkdirSync('dev-tools',{recursive:true});
+          fs.writeFileSync('dev-tools/pass3-combat-scan.txt',out);
+          NODE
+      - name: Commit scan
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add dev-tools/pass3-combat-scan.txt
+          git diff --cached --quiet || git commit -m "Capture Pass 3 combat scan"
+          git push
