@@ -10,6 +10,12 @@ const unitIndex=await readJson('runtime/registry/unit-index.json');
 const actionRegistry=await readJson('runtime/registry/action-registry.json');
 const assetManifest=await readJson('runtime/registry/asset-manifest.json');
 
+if(!(await exists('runtime/combat/attack-runtime.js')))fail('canonical attack runtime is missing');
+if(!(await exists('scripts/attack-runtime-postprocess.mjs')))fail('attack runtime build adapter is missing');
+
+const attackAdapter=await fs.readFile(path.join(ROOT,'scripts/attack-runtime-postprocess.mjs'),'utf8');
+if(!attackAdapter.includes('facingOverride'))fail('attack runtime must install visual target-facing for canonical lunges');
+
 const seen=new Set();
 const units={};
 for(const entry of unitIndex.units||[]){
@@ -34,27 +40,54 @@ if(heal?.id!=='ally_heal')fail('Senku jutsu id must be ally_heal');
 if(heal?.effect!=='heal_percent_max_hp'||heal?.heal_percent!==0.3)fail('Senku Ally Heal must heal 30% max HP');
 if(heal?.target!=='all_living_allies'||heal?.revive!==false)fail('Senku Ally Heal must target living allies and never revive');
 if(senku.combat.chakra_start!==8)fail('Senku canonical chakra_start must be 8');
+const senkuBasic=senku.abilities?.basic;
+if(senkuBasic?.delivery!=='hybrid_distance')fail('Senku basic must use distance-aware hybrid delivery');
+if(senkuBasic?.target_mode!=='single'||senkuBasic?.single_target_selector!=='nearest_in_shape')fail('Senku basic must resolve one nearest target inside its circle');
+if(senkuBasic?.presentation?.close_range_threshold_px!==78)fail('Senku close-range punch threshold must remain 78px until rebalanced');
+if(senkuBasic?.presentation?.close_runtime_driver!=='lunge'||senkuBasic?.presentation?.far_runtime_driver!=='senku_bomb')fail('Senku basic must route close targets to melee lunge and far targets to bomb');
+if(senkuBasic?.presentation?.close_animation_kind!=='melee_lunge')fail('Senku close attack must not reuse bomb-throw body frames');
+
+const lebee=units.lebee;
+if(!lebee)fail('Lebee missing from unit registry');
+if(lebee.abilities?.basic?.id!=='star_blast'||lebee.abilities?.basic?.target_mode!=='multi')fail('Lebee Star Blast must remain multi-target');
+if(lebee.combat?.basic_shape?.type!=='rect'||lebee.combat?.basic_rotation_deg!==0)fail('Lebee basic must use a static horizontal rectangle');
+if(lebee.abilities?.basic?.presentation?.runtime_driver!=='lebee_star')fail('Lebee Star Blast must use the canonical star projectile driver');
+if(lebee.abilities?.jutsu?.id!=='meteor_jutsu'||lebee.abilities?.jutsu?.aoe!==true)fail('Lebee Meteor Jutsu must remain battlefield AoE');
+
+const subzero=units.subzero;
+if(!subzero)fail('Sub-Zero missing from unit registry');
+if(subzero.combat?.basic_shape?.type!=='circle'||subzero.combat?.basic_shape?.r!==72)fail('Sub-Zero basic must use the approved small 72-radius circle');
+if(subzero.abilities?.basic?.target_mode!=='single'||subzero.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Sub-Zero basic must resolve exactly one nearest target inside the circle');
+if(subzero.abilities?.basic?.presentation?.runtime_driver!=='lunge'||subzero.abilities?.basic?.presentation?.animation_kind!=='punch')fail('Sub-Zero basic and chain-helper presentation must use the canonical punch/lunge route');
+if(subzero.combat?.jutsu_shape?.type!=='cone'||subzero.combat?.jutsu_shape?.r!==180)fail('Sub-Zero Freeze Blast must use the approved short 180-range cone');
+if(subzero.abilities?.jutsu?.id!=='freeze_blast'||subzero.abilities?.jutsu?.target_mode!=='multi')fail('Sub-Zero Freeze Blast must remain multi-target');
+if(subzero.abilities?.jutsu?.projectile_behavior!=='single_shot_pierce_targets_in_shape')fail('Sub-Zero Freeze Blast must use one projectile shot across all valid targets in its cone');
 
 const resourceIds=new Set();
 const collect=(entry)=>{if(!entry?.resource_id)return;if(resourceIds.has(entry.resource_id))fail(`duplicate resource id ${entry.resource_id}`);resourceIds.add(entry.resource_id)};
 for(const group of Object.values(assetManifest.shared||{}))for(const entry of Object.values(group||{}))collect(entry);
 for(const unit of Object.values(assetManifest.units||{}))for(const groupName of ['animations','vfx'])for(const entry of Object.values(unit?.[groupName]||{})){collect(entry);if(entry.path&&!(await exists(entry.path)))fail(`missing asset path ${entry.path}`)}
 
-const senkuMapPath='assets/characters/senku/data/runtime-map.json';
-if(!(await exists(senkuMapPath)))fail('Senku runtime-map.json missing');
-const senkuMap=await readJson(senkuMapPath);
-if(senkuMap.unit_id!=='senku')fail('Senku runtime map unit_id mismatch');
-for(const [abilityId,mapping] of Object.entries(senkuMap.abilities||{})){
-  if(!Object.values(senku.abilities||{}).some(a=>a?.id===abilityId))fail(`runtime map references unknown Senku ability ${abilityId}`);
-  if(!resourceIds.has(mapping.animation_id))fail(`${abilityId} references unknown animation ${mapping.animation_id}`);
-  for(const resourceId of Object.values(mapping.vfx||{}))if(!resourceIds.has(resourceId))fail(`${abilityId} references unknown VFX ${resourceId}`);
-  for(const action of mapping.gameplay_actions||[])if(!actionRegistry.actions?.[action.action_id])fail(`${abilityId} references unknown action ${action.action_id}`);
+const runtimeMapUnits=['senku','lebee'];
+for(const unitId of runtimeMapUnits){
+  const mapPath=`assets/characters/${unitId}/data/runtime-map.json`;
+  if(!(await exists(mapPath)))fail(`${unitId} runtime-map.json missing`);
+  const runtimeMap=await readJson(mapPath);
+  if(runtimeMap.unit_id!==unitId)fail(`${unitId} runtime map unit_id mismatch`);
+  const unit=units[unitId];
+  for(const [abilityId,mapping] of Object.entries(runtimeMap.abilities||{})){
+    if(!Object.values(unit.abilities||{}).some(a=>a?.id===abilityId))fail(`runtime map references unknown ${unitId} ability ${abilityId}`);
+    if(!resourceIds.has(mapping.animation_id))fail(`${unitId}.${abilityId} references unknown animation ${mapping.animation_id}`);
+    for(const resourceId of Object.values(mapping.vfx||{}))if(!resourceIds.has(resourceId))fail(`${unitId}.${abilityId} references unknown VFX ${resourceId}`);
+    for(const action of mapping.gameplay_actions||[])if(!actionRegistry.actions?.[action.action_id])fail(`${unitId}.${abilityId} references unknown action ${action.action_id}`);
+  }
 }
 
+const senkuMap=await readJson('assets/characters/senku/data/runtime-map.json');
 const forbidden=['Revival Formula','revival_formula','heal_all_allies_full'];
 for(const token of forbidden){
   const canonical=JSON.stringify({senku,senkuMap,assetManifest});
   if(canonical.includes(token))fail(`legacy token remains in canonical runtime data: ${token}`);
 }
 
-console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical Senku Ally Heal, explicit chakra starts.`);
+console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical attack runtime, target-facing chain lunges, clean Senku close melee / ranged bomb basic, Lebee Star Blast/Meteor, Sub-Zero punch chain basic + multi-target Freeze Blast, explicit chakra starts.`);

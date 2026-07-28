@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "unit_id": "lebee",
+  "abilities": {
+    "star_blast": {
+      "animation_id": "lebee.animation.basic_attack",
+      "vfx": {},
+      "gameplay_actions": [
+        {
+          "action_id": "damage_resolved_targets",
+          "parameters": {"multiplier": 1.0}
+        }
+      ]
+    },
+    "meteor_jutsu": {
+      "animation_id": "lebee.animation.jutsu.meteor",
+      "vfx": {},
+      "gameplay_actions": [
+        {
+          "action_id": "damage_resolved_targets",
+          "parameters": {"multiplier": 2.25}
+        }
+      ]
+    }
+  }
+}

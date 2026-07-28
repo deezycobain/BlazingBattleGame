@@ -15,43 +15,40 @@
   "units": {
     "senku": {
       "animations": {
-        "idle": {
-          "resource_id": "senku.animation.idle",
-          "path": "assets/characters/senku/sprites/runtime/idle/"
-        },
-        "recoil": {
-          "resource_id": "senku.animation.recoil",
-          "path": "assets/characters/senku/sprites/runtime/recoil/"
-        },
-        "basic_attack": {
-          "resource_id": "senku.animation.basic_attack",
-          "path": "assets/characters/senku/sprites/runtime/attack/basic/"
-        },
+        "idle": {"resource_id":"senku.animation.idle","path":"assets/characters/senku/sprites/runtime/idle/"},
+        "recoil": {"resource_id":"senku.animation.recoil","path":"assets/characters/senku/sprites/runtime/recoil/"},
+        "basic_attack": {"resource_id":"senku.animation.basic_attack","path":"assets/characters/senku/sprites/runtime/attack/basic/"},
         "ally_heal_cast": {
-          "resource_id": "senku.animation.jutsu.ally_heal.cast",
-          "path": "assets/characters/senku/sprites/runtime/jutsu/chemical_reaction/cast/",
-          "required_runtime_frames": 2,
-          "migration_note": "Canonical resource ID; physical directory will be renamed after the approved two-frame PNGs are normalized."
+          "resource_id":"senku.animation.jutsu.ally_heal.cast",
+          "path":"assets/characters/senku/sprites/runtime/jutsu/chemical_reaction/cast/",
+          "required_runtime_frames":2,
+          "migration_note":"Canonical resource ID; physical directory will be renamed after the approved two-frame PNGs are normalized."
         }
       },
       "vfx": {
-        "explosive_bomb_projectile": {
-          "resource_id": "senku.vfx.basic.explosive_bomb.projectile",
-          "path": "assets/characters/senku/vfx/bomb/projectile_clean/"
-        },
+        "explosive_bomb_projectile": {"resource_id":"senku.vfx.basic.explosive_bomb.projectile","path":"assets/characters/senku/vfx/bomb/projectile_clean/"},
         "explosive_bomb_impact": {
-          "resource_id": "senku.vfx.basic.explosive_bomb.impact",
-          "type": "legacy_embedded",
-          "renderer": "senkuBombImpact",
-          "migration_note": "Current production impact remains embedded in the historical game shell; move to normal frame assets before deleting the legacy shell."
+          "resource_id":"senku.vfx.basic.explosive_bomb.impact",
+          "type":"legacy_embedded",
+          "renderer":"senkuBombImpact",
+          "migration_note":"Current production impact remains embedded in the historical game shell; move to normal frame assets before deleting the legacy shell."
         },
         "ally_heal_bottle": {
-          "resource_id": "senku.vfx.jutsu.ally_heal.bottle",
-          "path": "assets/characters/senku/vfx/jutsu/chemical_reaction/projectile/",
-          "usage": "Bottle artwork only; trajectory and burst are shared delivery behavior",
-          "migration_note": "Canonical resource ID; physical directory retains its historical name temporarily."
+          "resource_id":"senku.vfx.jutsu.ally_heal.bottle",
+          "path":"assets/characters/senku/vfx/jutsu/chemical_reaction/projectile/",
+          "usage":"Bottle artwork only; trajectory and burst are shared delivery behavior",
+          "migration_note":"Canonical resource ID; physical directory retains its historical name temporarily."
         }
       }
+    },
+    "lebee": {
+      "animations": {
+        "idle": {"resource_id":"lebee.animation.idle","path":"assets/characters/lebee/sprites/runtime/idle/"},
+        "recoil": {"resource_id":"lebee.animation.recoil","path":"assets/characters/lebee/sprites/runtime/recoil/"},
+        "basic_attack": {"resource_id":"lebee.animation.basic_attack","path":"assets/characters/lebee/sprites/runtime/attack/basic/"},
+        "meteor_jutsu": {"resource_id":"lebee.animation.jutsu.meteor","path":"assets/characters/lebee/sprites/runtime/jutsu/meteor/sequence_v0532/"}
+      },
+      "vfx": {}
     }
   }
 }
