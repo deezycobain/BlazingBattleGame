@@ -1,5 +1,5 @@
 
-added 38 packages, and audited 39 packages in 6s
+added 38 packages, and audited 39 packages in 5s
 
 7 packages are looking for funding
   run `npm fund` for details
@@ -7,7 +7,7 @@ added 38 packages, and audited 39 packages in 6s
 found 0 vulnerabilities
 
 > build
-> npm run validate && node scripts/build-cloudflare.mjs && node scripts/postprocess-build.mjs && node scripts/static-hitbox-postprocess.mjs && node scripts/attack-runtime-postprocess.mjs && node scripts/inspect-legacy-runtime.mjs
+> npm run validate && node scripts/build-cloudflare.mjs && node scripts/postprocess-build.mjs && node scripts/static-hitbox-postprocess.mjs && node scripts/attack-runtime-postprocess.mjs
 
 
 > validate
@@ -25,5 +25,4 @@ Preview overrides applied for local: playable chakra=max, player speed=200, boss
 Build metadata embedded: version=v0.7.0 branch=local commit=local
 Gameplay presentation pass: renderer-safe static hitboxes + UI-only nearest-target highlight (1 visual hits calls) + canonical single-target resolution + Senku bomb size curve applied
 Canonical attack runtime applied: shared basic dispatcher + chain helper presentation + Senku close/range delivery
-Legacy runtime inspection emitted 59 context blocks
 EXIT_STATUS=0
