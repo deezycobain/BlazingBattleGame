@@ -10,11 +10,14 @@ if(!html.includes(scriptTag)){
   html=html.replace(/<\/head>/i,`${scriptTag}</head>`);
 }
 
-const adapter=`function runCanonicalBasicPresentation(unitName,from,enemy,meleeTo,onImpact,onDone,_legacyAttackKind){
+// Adapter boundary between the remaining legacy battle shell and the canonical runtime.
+// Unit data chooses the presentation driver. Legacy punch/kick alternation is only a
+// fallback for units that have not yet declared a canonical animation kind.
+const adapter=`function runCanonicalBasicPresentation(unitName,from,enemy,meleeTo,onImpact,onDone,legacyAttackKind){
  const runtime=window.BB_ATTACK_RUNTIME;
  if(!runtime?.basicPresentation)throw new Error('Canonical attack runtime is unavailable');
  const profile=runtime.basicPresentation(unitName,from,enemy);
- const kind=profile.animation_kind||'punch';
+ const kind=profile.animation_kind||legacyAttackKind||'punch';
  if(profile.driver==='lebee_star')return animateLebeeStarBlast(unitName,from,enemy,onImpact,onDone,kind);
  if(profile.driver==='senku_bomb')return animateSenkuBomb(unitName,from,enemy,onImpact,onDone,kind);
  return animateLunge(unitName,from,meleeTo,onImpact,onDone,kind);
@@ -28,15 +31,32 @@ if(!html.includes('function runCanonicalBasicPresentation(')){
   html=html.slice(0,resolveAt)+adapter+html.slice(resolveAt);
 }
 
+// Replace the old per-name basic dispatcher used by the active unit AND every linked
+// basic attacker. This is the path that previously caused secondary Sub-Zero to skip
+// his canonical punch presentation.
 const legacyBasic=`const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlast:(au.name==='Senku'?animateSenkuBomb:animateLunge);\n   const basicTarget=(au.name==='Lebee'||au.name==='Senku')?enemy:to;\n   runBasicAttack(au.name,from,basicTarget,`;
 const basicCount=html.split(legacyBasic).length-1;
 if(basicCount!==1)throw new Error(`Attack runtime pass: expected 1 legacy basic dispatch block, found ${basicCount}`);
 html=html.replace(legacyBasic,'runCanonicalBasicPresentation(au.name,from,enemy,to,');
 
+// Jutsu-linked helpers also perform their normal basic presentation rather than a
+// generic lunge. This keeps assist behavior consistent with ordinary chain basics.
 const legacyHelper=`animateLunge(\n       hu.name,hfrom,hto,`;
 const helperCount=html.split(legacyHelper).length-1;
 if(helperCount!==1)throw new Error(`Attack runtime pass: expected 1 Jutsu helper lunge block, found ${helperCount}`);
 html=html.replace(legacyHelper,`runCanonicalBasicPresentation(\n       hu.name,hfrom,enemy,hto,`);
 
+// Migration guardrails: once generated, the deployable runtime must no longer contain
+// either legacy attack-dispatch shortcut. If these reappear, fail the build instead of
+// silently shipping two competing combat routes.
+if(html.includes("const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlast")){
+  throw new Error('Attack runtime pass: legacy named basic dispatcher survived migration');
+}
+if(html.includes('animateLunge(\n       hu.name,hfrom,hto,')){
+  throw new Error('Attack runtime pass: legacy helper lunge survived migration');
+}
+const adapterCount=html.split('function runCanonicalBasicPresentation(').length-1;
+if(adapterCount!==1)throw new Error(`Attack runtime pass: expected exactly 1 canonical adapter, found ${adapterCount}`);
+
 await fs.writeFile(file,html);
-console.log('Canonical attack runtime applied: shared basic dispatcher + chain helper presentation + Senku close/range delivery');
+console.log('Canonical attack runtime applied: shared basic/chain dispatcher + Senku close-range punch / ranged bomb delivery');
