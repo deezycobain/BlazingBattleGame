@@ -1,5 +1,5 @@
 
-added 38 packages, and audited 39 packages in 5s
+added 38 packages, and audited 39 packages in 11s
 
 7 packages are looking for funding
   run `npm fund` for details
@@ -24,5 +24,5 @@ Base team updated to Senku/Lebee/Sub-Zero; team-save feedback moved above button
 Preview overrides applied for local: playable chakra=max, player speed=200, boss speed=50
 Build metadata embedded: version=v0.7.0 branch=local commit=local
 Gameplay presentation pass: renderer-safe static hitboxes + UI-only nearest-target highlight (1 visual hits calls) + canonical single-target resolution + Senku bomb size curve applied
-Canonical attack runtime applied: shared basic/chain dispatcher + Senku close-range punch / ranged bomb delivery
+Canonical attack runtime applied: shared basic/chain dispatcher + target-facing lunges + clean Senku close melee / ranged bomb delivery
 EXIT_STATUS=0
