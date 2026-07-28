@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
-      - name: Fix bounded Jutsu-dim migration anchor
+      - name: Defer frame-loop state migration
         run: |
           node <<'NODE'
           const fs=require('fs');
@@ -24,18 +24,8 @@ jobs:
           let s=fs.readFileSync(p,'utf8');
           const a=s.indexOf("replaceText(\n`  // Start every frame from a known-good canvas state.");
           const b=s.indexOf("\n\nreplaceRx(\n  /    \\/\\/ Target feedback",a);
-          if(a<0||b<0)throw new Error('temporary anchor patch boundary missing');
-          const block=[
-            "const victoryDelegate=html.indexOf('window.BlazingBattlefieldRenderer.drawVictoryOverlay');",
-            "const renderStart=html.indexOf('function render(){',victoryDelegate);",
-            "const frameMarker='  // Start every frame from a known-good canvas state.';",
-            "const frameStart=html.indexOf(frameMarker,renderStart);",
-            "const frameEnd=html.indexOf('  drawMoveReturnCue();',frameStart);",
-            "if(victoryDelegate<0||renderStart<0||frameStart<0||frameEnd<0)throw new Error('frame reset and Jutsu dim delegation: battle render boundaries missing');",
-            "html=html.slice(0,frameStart)+`  // Start every frame from a known-good canvas state.\\n  window.BlazingBattlefieldRenderer.resetCanvasState(ctx);\\n  updateFacing();\\n  drawField();\\n  if(S.jutsuDim){\\n    const dim=window.BlazingBattlefieldRenderer.drawJutsuDim(ctx,{state:S.jutsuDim,W,H});\\n    if(dim.expired)S.jutsuDim=null;\\n  }\\n`+html.slice(frameEnd);",
-            "replacements['frame reset and Jutsu dim delegation']=1;"
-          ].join('\n');
-          s=s.slice(0,a)+block+s.slice(b);
+          if(a<0||b<0)throw new Error('temporary frame block boundary missing');
+          s=s.slice(0,a)+"replacements['frame reset and Jutsu dim delegation']='deferred';"+s.slice(b);
           fs.writeFileSync(p,s);
           NODE
       - name: Migrate rendering shell
