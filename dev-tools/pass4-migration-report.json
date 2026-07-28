@@ -1,7 +1,6 @@
 {
   "status": "success",
   "replacements": {
-    "runtime script tags": 1,
     "drawField delegation": 1,
     "drawShape delegation": 1,
     "link icon delegation": 1,
