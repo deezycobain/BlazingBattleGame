@@ -1,0 +1,47 @@
+name: Pass 4 render scan
+on:
+  push:
+    branches: [agent/pass4-rendering-runtime]
+    paths-ignore:
+      - 'dev-tools/pass4-render-scan.txt'
+  pull_request:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  scan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+      - name: Inventory render functions
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          let html=fs.readFileSync('index.html','utf8');
+          html=html.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g,'<DATA_URI>');
+          const rx=/function\s+([A-Za-z0-9_$]+)\s*\([^)]*\)\s*\{/g;
+          const wanted=[];
+          for(const m of html.matchAll(rx)){
+            const name=m[1];
+            if(/^(render|draw|updateUI|paint|display)/i.test(name)||/(render|draw|ui)$/i.test(name))wanted.push({name,index:m.index});
+          }
+          let out='';
+          for(const item of wanted){
+            out+=`\n===== ${item.name} @ ${item.index} =====\n`;
+            out+=html.slice(Math.max(0,item.index-700),Math.min(html.length,item.index+7000));
+            out+='\n';
+          }
+          fs.mkdirSync('dev-tools',{recursive:true});
+          fs.writeFileSync('dev-tools/pass4-render-scan.txt',out);
+          console.log(`Captured ${wanted.length} render/UI function neighborhoods`);
+          NODE
+      - name: Commit inventory
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add dev-tools/pass4-render-scan.txt
+          git diff --cached --quiet || git commit -m "Capture Pass 4 renderer inventory"
+          git push
