@@ -43,8 +43,11 @@ if(lebee.abilities?.jutsu?.id!=='meteor_jutsu'||lebee.abilities?.jutsu?.aoe!==tr
 
 const subzero=units.subzero;
 if(!subzero)fail('Sub-Zero missing from unit registry');
-if(subzero.combat?.basic_shape?.type!=='cone'||subzero.combat?.basic_rotation_deg!==0)fail('Sub-Zero basic must use a static horizontal cone');
-if(subzero.abilities?.basic?.target_mode!=='single'||subzero.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Sub-Zero basic must resolve exactly one nearest target inside the cone');
+if(subzero.combat?.basic_shape?.type!=='circle'||subzero.combat?.basic_shape?.r!==72)fail('Sub-Zero basic must use the approved small 72-radius circle');
+if(subzero.abilities?.basic?.target_mode!=='single'||subzero.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Sub-Zero basic must resolve exactly one nearest target inside the circle');
+if(subzero.combat?.jutsu_shape?.type!=='cone'||subzero.combat?.jutsu_shape?.r!==180)fail('Sub-Zero Freeze Blast must use the approved short 180-range cone');
+if(subzero.abilities?.jutsu?.id!=='freeze_blast'||subzero.abilities?.jutsu?.target_mode!=='multi')fail('Sub-Zero Freeze Blast must remain multi-target');
+if(subzero.abilities?.jutsu?.projectile_behavior!=='single_shot_pierce_targets_in_shape')fail('Sub-Zero Freeze Blast must use one projectile shot across all valid targets in its cone');
 
 const resourceIds=new Set();
 const collect=(entry)=>{if(!entry?.resource_id)return;if(resourceIds.has(entry.resource_id))fail(`duplicate resource id ${entry.resource_id}`);resourceIds.add(entry.resource_id)};
@@ -73,4 +76,4 @@ for(const token of forbidden){
   if(canonical.includes(token))fail(`legacy token remains in canonical runtime data: ${token}`);
 }
 
-console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical Senku Ally Heal, canonical Lebee Star Blast/Meteor, horizontal single-target Sub-Zero basic, explicit chakra starts.`);
+console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical Senku Ally Heal, canonical Lebee Star Blast/Meteor, Sub-Zero close single basic + multi-target Freeze Blast cone, explicit chakra starts.`);
