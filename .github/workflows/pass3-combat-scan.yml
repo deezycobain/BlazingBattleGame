@@ -4,6 +4,8 @@ on:
     branches: [agent/pass3-combat-runtime]
     paths-ignore:
       - 'dev-tools/pass3-combat-scan.txt'
+  pull_request:
+    branches: [main]
 permissions:
   contents: write
 jobs:
@@ -12,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - name: Scan combat shell neighborhoods
         run: |
           node <<'NODE'
