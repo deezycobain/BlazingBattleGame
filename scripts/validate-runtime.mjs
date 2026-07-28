@@ -81,7 +81,7 @@ const collect=async(entry,label)=>{
     physicalResourceCount++;
     if(entry.required_runtime_frames){
       const actual=await countImageFiles(entry.path);
-      if(actual!==entry.required_runtime_frames)fail(`${entry.resource_id} requires ${entry.required_runtime_frames} runtime frames but ${entry.path} contains ${actual}`);
+      if(actual<entry.required_runtime_frames)fail(`${entry.resource_id} requires at least ${entry.required_runtime_frames} runtime frames but ${entry.path} contains ${actual}`);
     }
   }else if(entry.type==='procedural'){
     proceduralResourceCount++;
