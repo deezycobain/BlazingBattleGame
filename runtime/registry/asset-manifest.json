@@ -1,7 +1,15 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "root": "assets/characters",
   "shared": {
+    "animations": {
+      "lunge": {
+        "resource_id": "shared.animation.lunge",
+        "type": "procedural",
+        "renderer": "animateLunge",
+        "usage": "Shared positional lunge timing used by melee attacks while character body frames remain unit-specific when available."
+      }
+    },
     "vfx": {
       "heal_green_flash": {
         "resource_id": "shared.vfx.heal.green_flash",
@@ -9,48 +17,89 @@
         "renderer": "radial_flash",
         "duration_ms": 500,
         "usage": "Reusable party-heal confirmation flash"
+      },
+      "impact_default": {
+        "resource_id": "shared.vfx.impact.default",
+        "type": "procedural",
+        "renderer": "addImpactFlash",
+        "usage": "Default player hit confirmation flash"
+      },
+      "impact_fire": {
+        "resource_id": "shared.vfx.impact.fire",
+        "type": "procedural",
+        "renderer": "addImpactFlash",
+        "usage": "Crimson fire-colored hit confirmation flash"
+      },
+      "impact_enemy": {
+        "resource_id": "shared.vfx.impact.enemy",
+        "type": "procedural",
+        "renderer": "addImpactFlash",
+        "usage": "Enemy hit confirmation flash"
+      },
+      "fullscreen_flash": {
+        "resource_id": "shared.vfx.fullscreen_flash",
+        "type": "procedural",
+        "renderer": "setMeteorFullscreenFlash",
+        "usage": "Full-screen flash transition used by Lebee Meteor Jutsu"
       }
     }
   },
   "units": {
     "senku": {
       "animations": {
-        "idle": {
-          "resource_id": "senku.animation.idle",
-          "path": "assets/characters/senku/sprites/runtime/idle/"
-        },
-        "recoil": {
-          "resource_id": "senku.animation.recoil",
-          "path": "assets/characters/senku/sprites/runtime/recoil/"
-        },
-        "basic_attack": {
-          "resource_id": "senku.animation.basic_attack",
-          "path": "assets/characters/senku/sprites/runtime/attack/basic/"
-        },
+        "idle": {"resource_id":"senku.animation.idle","path":"assets/characters/senku/sprites/runtime/idle/"},
+        "recoil": {"resource_id":"senku.animation.recoil","path":"assets/characters/senku/sprites/runtime/recoil/"},
+        "basic_attack": {"resource_id":"senku.animation.basic_attack","path":"assets/characters/senku/sprites/runtime/attack/basic/"},
         "ally_heal_cast": {
-          "resource_id": "senku.animation.jutsu.ally_heal.cast",
-          "path": "assets/characters/senku/sprites/runtime/jutsu/chemical_reaction/cast/",
-          "required_runtime_frames": 2,
-          "migration_note": "Canonical resource ID; physical directory will be renamed after the approved two-frame PNGs are normalized."
+          "resource_id":"senku.animation.jutsu.ally_heal.cast",
+          "path":"assets/characters/senku/sprites/runtime/jutsu/chemical_reaction/cast/",
+          "required_runtime_frames":2,
+          "migration_note":"Canonical resource ID; physical directory retains its historical name until normalized."
         }
       },
       "vfx": {
-        "explosive_bomb_projectile": {
-          "resource_id": "senku.vfx.basic.explosive_bomb.projectile",
-          "path": "assets/characters/senku/vfx/bomb/projectile_clean/"
-        },
-        "explosive_bomb_impact": {
-          "resource_id": "senku.vfx.basic.explosive_bomb.impact",
-          "path": "assets/characters/senku/vfx/bomb/static_impact/",
-          "usage": "Canonical production bomb impact asset; renderer parameters are driven by Senku ability presentation metadata."
-        },
-        "ally_heal_bottle": {
-          "resource_id": "senku.vfx.jutsu.ally_heal.bottle",
-          "path": "assets/characters/senku/vfx/jutsu/chemical_reaction/projectile/",
-          "usage": "Bottle artwork only; trajectory and burst are shared delivery behavior",
-          "migration_note": "Canonical resource ID; physical directory retains its historical name temporarily."
-        }
+        "explosive_bomb_projectile": {"resource_id":"senku.vfx.basic.explosive_bomb.projectile","path":"assets/characters/senku/vfx/bomb/projectile_clean/"},
+        "explosive_bomb_impact": {"resource_id":"senku.vfx.basic.explosive_bomb.impact","path":"assets/characters/senku/vfx/bomb/static_impact/","usage":"Canonical production bomb impact asset; renderer parameters are driven by Senku ability presentation metadata."},
+        "ally_heal_bottle": {"resource_id":"senku.vfx.jutsu.ally_heal.bottle","path":"assets/characters/senku/vfx/jutsu/chemical_reaction/projectile/","usage":"Bottle artwork only; trajectory and burst are shared delivery behavior","migration_note":"Canonical resource ID; physical directory retains its historical name temporarily."}
       }
+    },
+    "crimson": {
+      "animations": {
+        "idle": {"resource_id":"crimson.animation.idle","path":"assets/characters/crimson/sprites/runtime/idle/"},
+        "basic_attack": {"resource_id":"crimson.animation.basic_attack","path":"assets/characters/crimson/sprites/runtime/attack/basic/"},
+        "jutsu_current": {"resource_id":"crimson.animation.jutsu.current","path":"assets/characters/crimson/sprites/runtime/jutsu/current/"}
+      },
+      "vfx": {}
+    },
+    "subzero": {
+      "animations": {
+        "idle": {"resource_id":"subzero.animation.idle","path":"assets/characters/subzero/sprites/runtime/idle/"},
+        "basic_attack": {"resource_id":"subzero.animation.basic_attack","path":"assets/characters/subzero/sprites/runtime/attack/basic/"},
+        "freeze_blast_cast": {"resource_id":"subzero.animation.jutsu.freeze_blast.cast","type":"runtime_shell","renderer":"ATTACK_SPRITES['Sub-Zero'].freeze","required_runtime_frames":4,"migration_note":"Four production cast frames are still shell-managed and are an explicit Pass 2 extraction target."},
+        "recoil": {"resource_id":"subzero.animation.recoil","type":"runtime_shell","renderer":"startHitReaction","migration_note":"Production recoil routing is shell-managed; no canonical recoil frame directory exists on main."}
+      },
+      "vfx": {
+        "freeze_blast_projectile": {"resource_id":"subzero.vfx.jutsu.freeze_blast.projectile","path":"assets/characters/subzero/vfx/jutsu/freeze_blast/projectile/"},
+        "freeze_blast_frozen_target": {"resource_id":"subzero.vfx.jutsu.freeze_blast.frozen_target","type":"procedural","renderer":"frozenTarget","usage":"Temporary frozen-target overlay held after Freeze Blast impact"}
+      }
+    },
+    "lebee": {
+      "animations": {
+        "idle": {"resource_id":"lebee.animation.idle","path":"assets/characters/lebee/sprites/runtime/idle/"},
+        "recoil": {"resource_id":"lebee.animation.recoil","path":"assets/characters/lebee/sprites/runtime/recoil/"},
+        "basic_attack": {"resource_id":"lebee.animation.basic_attack","path":"assets/characters/lebee/sprites/runtime/attack/basic/"},
+        "meteor_cast": {"resource_id":"lebee.animation.jutsu.meteor.cast","path":"assets/characters/lebee/sprites/runtime/jutsu/meteor/sequence_v0532/"}
+      },
+      "vfx": {
+        "star_blast_projectile": {"resource_id":"lebee.vfx.basic.star_blast.projectile","type":"runtime_shell","renderer":"lebeeStarProjectile","asset_symbol":"LEBEE_STAR_PROJECTILE","migration_note":"Production projectile artwork is still loaded by the historical shell; Pass 2 should externalize it under Lebee VFX."},
+        "meteor_field": {"resource_id":"lebee.vfx.jutsu.meteor.field","type":"runtime_shell","renderer":"lebeeMeteor","asset_symbol":"LEBEE_METEOR_FRAMES","migration_note":"Meteor/impact artwork is still shell-managed; canonical Jutsu timing already lives in unit.json."}
+      }
+    },
+    "anubis": {
+      "animations": {
+        "idle": {"resource_id":"anubis.animation.idle","path":"assets/characters/anubis/sprites/runtime/idle/"}
+      },
+      "vfx": {}
     }
   }
 }
