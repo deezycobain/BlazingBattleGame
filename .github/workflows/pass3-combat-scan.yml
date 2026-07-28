@@ -1,22 +1,23 @@
-name: Pass 3 combat scan
+name: Pass 3 combat migration
 on:
   push:
     branches: [agent/pass3-combat-runtime]
     paths-ignore:
       - 'dev-tools/pass3-combat-scan.txt'
+      - 'dev-tools/pass3-migration-report.json'
   pull_request:
     branches: [main]
 permissions:
   contents: write
 jobs:
-  scan:
+  migrate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
-      - name: Scan combat mutation neighborhoods
+      - name: Capture combat mutation neighborhoods
         run: |
           node <<'NODE'
           const fs=require('fs');
@@ -25,32 +26,19 @@ jobs:
           const patterns=[
             ['HP mutations', /\b[\w.()\[\]'"-]+\.hp\s*(?:\+=|-=|=)\s*[^;\n]+/g],
             ['Gauge mutations', /\b[\w.()\[\]'"-]+\.gauge\s*(?:\+=|-=|=)\s*[^;\n]+/g],
-            ['Chakra mutations', /\b[\w.()\[\]'"-]+\.chakra\s*(?:\+=|-=|=)\s*[^;\n]+/g],
-            ['Attack/defense math', /[^;\n]{0,180}\b(?:attack|defense)\b[^;\n]{0,220}/gi],
-            ['Combat helpers', /function\s+[A-Za-z0-9_$]*(?:damage|heal|chakra|gauge|target|attack|jutsu)[A-Za-z0-9_$]*\s*\([^)]*\)/gi]
+            ['Chakra mutations', /\b[\w.()\[\]'"-]+\.chakra\s*(?:\+=|-=|=)\s*[^;\n]+/g]
           ];
-          const enclosing=(idx)=>{
-            const before=html.slice(Math.max(0,idx-12000),idx);
-            const matches=[...before.matchAll(/function\s+([A-Za-z0-9_$]+)\s*\([^)]*\)\s*\{/g)];
-            return matches.length?matches[matches.length-1][1]:'<top-level>';
-          };
           let out='';
-          for(const [label,rx] of patterns){
-            out+=`\n===== ${label} =====\n`;
-            let count=0;
-            for(const m of html.matchAll(rx)){
-              if(count++>=80)break;
-              const i=m.index;
-              out+=`\n--- ${count} @ ${i} function=${enclosing(i)} ---\nMATCH: ${m[0]}\n${html.slice(Math.max(0,i-1300),Math.min(html.length,i+m[0].length+2200))}\n`;
-            }
-          }
+          for(const [label,rx] of patterns){out+=`\n===== ${label} =====\n`;let count=0;for(const m of html.matchAll(rx)){if(count++>=80)break;const i=m.index;out+=`\n--- ${count} @ ${i} ---\nMATCH: ${m[0]}\n${html.slice(Math.max(0,i-1100),Math.min(html.length,i+m[0].length+1700))}\n`;}}
           fs.mkdirSync('dev-tools',{recursive:true});
           fs.writeFileSync('dev-tools/pass3-combat-scan.txt',out);
           NODE
-      - name: Commit scan
+      - name: Migrate combat mutations
+        run: node scripts/pass3-migrate-combat.mjs
+      - name: Commit migrated combat shell
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add dev-tools/pass3-combat-scan.txt
-          git diff --cached --quiet || git commit -m "Capture Pass 3 combat mutation scan"
+          git add index.html scripts/build-cloudflare.mjs dev-tools/pass3-combat-scan.txt dev-tools/pass3-migration-report.json
+          git diff --cached --quiet || git commit -m "Delegate shell combat mutations to runtime"
           git push
