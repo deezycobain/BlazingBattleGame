@@ -1,0 +1,22 @@
+name: Runtime Inspect
+
+on:
+  push:
+    branches: [dev-v2]
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runtime-extract
+          path: dist/_debug/runtime-extract.txt
+          if-no-files-found: error
