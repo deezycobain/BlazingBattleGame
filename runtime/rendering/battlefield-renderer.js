@@ -3,12 +3,6 @@
 
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 
-  function resetCanvasState(ctx){
-    ctx.globalAlpha=1;
-    ctx.globalCompositeOperation='source-over';
-    ctx.shadowBlur=0;
-  }
-
   function drawField(ctx,{image,W,H,mapZoom=1}){
     if(image?.complete&&image.naturalWidth>0){
       ctx.imageSmoothingEnabled=true;
@@ -168,43 +162,6 @@
     ctx.restore();
   }
 
-  function drawJutsuDim(ctx,{state,W,H,now=performance.now()}){
-    if(!state)return {expired:false};
-    const elapsed=now-state.start;
-    const fadeIn=clamp(elapsed/220,0,1);
-    const fadeOut=state.end?clamp((now-state.end)/260,0,1):0;
-    const alpha=(state.alpha||.42)*fadeIn*(1-fadeOut);
-    if(alpha>0){ctx.save();ctx.fillStyle=`rgba(3,2,10,${alpha})`;ctx.fillRect(0,0,W,H);ctx.restore();}
-    return {expired:!!state.end&&fadeOut>=1};
-  }
-
-  function drawTargetBubble(ctx,{x,y,r=19,jutsu=false,ultimate=false,comboLinked=false,now=performance.now()}){
-    const targetColor=!jutsu?(comboLinked?'#39ff88':'#ffffff'):(ultimate?'#ff3548':'#45d7ff');
-    ctx.save();ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.shadowBlur=0;
-    ctx.beginPath();ctx.arc(x,y,r+14,0,Math.PI*2);
-    ctx.fillStyle=!jutsu?'rgba(255,255,255,.08)':(ultimate?'rgba(255,53,72,.09)':'rgba(69,215,255,.08)');ctx.fill();
-    ctx.beginPath();ctx.arc(x,y,r+10+1.5*Math.sin(now/145),0,Math.PI*2);
-    ctx.strokeStyle=targetColor;ctx.shadowColor=targetColor;ctx.shadowBlur=jutsu?10:(comboLinked?8:6);ctx.lineWidth=jutsu?1.8:1.45;ctx.stroke();
-    ctx.restore();
-  }
-
-  function drawAllyHealTarget(ctx,{x,y,now=performance.now()}){
-    const pulse=.5+.5*Math.sin(now/170);
-    ctx.save();ctx.globalCompositeOperation='source-over';
-    ctx.beginPath();ctx.arc(x,y-15,31+3*pulse,0,Math.PI*2);
-    ctx.fillStyle='rgba(86,255,122,.10)';ctx.fill();
-    ctx.strokeStyle='rgba(108,255,139,.92)';ctx.shadowColor='#5dff76';ctx.shadowBlur=10+4*pulse;ctx.lineWidth=1.6;ctx.stroke();
-    ctx.translate(x,y-58);ctx.fillStyle='rgba(126,255,151,.96)';ctx.shadowColor='#69ff82';ctx.shadowBlur=8;
-    ctx.fillRect(-2.5,-8,5,16);ctx.fillRect(-8,-2.5,16,5);ctx.restore();
-  }
-
-  function drawEnemyHealthBar(ctx,{x,y,hp,maxHp,alpha=1}){
-    ctx.save();ctx.globalAlpha=alpha;
-    ctx.fillStyle='#222';ctx.fillRect(x-27,y+29,54,6);
-    ctx.fillStyle='#ffbd4a';ctx.fillRect(x-27,y+29,54*(hp/maxHp),6);
-    ctx.restore();
-  }
-
   function drawVictoryOverlay(ctx,{victoryFX,victoryImage,W,H,now=performance.now()}){
     if(!victoryFX)return;
     const elapsed=now-victoryFX.start;
@@ -230,16 +187,11 @@
   }
 
   window.BlazingBattlefieldRenderer=Object.freeze({
-    resetCanvasState,
     drawField,
     drawShape,
     drawOverheadLinkIcon,
     drawPlayerResources,
     drawMoveReturnCue,
-    drawJutsuDim,
-    drawTargetBubble,
-    drawAllyHealTarget,
-    drawEnemyHealthBar,
     drawVictoryOverlay
   });
 })();
