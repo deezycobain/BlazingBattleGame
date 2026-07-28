@@ -103,8 +103,31 @@
     return false;
   }
 
+  function drawSubzeroFreezeProjectile(ctx,f,frames){
+    const t=clamp01((performance.now()-f.start)/f.duration);
+    const e=1-Math.pow(1-t,2.2);
+    const x=f.from.x+(f.to.x-f.from.x)*e;
+    const y=f.from.y+(f.to.y-f.from.y)*e-8*Math.sin(t*Math.PI);
+    const ang=Math.atan2(f.to.y-f.from.y,f.to.x-f.from.x);
+    ctx.translate(x,y);
+    ctx.rotate(ang);
+    const idx=t<.24?0:(t<.58?1:2);
+    const img=frames?.[idx];
+    if(img?.complete&&img.naturalWidth>0){
+      const targetH=18+15*t;
+      const ratio=img.naturalWidth/img.naturalHeight;
+      const targetW=targetH*ratio;
+      ctx.globalCompositeOperation='screen';
+      ctx.shadowColor='#72eaff';
+      ctx.shadowBlur=11;
+      ctx.drawImage(img,-targetW*.62,-targetH*.5,targetW,targetH);
+      ctx.globalCompositeOperation='source-over';
+    }
+  }
+
   window.BlazingVfxRenderer=Object.freeze({
     drawLebeeStarProjectile,
-    drawLebeeMeteor
+    drawLebeeMeteor,
+    drawSubzeroFreezeProjectile
   });
 })();
