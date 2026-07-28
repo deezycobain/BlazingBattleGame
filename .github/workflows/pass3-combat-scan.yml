@@ -16,26 +16,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
-      - name: Scan combat shell neighborhoods
+      - name: Scan combat mutation neighborhoods
         run: |
           node <<'NODE'
           const fs=require('fs');
-          const html=fs.readFileSync('index.html','utf8');
-          const needles=[
-            'calcDamage','hp-=','hp +=','hp+=','maxHp','chakra','gauge',
-            'animateSenkuBomb','animateLebeeStarBlast','animateFreezeBlast',
-            'heal','nearest_in_shape','target_mode','onImpact','cpuTurn','playerTurn'
+          const raw=fs.readFileSync('index.html','utf8');
+          const html=raw.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g,'<DATA_URI>');
+          const patterns=[
+            ['HP mutations', /\b[\w.()\[\]'"-]+\.hp\s*(?:\+=|-=|=)\s*[^;\n]+/g],
+            ['Gauge mutations', /\b[\w.()\[\]'"-]+\.gauge\s*(?:\+=|-=|=)\s*[^;\n]+/g],
+            ['Chakra mutations', /\b[\w.()\[\]'"-]+\.chakra\s*(?:\+=|-=|=)\s*[^;\n]+/g],
+            ['Attack/defense math', /[^;\n]{0,180}\b(?:attack|defense)\b[^;\n]{0,220}/gi],
+            ['Combat helpers', /function\s+[A-Za-z0-9_$]*(?:damage|heal|chakra|gauge|target|attack|jutsu)[A-Za-z0-9_$]*\s*\([^)]*\)/gi]
           ];
-          const clean=s=>s.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g,m=>`<DATA_URI ${m.length} chars>`);
+          const enclosing=(idx)=>{
+            const before=html.slice(Math.max(0,idx-12000),idx);
+            const matches=[...before.matchAll(/function\s+([A-Za-z0-9_$]+)\s*\([^)]*\)\s*\{/g)];
+            return matches.length?matches[matches.length-1][1]:'<top-level>';
+          };
           let out='';
-          for(const needle of needles){
-            out+=`\n===== ${needle} =====\n`;
-            let from=0,count=0;
-            while(count<16){
-              const i=html.indexOf(needle,from);
-              if(i<0)break;
-              out+=`\n--- match ${count+1} @ ${i} ---\n${clean(html.slice(Math.max(0,i-2200),Math.min(html.length,i+needle.length+3200)))}\n`;
-              from=i+needle.length; count++;
+          for(const [label,rx] of patterns){
+            out+=`\n===== ${label} =====\n`;
+            let count=0;
+            for(const m of html.matchAll(rx)){
+              if(count++>=80)break;
+              const i=m.index;
+              out+=`\n--- ${count} @ ${i} function=${enclosing(i)} ---\nMATCH: ${m[0]}\n${html.slice(Math.max(0,i-1300),Math.min(html.length,i+m[0].length+2200))}\n`;
             }
           }
           fs.mkdirSync('dev-tools',{recursive:true});
@@ -46,5 +52,5 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add dev-tools/pass3-combat-scan.txt
-          git diff --cached --quiet || git commit -m "Capture Pass 3 combat scan"
+          git diff --cached --quiet || git commit -m "Capture Pass 3 combat mutation scan"
           git push
