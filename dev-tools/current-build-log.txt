@@ -13,7 +13,7 @@ found 0 vulnerabilities
 > validate
 > node scripts/validate-runtime.mjs
 
-Runtime validation PASS: 5 units, 8 resources, canonical Senku Ally Heal, explicit chakra starts.
+Runtime validation PASS: 5 units, 12 resources, canonical Senku Ally Heal, explicit chakra starts.
 Production migration: Senku 8/8 chakra core + approved Ally Heal runtime applied
 Cloudflare build: index 49.9 MiB -> 0.3 MiB
 Externalized 177 embedded assets (28.2 MiB decoded)
