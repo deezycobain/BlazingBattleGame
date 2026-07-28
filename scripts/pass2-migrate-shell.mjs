@@ -33,6 +33,14 @@ function replaceFrameList(symbol,paths){
   html=html.replace(rx,`const ${symbol}=makeImageFrames(${JSON.stringify(paths)});`);
 }
 
+function declarationSlice(symbol){
+  const start=html.indexOf(`const ${symbol}=makeImageFrames(`);
+  requireTrue(start>=0,`${symbol} migrated declaration missing`);
+  const end=html.indexOf(');',start);
+  requireTrue(end>start,`${symbol} migrated declaration boundary missing`);
+  return html.slice(start,end+2);
+}
+
 function replaceSubzeroFreezeFrames(paths){
   const attackStart=html.indexOf('const ATTACK_SPRITES={');
   requireTrue(attackStart>=0,'ATTACK_SPRITES declaration not found');
@@ -118,7 +126,8 @@ try{
   replaceFloaterBranch('iceProjectile',"window.BlazingVfxRenderer.drawSubzeroFreezeProjectile(ctx,f,FREEZE_PROJECTILE_FRAMES);");
 
   requireTrue(!/LEBEE_STAR_PROJECTILE\.src\s*=\s*["']data:image/.test(html),'Lebee Star Blast remains embedded');
-  requireTrue(!/const\s+LEBEE_METEOR_FRAMES\s*=\s*makeImageFrames\(\[[\s\S]*?data:image/.test(html),'Lebee meteor frames remain embedded');
+  requireTrue(!declarationSlice('LEBEE_METEOR_FRAMES').includes('data:image'),'Lebee meteor frames remain embedded');
+  requireTrue(!declarationSlice('LEBEE_METEOR_IMPACT_FRAMES').includes('data:image'),'Lebee meteor impact frames remain embedded');
   requireTrue(html.includes('window.BlazingFrameRuntime.loadFrames'),'frame runtime delegation missing');
   requireTrue(html.includes('window.BlazingVfxRenderer.drawLebeeMeteor'),'Lebee VFX runtime delegation missing');
   requireTrue(html.includes('window.BlazingVfxRenderer.drawSubzeroFreezeProjectile'),'Sub-Zero VFX runtime delegation missing');
