@@ -1,0 +1,17 @@
+{
+  "status": "success",
+  "replacements": {
+    "runtime script tags": 1,
+    "drawField delegation": 1,
+    "drawShape delegation": 1,
+    "link icon delegation": 1,
+    "player HUD delegation": 1,
+    "move return cue delegation": 1,
+    "victory overlay delegation": 1,
+    "frame reset and Jutsu dim delegation": "deferred",
+    "target bubble delegation": "deferred",
+    "ally heal target delegation": "deferred",
+    "enemy health bar delegation": "deferred",
+    "battle UI delegation": 1
+  }
+}
