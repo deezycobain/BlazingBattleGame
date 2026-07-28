@@ -11,7 +11,7 @@ GitHub `main` is the authoritative master build. Conversation history, old uploa
 
 For future development sessions:
 
-1. Inspect the current `main` branch before changing gameplay.
+1. Inspect current `main` before changing gameplay.
 2. Read this file first for project orientation.
 3. Read only the specific runtime functions and unit files relevant to the requested change; do not load the full `index.html` unless absolutely necessary.
 4. Preserve tested gameplay behavior unless the requested change explicitly alters it.
@@ -21,12 +21,12 @@ For future development sessions:
 
 - Character artwork: polished 2D cel-shaded anime style; no pixel art unless explicitly requested.
 - Character body animation frames and VFX are separate asset systems.
-- Runtime character frames live in organized character asset folders when extracted from the historical shell.
+- Runtime character/VFX files belong under organized character asset folders.
 - Preserve source sheets/art separately from runtime frames.
 - Gameplay stats, attack properties, ranges, chakra behavior, and presentation metadata belong in canonical unit data where migrated.
 - Do not bake explosions, projectiles, fire, healing flashes, or other VFX into character body sprites unless explicitly required.
 - Runtime animation should map individual frames from organized asset folders.
-- A `runtime_shell` resource is an explicit transitional extraction target, not a second source of truth.
+- After Pass 2, `runtime_shell` is no longer a valid canonical resource type. A production resource must resolve to a physical path or be explicitly procedural.
 
 ## Canonical unit data
 
@@ -42,41 +42,75 @@ The superseded aggregate file `assets/data/units_registry.json` has been removed
 
 ## Runtime routing contract — Pass 1 complete
 
-Every production unit registered in `runtime/registry/unit-index.json` now owns:
+Every production unit registered in `runtime/registry/unit-index.json` owns:
 
 `assets/characters/<unit>/data/runtime-map.json`
 
-Each runtime map connects the unit's canonical ability IDs to:
+Each runtime map connects canonical ability IDs to animation resources, VFX resources, shared gameplay actions, current execution handlers, and relevant presentation/timing metadata.
 
-1. an animation resource ID,
-2. zero or more VFX resource IDs,
-3. shared gameplay action IDs,
-4. the current runtime handler while the historical shell still owns execution,
-5. presentation/timing metadata where relevant.
+`runtime/registry/asset-manifest.json` is the canonical resource-identity registry. `runtime/registry/action-registry.json` is the canonical shared gameplay-action registry. `runtime/resource-resolver.js` joins canonical unit data, runtime maps, resources, actions, and presentation metadata.
 
-`runtime/registry/asset-manifest.json` is the canonical resource-identity registry. `runtime/registry/action-registry.json` is the canonical shared gameplay-action registry. `runtime/resource-resolver.js` is the resolution layer joining canonical unit data, runtime maps, resources, actions, and presentation metadata.
+## Animation / VFX extraction — Pass 2 complete
 
-Runtime validation now requires all five production units to have a schema-v3+ runtime map, requires every mapped animation/VFX/state/action ID to resolve, rejects `legacy_embedded`, and requires shell-managed resources to be declared explicitly as `runtime_shell` with a renderer and migration note.
+Pass 2 removed the four explicit Pass 1 shell-resource dependencies without changing intended combat behavior.
 
-The Pass 1 validation baseline is:
+### Extracted physical resources
+
+- Lebee Star Blast projectile → `assets/characters/lebee/vfx/basic/star_blast/projectile/`
+- Lebee Meteor falling frames → `assets/characters/lebee/vfx/jutsu/meteor/meteor/`
+- Lebee Meteor impact frames → `assets/characters/lebee/vfx/jutsu/meteor/impact/`
+- Lebee Meteor finale → `assets/characters/lebee/vfx/jutsu/meteor/finale/`
+- Lebee Meteor aftermath → `assets/characters/lebee/vfx/jutsu/meteor/aftermath/`
+- Sub-Zero Freeze Blast cast frames → `assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/`
+
+The extracted files were copied byte-for-byte from the historical shell before shell references were replaced.
+
+Sub-Zero recoil was audited and found not to have a hidden `HIT_SPRITES` frame list. Its current hit reaction is positional/procedural and is therefore correctly represented as a procedural resource instead of inventing a missing animation directory.
+
+### Runtime modules introduced
+
+- `runtime/animation/frame-runtime.js` owns shared image-frame loading/selection helpers.
+- `runtime/rendering/vfx-renderer.js` owns the extracted Lebee Star Blast, Lebee Meteor, and Sub-Zero Freeze Blast projectile drawing logic.
+
+The historical shell now delegates these floater branches to the VFX module:
+
+- `lebeeStarProjectile`
+- `lebeeMeteor`
+- `lebeeMeteorImpact`
+- `lebeeMeteorFinale`
+- `lebeeMeteorAftermath`
+- `iceProjectile`
+
+Pass 2 reduced source `index.html` from 52,333,570 bytes to 50,086,243 bytes (about 49.9 MiB to 47.8 MiB) by removing the migrated embedded animation/VFX bytes. The production build still externalizes unrelated historical embedded assets and produces an approximately 0.3 MiB deployed `index.html`.
+
+### Pass 2 validation contract
+
+Current runtime validation requires:
+
+- all 5 registered production units and runtime maps,
+- asset manifest schema v5+,
+- every mapped resource/action/state ID to resolve,
+- physical asset paths to exist,
+- required runtime frame counts to be present,
+- `runtime/animation/frame-runtime.js` and `runtime/rendering/vfx-renderer.js` to exist and be loaded by the shell,
+- the migrated Lebee/Sub-Zero declarations to use physical asset paths,
+- VFX renderer delegation markers to remain present,
+- zero `runtime_shell` resources,
+- zero `legacy_embedded` resources,
+- no recreated aggregate unit registry.
+
+Validated Pass 2 baseline:
 
 - 5 registered units
 - 5 runtime maps
-- 29 routed resource IDs
-- 4 explicit `runtime_shell` extraction targets
-
-Current explicit shell extraction targets are:
-
-- Sub-Zero Freeze Blast cast body frames
-- Sub-Zero recoil presentation
-- Lebee Star Blast projectile artwork
-- Lebee Meteor VFX artwork
-
-These are intentionally recorded rather than hidden so Pass 2 can extract them without changing gameplay behavior.
+- 32 routed resources
+- 24 physical resources
+- 8 procedural resources
+- 0 `runtime_shell` resources
 
 ### Known Anubis routing gap
 
-Anubis `boss_rotation` exists in canonical unit data, but the current production `cpuTurn()` executes normal attack routing only. The Anubis runtime map therefore marks `boss_rotation` as `declared_not_wired`. Pass 1 does not invent or activate boss Jutsu behavior.
+Anubis `boss_rotation` exists in canonical unit data, but production `cpuTurn()` still executes normal attack routing only. The Anubis runtime map marks `boss_rotation` as `declared_not_wired`. Pass 2 does not invent or activate boss Jutsu behavior.
 
 ## Current Senku production state
 
@@ -101,58 +135,63 @@ Canonical file: `assets/characters/senku/data/unit.json`
 - Arc height: 86 px
 - Projectile rotation: enabled
 - Canonical projectile scale metadata: 2.0
-- Clean projectile frames live under `assets/characters/senku/vfx/bomb/projectile_clean/`
-- Current production impact asset: `assets/characters/senku/vfx/bomb/static_impact/explosion.png`
-- Impact timing, size, and ground anchor are canonical presentation metadata and are applied to the legacy-shell renderer during the production build.
+- Clean projectile frames: `assets/characters/senku/vfx/bomb/projectile_clean/`
+- Current production impact: `assets/characters/senku/vfx/bomb/static_impact/explosion.png`
+- Impact timing, size, and ground anchor remain canonical presentation metadata applied during the production build.
 
-The previously declared six-frame Small Explosion sequence was removed from the production canonical data because those files were not present on `main`. A multi-frame impact may be introduced later only when the approved frames are committed to the active development line and validation passes.
+The previously declared six-frame Small Explosion sequence is not part of production because those files were absent from `main`. A multi-frame impact may be introduced later only when approved files are committed and validation passes.
 
-The runtime `animateSenkuBomb()` reads canonical cast/flight/arc timing, applies damage on projectile arrival, and keeps the impact floater alive for the same canonical impact duration used to complete the attack.
+`animateSenkuBomb()` still applies damage on projectile arrival. Pass 2 did not change Senku targeting, damage timing, or recoil behavior.
 
 ### Jutsu — Ally Heal
 
-Current approved behavior:
+Approved behavior remains:
 
 - Cost: 4 chakra
 - Delivery: airburst party heal
 - Heals all living allies, including Senku
 - Heal amount: 30% max HP
-- Does not revive dead allies
+- Does not revive defeated allies
 - Planted throw / bottle airburst presentation retained
 
-The logical ability is `ally_heal`. Some approved runtime PNGs still physically live under historical `chemical_reaction` storage directories; canonical metadata points to those real files until a deliberate asset-directory rename is performed.
+Some approved Senku runtime PNGs still physically live under historical `chemical_reaction` directory names. These are storage aliases only; their logical resource IDs are canonical.
 
-## Runtime architecture notes
+## Remaining `index.html` debt
 
-The current game still has substantial runtime logic in `index.html`. Because this file is very large, future inspections should search for exact functions/identifiers and read narrow ranges rather than fetching the entire file.
+`index.html` is still a large historical UI/combat/rendering shell. Pass 2 deliberately did not attempt a broad rewrite.
 
-Pass 1 does not move execution code out of `index.html`; it gives every current production unit/resource/action a canonical routing identity first. That routing layer is the prerequisite for safely extracting animation/VFX execution in Pass 2.
+What improved:
 
-Useful Senku runtime identifiers include:
+- identified shell-owned animation/VFX bytes were extracted,
+- six VFX rendering branches now live in a dedicated runtime renderer,
+- shared frame loading now lives in a runtime animation module,
+- canonical validation prevents those migrated resources from silently returning to shell ownership.
 
-- `animateSenkuBomb`
-- `senkuBombProjectile`
-- `senkuExplosion`
-- `canonicalUnit('senku')`
-- `SENKU_BOMB_FRAMES`
-- `SENKU_BASIC_STATIC_EXPLOSION`
+What remains for later passes:
 
-Build-time migration remains intentionally defensive: required anchors cause the build to fail if the historical shell changes unexpectedly rather than silently shipping mixed legacy/canonical behavior.
+- combat/action execution still largely lives in the shell,
+- substantial UI/rendering logic remains inline,
+- unrelated historical embedded assets still exist and are externalized by the Cloudflare build,
+- build-time compatibility patches remain for tested gameplay paths such as Senku.
+
+Future modularization should continue by subsystem, with each extracted path validated before deleting its old shell implementation.
 
 ## Current immediate development checkpoint
 
 At this checkpoint:
 
-1. `main` is the production authority.
-2. v0.7.0 is the promoted gameplay baseline.
-3. The stale aggregate unit registry is removed.
-4. All five production units have canonical per-character `unit.json` and `runtime-map.json` routing.
-5. The central asset manifest and action registry resolve 29 production resource identities across all five units.
-6. Four remaining shell-owned asset/presentation resources are explicitly labeled extraction targets instead of being hidden legacy dependencies.
-7. Anubis `boss_rotation` is explicitly documented as declared but not wired; production boss behavior was not changed by Pass 1.
-8. Senku bomb targeting, impact timing, and Ally Heal behavior remain unchanged and validated.
-9. Runtime validation rejects missing runtime maps, unresolved mapped resources/actions/states, phantom Senku assets, `legacy_embedded` resources, and recreation of the aggregate registry.
-10. Build validation runs for pushes to `main` / `dev-v2` and for pull requests targeting `main`.
+1. `main` remains the production authority.
+2. v0.7.0 remains the promoted gameplay baseline.
+3. All five production units have canonical `unit.json` and `runtime-map.json` routing.
+4. The aggregate unit registry remains removed.
+5. The four Pass 1 `runtime_shell` targets have been resolved; canonical runtime now contains zero `runtime_shell` resources.
+6. Lebee Star Blast/Meteor and Sub-Zero Freeze Blast presentation assets have organized physical locations.
+7. Six migrated VFX branches delegate to `runtime/rendering/vfx-renderer.js`.
+8. Shared frame loading delegates to `runtime/animation/frame-runtime.js`.
+9. Senku bomb targeting/damage timing and Ally Heal semantics remain unchanged.
+10. Anubis `boss_rotation` remains explicitly declared but not wired.
+11. `npm run build` validates the Pass 2 contract before Cloudflare output.
+12. The large historical shell remains transitional debt and should continue shrinking in controlled passes.
 
 ## New-chat handoff rule
 
