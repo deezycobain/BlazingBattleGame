@@ -23,9 +23,11 @@
     "mark": "SZ",
     "movement_range": 88,
     "basic_shape": {
-      "type": "circle",
-      "r": 92
+      "type": "cone",
+      "r": 150,
+      "a": 0.82
     },
+    "basic_rotation_deg": 0,
     "jutsu_shape": {
       "type": "cone",
       "r": 205,
@@ -43,7 +45,10 @@
       "name": "Basic Attack",
       "damage_multiplier": 1.0,
       "chakra_gain": 1,
-      "delivery": "melee"
+      "delivery": "melee",
+      "range_presentation": "horizontal_cone",
+      "target_mode": "single",
+      "single_target_selector": "nearest_in_shape"
     },
     "jutsu": {
       "id": "freeze_blast",
@@ -77,7 +82,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "v0.7 baseline: chakra_start is canonical unit data. Existing runtime presentation retained.",
+    "notes": "v0.7: basic attack uses a static horizontal cone and resolves exactly one nearest target inside the cone; chakra_start remains canonical unit data.",
     "animation_map": true
   },
   "balance": {
