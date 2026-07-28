@@ -10,6 +10,9 @@ const unitIndex=await readJson('runtime/registry/unit-index.json');
 const actionRegistry=await readJson('runtime/registry/action-registry.json');
 const assetManifest=await readJson('runtime/registry/asset-manifest.json');
 
+if(!(await exists('runtime/combat/attack-runtime.js')))fail('canonical attack runtime is missing');
+if(!(await exists('scripts/attack-runtime-postprocess.mjs')))fail('attack runtime build adapter is missing');
+
 const seen=new Set();
 const units={};
 for(const entry of unitIndex.units||[]){
@@ -34,17 +37,24 @@ if(heal?.id!=='ally_heal')fail('Senku jutsu id must be ally_heal');
 if(heal?.effect!=='heal_percent_max_hp'||heal?.heal_percent!==0.3)fail('Senku Ally Heal must heal 30% max HP');
 if(heal?.target!=='all_living_allies'||heal?.revive!==false)fail('Senku Ally Heal must target living allies and never revive');
 if(senku.combat.chakra_start!==8)fail('Senku canonical chakra_start must be 8');
+const senkuBasic=senku.abilities?.basic;
+if(senkuBasic?.delivery!=='hybrid_distance')fail('Senku basic must use distance-aware hybrid delivery');
+if(senkuBasic?.target_mode!=='single'||senkuBasic?.single_target_selector!=='nearest_in_shape')fail('Senku basic must resolve one nearest target inside its circle');
+if(senkuBasic?.presentation?.close_range_threshold_px!==78)fail('Senku close-range punch threshold must remain 78px until rebalanced');
+if(senkuBasic?.presentation?.close_runtime_driver!=='lunge'||senkuBasic?.presentation?.far_runtime_driver!=='senku_bomb')fail('Senku basic must route close targets to punch/lunge and far targets to bomb');
 
 const lebee=units.lebee;
 if(!lebee)fail('Lebee missing from unit registry');
 if(lebee.abilities?.basic?.id!=='star_blast'||lebee.abilities?.basic?.target_mode!=='multi')fail('Lebee Star Blast must remain multi-target');
 if(lebee.combat?.basic_shape?.type!=='rect'||lebee.combat?.basic_rotation_deg!==0)fail('Lebee basic must use a static horizontal rectangle');
+if(lebee.abilities?.basic?.presentation?.runtime_driver!=='lebee_star')fail('Lebee Star Blast must use the canonical star projectile driver');
 if(lebee.abilities?.jutsu?.id!=='meteor_jutsu'||lebee.abilities?.jutsu?.aoe!==true)fail('Lebee Meteor Jutsu must remain battlefield AoE');
 
 const subzero=units.subzero;
 if(!subzero)fail('Sub-Zero missing from unit registry');
 if(subzero.combat?.basic_shape?.type!=='circle'||subzero.combat?.basic_shape?.r!==72)fail('Sub-Zero basic must use the approved small 72-radius circle');
 if(subzero.abilities?.basic?.target_mode!=='single'||subzero.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Sub-Zero basic must resolve exactly one nearest target inside the circle');
+if(subzero.abilities?.basic?.presentation?.runtime_driver!=='lunge'||subzero.abilities?.basic?.presentation?.animation_kind!=='punch')fail('Sub-Zero basic and chain-helper presentation must use the canonical punch/lunge route');
 if(subzero.combat?.jutsu_shape?.type!=='cone'||subzero.combat?.jutsu_shape?.r!==180)fail('Sub-Zero Freeze Blast must use the approved short 180-range cone');
 if(subzero.abilities?.jutsu?.id!=='freeze_blast'||subzero.abilities?.jutsu?.target_mode!=='multi')fail('Sub-Zero Freeze Blast must remain multi-target');
 if(subzero.abilities?.jutsu?.projectile_behavior!=='single_shot_pierce_targets_in_shape')fail('Sub-Zero Freeze Blast must use one projectile shot across all valid targets in its cone');
@@ -76,4 +86,4 @@ for(const token of forbidden){
   if(canonical.includes(token))fail(`legacy token remains in canonical runtime data: ${token}`);
 }
 
-console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical Senku Ally Heal, canonical Lebee Star Blast/Meteor, Sub-Zero close single basic + multi-target Freeze Blast cone, explicit chakra starts.`);
+console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical attack runtime, Senku hybrid punch/bomb basic, Lebee Star Blast/Meteor, Sub-Zero punch chain basic + multi-target Freeze Blast, explicit chakra starts.`);
