@@ -26,11 +26,12 @@ jobs:
           const b=s.indexOf("\n\nreplaceRx(\n  /    \\/\\/ Target feedback",a);
           if(a<0||b<0)throw new Error('temporary anchor patch boundary missing');
           const block=[
-            "const renderStart=html.indexOf('function render(){');",
+            "const victoryDelegate=html.indexOf('window.BlazingBattlefieldRenderer.drawVictoryOverlay');",
+            "const renderStart=html.indexOf('function render(){',victoryDelegate);",
             "const frameMarker='  // Start every frame from a known-good canvas state.';",
             "const frameStart=html.indexOf(frameMarker,renderStart);",
             "const frameEnd=html.indexOf('  drawMoveReturnCue();',frameStart);",
-            "if(renderStart<0||frameStart<0||frameEnd<0||html.indexOf('function render(){',renderStart+1)>=0)throw new Error('frame reset and Jutsu dim delegation: render boundaries missing');",
+            "if(victoryDelegate<0||renderStart<0||frameStart<0||frameEnd<0)throw new Error('frame reset and Jutsu dim delegation: battle render boundaries missing');",
             "html=html.slice(0,frameStart)+`  // Start every frame from a known-good canvas state.\\n  window.BlazingBattlefieldRenderer.resetCanvasState(ctx);\\n  updateFacing();\\n  drawField();\\n  if(S.jutsuDim){\\n    const dim=window.BlazingBattlefieldRenderer.drawJutsuDim(ctx,{state:S.jutsuDim,W,H});\\n    if(dim.expired)S.jutsuDim=null;\\n  }\\n`+html.slice(frameEnd);",
             "replacements['frame reset and Jutsu dim delegation']=1;"
           ].join('\n');
