@@ -1,5 +1,5 @@
 {
-  "schema_version": 4,
+  "schema_version": 5,
   "root": "assets/characters",
   "shared": {
     "animations": {
@@ -75,11 +75,11 @@
       "animations": {
         "idle": {"resource_id":"subzero.animation.idle","path":"assets/characters/subzero/sprites/runtime/idle/"},
         "basic_attack": {"resource_id":"subzero.animation.basic_attack","path":"assets/characters/subzero/sprites/runtime/attack/basic/"},
-        "freeze_blast_cast": {"resource_id":"subzero.animation.jutsu.freeze_blast.cast","type":"runtime_shell","renderer":"ATTACK_SPRITES['Sub-Zero'].freeze","required_runtime_frames":4,"migration_note":"Four production cast frames are still shell-managed and are an explicit Pass 2 extraction target."},
-        "recoil": {"resource_id":"subzero.animation.recoil","type":"runtime_shell","renderer":"startHitReaction","migration_note":"Production recoil routing is shell-managed; no canonical recoil frame directory exists on main."}
+        "freeze_blast_cast": {"resource_id":"subzero.animation.jutsu.freeze_blast.cast","path":"assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/","required_runtime_frames":4,"renderer":"BlazingFrameRuntime"},
+        "recoil": {"resource_id":"subzero.animation.recoil","type":"procedural","renderer":"startHitReaction","usage":"Sub-Zero currently uses positional hit-reaction movement; no dedicated recoil body-frame resource exists."}
       },
       "vfx": {
-        "freeze_blast_projectile": {"resource_id":"subzero.vfx.jutsu.freeze_blast.projectile","path":"assets/characters/subzero/vfx/jutsu/freeze_blast/projectile/"},
+        "freeze_blast_projectile": {"resource_id":"subzero.vfx.jutsu.freeze_blast.projectile","path":"assets/characters/subzero/vfx/jutsu/freeze_blast/projectile/","renderer":"BlazingVfxRenderer.drawSubzeroFreezeProjectile"},
         "freeze_blast_frozen_target": {"resource_id":"subzero.vfx.jutsu.freeze_blast.frozen_target","type":"procedural","renderer":"frozenTarget","usage":"Temporary frozen-target overlay held after Freeze Blast impact"}
       }
     },
@@ -91,8 +91,11 @@
         "meteor_cast": {"resource_id":"lebee.animation.jutsu.meteor.cast","path":"assets/characters/lebee/sprites/runtime/jutsu/meteor/sequence_v0532/"}
       },
       "vfx": {
-        "star_blast_projectile": {"resource_id":"lebee.vfx.basic.star_blast.projectile","type":"runtime_shell","renderer":"lebeeStarProjectile","asset_symbol":"LEBEE_STAR_PROJECTILE","migration_note":"Production projectile artwork is still loaded by the historical shell; Pass 2 should externalize it under Lebee VFX."},
-        "meteor_field": {"resource_id":"lebee.vfx.jutsu.meteor.field","type":"runtime_shell","renderer":"lebeeMeteor","asset_symbol":"LEBEE_METEOR_FRAMES","migration_note":"Meteor/impact artwork is still shell-managed; canonical Jutsu timing already lives in unit.json."}
+        "star_blast_projectile": {"resource_id":"lebee.vfx.basic.star_blast.projectile","path":"assets/characters/lebee/vfx/basic/star_blast/projectile/","required_runtime_frames":1,"renderer":"BlazingVfxRenderer.drawLebeeStarProjectile"},
+        "meteor_fall": {"resource_id":"lebee.vfx.jutsu.meteor.fall","path":"assets/characters/lebee/vfx/jutsu/meteor/meteor/","required_runtime_frames":3,"renderer":"BlazingVfxRenderer.drawLebeeMeteor"},
+        "meteor_impact": {"resource_id":"lebee.vfx.jutsu.meteor.impact","path":"assets/characters/lebee/vfx/jutsu/meteor/impact/","required_runtime_frames":3,"renderer":"BlazingVfxRenderer.drawLebeeMeteor"},
+        "meteor_finale": {"resource_id":"lebee.vfx.jutsu.meteor.finale","path":"assets/characters/lebee/vfx/jutsu/meteor/finale/","required_runtime_frames":1,"renderer":"BlazingVfxRenderer.drawLebeeMeteor"},
+        "meteor_aftermath": {"resource_id":"lebee.vfx.jutsu.meteor.aftermath","path":"assets/characters/lebee/vfx/jutsu/meteor/aftermath/","required_runtime_frames":1,"renderer":"BlazingVfxRenderer.drawLebeeMeteor"}
       }
     },
     "anubis": {
