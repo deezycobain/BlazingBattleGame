@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "unit_id": "lebee",
   "source_unit_data": "assets/characters/lebee/data/unit.json",
   "abilities": {
@@ -30,7 +30,10 @@
         }
       ],
       "vfx": {
-        "meteor": "lebee.vfx.jutsu.meteor.field",
+        "meteor": "lebee.vfx.jutsu.meteor.fall",
+        "impact": "lebee.vfx.jutsu.meteor.impact",
+        "finale": "lebee.vfx.jutsu.meteor.finale",
+        "aftermath": "lebee.vfx.jutsu.meteor.aftermath",
         "final_flash": "shared.vfx.fullscreen_flash"
       },
       "presentation_sources": {
