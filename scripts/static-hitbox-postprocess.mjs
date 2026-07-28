@@ -93,7 +93,7 @@ ${indent}  targets=[...targets].sort((a,b)=>d(p,a)-d(p,b)).slice(0,1);
 ${indent} }
 ${indent}}
 ${indent}if(!targets.length){
-${indent} S.log=\`\${u.name} committed the move but caught no target.\`;return finishAction()
+${indent} S.log=\`${'${u.name}'} committed the move but caught no target.\`;return finishAction()
 ${indent}}`);
 
 // Preserve the approved Senku bomb visual size curve.
@@ -113,5 +113,38 @@ if(sizeAt>=0 && sizeAt-bombStart<5000){
   throw new Error('Presentation pass: Senku bomb size anchor not found or already changed unexpectedly');
 }
 
+// Keep the impact floater alive for the same canonical duration used to finish the attack.
+const animateBombStart=html.indexOf('function animateSenkuBomb(');
+if(animateBombStart<0)throw new Error('Presentation pass: animateSenkuBomb() not found');
+const hardcodedBlast='duration:360,';
+const hardcodedBlastAt=html.indexOf(hardcodedBlast,animateBombStart);
+if(hardcodedBlastAt>=0 && hardcodedBlastAt-animateBombStart<5000){
+  html=html.slice(0,hardcodedBlastAt)+'duration:blastDuration,'+html.slice(hardcodedBlastAt+hardcodedBlast.length);
+}else if(!html.slice(animateBombStart,animateBombStart+5000).includes('duration:blastDuration,')){
+  throw new Error('Presentation pass: Senku impact duration anchor not found');
+}
+
+// The production static impact remains a normal asset, but its timing/size/anchor now
+// comes from canonical Senku presentation metadata instead of hardcoded renderer values.
+const explosionStart=html.indexOf("else if(f.kind==='senkuExplosion'){");
+if(explosionStart<0)throw new Error('Presentation pass: Senku explosion renderer not found');
+const explosionEnd=html.indexOf("}else if(f.kind==='lebeeMeteor'){",explosionStart);
+if(explosionEnd<0)throw new Error('Presentation pass: Senku explosion renderer end not found');
+let explosionBlock=html.slice(explosionStart,explosionEnd);
+if(!explosionBlock.includes("const meta=canonicalUnit('senku')?.abilities?.basic?.presentation||{};")){
+  explosionBlock=explosionBlock.replace(
+    'const img=SENKU_BASIC_STATIC_EXPLOSION;',
+    "const img=SENKU_BASIC_STATIC_EXPLOSION;\n      const meta=canonicalUnit('senku')?.abilities?.basic?.presentation||{};"
+  );
+}
+explosionBlock=explosionBlock.replace('const hold=.30;','const hold=meta.impact_hold_ratio??.30;');
+explosionBlock=explosionBlock.replace('const pop=Math.min(1,t/.12);','const pop=Math.min(1,t/(meta.impact_pop_ratio||.12));');
+explosionBlock=explosionBlock.replace('const baseH=58;','const baseH=meta.impact_height_px||58;');
+explosionBlock=explosionBlock.replace('const anchorX=.50;','const anchorX=meta.impact_anchor?.x??.50;');
+explosionBlock=explosionBlock.replace('const anchorY=.96;','const anchorY=meta.impact_anchor?.y??.96;');
+explosionBlock=explosionBlock.replace('const yNudge=3;','const yNudge=meta.impact_anchor?.ground_offset_y_px??3;');
+if(!explosionBlock.includes('impact_hold_ratio')||!explosionBlock.includes('impact_height_px'))throw new Error('Presentation pass: Senku explosion metadata patch failed');
+html=html.slice(0,explosionStart)+explosionBlock+html.slice(explosionEnd);
+
 await fs.writeFile(file,html);
-console.log(`Gameplay presentation pass: renderer-safe static hitboxes + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku bomb size curve applied`);
+console.log(`Gameplay presentation pass: renderer-safe static hitboxes + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku bomb size/impact metadata applied`);
