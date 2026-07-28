@@ -9,6 +9,8 @@ on:
       - 'assets/characters/lebee/vfx/jutsu/meteor/**'
       - 'assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/**'
       - 'assets/characters/subzero/sprites/runtime/recoil/**'
+  pull_request:
+    branches: [main]
 permissions:
   contents: write
 jobs:
@@ -17,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - name: Extract approved shell-owned assets byte-for-byte
         run: node scripts/pass2-extract-shell-assets.mjs
       - name: Commit extracted assets and report
