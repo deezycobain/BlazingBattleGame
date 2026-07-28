@@ -1,0 +1,42 @@
+name: Pass 2 shell scan
+on:
+  push:
+    branches: [agent/pass2-runtime-extraction]
+    paths-ignore:
+      - 'dev-tools/pass2-shell-scan.txt'
+permissions:
+  contents: write
+jobs:
+  scan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan historical shell declarations
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const needles=['LEBEE_STAR_PROJECTILE','LEBEE_METEOR_FRAMES','LEBEE_METEOR_IMPACT_FRAMES','ATTACK_SPRITES','freeze','SUBZERO','Sub-Zero'];
+          let out='';
+          const clean=s=>s.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g,m=>`<DATA_URI ${m.length} chars>`);
+          for(const needle of needles){
+            out+=`\n===== ${needle} =====\n`;
+            let from=0,count=0;
+            while(count<12){
+              const i=html.indexOf(needle,from);
+              if(i<0)break;
+              out+=`\n--- match ${count+1} @ ${i} ---\n${clean(html.slice(Math.max(0,i-1800),Math.min(html.length,i+needle.length+2600)))}\n`;
+              from=i+needle.length;count++;
+            }
+          }
+          fs.mkdirSync('dev-tools',{recursive:true});
+          fs.writeFileSync('dev-tools/pass2-shell-scan.txt',out);
+          NODE
+      - name: Commit scan
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add dev-tools/pass2-shell-scan.txt
+          git diff --cached --quiet || git commit -m "Capture Pass 2 shell asset scan"
+          git push
