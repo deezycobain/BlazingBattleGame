@@ -199,8 +199,8 @@ html = html.replace(rendererRx, approvedHealRenderer);
 // Approved gameplay effect: living allies only, 30% max HP, no revive.
 html = replaceOnce(
   html,
-  'const healed=Math.max(0,ally.maxHp-ally.hp);\n     ally.hp=ally.maxHp;',
-  "const before=ally.hp;\n     const healAmount=Math.max(1,Math.round(ally.maxHp*(canonicalUnit('senku').abilities.jutsu.heal_percent??0.30)));\n     ally.hp=Math.min(ally.maxHp,ally.hp+healAmount);\n     const healed=ally.hp-before;",
+  'const healed=window.BlazingCombatRuntime.healPercentMaxHp(ally,1,{minimumHeal:1,ignoreDefeated:true}).amount;',
+  "const healed=window.BlazingCombatRuntime.execute('heal_party_percent',{targets:[ally],parameters:{percent_of_max_hp:canonicalUnit('senku').abilities.jutsu.heal_percent??0.30}})[0]?.amount||0;",
   'Ally Heal 30 percent effect'
 );
 html = html.replace("S.log=`${u.name} activated ${u.jutsuName||'Revival Formula'} — restoring all active allies to full HP.`;", "S.log=`${u.name} activated ${u.jutsuName||'Ally Heal'} — healing all living allies for 30% max HP.`;");

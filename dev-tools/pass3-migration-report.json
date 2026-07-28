@@ -1,0 +1,17 @@
+{
+  "status": "success",
+  "replacements": {
+    "combat_script": 1,
+    "canonical jutsu damage calculation": 1,
+    "linked normal damage calculation": 1,
+    "jutsu chakra spend": 2,
+    "basic chakra gain": 1,
+    "Freeze Blast gauge reduction": 1,
+    "jutsu target damage": 2,
+    "jutsu helper damage": 1,
+    "basic attack damage": 1,
+    "enemy attack damage": 1,
+    "legacy source support-heal mutation": 1,
+    "production Ally Heal combat runtime delegation": 1
+  }
+}
