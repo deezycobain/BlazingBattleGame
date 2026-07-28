@@ -1,0 +1,35 @@
+{
+  "schema_version": 3,
+  "unit_id": "crimson",
+  "source_unit_data": "assets/characters/crimson/data/unit.json",
+  "abilities": {
+    "basic_strike": {
+      "slot": "basic",
+      "animation_id": "crimson.animation.basic_attack",
+      "runtime_handler": "animateLunge",
+      "gameplay_actions": [
+        {
+          "event": "on_impact",
+          "action_id": "damage_target",
+          "parameters": {"multiplier_source": "abilities.basic.damage_multiplier"}
+        }
+      ],
+      "vfx": {"impact": "shared.vfx.impact.fire"}
+    },
+    "current_jutsu": {
+      "slot": "jutsu",
+      "animation_id": "crimson.animation.jutsu.current",
+      "runtime_handler": "animateLunge",
+      "cost_source": "abilities.jutsu.cost",
+      "gameplay_actions": [
+        {
+          "event": "on_impact",
+          "action_id": "damage_target",
+          "parameters": {"multiplier_source": "abilities.jutsu.damage_multiplier"}
+        }
+      ],
+      "vfx": {"impact": "shared.vfx.impact.fire"}
+    }
+  },
+  "states": {"idle": "crimson.animation.idle"}
+}

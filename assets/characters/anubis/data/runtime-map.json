@@ -1,0 +1,31 @@
+{
+  "schema_version": 3,
+  "unit_id": "anubis",
+  "source_unit_data": "assets/characters/anubis/data/unit.json",
+  "abilities": {
+    "staff_strike": {
+      "slot": "basic",
+      "animation_id": "shared.animation.lunge",
+      "runtime_handler": "animateLunge",
+      "gameplay_actions": [
+        {
+          "event": "on_impact",
+          "action_id": "damage_target",
+          "parameters": {"multiplier_source": "abilities.basic.damage_multiplier"}
+        }
+      ],
+      "vfx": {"impact": "shared.vfx.impact.enemy"}
+    },
+    "boss_rotation": {
+      "slot": "jutsu",
+      "animation_id": "shared.animation.lunge",
+      "runtime_handler": "cpuTurn",
+      "cost_source": "abilities.jutsu.cost",
+      "execution_status": "declared_not_wired",
+      "gameplay_actions": [],
+      "vfx": {},
+      "migration_note": "Canonical Anubis Jutsu exists in unit data, but current production cpuTurn executes normal attack routing only. Pass 1 records this explicitly without changing boss gameplay."
+    }
+  },
+  "states": {"idle": "anubis.animation.idle"}
+}
