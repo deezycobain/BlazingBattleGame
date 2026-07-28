@@ -1,0 +1,47 @@
+{
+  "schema_version": 3,
+  "unit_id": "subzero",
+  "source_unit_data": "assets/characters/subzero/data/unit.json",
+  "abilities": {
+    "basic_attack": {
+      "slot": "basic",
+      "animation_id": "subzero.animation.basic_attack",
+      "runtime_handler": "animateLunge",
+      "gameplay_actions": [
+        {
+          "event": "on_impact",
+          "action_id": "damage_target",
+          "parameters": {"multiplier_source": "abilities.basic.damage_multiplier"}
+        }
+      ],
+      "vfx": {"impact": "shared.vfx.impact.default"}
+    },
+    "freeze_blast": {
+      "slot": "jutsu",
+      "animation_id": "subzero.animation.jutsu.freeze_blast.cast",
+      "runtime_handler": "animateFreezeBlast",
+      "cost_source": "abilities.jutsu.cost",
+      "gameplay_actions": [
+        {
+          "event": "on_projectile_arrival",
+          "action_id": "damage_target",
+          "parameters": {"multiplier_source": "abilities.jutsu.damage_multiplier"}
+        },
+        {
+          "event": "on_projectile_arrival",
+          "action_id": "reduce_target_gauge",
+          "parameters": {"amount": 35}
+        }
+      ],
+      "vfx": {
+        "projectile": "subzero.vfx.jutsu.freeze_blast.projectile",
+        "frozen_target": "subzero.vfx.jutsu.freeze_blast.frozen_target"
+      },
+      "projectile_presentation": {"trajectory": "direct", "cast_duration_ms": 340, "flight_duration_ms": 420, "freeze_hold_ms": 520}
+    }
+  },
+  "states": {
+    "idle": "subzero.animation.idle",
+    "recoil": "subzero.animation.recoil"
+  }
+}
