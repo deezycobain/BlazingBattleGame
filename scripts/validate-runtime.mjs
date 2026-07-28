@@ -13,6 +13,9 @@ const assetManifest=await readJson('runtime/registry/asset-manifest.json');
 if(!(await exists('runtime/combat/attack-runtime.js')))fail('canonical attack runtime is missing');
 if(!(await exists('scripts/attack-runtime-postprocess.mjs')))fail('attack runtime build adapter is missing');
 
+const attackAdapter=await fs.readFile(path.join(ROOT,'scripts/attack-runtime-postprocess.mjs'),'utf8');
+if(!attackAdapter.includes('facingOverride'))fail('attack runtime must install visual target-facing for canonical lunges');
+
 const seen=new Set();
 const units={};
 for(const entry of unitIndex.units||[]){
@@ -41,7 +44,8 @@ const senkuBasic=senku.abilities?.basic;
 if(senkuBasic?.delivery!=='hybrid_distance')fail('Senku basic must use distance-aware hybrid delivery');
 if(senkuBasic?.target_mode!=='single'||senkuBasic?.single_target_selector!=='nearest_in_shape')fail('Senku basic must resolve one nearest target inside its circle');
 if(senkuBasic?.presentation?.close_range_threshold_px!==78)fail('Senku close-range punch threshold must remain 78px until rebalanced');
-if(senkuBasic?.presentation?.close_runtime_driver!=='lunge'||senkuBasic?.presentation?.far_runtime_driver!=='senku_bomb')fail('Senku basic must route close targets to punch/lunge and far targets to bomb');
+if(senkuBasic?.presentation?.close_runtime_driver!=='lunge'||senkuBasic?.presentation?.far_runtime_driver!=='senku_bomb')fail('Senku basic must route close targets to melee lunge and far targets to bomb');
+if(senkuBasic?.presentation?.close_animation_kind!=='melee_lunge')fail('Senku close attack must not reuse bomb-throw body frames');
 
 const lebee=units.lebee;
 if(!lebee)fail('Lebee missing from unit registry');
@@ -86,4 +90,4 @@ for(const token of forbidden){
   if(canonical.includes(token))fail(`legacy token remains in canonical runtime data: ${token}`);
 }
 
-console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical attack runtime, Senku hybrid punch/bomb basic, Lebee Star Blast/Meteor, Sub-Zero punch chain basic + multi-target Freeze Blast, explicit chakra starts.`);
+console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, canonical attack runtime, target-facing chain lunges, clean Senku close melee / ranged bomb basic, Lebee Star Blast/Meteor, Sub-Zero punch chain basic + multi-target Freeze Blast, explicit chakra starts.`);
