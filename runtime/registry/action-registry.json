@@ -6,6 +6,16 @@
       "target_scope": "selected_target",
       "parameters": ["multiplier"]
     },
+    "damage_resolved_targets": {
+      "kind": "damage",
+      "target_scope": "resolved_targets",
+      "parameters": ["multiplier"],
+      "rules": {
+        "allow_single": true,
+        "allow_multiple": true,
+        "respect_authored_hit_shape": true
+      }
+    },
     "heal_party_percent": {
       "kind": "heal",
       "target_scope": "living_allies",
