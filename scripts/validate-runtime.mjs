@@ -11,10 +11,17 @@ const requireUnitAsset=async(unitId,rel,label)=>{
   const p=unitAssetPath(unitId,rel);
   if(!(await exists(p)))fail(`${label} references missing asset ${p}`);
 };
+const countImageFiles=async p=>{
+  const full=path.join(ROOT,p);
+  const stat=await fs.stat(full);
+  if(!stat.isDirectory())return /\.(png|jpe?g|webp|gif)$/i.test(p)?1:0;
+  return (await fs.readdir(full,{withFileTypes:true})).filter(entry=>entry.isFile()&&/\.(png|jpe?g|webp|gif)$/i.test(entry.name)).length;
+};
 
 const unitIndex=await readJson('runtime/registry/unit-index.json');
 const actionRegistry=await readJson('runtime/registry/action-registry.json');
 const assetManifest=await readJson('runtime/registry/asset-manifest.json');
+if(Number(assetManifest.schema_version||0)<5)fail('asset-manifest.json must use schema_version 5+ after Pass 2');
 
 const seen=new Set();
 const units={};
@@ -62,18 +69,26 @@ for(const [animName,anim] of Object.entries(senku.animation_standard?.animations
 for(const [vfxName,vfx] of Object.entries(senku.animation_standard?.vfx||{}))for(const [i,rel] of (vfx?.frames||[]).entries())await requireUnitAsset('senku',rel,`Senku VFX ${vfxName} frame[${i}]`);
 
 const resourceIds=new Set();
-let shellResourceCount=0;
+let physicalResourceCount=0;
+let proceduralResourceCount=0;
 const collect=async(entry,label)=>{
   if(!entry?.resource_id)fail(`${label} is missing resource_id`);
   if(resourceIds.has(entry.resource_id))fail(`duplicate resource id ${entry.resource_id}`);
   if(entry.type==='legacy_embedded')fail(`legacy_embedded resource is not allowed: ${entry.resource_id}`);
-  if(entry.type==='runtime_shell'){
-    shellResourceCount++;
-    if(!entry.renderer)fail(`runtime_shell resource ${entry.resource_id} must name its current renderer`);
-    if(!entry.migration_note)fail(`runtime_shell resource ${entry.resource_id} must explain its extraction target`);
+  if(entry.type==='runtime_shell')fail(`runtime_shell resource is not allowed after Pass 2: ${entry.resource_id}`);
+  if(entry.path){
+    if(!(await exists(entry.path)))fail(`missing asset path ${entry.path}`);
+    physicalResourceCount++;
+    if(entry.required_runtime_frames){
+      const actual=await countImageFiles(entry.path);
+      if(actual<entry.required_runtime_frames)fail(`${entry.resource_id} requires at least ${entry.required_runtime_frames} runtime frames but ${entry.path} contains ${actual}`);
+    }
+  }else if(entry.type==='procedural'){
+    proceduralResourceCount++;
+    if(!entry.renderer)fail(`procedural resource ${entry.resource_id} must name its renderer`);
+  }else{
+    fail(`${entry.resource_id} must define a physical path or procedural type`);
   }
-  if(entry.path&&!(await exists(entry.path)))fail(`missing asset path ${entry.path}`);
-  if(!entry.path&&!entry.type)fail(`${entry.resource_id} must define either path or type`);
   resourceIds.add(entry.resource_id);
 };
 for(const [groupName,group] of Object.entries(assetManifest.shared||{}))for(const [name,entry] of Object.entries(group||{}))await collect(entry,`shared.${groupName}.${name}`);
@@ -108,6 +123,27 @@ for(const [unitId,entry] of Object.entries(unitEntries)){
   for(const [stateId,resourceId] of Object.entries(runtimeMap.states||{}))if(!resourceIds.has(resourceId))fail(`${unitId}.${stateId} references unknown state resource ${resourceId}`);
 }
 
+// Pass 2 modules and source-shell delegation are now part of the production contract.
+for(const modulePath of ['runtime/animation/frame-runtime.js','runtime/rendering/vfx-renderer.js'])if(!(await exists(modulePath)))fail(`missing Pass 2 runtime module ${modulePath}`);
+const shell=await fs.readFile(path.join(ROOT,'index.html'),'utf8');
+for(const modulePath of ['runtime/animation/frame-runtime.js','runtime/rendering/vfx-renderer.js'])if(!shell.includes(modulePath))fail(`index.html does not load ${modulePath}`);
+for(const marker of [
+  'window.BlazingFrameRuntime.loadFrames',
+  'window.BlazingVfxRenderer.drawLebeeStarProjectile',
+  'window.BlazingVfxRenderer.drawLebeeMeteor',
+  'window.BlazingVfxRenderer.drawSubzeroFreezeProjectile'
+])if(!shell.includes(marker))fail(`index.html is missing Pass 2 delegation marker ${marker}`);
+if(/LEBEE_STAR_PROJECTILE\.src\s*=\s*["']data:image/.test(shell))fail('Lebee Star Blast projectile must not return to embedded shell data');
+for(const symbol of ['LEBEE_METEOR_FRAMES','LEBEE_METEOR_IMPACT_FRAMES']){
+  const start=shell.indexOf(`const ${symbol}=makeImageFrames(`);
+  if(start<0)fail(`${symbol} declaration missing from shell compatibility layer`);
+  const end=shell.indexOf(');',start);
+  if(end<0)fail(`${symbol} declaration boundary missing`);
+  if(shell.slice(start,end+2).includes('data:image'))fail(`${symbol} must use physical runtime paths, not embedded data`);
+}
+const freezeMarker="freeze:makeImageFrames([\"assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_01.png\"";
+if(!shell.includes(freezeMarker))fail('Sub-Zero Freeze Blast cast frames are not routed to canonical physical paths');
+
 // The old aggregate registry was superseded by unit-index + per-character unit.json.
 if(await exists('assets/data/units_registry.json'))fail('legacy assets/data/units_registry.json must stay removed; use runtime/registry/unit-index.json and canonical unit.json files');
 
@@ -117,4 +153,4 @@ for(const token of forbidden){
   if(canonical.includes(token))fail(`legacy token remains in canonical runtime data: ${token}`);
 }
 
-console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources, ${Object.keys(runtimeMaps).length} runtime maps, ${shellResourceCount} explicit runtime-shell extraction targets, no aggregate registry, no legacy_embedded resources.`);
+console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources (${physicalResourceCount} physical, ${proceduralResourceCount} procedural), ${Object.keys(runtimeMaps).length} runtime maps, 0 runtime-shell resources, Pass 2 modules/delegation verified.`);
