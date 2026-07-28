@@ -41,9 +41,8 @@
         },
         "explosive_bomb_impact": {
           "resource_id": "senku.vfx.basic.explosive_bomb.impact",
-          "type": "legacy_embedded",
-          "renderer": "senkuBombImpact",
-          "migration_note": "Current production impact remains embedded in the historical game shell; move to normal frame assets before deleting the legacy shell."
+          "path": "assets/characters/senku/vfx/bomb/static_impact/",
+          "usage": "Canonical production bomb impact asset; renderer parameters are driven by Senku ability presentation metadata."
         },
         "ally_heal_bottle": {
           "resource_id": "senku.vfx.jutsu.ally_heal.bottle",
