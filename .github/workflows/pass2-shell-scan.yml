@@ -8,7 +8,6 @@ on:
       - 'assets/characters/lebee/vfx/basic/star_blast/projectile/**'
       - 'assets/characters/lebee/vfx/jutsu/meteor/**'
       - 'assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/**'
-      - 'assets/characters/subzero/sprites/runtime/recoil/**'
   pull_request:
     branches: [main]
 permissions:
@@ -27,6 +26,6 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add assets/characters/lebee/vfx/basic/star_blast/projectile assets/characters/lebee/vfx/jutsu/meteor assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast assets/characters/subzero/sprites/runtime/recoil dev-tools/pass2-extraction-report.json
+          git add assets/characters/lebee/vfx/basic/star_blast/projectile assets/characters/lebee/vfx/jutsu/meteor assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast dev-tools/pass2-extraction-report.json
           git diff --cached --quiet || git commit -m "Extract Pass 2 shell-owned runtime assets"
           git push
