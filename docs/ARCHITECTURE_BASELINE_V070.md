@@ -3,7 +3,7 @@
 ## Branch contract
 
 - `main` is the authoritative production source branch.
-- Development/refactor work occurs on isolated branches and reaches `main` through a validated pull request.
+- Development/refactor work occurs on isolated branches and reaches `main` only through a validated pull request.
 - Historical `dev` / `dev-v2` branches are not authoritative when they differ from `main`.
 - Production architecture milestones receive frozen checkpoint branches after validation.
 
@@ -13,164 +13,124 @@ Every battle unit is registered in `runtime/registry/unit-index.json` and owns g
 
 Every registered production unit also owns `assets/characters/<unit>/data/runtime-map.json`, mapping canonical ability IDs to animation resources, VFX resources, gameplay actions, and current execution handlers.
 
-Required unit-core fields include:
-
-- `stats.hp`
-- `stats.attack`
-- `stats.defense`
-- `stats.speed`
-- `combat.chakra_max`
-- `combat.chakra_start`
-
-There is no global/default starting chakra value in the canonical model. Each unit defines its own start value.
+Required unit-core fields include `stats.hp`, `stats.attack`, `stats.defense`, `stats.speed`, `combat.chakra_max`, and `combat.chakra_start`. There is no global canonical starting-chakra default.
 
 ## Shared action/resource contract
 
-Gameplay behavior is named through `runtime/registry/action-registry.json`. Runtime maps refer to reusable actions such as `damage_target`, `damage_targets`, `heal_party_percent`, and `reduce_target_gauge`.
+Gameplay behavior is named through `runtime/registry/action-registry.json`. After Pass 3 it is schema v3: every action referenced by a live production runtime map must declare an executable `runtime_handler`; unused future actions are explicit `declared_not_wired`.
 
-After Pass 3 the action registry is schema v3. Every action referenced by a live production runtime map must declare an executable `runtime_handler`. Unused future action definitions must be explicit `declared_not_wired`; production maps may not reference them.
-
-Runtime asset identities are named through `runtime/registry/asset-manifest.json`. Canonical resources must be either:
-
-- a physical asset resource with `path`, or
-- an explicit procedural resource with `type: "procedural"` and a renderer.
-
-`runtime_shell` and `legacy_embedded` are rejected by validation.
+Runtime assets are identified through `runtime/registry/asset-manifest.json`. Canonical resources must be either a physical resource with `path` or an explicit procedural resource with a renderer. `runtime_shell` and `legacy_embedded` are rejected.
 
 `runtime/resource-resolver.js` resolves an ability into canonical unit data, animation/VFX resources, shared gameplay actions, cost, and presentation parameters.
 
-## Animation / VFX runtime — Pass 2
+## Pass 2 — animation / VFX runtime
 
-Pass 2 introduced:
+- `runtime/animation/frame-runtime.js` owns shared image-frame loading/selection.
+- `runtime/rendering/vfx-renderer.js` owns extracted Lebee Star Blast/Meteor and Sub-Zero Freeze Blast projectile drawing.
+- Physical Pass 2 assets live in organized per-character directories.
+- The shell still creates floater state and owns callback/timing orchestration.
 
-- `runtime/animation/frame-runtime.js` — image-frame loading/selection helpers.
-- `runtime/rendering/vfx-renderer.js` — extracted VFX drawing logic.
+Current resource baseline: 5 units, 5 runtime maps, 32 resources — 24 physical, 8 procedural, 0 `runtime_shell`.
 
-Current VFX renderer ownership includes Lebee Star Blast projectile, Lebee Meteor fall/impact/finale/aftermath, and Sub-Zero Freeze Blast projectile.
+## Pass 3 — combat runtime
 
-The shell still creates the corresponding floater state and owns animation timing/callback orchestration; drawing is delegated to the VFX module.
+`runtime/combat/combat-runtime.js` owns deterministic combat math/effect mutation for current production paths:
 
-Sub-Zero Freeze Blast cast frames live under `assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/`. Sub-Zero recoil is procedural because no dedicated production recoil frame list exists.
-
-## Combat runtime — Pass 3
-
-Pass 3 introduces:
-
-`runtime/combat/combat-runtime.js`
-
-This module owns deterministic combat math/effect mutation for the current production paths:
-
-- scaled Jutsu/basic damage math,
-- linked normal-attack damage scaling,
+- scaled damage math,
+- linked normal-attack scaling,
 - HP damage mutation and zero-floor clamping,
-- resolved multi-target damage,
-- combat chakra spending and capped gain,
+- multi-target damage,
+- combat chakra spend/gain,
 - ability-driven gauge reduction,
-- percent-max-HP party healing with max-HP cap and no defeated-unit revival,
+- percent-max-HP living-party healing,
 - dispatch for executable shared action IDs.
 
-The four action IDs currently referenced by production maps are executable:
+Production maps currently use four executable actions: `damage_target`, `damage_targets`, `reduce_target_gauge`, and `heal_party_percent`.
 
-- `damage_target`
-- `damage_targets`
-- `reduce_target_gauge`
-- `heal_party_percent`
+`revive_ally`, `apply_status`, `buff_party`, and `debuff_target` remain future `declared_not_wired` definitions.
 
-The following registry entries remain future declarations only:
+Pass 3 does not own target geometry, readiness scheduling, movement, combo sequencing, animation callbacks, KO/victory orchestration, or boss AI. No defense formula was invented.
 
-- `revive_ally`
-- `apply_status`
-- `buff_party`
-- `debuff_target`
+## Pass 4 — rendering boundaries
 
-Pass 3 deliberately does **not** move or redesign:
+Pass 4 adds:
 
-- target/hit geometry,
-- turn-meter scheduling or readiness-gauge resets/increments,
-- player/CPU sequencing,
-- movement/positioning,
-- combo sequencing,
-- animation callback choreography,
-- KO/victory/defeat transitions,
-- boss AI.
+- `runtime/rendering/battlefield-renderer.js`
+- `runtime/rendering/battle-ui-renderer.js`
 
-Those remain shell/orchestration concerns. In particular, Anubis `boss_rotation` stays canonical but `declared_not_wired`.
+### Battlefield renderer ownership
 
-No defense formula was invented during extraction. Current damage values retain their established production calculations.
+The shell now delegates these stable canvas primitives to `BlazingBattlefieldRenderer`:
+
+- map crop/zoom/fallback drawing,
+- normal/Jutsu range-shape drawing,
+- overhead link icon,
+- player HP/chakra resource HUD,
+- move-return / cancel cue,
+- victory overlay.
+
+Existing shell function names remain as compatibility wrappers so combat and animation sequencing do not change.
+
+### Battle UI renderer ownership
+
+`BlazingBattleUiRenderer` applies the shell-derived view model to DOM state for:
+
+- tactical ticker,
+- boss HP HUD,
+- phase/log text,
+- Basic/Jutsu/Swap selected/disabled state,
+- Jutsu label,
+- status-card HTML.
+
+### Explicitly retained rendering seams
+
+Pass 4 does **not** claim full scene extraction. The following remain shell-owned:
+
+- `drawUnit()` and character-body sprite/animation integration,
+- frame-loop reset and Jutsu-dim lifecycle,
+- target-bubble drawing,
+- Ally Heal target highlight,
+- inline enemy HP scene bar,
+- world-layer ordering/scene assembly,
+- target/hit geometry.
+
+They remain visible and validated as retained seams so future passes can extract them intentionally.
 
 ## Build and validation safety
 
 `npm run validate` runs:
 
-1. `scripts/validate-runtime.mjs` for structural routing/boundary validation.
-2. `scripts/validate-combat-runtime.mjs` for behavior-level combat smoke tests.
+1. `scripts/validate-runtime.mjs` — canonical routing/resource/action boundaries.
+2. `scripts/validate-combat-runtime.mjs` — combat behavior smoke tests.
+3. `scripts/validate-pass4-rendering.mjs` — Pass 4 structural delegation boundary.
+4. `scripts/validate-rendering-runtime.mjs` — deterministic rendering/UI smoke tests.
 
-Structural validation rejects:
+The Pass 4 smoke suite locks field draw/fallback, attack-range shape parameters, player HP/chakra HUD behavior, move-cancel cue, victory fallback, tactical ticker state, boss HP state, and battle action-control state.
 
-- missing/duplicate unit IDs,
-- missing canonical unit files or runtime maps,
-- invalid chakra core values,
-- unknown resource/state/action IDs,
-- referenced actions without executable handlers,
-- references to `declared_not_wired` actions,
-- missing physical asset paths or required frames,
-- `runtime_shell` / `legacy_embedded`,
-- missing Pass 2/3 runtime modules,
-- loss of required shell-to-module delegation markers,
-- return of extracted direct shell HP/chakra/Freeze-gauge mutations,
-- production Ally Heal inline HP mutation,
-- broken Senku Ally Heal canonical semantics,
-- legacy `Revival Formula` canonical identifiers,
-- recreation of the removed aggregate unit registry.
-
-Combat smoke validation locks:
-
-- scaled and linked damage rounding,
-- damage floor at zero,
-- multi-target damage,
-- Senku's 30% max-HP heal (`54` at 180 max HP),
-- max-HP heal cap,
-- no revive of defeated units,
-- chakra spend / insufficient spend / capped gain,
-- Freeze Blast gauge floor,
-- fail-closed unsupported action behavior.
-
-`npm run build` then:
-
-1. runs the validation suite,
-2. builds `dist/`,
-3. applies remaining defensive compatibility migration for tested shell paths,
-4. synchronizes all registered canonical unit files,
-5. externalizes remaining historical embedded data URIs,
-6. validates Cloudflare's per-asset size limit,
-7. adds branch/commit metadata,
-8. applies renderer-safe presentation postprocessing.
-
-The current routed baseline remains 5 units, 5 runtime maps, 32 resources (24 physical / 8 procedural), and zero `runtime_shell` resources.
+`npm run build` then builds `dist/`, applies remaining tested compatibility migration, synchronizes registered canonical unit data, externalizes unrelated historical data URIs, checks Cloudflare asset limits, adds build metadata, and applies renderer-safe presentation postprocessing.
 
 ## Production vs preview
 
-Production (`main`) uses canonical unit stats and canonical `chakra_start` values.
+Production (`main`) uses canonical unit stats and `chakra_start` values.
 
-Non-production Workers builds may use isolated testing overrides after the production bundle has been created:
-
-- playable starting chakra: max,
-- playable speed: 200,
-- boss speed: 50.
-
-These overrides never modify canonical unit files and never define production gameplay values.
+Non-production Workers builds may apply isolated test overrides after the production bundle has been created: playable starting chakra=max, playable speed=200, boss speed=50. These overrides never define canonical production values.
 
 ## Known transitional debt
 
-The large historical `index.html` remains the UI/orchestration/rendering shell. Pass 2 reduced it from about 49.9 MiB to 47.8 MiB by extracting identified animation/VFX bytes; Pass 3 primarily changes execution ownership rather than large asset bytes, so source size remains roughly 47.8 MiB.
+The historical `index.html` remains roughly 47.8 MiB because most remaining size is unrelated embedded artwork; the Cloudflare build still emits an approximately 0.3 MiB deployed `index.html` after externalization.
 
-Remaining debt includes:
+Remaining architecture debt includes:
 
-- target/turn/combo orchestration in the shell,
-- substantial inline UI/rendering logic,
-- unrelated embedded artwork externalized by the build,
-- defensive build-time compatibility patches,
-- historical Senku `chemical_reaction` physical directory aliases.
+- character-body rendering/animation integration,
+- scene-local target/heal/enemy-HP overlays,
+- frame-loop dim/reset lifecycle,
+- target/turn/combo orchestration,
+- KO/victory/defeat orchestration,
+- unrelated embedded artwork,
+- defensive compatibility patches,
+- historical Senku `chemical_reaction` storage-directory aliases.
+
+Anubis `boss_rotation` remains canonical but `declared_not_wired`; production boss AI still uses the current normal-attack route.
 
 ## Promotion rule
 
@@ -180,5 +140,5 @@ A production refactor may move to `main` only when:
 - `npm run build` passes on the exact pull-request merge ref,
 - canonical unit/resource/action routing remains valid,
 - intended gameplay behavior is unchanged unless explicitly part of the task,
-- no production URL/configuration is unintentionally changed,
+- production URL/configuration is not unintentionally changed,
 - project master state and architecture baseline are updated for the milestone.
