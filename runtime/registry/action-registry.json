@@ -1,10 +1,21 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "actions": {
     "damage_target": {
       "kind": "damage",
       "target_scope": "selected_target",
       "parameters": ["multiplier"]
+    },
+    "damage_targets": {
+      "kind": "damage",
+      "target_scope": "resolved_targets",
+      "parameters": ["multiplier"]
+    },
+    "reduce_target_gauge": {
+      "kind": "gauge_control",
+      "target_scope": "selected_target",
+      "parameters": ["amount"],
+      "rules": {"minimum_gauge": 0}
     },
     "heal_party_percent": {
       "kind": "heal",
