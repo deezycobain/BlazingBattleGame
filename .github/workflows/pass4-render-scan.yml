@@ -16,16 +16,26 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
-      - name: Defer frame-loop state migration
+      - name: Bound Pass 4 to stable renderer seams
         run: |
           node <<'NODE'
           const fs=require('fs');
           const p='scripts/pass4-migrate-rendering.mjs';
           let s=fs.readFileSync(p,'utf8');
-          const a=s.indexOf("replaceText(\n`  // Start every frame from a known-good canvas state.");
-          const b=s.indexOf("\n\nreplaceRx(\n  /    \\/\\/ Target feedback",a);
-          if(a<0||b<0)throw new Error('temporary frame block boundary missing');
-          s=s.slice(0,a)+"replacements['frame reset and Jutsu dim delegation']='deferred';"+s.slice(b);
+          const frameA=s.indexOf("replaceText(\n`  // Start every frame from a known-good canvas state.");
+          const targetA=s.indexOf("\n\nreplaceRx(\n  /    \\/\\/ Target feedback",frameA);
+          const healA=s.indexOf("\n\nreplaceRx(\n  /    if\\(showAllyHealTargets",targetA);
+          const enemyA=s.indexOf("\n\nreplaceText(\n`    ctx.save();",healA);
+          if(frameA<0||targetA<0||healA<0||enemyA<0)throw new Error('temporary migration seam boundary missing');
+          s=s.slice(0,frameA)+"replacements['frame reset and Jutsu dim delegation']='deferred';"+s.slice(targetA);
+          const targetStart=s.indexOf("\n\nreplaceRx(\n  /    \\/\\/ Target feedback");
+          const healStart=s.indexOf("\n\nreplaceRx(\n  /    if\\(showAllyHealTargets",targetStart);
+          s=s.slice(0,targetStart)+"\n\nreplacements['target bubble delegation']='deferred';"+s.slice(healStart);
+          const healStart2=s.indexOf("\n\nreplaceRx(\n  /    if\\(showAllyHealTargets");
+          const enemyStart=s.indexOf("\n\nreplaceText(\n`    ctx.save();",healStart2);
+          s=s.slice(0,healStart2)+"\n\nreplacements['ally heal target delegation']='deferred';"+s.slice(enemyStart);
+          s=s.replace("  'window.BlazingBattlefieldRenderer.drawTargetBubble',\n",'');
+          s=s.replace("  'window.BlazingBattlefieldRenderer.drawAllyHealTarget',\n",'');
           fs.writeFileSync(p,s);
           NODE
       - name: Migrate rendering shell
@@ -35,5 +45,5 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add index.html dev-tools/pass4-migration-report.json
-          git diff --cached --quiet || git commit -m "Delegate battlefield rendering to runtime"
+          git diff --cached --quiet || git commit -m "Delegate stable battlefield rendering seams to runtime"
           git push
