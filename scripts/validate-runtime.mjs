@@ -22,6 +22,10 @@ const unitIndex=await readJson('runtime/registry/unit-index.json');
 const actionRegistry=await readJson('runtime/registry/action-registry.json');
 const assetManifest=await readJson('runtime/registry/asset-manifest.json');
 if(Number(assetManifest.schema_version||0)<5)fail('asset-manifest.json must use schema_version 5+ after Pass 2');
+if(Number(actionRegistry.schema_version||0)<3)fail('action-registry.json must use schema_version 3+ after Pass 3');
+for(const [actionId,definition] of Object.entries(actionRegistry.actions||{})){
+  if(!definition?.runtime_handler&&definition?.execution_status!=='declared_not_wired')fail(`action ${actionId} must define runtime_handler or declared_not_wired`);
+}
 
 const seen=new Set();
 const units={};
@@ -95,6 +99,7 @@ for(const [groupName,group] of Object.entries(assetManifest.shared||{}))for(cons
 for(const [unitId,unitManifest] of Object.entries(assetManifest.units||{}))for(const groupName of ['animations','vfx'])for(const [name,entry] of Object.entries(unitManifest?.[groupName]||{}))await collect(entry,`${unitId}.${groupName}.${name}`);
 
 const runtimeMaps={};
+const referencedActionIds=new Set();
 for(const [unitId,entry] of Object.entries(unitEntries)){
   const mapPath=`assets/characters/${unitId}/data/runtime-map.json`;
   if(!(await exists(mapPath)))fail(`${unitId} runtime-map.json missing`);
@@ -112,7 +117,13 @@ for(const [unitId,entry] of Object.entries(unitEntries)){
   for(const [abilityId,mapping] of Object.entries(runtimeMap.abilities||{})){
     if(!mapping.animation_id||!resourceIds.has(mapping.animation_id))fail(`${unitId}.${abilityId} references unknown animation ${mapping.animation_id}`);
     for(const resourceId of Object.values(mapping.vfx||{}))if(!resourceIds.has(resourceId))fail(`${unitId}.${abilityId} references unknown VFX ${resourceId}`);
-    for(const action of mapping.gameplay_actions||[])if(!actionRegistry.actions?.[action.action_id])fail(`${unitId}.${abilityId} references unknown action ${action.action_id}`);
+    for(const action of mapping.gameplay_actions||[]){
+      const definition=actionRegistry.actions?.[action.action_id];
+      if(!definition)fail(`${unitId}.${abilityId} references unknown action ${action.action_id}`);
+      referencedActionIds.add(action.action_id);
+      if(!definition.runtime_handler)fail(`${unitId}.${abilityId} action ${action.action_id} is referenced by production but has no runtime_handler`);
+      if(definition.execution_status==='declared_not_wired')fail(`${unitId}.${abilityId} action ${action.action_id} is referenced by production but marked declared_not_wired`);
+    }
     if(mapping.execution_status==='declared_not_wired'){
       if((mapping.gameplay_actions||[]).length)fail(`${unitId}.${abilityId} is declared_not_wired but also declares gameplay actions`);
       if(!mapping.migration_note)fail(`${unitId}.${abilityId} declared_not_wired must include a migration_note`);
@@ -123,7 +134,7 @@ for(const [unitId,entry] of Object.entries(unitEntries)){
   for(const [stateId,resourceId] of Object.entries(runtimeMap.states||{}))if(!resourceIds.has(resourceId))fail(`${unitId}.${stateId} references unknown state resource ${resourceId}`);
 }
 
-// Pass 2 modules and source-shell delegation are now part of the production contract.
+// Pass 2 modules and source-shell delegation remain part of the production contract.
 for(const modulePath of ['runtime/animation/frame-runtime.js','runtime/rendering/vfx-renderer.js'])if(!(await exists(modulePath)))fail(`missing Pass 2 runtime module ${modulePath}`);
 const shell=await fs.readFile(path.join(ROOT,'index.html'),'utf8');
 for(const modulePath of ['runtime/animation/frame-runtime.js','runtime/rendering/vfx-renderer.js'])if(!shell.includes(modulePath))fail(`index.html does not load ${modulePath}`);
@@ -144,6 +155,35 @@ for(const symbol of ['LEBEE_METEOR_FRAMES','LEBEE_METEOR_IMPACT_FRAMES']){
 const freezeMarker="freeze:makeImageFrames([\"assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_01.png\"";
 if(!shell.includes(freezeMarker))fail('Sub-Zero Freeze Blast cast frames are not routed to canonical physical paths');
 
+// Pass 3 combat runtime owns deterministic combat math and mutations.
+const combatPath='runtime/combat/combat-runtime.js';
+if(!(await exists(combatPath)))fail(`missing Pass 3 runtime module ${combatPath}`);
+if(!shell.includes(combatPath))fail(`index.html does not load ${combatPath}`);
+const combatSource=await fs.readFile(path.join(ROOT,combatPath),'utf8');
+for(const actionId of referencedActionIds)if(!combatSource.includes(`case '${actionId}'`))fail(`combat runtime does not implement referenced action ${actionId}`);
+for(const marker of [
+  'window.BlazingCombatRuntime.computeScaledDamage',
+  'window.BlazingCombatRuntime.computeBuffedNormalDamage',
+  'window.BlazingCombatRuntime.spendChakra',
+  'window.BlazingCombatRuntime.gainChakra',
+  "window.BlazingCombatRuntime.execute('damage_target'",
+  "window.BlazingCombatRuntime.execute('reduce_target_gauge'",
+  'window.BlazingCombatRuntime.healPercentMaxHp(ally,1'
+])if(!shell.includes(marker))fail(`index.html is missing Pass 3 combat delegation marker ${marker}`);
+for(const legacyMutation of [
+  'enemy.hp=Math.max(0,enemy.hp-u.jutsuDamage);',
+  'enemy.hp=Math.max(0,enemy.hp-hDamage);',
+  'enemy.hp=Math.max(0,enemy.hp-dmg);',
+  'victim.hp=Math.max(0,victim.hp-attacker.attack);',
+  'enemy.gauge=Math.max(0,(enemy.gauge||0)-35);',
+  'u.chakra-=u.jutsuCost;',
+  'u.chakra=Math.min(u.maxChakra,u.chakra+chakraGain);',
+  'ally.hp=ally.maxHp;'
+])if(shell.includes(legacyMutation))fail(`legacy shell combat mutation returned: ${legacyMutation}`);
+const cloudflareBuild=await fs.readFile(path.join(ROOT,'scripts/build-cloudflare.mjs'),'utf8');
+if(!cloudflareBuild.includes("BlazingCombatRuntime.execute('heal_party_percent'"))fail('production Ally Heal does not delegate to Pass 3 combat runtime');
+if(cloudflareBuild.includes('ally.hp=Math.min(ally.maxHp,ally.hp+healAmount)'))fail('production Ally Heal inline HP mutation must not return');
+
 // The old aggregate registry was superseded by unit-index + per-character unit.json.
 if(await exists('assets/data/units_registry.json'))fail('legacy assets/data/units_registry.json must stay removed; use runtime/registry/unit-index.json and canonical unit.json files');
 
@@ -153,4 +193,4 @@ for(const token of forbidden){
   if(canonical.includes(token))fail(`legacy token remains in canonical runtime data: ${token}`);
 }
 
-console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources (${physicalResourceCount} physical, ${proceduralResourceCount} procedural), ${Object.keys(runtimeMaps).length} runtime maps, 0 runtime-shell resources, Pass 2 modules/delegation verified.`);
+console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources (${physicalResourceCount} physical, ${proceduralResourceCount} procedural), ${Object.keys(runtimeMaps).length} runtime maps, ${referencedActionIds.size} executable action IDs, 0 runtime-shell resources, Pass 2/3 delegation verified.`);
