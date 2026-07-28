@@ -26,16 +26,21 @@ jobs:
           const targetA=s.indexOf("\n\nreplaceRx(\n  /    \\/\\/ Target feedback",frameA);
           const healA=s.indexOf("\n\nreplaceRx(\n  /    if\\(showAllyHealTargets",targetA);
           const enemyA=s.indexOf("\n\nreplaceText(\n`    ctx.save();",healA);
-          if(frameA<0||targetA<0||healA<0||enemyA<0)throw new Error('temporary migration seam boundary missing');
+          const uiA=s.indexOf("\n\nreplaceRx(\n  /function updateTacticalTicker",enemyA);
+          if(frameA<0||targetA<0||healA<0||enemyA<0||uiA<0)throw new Error('temporary migration seam boundary missing');
           s=s.slice(0,frameA)+"replacements['frame reset and Jutsu dim delegation']='deferred';"+s.slice(targetA);
-          const targetStart=s.indexOf("\n\nreplaceRx(\n  /    \\/\\/ Target feedback");
-          const healStart=s.indexOf("\n\nreplaceRx(\n  /    if\\(showAllyHealTargets",targetStart);
-          s=s.slice(0,targetStart)+"\n\nreplacements['target bubble delegation']='deferred';"+s.slice(healStart);
-          const healStart2=s.indexOf("\n\nreplaceRx(\n  /    if\\(showAllyHealTargets");
-          const enemyStart=s.indexOf("\n\nreplaceText(\n`    ctx.save();",healStart2);
-          s=s.slice(0,healStart2)+"\n\nreplacements['ally heal target delegation']='deferred';"+s.slice(enemyStart);
-          s=s.replace("  'window.BlazingBattlefieldRenderer.drawTargetBubble',\n",'');
-          s=s.replace("  'window.BlazingBattlefieldRenderer.drawAllyHealTarget',\n",'');
+          let a=s.indexOf("\n\nreplaceRx(\n  /    \\/\\/ Target feedback");
+          let b=s.indexOf("\n\nreplaceRx(\n  /    if\\(showAllyHealTargets",a);
+          s=s.slice(0,a)+"\n\nreplacements['target bubble delegation']='deferred';"+s.slice(b);
+          a=s.indexOf("\n\nreplaceRx(\n  /    if\\(showAllyHealTargets");
+          b=s.indexOf("\n\nreplaceText(\n`    ctx.save();",a);
+          s=s.slice(0,a)+"\n\nreplacements['ally heal target delegation']='deferred';"+s.slice(b);
+          a=s.indexOf("\n\nreplaceText(\n`    ctx.save();");
+          b=s.indexOf("\n\nreplaceRx(\n  /function updateTacticalTicker",a);
+          s=s.slice(0,a)+"\n\nreplacements['enemy health bar delegation']='deferred';"+s.slice(b);
+          for(const marker of ['drawTargetBubble','drawAllyHealTarget','drawEnemyHealthBar']){
+            s=s.replace(`  'window.BlazingBattlefieldRenderer.${marker}',\n`,'');
+          }
           fs.writeFileSync(p,s);
           NODE
       - name: Migrate rendering shell
