@@ -9,7 +9,6 @@ const readJson=async rel=>JSON.parse(await read(rel));
 const exists=async rel=>{try{await fs.access(path.join(ROOT,rel));return true}catch{return false}};
 const approx=(a,b,eps=1e-9)=>Math.abs(a-b)<=eps;
 
-// Load pure browser-IIFE presentation/movement helpers in a minimal global.
 globalThis.window={};
 vm.runInThisContext(await read('runtime/animation/attack-presentation.js'),{filename:'attack-presentation.js'});
 vm.runInThisContext(await read('runtime/movement/retreat-runtime.js'),{filename:'retreat-runtime.js'});
@@ -18,7 +17,7 @@ const R=window.BlazingRetreatRuntime;
 if(!P)fail('BlazingAttackPresentation did not initialize');
 if(!R)fail('BlazingRetreatRuntime did not initialize');
 
-// Exact-target facing remains separate from mechanical hitbox rotation.
+// Exact-target body facing stays separate from mechanical hitbox rotation.
 if(!approx(P.rotationToward({x:0,y:0},{x:10,y:0}),0))fail('rotationToward must face right target at 0 radians');
 if(!approx(P.rotationToward({x:0,y:0},{x:0,y:-10}),-Math.PI/2))fail('rotationToward must preserve exact target direction');
 const anim={};
@@ -27,14 +26,14 @@ if(!approx(P.lockedFacing(anim,'Sub-Zero'),Math.PI))fail('locked attack facing m
 P.clearFacing(anim,'Sub-Zero');
 if(P.lockedFacing(anim,'Sub-Zero')!==null)fail('attack-facing lock must clear after the action');
 
-// Missing optional melee kinds still fall back to real canonical basic art.
+// Missing optional melee kinds still fall back to real canonical basic art for units without dedicated melee art.
 const punchFrame={id:'punch'};
 const kickFrame={id:'kick'};
 if(P.resolveFrameKind('kick',{punch:[punchFrame],kick:[]})!=='punch')fail('missing kick frames must fall back to punch frames');
 if(P.resolveFrameKind('kick',{punch:[punchFrame],kick:[kickFrame]})!=='kick')fail('existing kick frames must remain selectable');
 if(P.resolveFrameKind('freeze',{punch:[punchFrame],freeze:[]})!=='freeze')fail('special/Jutsu kinds must not silently fall back to melee art');
 
-// Bounded retreat math is deterministic under an injected RNG and always moves away.
+// Bounded retreat math is deterministic under injected RNG and always moves away.
 if(!approx(R.randomDistance(48,88,()=>0),48)||!approx(R.randomDistance(48,88,()=>1),88))fail('retreat RNG endpoints must remain 48-88 px');
 const bounds={left:24,right:616,top:70,bottom:318};
 const leftPlan=R.computeRetreatPlan({from:{x:100,y:100},threat:{x:120,y:100},minDistance:48,maxDistance:88,bounds,rng:()=>0.5});
@@ -53,7 +52,7 @@ const manifest=await readJson('runtime/registry/asset-manifest.json');
 const subzero=await readJson('assets/characters/subzero/data/unit.json');
 const subzeroMap=await readJson('assets/characters/subzero/data/runtime-map.json');
 
-// Senku's basic is now one directional pear-range bomb-retreat contract at every valid distance.
+// Senku Basic is one directional pear-range bomb-retreat contract at every valid distance.
 const sm=senku.abilities?.basic?.presentation||{};
 const pear=senku.combat?.basic_shape||{};
 if(pear.type!=='pear'||pear.rear!==48||pear.reach!==140||pear.width!==102)fail('Senku basic must use the approved directional pear geometry');
@@ -72,22 +71,46 @@ if(!approx(upPear,-Math.PI/2)||!approx(leftPear,Math.PI))fail('Senku pear range 
 if(sm.close_retreat_min_px!==48||sm.close_retreat_max_px!==88||sm.close_retreat_duration_ms!==540||sm.close_retreat_frame_ms!==90||!approx(sm.close_bomb_release_ratio,.68))fail('Senku retreat distance/timing/release contract changed');
 if(senku.abilities?.basic?.damage_multiplier!==1||senku.abilities?.basic?.target_mode!=='single'||senku.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Senku retreat change must retain basic damage/targeting semantics');
 
-// The user-supplied sheet is preserved in Senku's source archive and materializes to six real runtime images before validation/build.
-if(!await exists('assets/characters/senku/sprites/source/retreat_run/retreat_run_assets.tar.gz'))fail('Senku retreat source archive is missing');
-const retreatFrames=senku.animation_standard?.animations?.retreat_run?.frames||[];
-if(retreatFrames.length!==6||senku.animation_standard.animations.retreat_run.frame_ms!==90)fail('Senku retreat animation must remain six frames at 90 ms');
-if(senku.animation_standard.animations.retreat_run.events?.[0]?.frame!==5)fail('Senku bomb release must remain late enough for the retreat animation to read');
+// Asset Inbox artwork is now tracked as real source/runtime files; no build materializer is allowed.
+for(const source of [
+  'assets/characters/senku/sprites/source/retreat_run/source_sheet.webp',
+  'assets/characters/senku/sprites/source/melee_attack/source_sheet.webp'
+])if(!await exists(source))fail(`missing Senku source artwork: ${source}`);
+if(await exists('assets/characters/senku/sprites/source/retreat_run/retreat_run_assets.tar.gz'))fail('legacy Senku retreat archive must not return');
+if(await exists('scripts/materialize-senku-retreat-assets.mjs'))fail('legacy Senku asset materializer must not return');
+
+const retreatSpec=senku.animation_standard?.animations?.retreat_run;
+const retreatFrames=retreatSpec?.frames||[];
+if(retreatFrames.length!==6||retreatSpec.frame_ms!==90)fail('Senku retreat animation must remain six frames at 90 ms');
+if(retreatSpec.events?.[0]?.frame!==5)fail('Senku bomb release must remain late enough for the retreat animation to read');
 for(const rel of retreatFrames){
-  if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing materialized Senku retreat frame: ${rel}`);
+  if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing tracked Senku retreat frame: ${rel}`);
 }
-if(!await exists('assets/characters/senku/sprites/source/retreat_run/source_sheet.jpg'))fail('materialized Senku retreat source sheet is missing');
+
+// Dedicated melee body art must resolve from canonical Asset Inbox frames, never bomb-bearing basic art.
+const meleeSpec=senku.animation_standard?.animations?.melee_attack;
+const meleeFrames=meleeSpec?.frames||[];
+if(meleeFrames.length!==6||meleeSpec.frame_ms!==100)fail('Senku melee animation must remain six dedicated frames at 100 ms');
+for(const rel of meleeFrames){
+  if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing tracked Senku melee frame: ${rel}`);
+}
+if(sm.melee_animation_kind!=='melee_attack'||sm.far_animation_kind!=='bomb_throw')fail('Senku melee and bomb-throw animation semantics must stay separated');
+window.BlazingFrameRuntime={loadFrames:paths=>paths.map(src=>({src}))};
+const resolvedMelee=P.resolveFrames(senku,'punch',{punch:[{src:'legacy-bomb-body'}]});
+if(resolvedMelee.length!==6||resolvedMelee.some(frame=>!frame.src.includes('/sprites/runtime/attack/melee/')))fail('Senku semantic melee must resolve only to dedicated Asset Inbox melee frames');
+const resolvedBomb=P.resolveFrames(senku,'bomb_throw',{punch:[{src:'legacy-bomb-body'}]});
+if(resolvedBomb.length!==1||resolvedBomb[0].src!=='legacy-bomb-body')fail('Senku bomb throw must remain separate from melee body art');
+
 const primaryAnim=senkuMap.abilities?.explosive_bomb?.presentation_animations?.primary_retreat;
+const meleeAnim=senkuMap.abilities?.explosive_bomb?.presentation_animations?.melee;
 const helperAnim=senkuMap.abilities?.explosive_bomb?.presentation_animations?.helper_throw;
-if(primaryAnim!=='senku.animation.retreat_run'||helperAnim!=='senku.animation.basic_attack')fail('Senku runtime map must separate primary retreat art from helper throw art');
+if(primaryAnim!=='senku.animation.retreat_run'||meleeAnim!=='senku.animation.melee_attack'||helperAnim!=='senku.animation.basic_attack')fail('Senku runtime map must separate retreat, melee, and bomb-throw presentation art');
 const damageAction=(senkuMap.abilities?.explosive_bomb?.gameplay_actions||[]).find(a=>a.action_id==='damage_target');
 if(damageAction?.event!=='on_projectile_arrival')fail('Senku bomb damage must remain on projectile arrival');
 const retreatResource=manifest.units?.senku?.animations?.retreat_run;
+const meleeResource=manifest.units?.senku?.animations?.melee_attack;
 if(retreatResource?.resource_id!=='senku.animation.retreat_run'||retreatResource?.required_runtime_frames!==6)fail('Senku retreat resource manifest entry is incomplete');
+if(meleeResource?.resource_id!=='senku.animation.melee_attack'||meleeResource?.required_runtime_frames!==6)fail('Senku melee resource manifest entry is incomplete');
 
 // Sub-Zero Freeze Blast remains forward-facing toward nearest live enemy with unchanged combat geometry.
 if(subzero.combat?.basic_rotation_deg!==0||subzero.combat?.jutsu_rotation_deg!==0)fail('Sub-Zero authored fallback rotation must remain 0 degrees');
@@ -132,4 +155,4 @@ for(const marker of ['function pearHalfWidth(',"s.type==='pear'",'ctx.lineTo(x,y
 const staticPass=await read('scripts/static-hitbox-postprocess.mjs');
 for(const marker of ['combat.jutsu_rotation_deg','combat.basic_rotation_deg',"if(s.type==='pear')",'Senku pear hit geometry'])if(!staticPass.includes(marker))fail(`static hitbox compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: Senku directional pear range, all-distance six-frame evasive bomb retreat with bounded 48-88px persistent primary reposition, delayed toss, dynamic forward Freeze Blast, Sub-Zero punch facing, and unchanged bomb/freeze combat semantics verified.');
+console.log('Gameplay presentation smoke PASS: Senku directional pear range, all-distance six-frame evasive bomb retreat, dedicated six-frame Asset Inbox melee art, bounded 48-88px persistent primary reposition, delayed toss, dynamic forward Freeze Blast, Sub-Zero punch facing, and unchanged bomb/freeze combat semantics verified.');
