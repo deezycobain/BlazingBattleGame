@@ -7,8 +7,8 @@
       "slot": "basic",
       "animation_id": "senku.animation.basic_attack",
       "presentation_animations": {
-        "close_retreat": "senku.animation.retreat_run",
-        "far_throw": "senku.animation.basic_attack"
+        "primary_retreat": "senku.animation.retreat_run",
+        "helper_throw": "senku.animation.basic_attack"
       },
       "gameplay_actions": [
         {
