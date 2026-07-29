@@ -8,13 +8,13 @@ const ARCHIVE='assets/characters/senku/sprites/source/retreat_run/retreat_run_as
 const PREFIX='assets/characters/senku/sprites/';
 
 const EXPECTED=new Map([
-  ['assets/characters/senku/sprites/source/retreat_run/source_sheet.jpg','f4590db32748b712095873a4992129dac4281dfc'],
-  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_01.webp','a7ea447ce174545433e82ea2ba04b019bcfa40fa'],
-  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_02.webp','420b6e17384ba42a12139dc6322301087830678b'],
-  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_03.webp','795b3dc88d65a27115df1103eca530e38089228a'],
-  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_04.webp','31f3d958d9bfb23740760dc87bc63622f30b510d'],
-  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_05.webp','720ebd97ff33abb3f81fffc0be21c2f19b8a0cc3'],
-  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_06.webp','78572fcd734f7eaa458df89ff253cf191301df9a']
+  ['assets/characters/senku/sprites/source/retreat_run/source_sheet.jpg','f459dc179a77f0d174a40cd68c861179b8e95c15'],
+  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_01.webp','a7ea447469141e22c7a31d06e6a85061733c3e90'],
+  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_02.webp','50e20bbf88d2634eed5df90388493b741e81a2ba'],
+  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_03.webp','593e97cd41b87841eeb9b8f4dd3938a720259947'],
+  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_04.webp','bacef60923b2fa62d759c54672903bd9c357977b'],
+  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_05.webp','a16d8aa19a19d61040353f7827e77c559f7aaec5'],
+  ['assets/characters/senku/sprites/runtime/movement/retreat_run/frame_06.webp','67879c77af64997590d28d8e5268e5aff3905bc1']
 ]);
 
 function gitBlobSha(bytes){
@@ -53,11 +53,11 @@ function parseTar(tar){
   return entries;
 }
 
-function assertSafeName(name){
+function assertSafeFileName(name){
   if(!name||name.startsWith('/')||name.includes('\\')||name.split('/').includes('..')){
     throw new Error(`Unsafe Senku retreat archive path: ${name}`);
   }
-  if(!name.startsWith(PREFIX))throw new Error(`Archive path escaped Senku sprite tree: ${name}`);
+  if(!name.startsWith(PREFIX))throw new Error(`Archive file escaped Senku sprite tree: ${name}`);
 }
 
 const archivePath=path.join(ROOT,ARCHIVE);
@@ -67,8 +67,9 @@ const entries=parseTar(tar);
 const seen=new Set();
 
 for(const entry of entries){
-  assertSafeName(entry.name);
-  if(entry.type!=='0'&&entry.type!=='')continue;
+  if(entry.type==='5')continue; // Normal tar directory entry; files are validated below.
+  if(entry.type!=='0'&&entry.type!=='')throw new Error(`Unsupported tar entry type ${entry.type} for ${entry.name}`);
+  assertSafeFileName(entry.name);
   const expected=EXPECTED.get(entry.name);
   if(!expected)throw new Error(`Unexpected file in Senku retreat archive: ${entry.name}`);
   const actual=gitBlobSha(entry.data);
