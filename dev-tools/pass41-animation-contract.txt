@@ -1,0 +1,1158 @@
+PASS 4.1 ANIMATION / FACING CONTRACT AUDIT
+
+===== unitAnimationMap @ 41267578 =====
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+
+===== unitAttackFrames @ 41269073 =====
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+===== attackShape =====
+NOT FOUND
+
+===== normalShape =====
+NOT FOUND
+
+===== jutsuShape =====
+NOT FOUND
+
+===== hits @ 41280521 =====
+function hits(p,u,e){let s=u.shape,q=local(p,u,e),er=e.r||20;
+ if(s.type==='screen_rect')return e.x>=BATTLE_BOUNDS.left&&e.x<=BATTLE_BOUNDS.right&&e.y>=BATTLE_BOUNDS.top&&e.y<=BATTLE_BOUNDS.bottom;
+ if(s.type==='circle')return d(p,e)<=s.r+er;
+ if(s.type==='rect'){
+   const rq={x:q.x-(s.offset_x||0),y:q.y-(s.offset_y||0)};
+   return circleRect(rq,er,s.w/2,s.h/2);
+ }
+ if(s.type==='square')return circleRect(q,er,s.s/2,s.s/2);
+ if(s.type==='cross')return circleRect(q,er,s.l/2,s.t/2)||circleRect(q,er,s.t/2,s.l/2);
+ if(s.type==='donut'){let z=Math.hypot(q.x,q.y);return z+er>=s.i&&z-er<=s.o}
+ if(s.type==='cone'){let z=Math.hypot(q.x,q.y),ang=Math.abs(Math.atan2(q.y,q.x)),pad=Math.asin(Math.min(1,er/Math.max(z,.01)));return q.x+er>=0&&z-er<=s.r&&ang<=s.a/2+pad}
+ return false}
+
+===== facingFlip @ 41281806 =====
+function facingFlip(rot,name=null){
+ let dir=Math.cos(rot||0)>=0?1:-1;
+ // Some source art faces screen-left by default. Invert those assets while
+ // keeping mechanical facing/range logic unchanged.
+ if(name==='Crimson'||name==='Anubis')dir*=-1;
+ return dir;
+}
+
+===== updateFacing @ 41282797 =====
+function updateFacing(){
+ S.pairs.forEach(pair=>{
+   pair.units.forEach(u=>{
+     let pos=actorPos(pair,u);
+     let target=nearestEnemyPoint(pos.x,pos.y);
+     if(target)u.rotation=Math.atan2(target.y-pos.y,target.x-pos.x);
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   let target=nearestPlayerPoint(e.x,e.y);
+   if(target)e.rotation=Math.atan2(target.y-e.y,target.x-e.x);
+ });
+}
+
+===== drawUnit @ 41283271 =====
+function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=false,flipX=1,sizeScale=1){
+ // Body sprites must always begin from a clean canvas state.
+ ctx.globalCompositeOperation='source-over';
+ if(!Number.isFinite(ctx.globalAlpha) || ctx.globalAlpha<=0)ctx.globalAlpha=1;
+ let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;
+ let activePulse=1;
+ let fx=name?unitFX(name):null;
+
+ // Deterministic per-character idle timing offset.
+ // This MUST be initialized before any transform code references it.
+ let idlePhase=0;
+ if(name){
+   for(let i=0;i<name.length;i++)idlePhase+=name.charCodeAt(i)*(i+3);
+ }
+
+ if(active && !visual){
+   activePulse=1+Math.sin(performance.now()/170)*.018;
+ }
+
+ // PLAYER GROUND SHADOW — v0.5.18
+ // The sprite artwork is anchored with its feet at local y≈12. Keep the shadow
+ // directly on that contact point instead of floating well below the character.
+ // Width follows the same render scale used by the body so larger units receive
+ // a proportionally larger footprint without turning into a detached blob.
+ if(!isEnemy){
+   let liftRatio=clamp(lift/17,0,1);
+   let bodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let shadowW=clamp(10.5*bodyScale,10,18.5);
+   let shadowH=clamp(2.55*bodyScale,2.5,4.25);
+   let shadowAlpha=.24-.08*liftRatio;
+
+   ctx.save();
+   ctx.translate(x,y+11.5);
+   ctx.fillStyle=`rgba(0,0,0,${shadowAlpha})`;
+   ctx.shadowColor=`rgba(0,0,0,${.14+.04*(1-liftRatio)})`;
+   ctx.shadowBlur=1.5+4.5*liftRatio;
+   ctx.beginPath();
+   ctx.ellipse(0,0,shadowW,shadowH,0,0,Math.PI*2);
+   ctx.fill();
+   ctx.restore();
+ }
+
+ ctx.save();
+ ctx.translate(x,y-lift);
+
+ if(!visual){
+   let t=(performance.now()+idlePhase*5);
+   // Lebee's supplied idle sheet already contains floating motion.
+   if(name!=='Lebee'){
+     ctx.translate(0,Math.sin(t/420)*.55);
+     ctx.rotate(Math.sin(t/610)*.004);
+   }
+ }
+
+ if(fx){
+   let elapsed=performance.now()-fx.start;
+   if(elapsed<fx.duration){
+     if(fx.kind==='hit'){
+       let t=elapsed/fx.duration;
+       let bump=Math.sin(t*Math.PI);
+       ctx.translate((fx.dir||1)*7*bump,-1.6*bump);
+       ctx.rotate((fx.dir||1)*0.14*bump*(fx.strong?1.15:1));
+       scale*=1 + (fx.strong?.06:.035)*Math.sin(t*Math.PI*1.2);
+     }else if(fx.kind==='ko'){
+       let t=elapsed/fx.duration;
+       let ease=1-Math.pow(1-t,3);
+       ctx.translate((fx.dir||1)*(28*ease), -10*ease);
+       ctx.rotate((fx.dir||1)*(.72*ease));
+       scale*=1 - .18*ease;
+       ctx.globalAlpha=t<.6 ? 1 : 1-((t-.6)/.4);
+     }
+   }else if(S.anim?.unitFX){
+     delete S.anim.unitFX[name];
+   }
+ }
+
+ ctx.rotate(rot);
+ ctx.scale((flipX||1)*scale*activePulse,scale*activePulse);
+
+ // CPU enemies retain their small orientation shadow.
+ if(isEnemy){
+   ctx.beginPath();
+   ctx.ellipse(0,17,16,6,0,0,Math.PI*2);
+   ctx.fillStyle='rgba(0,0,0,.22)';
+   ctx.fill();
+ }
+
+ let sprite=name?SPRITES[name]:null;
+ let idleFrames=name?unitIdleFrames(name):null;
+ let attackState=(name&&S.anim?.attackPose)?S.anim.attackPose[name]:null;
+ let attackFrames=(name&&attackState)?unitAttackFrames(name,attackState.kind):null;
+
+ // Lebee has a real recoil sheet. Hit art temporarily overrides idle/attack art,
+ // but uses the same normalized canvas so her footprint stays stable.
+ if(!visual&&fx?.kind==='hit'&&HIT_SPRITES[name]?.length){
+   const hitElapsed=performance.now()-fx.start;
+   const hitProgress=clamp(hitElapsed/fx.duration,0,1);
+   const hitIndex=Math.min(HIT_SPRITES[name].length-1,Math.floor(hitProgress*HIT_SPRITES[name].length));
+   const hitSprite=HIT_SPRITES[name][hitIndex];
+   if(hitSprite?.complete&&hitSprite.naturalWidth>0)sprite=hitSprite;
+ }
+
+ // Attack art overrides idle only when a REAL, loaded attack frame exists.
+ // Previously every attack set attackState, which suppressed the idle art even
+ // for units such as Deezy that have no dedicated attack frames. The renderer
+ // then fell back to an older padded base sprite and the unit appeared to shrink.
+ let usingAttackSprite=false;
+ let attackProgress=0;
+ if(!visual&&attackState){
+   let elapsed=performance.now()-attackState.start;
+   attackProgress=clamp(elapsed/attackState.duration,0,1);
+
+   // Crimson's supplied sheet contains distinct idle / basic / Jutsu poses.
+   // Briefly hold the second idle pose as anticipation, then snap into the
+   // supplied action pose. This makes the frame change readable at phone scale
+   // instead of showing one static pose for the entire lunge.
+   if(name==='Crimson'&&idleFrames?.length){
+     const anticipation=attackState.kind==='special'?.16:.22;
+     if(attackProgress<anticipation){
+       let prep=idleFrames[Math.min(1,idleFrames.length-1)];
+       if(prep?.complete&&prep.naturalWidth>0){
+         sprite=prep;
+         usingAttackSprite=true;
+       }
+     }
+   }
+
+   if(!usingAttackSprite&&attackFrames?.length){
+     let frameIndex=Math.min(attackFrames.length-1,Math.floor(attackProgress*attackFrames.length));
+     let candidate=attackFrames[frameIndex];
+     if(candidate?.complete&&candidate.naturalWidth>0){
+       sprite=candidate;
+       usingAttackSprite=true;
+     }
+   }
+ }
+
+ // Keep the normalized idle animation visible whenever no valid attack frame
+ // is available. This guarantees a consistent battlefield footprint during
+ // lunges and Jutsu casts instead of silently swapping to legacy sprite art.
+ if(!usingAttackSprite && idleFrames?.length){
+   const idleMs=name==='Lebee'?520:185;
+   let frameIndex=Math.floor((performance.now()+idlePhase*7)/idleMs)%idleFrames.length;
+   let candidate=idleFrames[frameIndex];
+   if(candidate?.complete && candidate.naturalWidth>0)sprite=candidate;
+ }
+
+ let spriteRef=sprite?getRenderableSprite(sprite,name):null;
+ let dims=spriteDims(spriteRef);
+
+ if(spriteRef && dims.w>0 && dims.h>0){
+   let playerScale=isEnemy?1:1.07;
+   // v0.5.18: shared player scale; Crimson uses the same battlefield height target as Sub-Zero.
+   let playerRenderBonus=isEnemy?1:PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let h=(isEnemy?62:68)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus,
+       w=(isEnemy?42:48)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus;
+   let ratio=dims.w/dims.h;
+   if(ratio>0)w=h*ratio;
+   // Normalized action frames keep the exact same battlefield footprint as idle.
+
+   ctx.imageSmoothingEnabled=true;
+
+   // Deezy does not yet have a dedicated action-art pack. Give the existing
+   // sprite a real attack performance rather than simply translating the whole
+   // unit unchanged. Because this transform lives inside the already-facing
+   // coordinate system, it automatically follows his attack direction.
+   if(!visual&&attackState&&name==='Deezy'){
+     let p=attackProgress;
+     let strike=Math.sin(clamp(p/.78,0,1)*Math.PI);
+     let recoil=p>.72?Math.sin(((p-.72)/.28)*Math.PI)*.35:0;
+     let strength=attackState.kind==='special'?1.35:1;
+     ctx.translate((8.5*strength*strike)-(2.5*recoil),-2.2*strike);
+     ctx.rotate(-.105*strength*strike+.035*recoil);
+     let squash=1+.055*strike;
+     ctx.scale(squash,1-.028*strike);
+   }
+
+   if(active && !visual){
+     let elapsed=Math.max(0,performance.now()-(S.readyStarted||0));
+     let intro=Math.max(0,1-elapsed/230);
+     let breathe=.5+.5*Math.sin(performance.now()/190);
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     let crimson=name==='Crimson';
+     ctx.shadowColor=crimson?'rgba(255,58,86,.98)':'rgba(255,255,255,.98)';
+     ctx.shadowBlur=(crimson?9:6) + intro*10 + breathe*(crimson?4.5:2.5);
+     ctx.globalAlpha=.32 + intro*.35 + breathe*.08;
+     ctx.drawImage(spriteRef,-w/2,12-h,w,h);
+     ctx.restore();
+
+     if(intro>0){
+       ctx.save();
+       ctx.globalAlpha=.28*intro;
+       ctx.globalCompositeOperation='screen';
+       ctx.drawImage(spriteRef,-w/2,12-h,w,h);
+       ctx.restore();
+     }
+   }
+
+   ctx.globalAlpha=1;
+   ctx.drawImage(spriteRef,-w/2,12-h,w,h);
+
+ } else {
+   ctx.beginPath();
+   ctx.arc(0,0,16,0,Math.PI*2);
+   ctx.fillStyle=color;
+   ctx.fill();
+   ctx.strokeStyle='rgba(255,255,255,.82)';
+   ctx.lineWidth=1.3/Math.max(scale,0.01);
+   ctx.stroke();
+
+   ctx.fillStyle='#fff';
+   ctx.font='bold 11px system-ui';
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.fillText(label,0,0);
+ }
+
+ ctx.restore()
+}
+
+===== animateLunge @ 41323022 =====
+function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ let start=performance.now(),dur=175,backDur=145;
+ let anim=ensureAnimState();
+ if(!anim.attackPose)anim.attackPose={};
+ anim.attackPose[unitName]={kind:attackKind,start,duration:dur+150};
+ function go(now){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState();
+  let t=Math.min(1,(now-start)/dur),ease=1-Math.pow(1-t,3);
+  state.positions[unitName]={x:from.x+(to.x-from.x)*ease,y:from.y+(to.y-from.y)*ease};
+  if(t<1)return requestAnimationFrame(go);
+  try{onImpact&&onImpact()}catch(err){console.error('Attack impact callback failed:',err);return recoverAction('impact callback')}
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   let bs=performance.now();
+   function ret(n){
+    if(!actionTokenAlive(token))return;
+    let st=ensureAnimState();
+    let q=Math.min(1,(n-bs)/backDur),e=1-Math.pow(1-q,3);
+    st.positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+
+===== animateFreezeBlast @ 41324658 =====
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are played by drawUnit via
+ // ATTACK_SPRITES['Sub-Zero'].freeze while he remains planted in place.
+ state.attackPose[unitName]={kind:'freeze',start:castStart,duration:castDuration+flightDuration};
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectileStart=performance.now();
+   const projectile={kind:'iceProjectile',from:{x:from.x+10,y:from.y-22},to:{x:enemy.x,y:enemy.y-18},start:projectileStart,duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   function fly(now){
+     if(!actionTokenAlive(token))return;
+     const t=Math.min(1,(now-projectileStart)/flightDuration);
+     if(t<1)return requestAnimationFrame(fly);
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Freeze Blast impact failed:',err);return recoverAction('freeze blast impact')}
+     const ice={kind:'frozenTarget',x:enemy.x,y:enemy.y,start:performance.now(),life:1};
+     S.floaters.push(ice);
+     setTimeout(()=>{
+       if(!actionTokenAlive(token))return;
+       S.floaters=S.floaters.filter(x=>x!==ice);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+       try{onDone&&onDone()}catch(err){console.error('Freeze Blast completion failed:',err);recoverAction('freeze blast completion')}
+     },freezeHold);
+   }
+   requestAnimationFrame(fly);
+ },castDuration);
+}
+
+===== animateSenkuBomb @ 41329370 =====
+function animateSenkuBomb(unitName,from,enemy,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ const meta=canonicalUnit('senku')?.abilities?.basic?.presentation||{};
+ const castDuration=meta.cast_duration_ms||560;
+ const flightDuration=meta.flight_duration_ms||620;
+ const blastDuration=meta.impact_duration_ms||430;
+ const arcHeight=meta.arc_height_px||86;
+
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={
+   kind:attackKind,
+   start:performance.now(),
+   duration:castDuration
+ };
+
+ // Release near the final throwing pose rather than halfway through the cast.
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+
+   const projectile={
+     kind:'senkuBombProjectile',
+     from:{x:from.x,y:from.y-31},
+     to:{x:enemy.x,y:enemy.y-12},
+     start:performance.now(),
+     duration:flightDuration,
+     arcHeight,
+     life:1
+   };
+   S.floaters.push(projectile);
+
+   setTimeout(()=>{
+     if(!actionTokenAlive(token))return;
+
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     const targetGroundY=(enemy.feetY??enemy.groundY??enemy.y);
+     const blast={
+       kind:'senkuExplosion',
+       x:enemy.x,
+       y:targetGroundY,
+       layer:'ground',
+       start:performance.now(),
+       duration:360,
+       life:1
+     };
+     S.floaters.push(blast);
+
+     // Damage and target recoil happen only when the bomb lands.
+     try{
+       onImpact&&onImpact();
+     }catch(err){
+       console.error('Senku bomb impact failed:',err);
+       return recoverAction('Senku bomb impact');
+     }
+
+     setTimeout(()=>{
+       S.floaters=S.floaters.filter(x=>x!==blast);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+
+       if(actionTokenAlive(token)){
+         try{
+           onDone&&onDone();
+         }catch(err){
+           recoverAction('Senku bomb completion');
+         }
+       }
+     },blastDuration);
+   },flightDuration);
+ },castDuration*.76);
+}
+
+===== character animation map construction @ 41267914 =====
+8xscd3NmjDSTk/wXE83ywx5Buu4MEq72TM8o0M6aTFIwDnh1jsEBNXSGcndpSvdpR3dCWAyX+ICs2aNl/2qhQpQlpb33eRgTt3U8Y7uQnRL48Dc782e5VxzfMlea0QpaoGX+2ImwzzG+CJGUqMgXMC7O+uwKTxpCcb84l6ULKG+LseMm8PCudnlziluuliEC1htxzasIel2un0z74FlgXEeMmhO6UXe22IAnX8dd+zOlv1ZRgdZ/E7t9XYs1BrpZgeXm+92LhFOdF190MFg5280WgyTFoQe7XdcEIjMP8wOVAKCg7vLuujaugWTjOZwbTiO0jH6YeYw2VPubt5m47qZFVyTUXvDFbqjq2mvh6Q960XmO5pdusvsHs+eT7uR3QxaabcTYUkmgvZQ4sWScmGNMM0mSswELvy5mVe31G4TjhZeo3aNNBhpW3a3/s6unTI7L1sPgoHG+T80XYnZZ+B/R09iMQjMDpi24dWq7AgcVFh3w9MiR72jtJpLEOYD5Gwtti5tNFtr3X3brXS7Xq53ZfmziqgxIJqdp59D55qTqC4PtN6gxna8arusjuD61uH1ztG5ut9pofLtGtDM/X0HRZgL/l3xwDJ8tZHpLQZh1+3gLziZd1PxuY27kJEuEonnG1rLeWl3O4bzAXyeDiIvgAjmHX6aAEudQrU1n+iccK0KpcWyaM4ejT6nVFoWgLvuQYFE3C70WZYobYBe9mC7DxiYYd5N5rmIIc8rWTr3juchmPnMXubAf+Ywy7WLj3cPrIUw3FxfM80BkM6mpQ6+52blXQe6mvVoZtlPt3xbJJfPM0pwJ3lQ7VgTubOBIK35UacaCgEMNIPIus9yaaW3+P1prrK4m4k2cBPNML8XQF93AuSSA8vbVQqU0iEoLC/f59fHfHBBl9u+0ABqAlgzwvsOfZNenI3OvdZOd5kJH1r/jNa/BMvjwIIXQPfwnfkVN0ozvDChm68cZEGwQHPPtEnOtFafw3y4W33oOzddFg8MavlvTUbUXC8F5sDsJJ9vtS1K7P4uXtuLSoAujoQ7p+JyiW4bPF8AnmPJ6SqQu3SVOWcen3VIWzJiLtDMHCM+F1VuF+oss5XWUKeL6c57TszupxM/Dpm5o+cTb2XIXePjud1Oc+7vtLgollz24kHYVApe8URwXdimXaCykAmEe+tm/EjnpLOouc0uiNSdhLQrOPE8ZbkTGGYuzzNMrx1x0gnYaKEldwfqag416lDqFhu1vhJr0OMZJopla7bDxRRaAHGa+87UYciE8pZ4xuppqpGGBtXhr4ss8Nk79Mxu0CL6PB8SuisC7fJHIXcc+xraoYiA5jLPuxhpt3JbvgfljtKrqTLaauNzaQy0sACWfT/p8M9f7HDQBT0aSKtzqs9XnLScInZH2dr5WUt3wch8cJmVH5g1DoC73b/O4iKeNYMWO37dTLY7YuROBtslJC8pkRaD9xy2App7sK3qRNycycOLaB9zVmqdU7LBjgXzgg6090XunL4L0XqpnUWT8S9TmSwwHhYaf41MccZGgHTGZyzi2Z3ot3gPuvh2NxAsw+FFZKmw5K5kcVZyNweVE7cErujghUsCvsxFAfk7qUK0qExsD0FqN3aL1S8cZjJXdcxnrPOf331mWKKJnCXgizgnMA+jdTvztGAyPXcYgjCfxDdVTvd9wqthWspittpWHoQXq6KkU0F0+hrL8OEWSxe5s7fapp284DkFA/V2lmJ3fXeqrqXp/Nza+HybGAHdYe7c9T3oHl7oVFidpnand0JLKKXLG+zUft7/D1UnNx5NxFTuAAAAAElFTkSuQmCC"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src='assets/characters/lebee/vfx/basic/star_blast/projectile/frame_01.png';
+const LEBEE_METEOR_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/impact/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_COMBO=new Image();
+LEBEE_METEOR_IMPACT_COMBO.src='assets/characters/lebee/vfx/jutsu/meteor/finale/frame_01.png';
+const LEBEE_METEOR_AFTERMATH=new Image();
+LEBEE_METEOR_AFTERMATH.src='assets/characters/lebee/vfx/jutsu/meteor/aftermath/frame_01.png';
+
+
+function U(name,mark,speed,attack,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff=null,maxHp=110,maxChakra=8,defense=0,archetype='unassigned'){
+ return{name,mark,speed,attack,defense,archetype,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff,hp:maxHp,maxHp,chakra:2,maxChakra,rotation:0}
+}
+
+// v0.6.7 DATA AUTHORITY
+// Canonical stats/roles/shapes/ability costs live in each unit's data/unit.json.
+// The standalone embeds a generated copy in window.BLAZING_UNIT_DATA so mobile local-file play needs no fetch().
+const UNIT_DATA=window.BLAZING_UNIT_DATA||{};
+const UNIT_NAME_TO_ID=Object.freeze(Object.fromEntries(Object.entries(UNIT_DATA).map(([id,d])=>[d.display_name,id])));
+function canonicalUnit(nameOrId){
+ const id=UNIT_DATA[nameOrId]?nameOrId:UNIT_NAME_TO_ID[nameOrId];
+ const d=id?UNIT_DATA[id]:null;
+ if(!d)throw new Error(`Unknown canonical unit: ${nameOrId}`);
+ return d;
+}
+function runtimeDefinition(nameOrId){
+ const d=canonicalUnit(nameOrId),basic=d.abilities.basic||{},jutsu=d.abilities.jutsu||{};
+ return{
+  mark:d.combat.mark,speed:d.stats.speed,attack:d.stats.attack,defense:d.stats.defense,
+  hp:d.stats.hp,maxHp:d.stats.hp,shape:d.combat.basic_shape,jutsuShape:d.combat.jutsu_shape||{type:'circle',r:0},
+  maxChakra:d.combat.chakra_max||0,jutsuCost:jutsu.cost??99,
+  jutsuDamage:jutsu?window.BlazingCombatRuntime.computeScaledDamage(d.stats.attack,jutsu.damage_multiplier||1):0,
+  jutsuName:jutsu?.name||'Jutsu',archetype:d.archetype,render:d.render||{},
+  linkBuff:d.combat.link_buff||null
+ };
+}
+const BATTLE_ROSTER=Object.freeze(Object.fromEntries(
+ ['crimson','subzero','lebee','senku','anubis']
+   .filter(id=>UNIT_DATA[id])
+   .map(id=>[UNIT_DATA[id].display_name,runtimeDefinition(id)])
+));
+function makeRosterUnit(name,opts={}){
+ const d=BATTLE_ROSTER[name];
+ if(!d)throw new Error(`Unknown battle unit: ${name}`);
+ const u=U(name,d.mark,d.speed,d.attack,d.shape,d.jutsuShape,d.jutsuCost,d.jutsuDamage,d.linkBuff||null,d.maxHp,d.maxChakra,d.defense,d.archetype);
+ u.jutsuName=d.jutsuName||'Jutsu';
+ u.renderScale=d.render?.scale||1;
+ const start=opts.startingChakra??2;
+ u.chakra=start==='full'?u.maxChakra:Math.max(0,Math.min(u.maxChakra,start));
+ return u;
+}
+function makeEnemyFromData(id,name,x,y,mark,overrides={}){
+ const d=canonicalUnit(id),base=d.stats,combat=d.combat;
+ const hp=overrides.hp??base.hp;
+ return{name:name||d.display_name,spriteKey:d.display_name,mark:mark||combat.mark,x,y,r:overrides.r??19,
+  hp,maxHp:hp,speed:overrides.speed??base.speed,attack:overrides.attack??base.attack,defense:overrides.defense??base.defense,
+  gauge:0,shape:overrides.shape??combat.basic_shape,archetype:d.archetype};
+}
+
+// v0.5.19 core-roster whitelist. Legacy units stay in BATTLE_ROSTER for rollback only.
+const ACTIVE_PLAYABLE_UNITS=Object.freeze(['Crimson','Sub-Zero','Lebee','Senku']);
+const DEFAULT_ACTIVE_TEAM=Object.freeze(['Crimson','Lebee','Sub-Zero']);
+
+function validatePlayableRosterRegistration(){
+ const missing=ACTIVE_PLAYABLE_UNITS.filter(name=>!BATTLE_ROSTER[name]);
+ if(missing.length){
+   console.err
+
+===== player drawUnit call =====
+NOT FOUND: drawUnit(pos.x,pos.y
+
+===== basic dispatcher @ 41343295 =====
+if(u.name!=='Sub-Zero')recoil(enemy,()=>{},jDir,true);
+     if(u.name==='Sub-Zero')window.BlazingCombatRuntime.execute('reduce_target_gauge',{target:enemy,parameters:{amount:35,minimum_gauge:0}});
+     checkVictoryKillshot();
+    },
+    ()=>{
+     let helperIndex=0;
+
+     function runHelper(){
+      if(enemy.hp<=0 || helperIndex>=helpers.length)
+       return setTimeout(runJutsuTarget,110);
+
+      let hp=helpers[helperIndex++];
+      let hu=front(hp);
+      let hdx=enemy.x-hp.x,hdy=enemy.y-hp.y,hlen=Math.max(1,Math.hypot(hdx,hdy));
+      let hto={
+       x:enemy.x-hdx/hlen*((enemy.r||19)+27),
+       y:enemy.y-hdy/hlen*((enemy.r||19)+27)
+      };
+      let hfrom={x:hp.x,y:hp.y};
+
+      animateLunge(
+       hu.name,hfrom,hto,
+       ()=>{
+        let hResult=buffedNormalDamage(hp),hDamage=hResult.damage;
+        window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:hDamage});
+        addImpactFlash(enemy.x,enemy.y-8,hu.name==='Crimson'?'#ff405c':'#ffffff');
+        addFloat(enemy.x,enemy.y-34,'-'+hDamage,hResult.buff.bonus>0?'#65ff9e':'#ffbd4a');
+        let hDir=Math.sign(enemy.x-hp.x)||1;
+        if(enemy.hp<=0)handleEnemyKO(enemy,hDir); else recoil(enemy,()=>{},hDir,false);
+        checkVictoryKillshot();
+       },
+       ()=>setTimeout(runHelper,85),
+       helperIndex%2===1?'punch':'kick'
+      )
+     }
+
+     runHelper()
+    },
+    'special'
+   )
+  }
+
+  return runJutsuTarget()
+ }
+
+ let queue=[],anyCombo=false;
+ targets.forEach(enemy=>{
+  let members=comboMembers(enemy,p),attackers=[p,...members.filter(x=>x!==p)];
+  if(attackers.length>1)anyCombo=true;
+  queue.push({enemy,attackers})
+ });
+ let chakraGain=1+(anyCombo?1:0);
+ window.BlazingCombatRuntime.gainChakra(u,chakraGain);
+
+ let targetIndex=0;
+ function runTarget(){
+  if(targetIndex>=queue.length){
+   S.log=`${u.name} hit ${targets.length} target${targets.length===1?'':'s'} and gained ${chakraGain} chakra${anyCombo?' from combo positioning':''}.`;
+   return finishAction()
+  }
+  let item=queue[targetIndex++],enemy=item.enemy,attackers=item.attackers,attackIndex=0;
+  function runAttacker(){
+   if(enemy.hp<=0||attackIndex>=attackers.length)return setTimeout(runTarget,110);
+   let ap=attackers[attackIndex++],au=front(ap),dx=enemy.x-ap.x,dy=enemy.y-ap.y,len=Math.max(1,Math.hypot(dx,dy));
+   let stop=(enemy.r||19)+27,to={x:enemy.x-dx/len*stop,y:enemy.y-dy/len*stop},from={x:ap.x,y:ap.y};
+   const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlast:(au.name==='Senku'?animateSenkuBomb:animateLunge);
+   const basicTarget=(au.name==='Lebee'||au.name==='Senku')?enemy:to;
+   runBasicAttack(au.name,from,basicTarget,()=>{
+    let result=buffedNormalDamage(ap),dmg=result.damage;
+    window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:dmg});
+    addImpactFlash(enemy.x,enemy.y-8,au.name==='Crimson'?'#ff405c':attackIndex>1?'#ffbd4a':'#ffffff');
+    addFloat(enemy.x,enemy.y-34,'-'+dmg,result.buff.bonus>0?'#65ff9e':attackIndex>1?'#ffbd4a':'#fff');
+    let nDir=Math.sign(enemy.x-ap.x)||1;
+    if(enemy.hp<=0)handleEnemyKO(enemy,nDir); else recoil(enemy,()=>{},nDir,attackIndex>1);
+    checkVictoryKillshot();
+   },()=>setTimeout(runAttacker,85),attackIndex%2===1?'punch':'kick')
+  }
+  runAttacker()
+ }
+ runTarget()
+}
+
+function finishAction(){
+ const token=ACTIVE_ACTION_TOKEN;
+ clearActionWatchdog();
+ setTimeout(()=>{
+  if(!actionTokenAlive(token))return;
+  // v0.5.10: retire the completed action token BEFORE clearing S.anim.
+  // This prevents late recoil/requestAnimationFrame callbacks from recreating
+  // S.anim after the turn has returned to charge, which caused the hard freeze.
+  invalidateActions();
+  S.anim=null;S.ready=null;S.action='normal';
+  if(S.victoryFX||!aliveEnemies().length){
+   if(!S.victoryFX)startVictorySequence();
+   S.phase='resolve';
+   return;
+  }
+  if(!alivePairs().length){
+   S.phase='resolve';
+   S.log='Defeat — all three fighter pairs have been knocked out.';
+   return;
+  }
+  S.phase='charge';S._chargeSince=performance.now();
+ },220)
+}
+
+function enemiesMutuallyLinked(a,b){
+ if(a===b || a.hp<=0 || b.hp<=0)return false;
+
+ let bodyA={x:a.x,y:a.y,r:a.r||16};
+ let bodyB={x:b.x,y:b.y,r:b.r||16};
+
+ let aCoversB=hits(a,{shape:normalShape(),rotation:0},bodyB);
+ let bCoversA=hits(b,{shape:normalShape(),rotation:0},bodyA);
+
+ return aCoversB && bCoversA
+}
+
+function enemyComboMembers(targetPair,initiator){
+ // Target is no longer part of combo eligibility.
+ // Once linked, the helper may join the initiator's valid attack target.
+ return S.enemies.filter(enemy=>{
+   if(enemy.hp<=0)return false;
+   return enemy===initiator || enemiesMutuallyLinked(initiator,enemy)
+ })
+}
+
+function resolveEnemyOverlap(enemy){
+ const minDist=47;
+
+ // Resolve only the enemy that just moved. This intentionally does not
+ // mutate player positions or other enemy positions.
+ for(let pass=0;pass<8;pass++){
+   let blocker=null;
+   let blockerDist=Infinity;
+
+   S.pairs.forEach(pair=>{
+     if(!pairAlive(pair))return;
+     let dist=d(enemy,pair);
+     if(dist<minDist && dist<blockerDist){
+       blocker=pair;
+       blockerDist=dist;
+     }
+   });
+
+   S.enemies.forEach(other=>{
+     if(other===enemy||other.hp<=0)return;
+     let dist=d(enemy,other);
+     if(dist<minDist && dist<blockerDist){
+       blocker=other;
+       blockerDist=dist;
+     }
+   });
+
+   if(!blocker)break;
+
+   let dx=enemy.x-blocker.x;
+   let dy=enemy.y-blocker.y;
+   let len=Math.hypot(dx,dy);
+
+   // Exact same-center fallback gets a deterministic escape direction.
+   if(len<.01){
+     let angle=(pass+1)*1.913;
+     dx=Math.cos(angle);
+     dy=Math.sin(angle);
+     len=1;
+   }
+
+   let push=(minDist-len)+.75;
+   enemy.x+=(dx/len)*push;
+   enemy.y+=(dy/len)*push;
+
+   let legal=clampToBattlefield(enemy);
+   enemy.x=legal.x;
+   enemy.y=legal.y;
+ }
+}
+
+function cpuTurn(){
+ if(S.phase!=='cpu')return;
+ const cpuActionToken=beginActionToken();
+ armActionWatchdog('Anubis / enemy turn',cpuActionToken);
+ let e=S.ready.ref;
+ if(e.hp<=0){e.gauge=0;return finishAction()}
+
+ let candidates=S.pairs.filter(pairAlive);candidates.forEach(ensureFront);
+ if(!candidates.length)return;
+
+ // Enemy personality changes each turn so the CPU does not dogpile one unit.
+ // Weighted considerations:
+ // - nearest target
+ // - lowest-health target
+ // - clustered target opportunity
+ // - mild randomness so equal situations do not look scripted
+ const modes=['nearest','weakest','cluster','balanced'];
+ const mode=modes[Math.floor(Math.random()*modes.length)];
+
+ function nearbyCount(p){
+   return candidates.filter(other=>other!==p && d(p,other)<145).length;
+ }
+
+ function targetScore(p){
+
+
+===== jutsu dispatcher @ 41340317 =====
+nter,
+   ()=>{
+    allies.forEach(pair=>{
+     const ally=front(pair);
+     const healed=window.BlazingCombatRuntime.healPercentMaxHp(ally,1,{minimumHeal:1,ignoreDefeated:true}).amount;
+
+     addImpactFlash(pair.x,pair.y-18,'#64ff7d');
+     if(healed>0){
+      addFloat(pair.x,pair.y-40,`+${healed}`,'#74ff91');
+     }else{
+      addFloat(pair.x,pair.y-40,'FULL','#74ff91');
+     }
+    });
+   },
+   ()=>finishAction()
+  );
+ }
+
+ if(!targets.length){
+  S.log=`${u.name} committed the move but caught no target.`;return finishAction()
+ }
+
+ if(useJutsu){
+  window.BlazingCombatRuntime.spendChakra(u,u.jutsuCost);
+
+  if(u.name==='Lebee'){
+   S.log=`Lebee activated Meteor Jutsu — ${targets.length} target${targets.length===1?'':'s'} caught in the cosmic impact zone.`;
+   const from={x:p.x,y:p.y};
+   return animateLebeeMeteorJutsu(
+    u.name,from,targets,
+    ()=>{
+     targets.forEach(enemy=>{
+      if(enemy.hp<=0)return;
+      window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:u.jutsuDamage});
+      addImpactFlash(enemy.x,enemy.y-8,'#ff7ae6');
+      addFloat(enemy.x,enemy.y-34,'-'+u.jutsuDamage,'#ff8be8');
+      const dir=Math.sign(enemy.x-p.x)||1;
+      if(enemy.hp<=0)handleEnemyKO(enemy,dir); else recoil(enemy,()=>{},dir,true);
+     });
+     checkVictoryKillshot();
+    },
+    ()=>finishAction()
+   );
+  }
+
+  // Every Jutsu target gets:
+  //   active fighter's Jutsu hit
+  //   + normal attacks from OTHER allies whose normal range covers that target.
+  let jutsuQueue=targets.map(enemy=>{
+    let helpers=comboMembers(enemy,p).filter(helper=>helper!==p);
+    return {enemy,helpers};
+  });
+
+  let anyHelpers=jutsuQueue.some(item=>item.helpers.length>0);
+  S.log=anyHelpers
+    ? `${u.name} activated ${u.jutsuName||'Jutsu'} — normal combo partners are joining where their ranges overlap.`
+    : `${u.name} activated ${u.jutsuName||'Jutsu'} — ${targets.length} target${targets.length===1?'':'s'} caught in the field.`;
+
+  let targetIndex=0;
+
+  function runJutsuTarget(){
+   if(targetIndex>=jutsuQueue.length)return finishAction();
+
+   let item=jutsuQueue[targetIndex++];
+   let enemy=item.enemy;
+   let helpers=item.helpers;
+
+   // First: the active fighter performs the Jutsu hit.
+   let dx=enemy.x-p.x,dy=enemy.y-p.y,len=Math.max(1,Math.hypot(dx,dy));
+   let to={x:enemy.x-dx/len*((enemy.r||19)+27),y:enemy.y-dy/len*((enemy.r||19)+27)};
+   let from={x:p.x,y:p.y};
+
+   const runActiveJutsu=(u.name==='Sub-Zero')?animateFreezeBlast:animateLunge;
+   const activeFrom=(u.name==='Sub-Zero')?from:from;
+   const activeTarget=(u.name==='Sub-Zero')?enemy:to;
+   runActiveJutsu(
+    u.name,activeFrom,activeTarget,
+    ()=>{
+     window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:u.jutsuDamage});
+     addImpactFlash(enemy.x,enemy.y-8,u.name==='Crimson'?'#ff405c':'#8cecff');
+     addFloat(enemy.x,enemy.y-34,'-'+u.jutsuDamage,'#57e7ff');
+     let jDir=Math.sign(enemy.x-p.x)||1;
+     if(enemy.hp<=0)handleEnemyKO(enemy,jDir); else if(u.name!=='Sub-Zero')recoil(enemy,()=>{},jDir,true);
+     if(u.name==='Sub-Zero')window.BlazingCombatRuntime.execute('reduce_target_gauge',{target:enemy,parameters:{amount:35,minimum_gauge:0}});
+     checkVictoryKillshot();
+    },
+    ()=>{
+     let helperIndex=0;
+
+     function runHelper(){
+      if(enemy.hp<=0 || helperIndex>=helpers.length)
+       return setTimeout(runJutsuTarget,110);
+
+      let hp=helpers[helperIndex++];
+      let hu=front(hp);
+      let hdx=enemy.x-hp.x,hdy=enemy.y-hp.y,hlen=Math.max(1,Math.hypot(hdx,hdy));
+      let hto={
+       x:enemy.x-hdx/hlen*((enemy.r||19)+27),
+       y:enemy.y-hdy/hlen*((enemy.r||19)+27)
+      };
+      let hfrom={x:hp.x,y:hp.y};
+
+      animateLunge(
+       hu.name,hfrom,hto,
+       ()=>{
+        let hResult=buffedNormalDamage(hp),hDamage=hResult.damage;
+        window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:hDamage});
+        addImpactFlash(enemy.x,enemy.y-8,hu.name==='Crimson'?'#ff405c':'#ffffff');
+        addFloat(enemy.x,enemy.y-34,'-'+hDamage,hResult.buff.bonus>0?'#65ff9e':'#ffbd4a');
+        let hDir=Math.sign(enemy.x-hp.x)||1;
+        if(enemy.hp<=0)handleEnemyKO(enemy,hDir); else recoil(enemy,()=>{},hDir,false);
+        checkVictoryKillshot();
+       },
+       ()=>setTimeout(runHelper,85),
+       helperIndex%2===1?'punch':'kick'
+      )
+     }
+
+     runHelper()
+    },
+    'special'
+   )
+  }
+
+  return runJutsuTarget()
+ }
+
+ let queue=[],anyCombo=false;
+ targets.forEach(enemy=>{
+  let members=comboMembers(enemy,p),attackers=[p,...members.filter(x=>x!==p)];
+  if(attackers.length>1)anyCombo=true;
+  queue.push({enemy,attackers})
+ });
+ let chakraGain=1+(anyCombo?1:0);
+ window.BlazingCombatRuntime.gainChakra(u,chakraGain);
+
+ let targetIndex=0;
+ function runTarget(){
+  if(targetIndex>=queue.length){
+   S.log=`${u.name} hit ${targets.length} target${targets.length===1?'':'s'} and gained ${chakraGain} chakra${anyCombo?' from combo positioning':''}.`;
+   return finishAction()
+  }
+  let item=queue[targetIndex++],enemy=item.enemy,attackers=item.attackers,attackIndex=0;
+  function runAttacker(){
+   if(enemy.hp<=0||attackIndex>=attackers.length)return setTimeout(runTarget,110);
+   let ap=attackers[attackIndex++],au=front(ap),dx=enemy.x-ap.x,dy=enemy.y-ap.y,len=Math.max(1,Math.hypot(dx,dy));
+   let stop=(enemy.r||19)+27,to={x:enemy.x-dx/len*stop,y:enemy.y-dy/len*stop},from={x:ap.x,y:ap.y};
+   const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlast:(au.name==='Senku'?animateSenkuBomb:animateLunge);
+   const basicTarget=(au.name==='Lebee'||au.name==='Senku')?enemy:to;
+   runBasicAttack(au.name,from,basicTarget,()=>{
+    let result=buffedNormalDamage(ap),dmg=result.damage;
+    window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:dmg});
+    addImpactFlash(enemy.x,enemy.y-8,au.name==='Crimson'?'#ff405c':attackIndex>1?'#ffbd4a':'#ffffff');
+    addFloat(enemy.x,enemy.y-34,'-'+dmg,result.buff.bonus>0?'#65ff9e':attackIndex>1?'#ffbd4a':'#fff');
+    let nDir=Math.sign(enemy.x-ap.x)||1;
+    if(enemy.hp<=0)handleEnemyKO(enemy,nDir); else recoil(enemy,()=>{},nDir,attackIndex>1);
+    checkVictoryKillshot();
+   },()=>setTimeout(runAttacker,85),attackIndex%2===1?'punch':'kick')
+  }
+  runAt
+
+===== attack pose assignment @ 41323253 =====
+VE_ACTION_TOKEN}
+function recoverAction(reason='animation timeout'){
+ console.warn('Blazing Battle recovered action:',reason);
+ invalidateActions();
+ S.anim=null;S.drag=false;S.dragVisual=null;S.dragOrigin=null;S.action='normal';S.ready=null;
+ if(aliveEnemies().length&&alivePairs().length){S.phase='charge';S._chargeSince=performance.now();S.log='Action recovered — turn meter resumed.'}
+}
+function armActionWatchdog(reason='combat action',token=ACTIVE_ACTION_TOKEN){
+ clearActionWatchdog();
+ ACTION_WATCHDOG=setTimeout(()=>{
+   if(actionTokenAlive(token)&&gameStarted&&(S.phase==='resolve'||S.phase==='cpu'))recoverAction(reason);
+ },2600);
+}
+function ensureAnimState(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.positions)S.anim.positions={};
+ return S.anim;
+}
+function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ let start=performance.now(),dur=175,backDur=145;
+ let anim=ensureAnimState();
+ if(!anim.attackPose)anim.attackPose={};
+ anim.attackPose[unitName]={kind:attackKind,start,duration:dur+150};
+ function go(now){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState();
+  let t=Math.min(1,(now-start)/dur),ease=1-Math.pow(1-t,3);
+  state.positions[unitName]={x:from.x+(to.x-from.x)*ease,y:from.y+(to.y-from.y)*ease};
+  if(t<1)return requestAnimationFrame(go);
+  try{onImpact&&onImpact()}catch(err){console.error('Attack impact callback failed:',err);return recoverAction('impact callback')}
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   let bs=performance.now();
+   function ret(n){
+    if(!actionTokenAlive(token))return;
+    let st=ensureAnimState();
+    let q=Math.min(1,(n-bs)/backDur),e=1-Math.pow(1-q,3);
+    st.positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+function addImpactFlash(x,y,color='#ffffff'){
+ let f={x,y,text:'✦',color,life:1,impact:true};
+ S.floaters.push(f);
+ let id=setInterval(()=>{
+   f.y-=.25;
+   f.life-=.07;
+   if(f.life<=0){
+     clearInterval(id);
+     S.floaters=S.floaters.filter(item=>item!==f);
+   }
+ },16);
+}
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are playe
+
+===== Sub-Zero freeze shape path @ 41340339 =====
+8,'#64ff7d');
+     if(healed>0){
+      addFloat(pair.x,pair.y-40,`+${healed}`,'#74ff91');
+     }else{
+      addFloat(pair.x,pair.y-40,'FULL','#74ff91');
+     }
+    });
+   },
+   ()=>finishAction()
+  );
+ }
+
+ if(!targets.length){
+  S.log=`${u.name} committed the move but caught no target.`;return finishAction()
+ }
+
+ if(useJutsu){
+  window.BlazingCombatRuntime.spendChakra(u,u.jutsuCost);
+
+  if(u.name==='Lebee'){
+   S.log=`Lebee activated Meteor Jutsu — ${targets.length} target${targets.length===1?'':'s'} caught in the cosmic impact zone.`;
+   const from={x:p.x,y:p.y};
+   return animateLebeeMeteorJutsu(
+    u.name,from,targets,
+    ()=>{
+     targets.forEach(enemy=>{
+      if(enemy.hp<=0)return;
+      window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:u.jutsuDamage});
+      addImpactFlash(enemy.x,enemy.y-8,'#ff7ae6');
+      addFloat(enemy.x,enemy.y-34,'-'+u.jutsuDamage,'#ff8be8');
+      const dir=Math.sign(enemy.x-p.x)||1;
+      if(enemy.hp<=0)handleEnemyKO(enemy,dir); else recoil(enemy,()=>{},dir,true);
+     });
+     checkVictoryKillshot();
+    },
+    ()=>finishAction()
+   );
+  }
+
+  // Every Jutsu target gets:
+  //   active fighter's Jutsu hit
+  //   + normal attacks from OTHER allies whose normal range covers that target.
+  let jutsuQueue=targets.map(enemy=>{
+    let helpers=comboMembers(enemy,p).filter(helper=>helper!==p);
+    return {enemy,helpers};
+  });
+
+  let anyHelpers=jutsuQueue.some(item=>item.helpers.length>0);
+  S.log=anyHelpers
+    ? `${u.name} activated ${u.jutsuName||'Jutsu'} — normal combo partners are joining where their ranges overlap.`
+    : `${u.name} activated ${u.jutsuName||'Jutsu'} — ${targets.length} target${targets.length===1?'':'s'} caught in the field.`;
+
+  let targetIndex=0;
+
+  function runJutsuTarget(){
+   if(targetIndex>=jutsuQueue.length)return finishAction();
+
+   let item=jutsuQueue[targetIndex++];
+   let enemy=item.enemy;
+   let helpers=item.helpers;
+
+   // First: the active fighter performs the Jutsu hit.
+   let dx=enemy.x-p.x,dy=enemy.y-p.y,len=Math.max(1,Math.hypot(dx,dy));
+   let to={x:enemy.x-dx/len*((enemy.r||19)+27),y:enemy.y-dy/len*((enemy.r||19)+27)};
+   let from={x:p.x,y:p.y};
+
+   const runActiveJutsu=(u.name==='Sub-Zero')?animateFreezeBlast:animateLunge;
+   const activeFrom=(u.name==='Sub-Zero')?from:from;
+   const activeTarget=(u.name==='Sub-Zero')?enemy:to;
+   runActiveJutsu(
+    u.name,activeFrom,activeTarget,
+    ()=>{
+     window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:u.jutsuDamage});
+     addImpactFlash(enemy.x,enemy.y-8,u.name==='Crimson'?'#ff405c':'#8cecff');
+     addFloat(enemy.x,enemy.y-34,'-'+u.jutsuDamage,'#57e7ff');
+     let jDir=Math.sign(enemy.x-p.x)||1;
+     if(enemy.hp<=0)handleEnemyKO(enemy,jDir); else if(u.name!=='Sub-Zero')recoil(enemy,()=>{},jDir,true);
+     if(u.name==='Sub-Zero')window.BlazingCombatRuntime.execute('reduce_target_gauge',{target:enemy,parameters:{amount:35,minimum_gauge:0}});
+     checkVictoryKillshot();
+    },
+    ()=>{
+     let helperIndex=0;
+
+     function runHelper(){
+      if(enemy.hp<=0 || helperIndex>=helpers.length)
+       return setTimeout(runJutsuTarget,110);
+
+      let hp=helpers[helperIndex++];
+      let hu=front(hp);
+      let hdx=enemy.x-hp.x,hdy=enemy.y-hp.y,hlen=Math.max(1,Math.hypot(hdx,hdy));
+      let hto={
+       x:enemy.x-hdx/hlen*((enemy.r||19)+27),
+       y:enemy.y-hdy/hlen*((enemy.r||19)+27)
+      };
+      let hfrom={x:hp.x,y:hp.y};
+
+      animateLunge(
+       hu.name,hfrom,hto,
+       ()=>{
+        let hResult=buffedNormalDamage(hp),hDamage=hResult.damage;
+        window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:hDamage});
+        addImpactFlash(enemy.x,enemy.y-8,hu.name==='Crimson'?'#ff405c':'#ffffff');
+        addFloat(enemy.x,enemy.y-34,'-'+hDamage,hResult.buff.bonus>0?'#65ff9e':'#ffbd4a');
+        let hDir=Math.sign(enemy.x-hp.x)||1;
+        if(enemy.hp<=0)handleEnemyKO(enemy,hDir); else recoil(enemy,()=>{},hDir,false);
+        checkVictoryKillshot();
+       },
+       ()=>setTimeout(runHelper,85),
+       helperIndex%2===1?'punch':'kick'
+      )
+     }
+
+     runHelper()
+    },
+    'special'
+   )
+  }
+
+  return runJutsuTarget()
+ }
+
+ let queue=[],anyCombo=false;
+ targets.forEach(enemy=>{
+  let members=comboMembers(enemy,p),attackers=[p,...members.filter(x=>x!==p)];
+  if(attackers.length>1)anyCombo=true;
+  queue.push({enemy,attackers})
+ });
+ let chakraGain=1+(anyCombo?1:0);
+ window.BlazingCombatRuntime.gainChakra(u,chakraGain);
+
+ let targetIndex=0;
+ function runTarget(){
+  if(targetIndex>=queue.length){
+   S.log=`${u.name} hit ${targets.length} target${targets.length===1?'':'s'} and gained ${chakraGain} chakra${anyCombo?' from combo positioning':''}.`;
+   return finishAction()
+  }
+  let item=queue[targetIndex++],enemy=item.enemy,attackers=item.attackers,attackIndex=0;
+  function runAttacker(){
+   if(enemy.hp<=0||attackIndex>=attackers.length)return setTimeout(runTarget,110);
+   let ap=attackers[attackIndex++],au=front(ap),dx=enemy.x-ap.x,dy=enemy.y-ap.y,len=Math.max(1,Math.hypot(dx,dy));
+   let stop=(enemy.r||19)+27,to={x:enemy.x-dx/len*stop,y:enemy.y-dy/len*stop},from={x:ap.x,y:ap.y};
+   const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlast:(au.name==='Senku'?animateSenkuBomb:animateLunge);
+   const basicTarget=(au.name==='Lebee'||au.name==='Senku')?enemy:to;
+   runBasicAttack(au.name,from,basicTarget,()=>{
+    let result=buffedNormalDamage(ap),dmg=result.damage;
+    window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:dmg});
+    addImpactFlash(enemy.x,enemy.y-8,au.name==='Crimson'?'#ff405c':attackIndex>1?'#ffbd4a':'#ffffff');
+    addFloat(enemy.x,enemy.y-34,'-'+dmg,result.buff.bonus>0?'#65ff9e':attackIndex>1?'#ffbd4a':'#fff');
+    let nDir=Math.sign(enemy.x-ap.x)||1;
+    if(enemy.hp<=0)handleEnemyKO(enemy,nDir); else recoil(enemy,()=>{},nDir,attackIndex>1);
+    checkVictoryKillshot();
+   },()=>setTimeout(runAttacker,85),attackIndex%2===1?'punch':'kick')
+  }
+  runAttacker()
+ }
+ runTarget
+
