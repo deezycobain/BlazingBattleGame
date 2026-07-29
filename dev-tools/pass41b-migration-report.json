@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "before_bytes": 50079837,
+  "after_bytes": 50080645,
+  "changes": {
+    "unitAttackFrames": 1,
+    "attackProxy": 1,
+    "animateFreezeBlast": 1
+  }
+}
