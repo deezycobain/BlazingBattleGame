@@ -116,6 +116,26 @@ html=html.replace(targetRx,(_match,indent)=>`${indent}if(!useJutsu){
  ${indent} S.log=\`${'${u.name}'} committed the move but caught no target.\`;return finishAction()
  ${indent}}`);
 
+// Senku's primary attacker keeps the bomb-retreat driver. A linked/helper Senku must
+// instead use the dedicated Asset Inbox melee body animation through the shared lunge
+// driver. This prevents old bomb-holding body frames from appearing in melee/combo play.
+const helperKindRx=/const effectiveAnimationKind=\(basicPresentation\.runtimeDriver==='animateSenkuRetreatBomb'&&!wantsRetreat\)\s*\?\s*\(basicMeta\.far_animation_kind\|\|requestedBasicKind\)\s*:\s*basicPresentation\.animationKind;/;
+const helperKindReplacement=`const effectiveAnimationKind=(basicPresentation.runtimeDriver==='animateSenkuRetreatBomb'&&!wantsRetreat)
+      ? (basicMeta.melee_animation_kind||'melee_attack')
+      : basicPresentation.animationKind;`;
+if(helperKindRx.test(html))html=html.replace(helperKindRx,helperKindReplacement);
+else if(!html.includes("basicMeta.melee_animation_kind||'melee_attack'"))throw new Error('Senku helper melee pass: animation-kind anchor not found');
+
+const helperDriverRx=/\}else if\(au\.name==='Senku'\)\{\s*runBasicAttack=wantsRetreat\s*\?\s*\(unitName,startPos,target,onHit,onFinish,kind\)=>animateSenkuRetreatBomb\(unitName,ap,startPos,target,onHit,onFinish,kind\)\s*:\s*animateSenkuBomb;\s*basicTarget=enemy;\s*\}else\{/;
+const helperDriverReplacement=`}else if(au.name==='Senku'){
+      runBasicAttack=wantsRetreat
+        ? (unitName,startPos,target,onHit,onFinish,kind)=>animateSenkuRetreatBomb(unitName,ap,startPos,target,onHit,onFinish,kind)
+        : animateLunge;
+      basicTarget=wantsRetreat?enemy:to;
+    }else{`;
+if(helperDriverRx.test(html))html=html.replace(helperDriverRx,helperDriverReplacement);
+else if(!html.includes('basicTarget=wantsRetreat?enemy:to;'))throw new Error('Senku helper melee pass: driver anchor not found');
+
 // Preserve the approved Senku bomb visual size curve.
 const bombStart=html.indexOf("else if(f.kind==='senkuBombProjectile'){");
 if(bombStart<0)throw new Error('Presentation pass: Senku bomb projectile section not found');
@@ -167,4 +187,4 @@ if(!explosionBlock.includes('impact_hold_ratio')||!explosionBlock.includes('impa
 html=html.slice(0,explosionStart)+explosionBlock+html.slice(explosionEnd);
 
 await fs.writeFile(file,html);
-console.log(`Gameplay presentation pass: authored/action-relative rotations + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku bomb size/impact metadata applied`);
+console.log(`Gameplay presentation pass: authored/action-relative rotations + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku dedicated helper melee + Senku bomb size/impact metadata applied`);
