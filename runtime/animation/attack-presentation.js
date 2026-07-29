@@ -1,0 +1,66 @@
+(()=>{
+  'use strict';
+
+  const finitePoint=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y);
+
+  function rotationToward(from,target,fallback=0){
+    if(!finitePoint(from)||!finitePoint(target))return Number.isFinite(fallback)?fallback:0;
+    const dx=target.x-from.x,dy=target.y-from.y;
+    if(Math.abs(dx)<1e-6&&Math.abs(dy)<1e-6)return Number.isFinite(fallback)?fallback:0;
+    return Math.atan2(dy,dx);
+  }
+
+  function lockFacing(animState,unitName,from,target,fallback=0){
+    if(!animState||!unitName)return rotationToward(from,target,fallback);
+    if(!animState.attackFacing)animState.attackFacing={};
+    const rotation=rotationToward(from,target,fallback);
+    animState.attackFacing[unitName]=rotation;
+    return rotation;
+  }
+
+  function facingFor(animState,unitName,fallback=0){
+    const rotation=animState?.attackFacing?.[unitName];
+    return Number.isFinite(rotation)?rotation:(Number.isFinite(fallback)?fallback:0);
+  }
+
+  function clearFacing(animState,unitName){
+    if(animState?.attackFacing&&unitName)delete animState.attackFacing[unitName];
+  }
+
+  function resolveFrameKind(requestedKind,attackMap){
+    const requested=requestedKind||'punch';
+    if(attackMap?.[requested]?.length)return requested;
+    if(['punch','kick','basic','basic_attack','melee_lunge'].includes(requested)){
+      if(attackMap?.punch?.length)return 'punch';
+      if(attackMap?.kick?.length)return 'kick';
+    }
+    return requested;
+  }
+
+  function selectBasicPresentation(unitData,from,target,requestedKind='punch'){
+    const presentation=unitData?.abilities?.basic?.presentation||{};
+    const dx=finitePoint(from)&&finitePoint(target)?target.x-from.x:0;
+    const dy=finitePoint(from)&&finitePoint(target)?target.y-from.y:0;
+    const distance=finitePoint(from)&&finitePoint(target)?Math.hypot(dx,dy):Infinity;
+    const threshold=Number(presentation.close_range_threshold_px);
+    const hasSplit=Number.isFinite(threshold)&&threshold>=0;
+    const mode=hasSplit&&distance<=threshold?'close':(hasSplit?'far':'default');
+    const prefix=mode==='default'?'':`${mode}_`;
+    return Object.freeze({
+      mode,
+      distance,
+      threshold:hasSplit?threshold:null,
+      runtimeDriver:presentation[`${prefix}runtime_driver`]||presentation.runtime_driver||null,
+      animationKind:presentation[`${prefix}animation_kind`]||presentation.animation_kind||requestedKind
+    });
+  }
+
+  window.BlazingAttackPresentation=Object.freeze({
+    rotationToward,
+    lockFacing,
+    facingFor,
+    clearFacing,
+    resolveFrameKind,
+    selectBasicPresentation
+  });
+})();
