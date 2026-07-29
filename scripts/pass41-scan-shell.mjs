@@ -33,7 +33,7 @@ function neighborhood(label,needle,radius=2200){
 const declared=[...html.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[1]);
 const interestingNames=declared.filter(n=>/(lunge|combo|chain|attack|basic|facing|freeze|senku|target|unit|sprite|shape)/i.test(n));
 
-let report='PASS 4.1 GAMEPLAY STABILIZATION AUDIT\n\n';
+let report='PASS 4.1 GAMEPLAY STABILIZATION AUDIT V2\n\n';
 report+=`Interesting function declarations (${interestingNames.length}):\n${interestingNames.join('\n')}\n\n`;
 for(const name of [
   'unitAttackFrames','attackProxy','drawUnit','animateLunge','animateSenkuBomb','animateFreezeBlast',
