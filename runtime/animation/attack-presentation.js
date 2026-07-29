@@ -11,6 +11,14 @@
     return Math.atan2(dy,dx);
   }
 
+  function horizontalRotationToward(from,target,fallback=0){
+    const horizontalFallback=Number.isFinite(fallback)&&Math.cos(fallback)<0?Math.PI:0;
+    if(!finitePoint(from)||!finitePoint(target))return horizontalFallback;
+    const dx=target.x-from.x;
+    if(Math.abs(dx)<1e-6)return horizontalFallback;
+    return dx<0?Math.PI:0;
+  }
+
   function nearestPoint(origin,candidates=[]){
     if(!finitePoint(origin))return null;
     let nearest=null,best=Infinity;
@@ -30,6 +38,10 @@
       const target=nearestPoint(origin,candidates);
       return target?rotationToward(origin,target,fallback):fallback;
     }
+    if(mode==='nearest_enemy_horizontal_facing'){
+      const target=nearestPoint(origin,candidates);
+      return horizontalRotationToward(origin,target,fallback);
+    }
     return Number.isFinite(fallback)?fallback:0;
   }
 
@@ -39,6 +51,14 @@
     const rotation=rotationToward(from,target,fallback);
     animState.attackFacing[unitName]=rotation;
     return rotation;
+  }
+
+  function lockRotation(animState,unitName,rotation=0){
+    const safe=Number.isFinite(rotation)?rotation:0;
+    if(!animState||!unitName)return safe;
+    if(!animState.attackFacing)animState.attackFacing={};
+    animState.attackFacing[unitName]=safe;
+    return safe;
   }
 
   function lockedFacing(animState,unitName){
@@ -117,9 +137,11 @@
 
   window.BlazingAttackPresentation=Object.freeze({
     rotationToward,
+    horizontalRotationToward,
     nearestPoint,
     resolveActionRotation,
     lockFacing,
+    lockRotation,
     lockedFacing,
     facingFor,
     clearFacing,
