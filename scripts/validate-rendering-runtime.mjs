@@ -50,6 +50,14 @@ const BattleUi=await loadBrowserModule('runtime/rendering/battle-ui-renderer.js'
 }
 {
   const ctx=fakeCtx();
+  Battlefield.drawShape(ctx,{origin:{x:100,y:120},shape:{type:'pear',rear:48,reach:140,width:102,curve:.72,stem:.52,bulge:.72},rotation:Math.PI/4,color:'#fff',glow:false,bounds:{left:0,right:480,top:0,bottom:700},now:1000});
+  const lines=ctx.calls.filter(c=>c[0]==='lineTo');
+  assert(lines.length>=70,'pear attack field must render a sampled curved outline');
+  assert(ctx.calls.some(c=>c[0]==='closePath'),'pear attack field must close its outline');
+  assert(ctx.calls.some(c=>c[0]==='rotate'&&Math.abs(c[1]-Math.PI/4)<1e-9),'pear attack field must preserve directional rotation');
+}
+{
+  const ctx=fakeCtx();
   Battlefield.drawPlayerResources(ctx,{x:100,y:200,hp:55,maxHp:110,chakra:2,maxChakra:8,linked:false});
   const fills=ctx.calls.filter(c=>c[0]==='fillRect');
   assert(fills.some(c=>Math.abs(c[3]-26)<1e-9&&c[4]===4),'50% player HP bar width changed');
@@ -89,4 +97,4 @@ const BattleUi=await loadBrowserModule('runtime/rendering/battle-ui-renderer.js'
   assert(statusEl.innerHTML==='<div>ok</div>','status HTML application changed');
 }
 
-console.log('Rendering runtime smoke PASS: field, range shape, player HUD, move cue, victory overlay, tactical ticker, boss HUD, and action controls verified.');
+console.log('Rendering runtime smoke PASS: field, circle/pear range shapes, player HUD, move cue, victory overlay, tactical ticker, boss HUD, and action controls verified.');
