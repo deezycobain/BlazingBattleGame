@@ -18,8 +18,13 @@
     return rotation;
   }
 
-  function facingFor(animState,unitName,fallback=0){
+  function lockedFacing(animState,unitName){
     const rotation=animState?.attackFacing?.[unitName];
+    return Number.isFinite(rotation)?rotation:null;
+  }
+
+  function facingFor(animState,unitName,fallback=0){
+    const rotation=lockedFacing(animState,unitName);
     return Number.isFinite(rotation)?rotation:(Number.isFinite(fallback)?fallback:0);
   }
 
@@ -58,6 +63,7 @@
   window.BlazingAttackPresentation=Object.freeze({
     rotationToward,
     lockFacing,
+    lockedFacing,
     facingFor,
     clearFacing,
     resolveFrameKind,
