@@ -7,7 +7,7 @@ on:
 permissions:
   contents: write
 jobs:
-  migrate-pass41c-assets:
+  migrate-pass41d-senku:
     if: github.ref == 'refs/heads/agent/pass4.1-gameplay-stabilization' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -34,12 +34,12 @@ jobs:
           actual_source=$(git hash-object assets/characters/senku/sprites/source/retreat_run/source_sheet.jpg)
           test "$actual_source" = "$expected_source"
           expected=(
-            62b826167424f0a01e3194d32935c2fed2240714
-            9eb215a4c8f60490672b088b6b44c15a7c26c59b
-            1b5a93d23ad8b8a59117786495886f7ab282463f
-            68058946a2ec935e12f1ee499dd4a151026b3904
-            2a4769b4558aa15942c0fff9b6d3b32d5ee4fc4a
-            7e0484663b6a491ca82fe072172a2675e628363c
+            a7ea447469141e22c7a31d06e6a85061733c3e90
+            50e20bbf88d2634eed5df90388493b741e81a2ba
+            593e97cd41b87841eeb9b8f4dd3938a720259947
+            bacef60923b2fa62d759c54672903bd9c357977b
+            a16d8aa19a19d61040353f7827e77c559f7aaec5
+            67879c77af64997590d28d8e5268e5aff3905bc1
           )
           for i in 0 1 2 3 4 5; do
             n=$(printf '%02d' $((i+1)))
@@ -48,12 +48,14 @@ jobs:
             actual=$(git hash-object "$file")
             test "$actual" = "${expected[$i]}"
           done
-      - name: Commit verified Senku retreat runtime assets
+      - name: Apply guarded Senku pear-range migration
+        run: node scripts/pass41d-fix-senku.mjs
+      - name: Commit verified Senku retreat repair
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add assets/characters/senku/sprites/runtime/movement/retreat_run assets/characters/senku/sprites/source/retreat_run
-          git diff --cached --quiet || git commit -m "Add Senku evasive bomb retreat assets"
+          git add index.html runtime/rendering/battlefield-renderer.js assets/characters/senku/sprites/runtime/movement/retreat_run assets/characters/senku/sprites/source/retreat_run
+          git diff --cached --quiet || git commit -m "Fix Senku evasive bomb presentation"
           git push
   build:
     if: github.ref != 'refs/heads/agent/pass4.1-gameplay-stabilization' || github.actor == 'github-actions[bot]'
