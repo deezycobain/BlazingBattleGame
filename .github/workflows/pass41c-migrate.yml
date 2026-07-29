@@ -1,39 +1,23 @@
-name: Pass 4.1c Senku asset import
+name: Pass 4.1d Senku pear migration
 on:
   push:
     branches: [agent/pass4.1-gameplay-stabilization]
 permissions:
   contents: write
 jobs:
-  import-assets:
+  migrate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/pass4.1-gameplay-stabilization
-      - name: Extract guarded Senku asset bundle
-        shell: bash
-        run: |
-          set -euo pipefail
-          tar -tzf dev-tools/pass41c-assets.tar.gz | tee /tmp/pass41c-assets.txt
-          if grep -Ev '^assets(/|$)' /tmp/pass41c-assets.txt | grep -q .; then
-            echo 'Archive contains a path outside assets/.' >&2
-            exit 1
-          fi
-          if grep -E '^assets/' /tmp/pass41c-assets.txt | grep -Ev '^assets/characters/senku/sprites/' | grep -q .; then
-            echo 'Archive contains an asset outside Senku sprite assets.' >&2
-            exit 1
-          fi
-          tar -xzf dev-tools/pass41c-assets.tar.gz
-          for n in 01 02 03 04 05 06; do
-            test -s "assets/characters/senku/sprites/runtime/movement/retreat_run/frame_${n}.webp"
-          done
-          test -s assets/characters/senku/sprites/source/retreat_run/source_sheet.jpg
-      - name: Commit Senku retreat assets
+      - name: Apply guarded Senku pear-range migration
+        run: node scripts/pass41d-fix-senku.mjs
+      - name: Commit migrated source
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add assets/characters/senku/sprites/runtime/movement/retreat_run assets/characters/senku/sprites/source/retreat_run
-          git diff --cached --quiet || git commit -m "Add Senku evasive bomb retreat assets"
+          git add index.html runtime/rendering/battlefield-renderer.js
+          git diff --cached --quiet || git commit -m "Fix Senku pear range geometry"
           git push
