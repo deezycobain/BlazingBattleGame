@@ -53,23 +53,37 @@ const manifest=await readJson('runtime/registry/asset-manifest.json');
 const subzero=await readJson('assets/characters/subzero/data/unit.json');
 const subzeroMap=await readJson('assets/characters/subzero/data/runtime-map.json');
 
-// Senku close/far behavior is canonical and preserves the existing bomb combat action.
-const near=P.selectBasicPresentation(senku,{x:0,y:0},{x:70,y:0},'kick');
-const far=P.selectBasicPresentation(senku,{x:0,y:0},{x:90,y:0},'kick');
+// Senku's basic is now one directional pear-range bomb-retreat contract at every valid distance.
 const sm=senku.abilities?.basic?.presentation||{};
-if(sm.close_range_threshold_px!==78)fail('Senku close-range threshold must remain 78 px');
-if(near.mode!=='close'||near.runtimeDriver!=='animateSenkuRetreatBomb'||near.animationKind!=='retreat_run'||near.repositionScope!=='primary_attacker')fail('Senku close basic must select primary-attacker evasive bomb retreat');
-if(far.mode!=='far'||far.runtimeDriver!=='animateSenkuBomb'||far.animationKind!=='punch')fail('Senku far basic must retain normal bomb presentation');
-if(sm.close_retreat_min_px!==48||sm.close_retreat_max_px!==88||sm.close_retreat_duration_ms!==540||sm.close_retreat_frame_ms!==90||!approx(sm.close_bomb_release_ratio,0.22))fail('Senku retreat distance/timing contract changed');
+const pear=senku.combat?.basic_shape||{};
+if(pear.type!=='pear'||pear.rear!==48||pear.reach!==140||pear.width!==102)fail('Senku basic must use the approved directional pear geometry');
+if(!approx(pear.curve,.72)||!approx(pear.stem,.52)||!approx(pear.bulge,.72))fail('Senku pear curvature changed unexpectedly');
+if(sm.range_rotation_mode!=='nearest_enemy_facing')fail('Senku pear range must point toward the nearest live enemy');
+const near=P.selectBasicPresentation(senku,{x:0,y:0},{x:55,y:0},'kick');
+const far=P.selectBasicPresentation(senku,{x:0,y:0},{x:125,y:0},'kick');
+for(const [label,presentation] of [['near',near],['far',far]]){
+  if(presentation.mode!=='default'||presentation.runtimeDriver!=='animateSenkuRetreatBomb'||presentation.animationKind!=='retreat_run'||presentation.repositionScope!=='primary_attacker'){
+    fail(`Senku ${label} basic must use the evasive bomb retreat presentation`);
+  }
+}
+const upPear=P.resolveActionRotation(senku,'normal',{x:0,y:0},[{x:0,y:-50,hp:10}],0);
+const leftPear=P.resolveActionRotation(senku,'normal',{x:0,y:0},[{x:-50,y:0,hp:10}],0);
+if(!approx(upPear,-Math.PI/2)||!approx(leftPear,Math.PI))fail('Senku pear range rotation must follow nearest-enemy direction');
+if(sm.close_retreat_min_px!==48||sm.close_retreat_max_px!==88||sm.close_retreat_duration_ms!==540||sm.close_retreat_frame_ms!==90||!approx(sm.close_bomb_release_ratio,.68))fail('Senku retreat distance/timing/release contract changed');
 if(senku.abilities?.basic?.damage_multiplier!==1||senku.abilities?.basic?.target_mode!=='single'||senku.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Senku retreat change must retain basic damage/targeting semantics');
+
+// The user-supplied sheet is preserved in Senku's source archive and materializes to six real runtime images before validation/build.
+if(!await exists('assets/characters/senku/sprites/source/retreat_run/retreat_run_assets.tar.gz'))fail('Senku retreat source archive is missing');
 const retreatFrames=senku.animation_standard?.animations?.retreat_run?.frames||[];
 if(retreatFrames.length!==6||senku.animation_standard.animations.retreat_run.frame_ms!==90)fail('Senku retreat animation must remain six frames at 90 ms');
+if(senku.animation_standard.animations.retreat_run.events?.[0]?.frame!==5)fail('Senku bomb release must remain late enough for the retreat animation to read');
 for(const rel of retreatFrames){
-  if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing Senku retreat frame: ${rel}`);
+  if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing materialized Senku retreat frame: ${rel}`);
 }
-if(!await exists('assets/characters/senku/sprites/source/retreat_run/source_sheet.jpg'))fail('preserved Senku retreat source sheet is missing');
-const closeAnim=senkuMap.abilities?.explosive_bomb?.presentation_animations?.close_retreat;
-if(closeAnim!=='senku.animation.retreat_run')fail('Senku runtime map must route close retreat animation resource');
+if(!await exists('assets/characters/senku/sprites/source/retreat_run/source_sheet.jpg'))fail('materialized Senku retreat source sheet is missing');
+const primaryAnim=senkuMap.abilities?.explosive_bomb?.presentation_animations?.primary_retreat;
+const helperAnim=senkuMap.abilities?.explosive_bomb?.presentation_animations?.helper_throw;
+if(primaryAnim!=='senku.animation.retreat_run'||helperAnim!=='senku.animation.basic_attack')fail('Senku runtime map must separate primary retreat art from helper throw art');
 const damageAction=(senkuMap.abilities?.explosive_bomb?.gameplay_actions||[]).find(a=>a.action_id==='damage_target');
 if(damageAction?.event!=='on_projectile_arrival')fail('Senku bomb damage must remain on projectile arrival');
 const retreatResource=manifest.units?.senku?.animations?.retreat_run;
@@ -105,8 +119,7 @@ for(const marker of [
   'const isPrimaryAttacker=attackIndex===1;',
   'basicPresentation.repositionScope',
   "basicMeta.far_animation_kind||requestedBasicKind",
-  "releaseRatio:meta.close_bomb_release_ratio??.22",
-  "releaseOrigin:()=>ensureAnimState().positions?.[unitName]||from",
+  'releaseOrigin:()=>ensureAnimState().positions?.[unitName]||from',
   'window.BlazingAttackPresentation.resolveActionRotation(',
   'function bodyFacingRotation(',
   "mode==='forward_facing'",
@@ -114,7 +127,9 @@ for(const marker of [
 ])if(!shell.includes(marker))fail(`index.html missing Pass 4.1 marker: ${marker}`);
 if(shell.includes("const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlast:(au.name==='Senku'?animateSenkuBomb:animateLunge);"))fail('legacy forced-Senku-bomb dispatcher returned');
 
+const renderer=await read('runtime/rendering/battlefield-renderer.js');
+for(const marker of ['function pearHalfWidth(',"s.type==='pear'",'ctx.lineTo(x,y)'])if(!renderer.includes(marker))fail(`battlefield renderer missing pear marker: ${marker}`);
 const staticPass=await read('scripts/static-hitbox-postprocess.mjs');
-for(const marker of ['combat.jutsu_rotation_deg','combat.basic_rotation_deg','authored action-specific hitbox rotations'])if(!staticPass.includes(marker))fail(`static hitbox compatibility pass missing ${marker}`);
+for(const marker of ['combat.jutsu_rotation_deg','combat.basic_rotation_deg',"if(s.type==='pear')",'Senku pear hit geometry'])if(!staticPass.includes(marker))fail(`static hitbox compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: dynamic forward Freeze Blast, Sub-Zero punch facing, bounded 48-88px Senku evasive bomb retreat with persistent primary-attacker reposition, six-frame retreat assets, and unchanged bomb combat semantics verified.');
+console.log('Gameplay presentation smoke PASS: Senku directional pear range, all-distance six-frame evasive bomb retreat with bounded 48-88px persistent primary reposition, delayed toss, dynamic forward Freeze Blast, Sub-Zero punch facing, and unchanged bomb/freeze combat semantics verified.');
