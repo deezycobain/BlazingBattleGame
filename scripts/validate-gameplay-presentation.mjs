@@ -31,14 +31,14 @@ if(P.resolveFrameKind('kick',{punch:[punchFrame],kick:[]})!=='punch')fail('missi
 if(P.resolveFrameKind('kick',{punch:[punchFrame],kick:[kickFrame]})!=='kick')fail('existing kick frames must remain selectable');
 if(P.resolveFrameKind('freeze',{punch:[punchFrame],freeze:[]})!=='freeze')fail('special/Jutsu kinds must not silently fall back to melee art');
 
-if(!approx(R.randomDistance(48,88,()=>0),48)||!approx(R.randomDistance(48,88,()=>1),88))fail('retreat RNG endpoints must remain 48-88 px');
+if(!approx(R.randomDistance(64,144,()=>0),64)||!approx(R.randomDistance(64,144,()=>1),144))fail('retreat RNG endpoints must remain 64-144 px');
 const bounds={left:24,right:616,top:70,bottom:318};
-const leftPlan=R.computeRetreatPlan({from:{x:100,y:100},threat:{x:120,y:100},minDistance:48,maxDistance:88,bounds,rng:()=>0.5});
-if(!approx(leftPlan.requestedDistance,68)||leftPlan.destination.x>=100||!approx(leftPlan.destination.y,100))fail('retreat must move directly away from a right-side threat');
+const leftPlan=R.computeRetreatPlan({from:{x:100,y:100},threat:{x:120,y:100},minDistance:64,maxDistance:144,bounds,rng:()=>0.5});
+if(!approx(leftPlan.requestedDistance,104)||leftPlan.destination.x>=100||!approx(leftPlan.destination.y,100))fail('retreat must move directly away from a right-side threat');
 if(Math.hypot(leftPlan.destination.x-120,leftPlan.destination.y-100)<=20)fail('retreat must increase separation from the threat');
-const clamped=R.computeRetreatPlan({from:{x:30,y:80},threat:{x:80,y:120},minDistance:88,maxDistance:88,bounds,rng:()=>1});
+const clamped=R.computeRetreatPlan({from:{x:30,y:80},threat:{x:80,y:120},minDistance:144,maxDistance:144,bounds,rng:()=>1});
 if(clamped.destination.x<bounds.left||clamped.destination.y<bounds.top||clamped.destination.x>bounds.right||clamped.destination.y>bounds.bottom)fail('retreat destination must clamp inside battlefield bounds');
-const overlap=R.computeRetreatPlan({from:{x:100,y:100},threat:{x:100,y:100},minDistance:48,maxDistance:88,bounds,rng:()=>0});
+const overlap=R.computeRetreatPlan({from:{x:100,y:100},threat:{x:100,y:100},minDistance:64,maxDistance:144,bounds,rng:()=>0});
 if(!Number.isFinite(overlap.destination.x)||!Number.isFinite(overlap.destination.y))fail('overlap retreat fallback must remain finite');
 const p0=R.interpolate({x:10,y:20},{x:60,y:80},0),p1=R.interpolate({x:10,y:20},{x:60,y:80},1);
 if(!approx(p0.x,10)||!approx(p0.y,20)||!approx(p1.x,60)||!approx(p1.y,80))fail('retreat interpolation endpoints changed');
@@ -51,7 +51,7 @@ const subzeroMap=await readJson('assets/characters/subzero/data/runtime-map.json
 
 const sm=senku.abilities?.basic?.presentation||{};
 const pear=senku.combat?.basic_shape||{};
-if(pear.type!=='pear'||pear.rear!==48||pear.reach!==140||pear.width!==102)fail('Senku basic must use the approved directional pear geometry');
+if(pear.type!=='pear'||pear.rear!==24||pear.reach!==82||pear.width!==58)fail('Senku basic must use the approved short, thin directional pear geometry');
 if(!approx(pear.curve,.72)||!approx(pear.stem,.52)||!approx(pear.bulge,.72))fail('Senku pear curvature changed unexpectedly');
 if(sm.range_rotation_mode!=='nearest_enemy_facing')fail('Senku pear range must point toward the nearest live enemy');
 const near=P.selectBasicPresentation(senku,{x:0,y:0},{x:55,y:0},'kick');
@@ -64,7 +64,7 @@ for(const [label,presentation] of [['near',near],['far',far]]){
 const upPear=P.resolveActionRotation(senku,'normal',{x:0,y:0},[{x:0,y:-50,hp:10}],0);
 const leftPear=P.resolveActionRotation(senku,'normal',{x:0,y:0},[{x:-50,y:0,hp:10}],0);
 if(!approx(upPear,-Math.PI/2)||!approx(leftPear,Math.PI))fail('Senku pear range rotation must follow nearest-enemy direction');
-if(sm.close_retreat_min_px!==48||sm.close_retreat_max_px!==88||sm.close_retreat_duration_ms!==540||sm.close_retreat_frame_ms!==90||!approx(sm.close_bomb_release_ratio,.68))fail('Senku retreat distance/timing/release contract changed');
+if(sm.close_retreat_min_px!==64||sm.close_retreat_max_px!==144||sm.close_retreat_duration_ms!==540||sm.close_retreat_frame_ms!==90||!approx(sm.close_bomb_release_ratio,.68))fail('Senku retreat distance/timing/release contract changed');
 if(senku.abilities?.basic?.damage_multiplier!==1||senku.abilities?.basic?.target_mode!=='single'||senku.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Senku retreat change must retain basic damage/targeting semantics');
 
 for(const source of [
@@ -111,7 +111,7 @@ if(retreatResource?.resource_id!=='senku.animation.retreat_run'||retreatResource
 if(meleeResource?.resource_id!=='senku.animation.melee_attack'||meleeResource?.required_runtime_frames!==6)fail('Senku melee resource manifest entry is incomplete');
 
 if(subzero.combat?.basic_rotation_deg!==0||subzero.combat?.jutsu_rotation_deg!==0)fail('Sub-Zero authored fallback rotation must remain 0 degrees');
-if(subzero.combat?.jutsu_shape?.type!=='cone'||subzero.combat.jutsu_shape.r!==205||subzero.combat.jutsu_shape.a!==1.05)fail('Sub-Zero Freeze Blast cone geometry changed unexpectedly');
+if(subzero.combat?.jutsu_shape?.type!=='cone'||subzero.combat.jutsu_shape.r!==205||subzero.combat.jutsu_shape.a!==0.52)fail('Sub-Zero Freeze Blast cone geometry changed unexpectedly');
 if(subzero.abilities?.jutsu?.presentation?.range_rotation_mode!=='nearest_enemy_facing')fail('Freeze Blast must use nearest-enemy forward-facing range rotation');
 if(subzero.abilities?.jutsu?.presentation?.projectile_origin_mode!=='forward_facing')fail('Freeze Blast projectile must originate from Sub-Zero forward facing');
 const leftRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:-30,y:0,hp:10}],0);
@@ -158,4 +158,4 @@ for(const marker of [
   'basicTarget=wantsRetreat?enemy:to;'
 ])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: Senku directional pear range, all-distance six-frame evasive bomb retreat, dedicated six-frame Asset Inbox helper/combo melee lunge, bounded 48-88px persistent primary reposition, delayed toss, dynamic forward Freeze Blast, Sub-Zero punch facing, and unchanged bomb/freeze combat semantics verified.');
+console.log('Gameplay presentation smoke PASS: Senku short/thin directional pear range, all-distance six-frame evasive bomb retreat, dedicated six-frame Asset Inbox helper/combo melee lunge, bounded 64-144px persistent primary reposition, delayed toss, thin dynamic forward Freeze Blast, Sub-Zero punch facing, and unchanged bomb/freeze combat semantics verified.');
