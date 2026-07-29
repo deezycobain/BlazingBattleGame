@@ -33,4 +33,4 @@ report+=allAround('useJutsu preview paths','useJutsu',1100,2100,8)+'\n';
 
 await fs.mkdir('dev-tools',{recursive:true});
 await fs.writeFile('dev-tools/pass41-targeted-contract.txt',report);
-console.log(`Pass 4.1 targeted contract wrote ${report.length} chars`);
+console.log(report);
