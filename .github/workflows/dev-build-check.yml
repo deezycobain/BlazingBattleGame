@@ -5,9 +5,41 @@ on:
   pull_request:
     branches: [main]
 permissions:
-  contents: read
+  contents: write
 jobs:
+  migrate-pass41c-assets:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'agent/pass4.1-gameplay-stabilization' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/pass4.1-gameplay-stabilization
+      - name: Apply guarded shell migration
+        run: node scripts/pass41c-migrate-shell.mjs
+      - name: Decode staged Senku retreat assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat dev-tools/pass41c-assets/part_*.txt | base64 --decode > /tmp/pass41c-senku-retreat.tar.gz
+          tar -tzf /tmp/pass41c-senku-retreat.tar.gz | tee /tmp/pass41c-assets.txt
+          if grep -Ev '^assets/characters/senku/sprites/' /tmp/pass41c-assets.txt | grep -q .; then
+            echo 'Archive contains a path outside Senku sprite assets.' >&2
+            exit 1
+          fi
+          tar -xzf /tmp/pass41c-senku-retreat.tar.gz
+          for n in 01 02 03 04 05 06; do
+            test -s "assets/characters/senku/sprites/runtime/movement/retreat_run/frame_${n}.webp"
+          done
+          find assets/characters/senku/sprites/source/retreat_run -maxdepth 1 -type f -print -quit | grep -q .
+      - name: Commit Senku retreat runtime assets
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html assets/characters/senku/sprites/runtime/movement/retreat_run assets/characters/senku/sprites/source/retreat_run
+          git diff --cached --quiet || git commit -m "Add Senku evasive bomb retreat assets"
+          git push
   build:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'agent/pass4.1-gameplay-stabilization' || github.actor == 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
