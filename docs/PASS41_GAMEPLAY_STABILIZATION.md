@@ -51,7 +51,8 @@ The newest Asset Inbox upload labeled **Senku melee attack** is a separate canon
 - Dedicated melee animation: six frames at `100 ms` per frame.
 - Canonical contact event: frame 6.
 - Melee body art is separate from Explosive Bomb projectile/VFX and from the retreat-run presentation.
-- `bomb_throw` explicitly remains routed to the existing bomb/basic body pack so adding melee art cannot replace the bomb throw pose.
+- Senku helper/combo attacks use the shared `animateLunge` driver with the dedicated melee animation; they do not use `animateSenkuBomb`.
+- A legacy explicit `bomb_throw` frame request remains a separate fallback to the historical bomb/basic body pack, but it is not the active helper/combo route.
 - Shared frame resolution performs this semantic routing; no Senku-only renderer flip or duplicate combat mutation is introduced.
 
 ## Senku artwork contract
@@ -77,9 +78,9 @@ Pass 4.1 uses shared presentation/movement helpers rather than character-specifi
 
 Sub-Zero canonical presentation keeps `0°` as fallback rotation, while Freeze Blast declares `range_rotation_mode: nearest_enemy_facing` and `projectile_origin_mode: forward_facing`.
 
-Senku canonical Basic declares the directional pear geometry plus `range_rotation_mode: nearest_enemy_facing`, `animateSenkuRetreatBomb`, `retreat_run`, and primary-attacker reposition. The dedicated melee resource is declared as `melee_animation_kind: melee_attack`; `far_animation_kind: bomb_throw` preserves explicit bomb-body semantics for throw paths.
+Senku canonical Basic declares the directional pear geometry plus `range_rotation_mode: nearest_enemy_facing`, `animateSenkuRetreatBomb`, `retreat_run`, and primary-attacker reposition. The dedicated melee resource is declared as `melee_animation_kind: melee_attack`; runtime routing declares `senku.animation.retreat_run` as the primary Basic animation and `senku.animation.melee_attack` as the helper/combo presentation animation.
 
-The source shell continues to own action/combo sequencing. The retreat driver owns only the requested evasive presentation and bounded position update; the existing bomb callback still applies damage on projectile arrival.
+The source shell continues to own action/combo sequencing. The production compatibility pass switches a non-repositioning helper Senku to the shared lunge driver while leaving the primary attacker on the retreat driver. The existing bomb callback still applies damage on projectile arrival.
 
 No historical `dev-v2` explosion assets or unrelated unpromoted gameplay changes were imported.
 
@@ -100,8 +101,9 @@ No historical `dev-v2` explosion assets or unrelated unpromoted gameplay changes
 - all-distance primary bomb-retreat selection,
 - six tracked retreat runtime frames and canonical source sheet,
 - six tracked dedicated melee runtime frames and canonical source sheet,
-- semantic melee resolving only to dedicated melee art while `bomb_throw` remains separate,
-- runtime-map and manifest routing for `senku.animation.retreat_run` and `senku.animation.melee_attack`,
+- semantic `punch`, `kick`, and explicit `melee_attack` requests resolving only to dedicated melee art,
+- primary-retreat/helper-melee runtime-map and manifest routing,
+- helper/combo Senku using `animateLunge` instead of `animateSenkuBomb`,
 - unchanged Senku `damage_target` action on projectile arrival,
 - shell integration of persistent primary retreat without replacing turn/combo orchestration,
 - absence of the retired tar archive/materializer workflow.
@@ -110,7 +112,7 @@ The production build's Senku Ally Heal compatibility migration remains separate 
 
 ## Asset ingestion rule
 
-User-supplied artwork should follow `dev-tools/DIRECT_ASSET_WORKFLOW.md`: source art is preserved in the owning character tree, processed runtime frames are tracked as ordinary binary assets, canonical data is updated only after those files exist, and validation fails closed if declared frames are missing. Temporary write-enabled import machinery must not remain in a promotion candidate.
+User-supplied artwork follows `dev-tools/DIRECT_ASSET_WORKFLOW.md`: source art is preserved in the owning character tree, processed runtime frames are tracked as ordinary binary assets, canonical data is updated only after those files exist, and validation fails closed if declared frames are missing. Temporary write-enabled import machinery must not remain in a promotion candidate.
 
 ## Shared repair rule
 
@@ -137,5 +139,5 @@ Before Pass 5 begins:
 1. Structural and behavior regression checks for these presentation contracts must pass.
 2. Existing runtime/combat/rendering validation must remain green.
 3. The full Cloudflare build must pass on the exact clean PR merge ref.
-4. A fresh Cloudflare preview must be manually checked for Sub-Zero facing/animation, Senku's pear range and visible bomb-retreat animation, and Senku's dedicated melee body animation, including mobile.
+4. A fresh Cloudflare preview must be manually checked for Sub-Zero facing/animation, Senku's pear range and visible bomb-retreat animation, and Senku's dedicated helper/combo melee body animation, including mobile.
 5. Only after that manual verification should `docs/PROJECT_MASTER_STATE.md` and `docs/ARCHITECTURE_BASELINE_V070.md` be updated to declare Pass 4.1 production-complete, the PR be promoted, and a new gameplay-stable checkpoint be frozen.
