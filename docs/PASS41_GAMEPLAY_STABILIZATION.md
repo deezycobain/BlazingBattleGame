@@ -2,11 +2,11 @@
 
 Pass 4.1 is a stabilization gate between the completed Pass 4 renderer extraction and Pass 5 character-body extraction.
 
-**Current status:** implementation complete on the Pass 4.1 branch; automated validation is green; **manual gameplay verification is still required before promotion to `main`**.
+**Current status:** active candidate on the Pass 4.1 branch; **manual gameplay verification is required before promotion to `main`**. The Senku close-range behavior was intentionally revised after manual feedback, so earlier Pass 4.1 preview approvals do not apply to the current candidate.
 
 ## Why this gate exists
 
-Manual testing of the Pass 4 Cloudflare preview exposed presentation behavior that automated structural/build tests did not protect. Pass 5 must not extract character-body behavior until these cases are known-good and regression-guarded.
+Manual testing exposed presentation behavior that automated structural/build tests did not protect. Pass 5 must not extract character-body behavior until these cases are known-good and regression-guarded.
 
 ## Locked acceptance cases
 
@@ -30,62 +30,80 @@ Manual testing of the Pass 4 Cloudflare preview exposed presentation behavior th
 - His supplied basic body animation must visibly play during his helper strike.
 - Combo membership, order, damage scaling, chakra gain, recoil, and target selection remain unchanged.
 
-### D. Senku close-range basic presentation
+### D. Senku close-range evasive Explosive Bomb
 
-- Senku keeps Explosive Bomb as his normal ranged basic presentation.
-- When the resolved target is within the approved `78 px` close-range threshold, Senku uses a melee-only lunge sequence instead of throwing the bomb at point-blank range.
-- The melee-only body sequence is limited to the first two pre-release frames of the existing basic pack; the projectile-release/bomb frame and later throw frame(s) are excluded.
-- The close-range branch is presentation-only: it preserves the already-resolved basic target, damage amount, combo/chakra rules, and existing combat action semantics.
+- Senku keeps the existing Explosive Bomb target resolution and bomb VFX/damage path.
+- When the already-resolved nearest target is within the approved `78 px` close threshold and Senku is the primary attacker, he throws the bomb while simultaneously turning and running directly away from that enemy.
+- Retreat distance is randomized uniformly between `48 px` and `88 px`, intentionally below Senku's existing `92 px` movement range so the move reads as a few evasive paces instead of a full-screen escape.
+- Retreat destination is clamped to the normal battlefield bounds. No teleport outside the playable field is allowed.
+- The bomb releases early during the retreat (`close_bomb_release_ratio: 0.22`) and still damages the original resolved enemy only when the projectile arrives.
+- Retreat movement lasts `540 ms` and uses the six-frame run sequence at `90 ms` per frame.
+- The final retreat position persists for the primary attacker after the action.
+- A helper/combo Senku may still throw the bomb but does **not** permanently reposition the linked pair; this prevents the new move from silently rewriting combo formation/orchestration.
+- Farther valid targets retain the existing Explosive Bomb behavior.
 
-## Implemented repair contract
+## Senku retreat artwork contract
 
-Pass 4.1 introduces `runtime/animation/attack-presentation.js` so four concepts are no longer overloaded onto one rotation/frame field:
+The user-supplied six-pose sheet is preserved under:
 
-1. **Authored fallback attack rotation** — canonical `basic_rotation_deg` / `jutsu_rotation_deg` metadata used when an ability does not request target-relative rotation.
-2. **Action-relative range rotation** — an ability may explicitly request `nearest_enemy_facing`, making its mechanical preview/hit cone follow the same enemy direction as the body.
-3. **Character-body facing** — visual presentation that may face the exact resolved attack target while the action is playing.
-4. **Semantic attack-frame selection** — selects an available body animation and can constrain a close-range presentation to a safe subset of that frame pack.
+`assets/characters/senku/sprites/source/retreat_run/source_sheet.jpg`
 
-Sub-Zero canonical presentation keeps `0°` as the fallback rotation but Freeze Blast now declares `range_rotation_mode: nearest_enemy_facing` and `projectile_origin_mode: forward_facing`. Its cone therefore remains forward from Sub-Zero as his facing changes with enemy direction. His normal/helper basic still uses the canonical `punch` presentation; a missing optional `kick` pack falls back to real punch art instead of suppressing the attack animation.
+Runtime body frames live under:
 
-Senku canonical presentation keeps the `78 px` close-range split, but the close branch now requests `melee_clean` with `close_body_frame_count: 2`. That resolves to the existing punch/basic pack while intentionally excluding the projectile-release/bomb frame. Farther valid targets still use the approved Explosive Bomb presentation and current production static impact asset.
+`assets/characters/senku/sprites/runtime/movement/retreat_run/frame_01.webp` through `frame_06.webp`
 
-No historical `dev-v2` explosion assets or other unpromoted gameplay changes were imported.
+The runtime frames were extracted from the supplied sheet and normalized to Senku's existing `420 × 420` animation canvas. They are character-body animation assets; the bomb projectile/explosion remain separate VFX resources.
+
+## Implemented runtime contract
+
+Pass 4.1 uses shared presentation/movement helpers rather than character-specific renderer flips:
+
+- `runtime/animation/attack-presentation.js` — action-facing policy, semantic frame selection, close/far presentation metadata, and reposition scope.
+- `runtime/movement/retreat-runtime.js` — bounded retreat distance selection, away-vector destination planning, battlefield clamping, and deterministic interpolation helpers.
+
+Sub-Zero canonical presentation keeps `0°` as the fallback rotation, while Freeze Blast declares `range_rotation_mode: nearest_enemy_facing` and `projectile_origin_mode: forward_facing`.
+
+Senku canonical presentation keeps the `78 px` close threshold but now selects `animateSenkuRetreatBomb` / `retreat_run` for a primary close attack, with `48–88 px` retreat distance, `540 ms` movement, and `0.22` bomb release ratio. Far attacks select the existing `animateSenkuBomb` path.
+
+The source shell continues to own action/combo sequencing. The new Senku driver only owns the explicitly requested close-attack reposition presentation: it computes a bounded plan, renders the temporary retreat position, persists the pair position on completion, and lets the existing bomb callback apply damage on projectile arrival.
+
+No historical `dev-v2` explosion assets or unrelated unpromoted gameplay changes were imported.
 
 ## Regression protection
 
 `scripts/validate-gameplay-presentation.mjs` is part of `npm run validate` and verifies:
 
 - exact-target facing lock / clear behavior,
-- dynamic `nearest_enemy_facing` action rotation in multiple directions,
+- dynamic `nearest_enemy_facing` Freeze Blast rotation in multiple directions,
 - forward-facing Freeze Blast projectile origin contract,
-- missing melee-kind fallback to canonical punch art,
-- no inappropriate melee fallback for special/Jutsu frame kinds,
+- missing Sub-Zero melee-kind fallback to canonical punch art,
 - unchanged Freeze Blast cone dimensions, cost, multiplier, timing, and `-35` gauge effect,
-- Senku `78 px` close-lunge vs far-bomb selection,
-- Senku close melee resolving to exactly two pre-release frames,
-- unchanged Senku single-target nearest-in-shape combat semantics,
-- shell integration through the shared presentation runtime.
+- deterministic retreat RNG endpoints at `48 px` / `88 px`,
+- retreat direction increasing distance from the threat,
+- battlefield clamping and finite overlap fallback,
+- retreat interpolation endpoints,
+- Senku `78 px` close-retreat vs far-bomb selection,
+- primary-attacker-only reposition scope,
+- six physical retreat runtime frames plus preserved source sheet,
+- runtime-map and manifest routing for `senku.animation.retreat_run`,
+- unchanged Senku `damage_target` action on projectile arrival,
+- shell integration of persistent primary retreat without replacing turn/combo orchestration.
 
-The production build's Senku compatibility migration is idempotent with the Pass 4.1 frame resolver and still preserves the approved Ally Heal path.
-
-## Latest clean automated gate
-
-The clean PR merge ref passed the full runtime build with read-only CI. The gameplay-presentation smoke explicitly reports dynamic forward Freeze Blast rotation/origin and Senku melee-only close frames, while runtime routing, combat behavior, Pass 4 rendering, Senku Ally Heal production migration, and the Cloudflare build remain green.
+The production build's Senku Ally Heal compatibility migration remains separate and must continue preserving the approved Ally Heal path.
 
 ## Shared repair rule
 
-Facing and body-animation selection must be fixed through shared attack presentation contracts wherever possible. Do not add one-off `Sub-Zero` or `Senku` sprite flips if the same issue can be solved by passing target/facing policy and semantic animation metadata through the shared attack path.
+Facing, body-animation selection, and bounded retreat planning should be data-driven/shared where possible. Do not add one-off sprite flips or arbitrary screen coordinates when a reusable presentation/movement contract can express the behavior.
 
 ## Out of scope
 
-Pass 4.1 does not redesign:
+Pass 4.1 still does not redesign:
 
 - combat damage formulas,
 - target/hit geometry dimensions,
 - readiness/turn scheduling,
-- movement rules,
-- combo eligibility,
+- general movement rules outside the explicitly requested Senku close-attack retreat,
+- combo eligibility/order/scaling,
 - KO/victory/defeat orchestration,
 - boss AI,
 - Anubis `boss_rotation` wiring.
@@ -97,5 +115,5 @@ Before Pass 5 begins:
 1. Structural and behavior regression checks for these presentation contracts must pass.
 2. Existing runtime/combat/rendering validation must remain green.
 3. The full Cloudflare build must pass on the exact clean PR merge ref.
-4. A fresh Cloudflare preview must be manually checked for all four acceptance cases on the intended gameplay viewport, including mobile.
+4. A fresh Cloudflare preview must be manually checked for Sub-Zero facing/animation plus Senku's close bomb-and-retreat behavior, including mobile.
 5. Only after that manual verification should `docs/PROJECT_MASTER_STATE.md` and `docs/ARCHITECTURE_BASELINE_V070.md` be updated to declare Pass 4.1 production-complete, the PR be promoted, and a new gameplay-stable checkpoint be frozen.
