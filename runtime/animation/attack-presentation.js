@@ -19,29 +19,71 @@
     return dx<0?Math.PI:0;
   }
 
+  function pointDistance(origin,target){
+    if(!finitePoint(origin)||!finitePoint(target))return Infinity;
+    return Math.hypot(target.x-origin.x,target.y-origin.y);
+  }
+
+  function livePoints(candidates=[]){
+    return (candidates||[]).filter(candidate=>finitePoint(candidate)&&candidate.hp!==0);
+  }
+
   function nearestPoint(origin,candidates=[]){
     if(!finitePoint(origin))return null;
     let nearest=null,best=Infinity;
-    for(const candidate of candidates||[]){
-      if(!finitePoint(candidate)||candidate.hp===0)continue;
-      const dx=candidate.x-origin.x,dy=candidate.y-origin.y;
-      const distance=dx*dx+dy*dy;
+    for(const candidate of livePoints(candidates)){
+      const distance=pointDistance(origin,candidate);
       if(distance<best){best=distance;nearest=candidate;}
     }
     return nearest;
   }
 
+  function preferredRangePoint(origin,candidates=[],options={}){
+    if(!finitePoint(origin))return null;
+    const min=Number(options.min);
+    const max=Number(options.max);
+    const preferred=Number(options.preferred);
+    const fallbackMax=Number(options.fallbackMax);
+    const safeMin=Number.isFinite(min)?Math.max(0,min):0;
+    const safeMax=Number.isFinite(max)?Math.max(safeMin,max):Infinity;
+    const safePreferred=Number.isFinite(preferred)?Math.min(safeMax,Math.max(safeMin,preferred)):(safeMin+safeMax)/2;
+    const safeFallbackMax=Number.isFinite(fallbackMax)?Math.max(safeMax,fallbackMax):safeMax;
+    const scored=livePoints(candidates)
+      .map(candidate=>({candidate,distance:pointDistance(origin,candidate)}))
+      .filter(entry=>entry.distance<=safeFallbackMax);
+    if(!scored.length)return null;
+    const band=scored.filter(entry=>entry.distance>=safeMin&&entry.distance<=safeMax);
+    const pool=band.length?band:scored;
+    pool.sort((a,b)=>{
+      const da=Math.abs(a.distance-safePreferred),db=Math.abs(b.distance-safePreferred);
+      if(Math.abs(da-db)>1e-9)return da-db;
+      return b.distance-a.distance;
+    });
+    return pool[0]?.candidate||null;
+  }
+
+  function resolveActionTarget(unitData,action,origin,candidates=[]){
+    const ability=action==='jutsu'?unitData?.abilities?.jutsu:unitData?.abilities?.basic;
+    const presentation=ability?.presentation||{};
+    const mode=presentation.range_rotation_mode;
+    if(mode==='medium_enemy_horizontal_facing'){
+      return preferredRangePoint(origin,candidates,{
+        min:presentation.target_focus_min_px,
+        max:presentation.target_focus_max_px,
+        preferred:presentation.target_focus_preferred_px,
+        fallbackMax:presentation.target_focus_fallback_max_px
+      });
+    }
+    if(mode==='nearest_enemy_facing'||mode==='nearest_enemy_horizontal_facing')return nearestPoint(origin,candidates);
+    return null;
+  }
+
   function resolveActionRotation(unitData,action,origin,candidates,fallback=0){
     const ability=action==='jutsu'?unitData?.abilities?.jutsu:unitData?.abilities?.basic;
     const mode=ability?.presentation?.range_rotation_mode;
-    if(mode==='nearest_enemy_facing'){
-      const target=nearestPoint(origin,candidates);
-      return target?rotationToward(origin,target,fallback):fallback;
-    }
-    if(mode==='nearest_enemy_horizontal_facing'){
-      const target=nearestPoint(origin,candidates);
-      return horizontalRotationToward(origin,target,fallback);
-    }
+    const target=resolveActionTarget(unitData,action,origin,candidates);
+    if(mode==='nearest_enemy_facing')return target?rotationToward(origin,target,fallback):fallback;
+    if(mode==='nearest_enemy_horizontal_facing'||mode==='medium_enemy_horizontal_facing')return horizontalRotationToward(origin,target,fallback);
     return Number.isFinite(fallback)?fallback:0;
   }
 
@@ -138,7 +180,10 @@
   window.BlazingAttackPresentation=Object.freeze({
     rotationToward,
     horizontalRotationToward,
+    pointDistance,
     nearestPoint,
+    preferredRangePoint,
+    resolveActionTarget,
     resolveActionRotation,
     lockFacing,
     lockRotation,
