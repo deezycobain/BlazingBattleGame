@@ -62,7 +62,7 @@
       "category": "jutsu",
       "ultimate": false,
       "presentation": {
-        "range_rotation_mode": "nearest_enemy_facing",
+        "range_rotation_mode": "nearest_enemy_horizontal_facing",
         "projectile_origin_mode": "forward_facing"
       }
     }
@@ -87,7 +87,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "v0.7 Pass 4.1 stabilization: normal/helper basics use the canonical punch presentation. Freeze Blast keeps its 205 px reach and combat timing while using a thinner 0.52 rad forward-facing cone that follows Sub-Zero toward the nearest live enemy.",
+    "notes": "v0.7 Pass 4.1 stabilization: normal/helper basics use the canonical punch presentation. Freeze Blast keeps its 205 px reach and thin 0.52 rad cone, but Jutsu facing is now horizontal-only: Sub-Zero may turn left or right toward the enemy side, while the cone and ice projectile can never rotate upward or downward.",
     "animation_map": true
   },
   "balance": {
