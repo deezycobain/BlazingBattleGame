@@ -36,13 +36,16 @@ const facingReplacement=`function updateFacing(){
 function battleSpriteFor`;
 html=html.replace(facingRx,facingReplacement);
 
-// Freeze Blast is a forward-only horizontal shot. Canonical rotation chooses left/right
-// from the enemy side, then the same locked rotation drives body facing and projectile origin.
+// Freeze Blast is a forward-only horizontal shot. Canonical rotation now chooses its
+// horizontal side from the action-aware medium-range focus resolver, and the same locked
+// rotation drives cast-body facing plus projectile origin.
 const freezeFacingOld="const facing=window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);";
-const freezeFacingNew=`const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0);
-  window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`;
+const freezeFacingLegacy="const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0);\n   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);";
+const freezeFacingNew=`const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0);
+   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`;
 if(html.includes(freezeFacingOld))html=html.replace(freezeFacingOld,freezeFacingNew);
-else if(!html.includes("resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0)"))throw new Error('Freeze Blast horizontal-facing pass: animation anchor not found');
+else if(html.includes(freezeFacingLegacy))html=html.replace(freezeFacingLegacy,freezeFacingNew);
+else if(!html.includes("resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)"))throw new Error('Freeze Blast medium-focus facing pass: animation anchor not found');
 
 // Senku's basic range is a real directional pear shape, not a cosmetic overlay.
 // Keep the mechanical hit test mathematically aligned with BattlefieldRenderer.drawShape().
@@ -195,4 +198,4 @@ if(!explosionBlock.includes('impact_hold_ratio')||!explosionBlock.includes('impa
 html=html.slice(0,explosionStart)+explosionBlock+html.slice(explosionEnd);
 
 await fs.writeFile(file,html);
-console.log(`Gameplay presentation pass: authored/action-relative rotations + horizontal-only Freeze Blast facing/origin + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku dedicated helper melee + Senku bomb size/impact metadata applied`);
+console.log(`Gameplay presentation pass: authored/action-relative rotations + medium-range horizontal Freeze Blast focus/facing/origin + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku dedicated helper melee + Senku bomb size/impact metadata applied`);
