@@ -10,6 +10,28 @@
     return Math.atan2(dy,dx);
   }
 
+  function nearestPoint(origin,candidates=[]){
+    if(!finitePoint(origin))return null;
+    let nearest=null,best=Infinity;
+    for(const candidate of candidates||[]){
+      if(!finitePoint(candidate)||candidate.hp===0)continue;
+      const dx=candidate.x-origin.x,dy=candidate.y-origin.y;
+      const distance=dx*dx+dy*dy;
+      if(distance<best){best=distance;nearest=candidate;}
+    }
+    return nearest;
+  }
+
+  function resolveActionRotation(unitData,action,origin,candidates,fallback=0){
+    const ability=action==='jutsu'?unitData?.abilities?.jutsu:unitData?.abilities?.basic;
+    const mode=ability?.presentation?.range_rotation_mode;
+    if(mode==='nearest_enemy_facing'){
+      const target=nearestPoint(origin,candidates);
+      return target?rotationToward(origin,target,fallback):fallback;
+    }
+    return Number.isFinite(fallback)?fallback:0;
+  }
+
   function lockFacing(animState,unitName,from,target,fallback=0){
     if(!animState||!unitName)return rotationToward(from,target,fallback);
     if(!animState.attackFacing)animState.attackFacing={};
@@ -35,11 +57,22 @@
   function resolveFrameKind(requestedKind,attackMap){
     const requested=requestedKind||'punch';
     if(attackMap?.[requested]?.length)return requested;
-    if(['punch','kick','basic','basic_attack','melee_lunge'].includes(requested)){
+    if(['punch','kick','basic','basic_attack','melee_lunge','melee_clean'].includes(requested)){
       if(attackMap?.punch?.length)return 'punch';
       if(attackMap?.kick?.length)return 'kick';
     }
     return requested;
+  }
+
+  function resolveFrames(unitData,requestedKind,attackMap){
+    const resolvedKind=resolveFrameKind(requestedKind,attackMap);
+    let frames=attackMap?.[resolvedKind]||[];
+    const presentation=unitData?.abilities?.basic?.presentation||{};
+    const count=Number(presentation.close_body_frame_count);
+    if(requestedKind===presentation.close_animation_kind&&Number.isFinite(count)&&count>0){
+      frames=frames.slice(0,Math.min(frames.length,Math.floor(count)));
+    }
+    return frames;
   }
 
   function selectBasicPresentation(unitData,from,target,requestedKind='punch'){
@@ -62,11 +95,14 @@
 
   window.BlazingAttackPresentation=Object.freeze({
     rotationToward,
+    nearestPoint,
+    resolveActionRotation,
     lockFacing,
     lockedFacing,
     facingFor,
     clearFacing,
     resolveFrameKind,
+    resolveFrames,
     selectBasicPresentation
   });
 })();
