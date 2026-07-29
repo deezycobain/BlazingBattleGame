@@ -115,17 +115,32 @@ if(retreatResource?.resource_id!=='senku.animation.retreat_run'||retreatResource
 if(meleeResource?.resource_id!=='senku.animation.melee_attack'||meleeResource?.required_runtime_frames!==6)fail('Senku melee resource manifest entry is incomplete');
 
 if(subzero.combat?.basic_rotation_deg!==0||subzero.combat?.jutsu_rotation_deg!==0)fail('Sub-Zero authored fallback rotation must remain 0 degrees');
-if(subzero.combat?.jutsu_shape?.type!=='cone'||subzero.combat.jutsu_shape.r!==205||subzero.combat.jutsu_shape.a!==0.52)fail('Sub-Zero Freeze Blast cone geometry changed unexpectedly');
-if(subzero.abilities?.jutsu?.presentation?.range_rotation_mode!=='nearest_enemy_horizontal_facing')fail('Freeze Blast must use horizontal-only nearest-enemy-side rotation');
-if(subzero.abilities?.jutsu?.presentation?.projectile_origin_mode!=='forward_facing')fail('Freeze Blast projectile must originate from Sub-Zero forward facing');
-const leftRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:-30,y:-80,hp:10}],0);
-const rightRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:30,y:80,hp:10}],Math.PI);
-const upRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:0,y:-30,hp:10}],0);
-const downLeftFallback=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:0,y:30,hp:10}],Math.PI);
-if(!approx(leftRotation,Math.PI)||!approx(rightRotation,0)||!approx(upRotation,0)||!approx(downLeftFallback,Math.PI))fail('Freeze Blast must resolve only to horizontal right/left facing, never vertical angles');
-if(subzero.abilities?.basic?.presentation?.runtime_driver!=='animateLunge'||subzero.abilities?.basic?.presentation?.animation_kind!=='punch')fail('Sub-Zero basic must use canonical lunge/punch presentation');
+if(subzero.combat?.basic_shape?.r!==92)fail('Sub-Zero close Basic range must remain 92 px');
+if(subzero.abilities?.basic?.target_mode!=='single'||subzero.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Sub-Zero Basic must focus the nearest close enemy');
+if(subzero.abilities?.basic?.presentation?.runtime_driver!=='animateLunge'||subzero.abilities?.basic?.presentation?.animation_kind!=='punch')fail('Sub-Zero Basic must use canonical lunge/punch presentation');
 const subzeroBasic=P.selectBasicPresentation(subzero,{x:0,y:0},{x:50,y:0},'kick');
-if(subzeroBasic.runtimeDriver!=='animateLunge'||subzeroBasic.animationKind!=='punch')fail('Sub-Zero helper/basic selection must not alternate into missing kick art');
+if(subzeroBasic.runtimeDriver!=='animateLunge'||subzeroBasic.animationKind!=='punch')fail('Sub-Zero close Basic selection must not alternate into missing kick art');
+
+if(subzero.combat?.jutsu_shape?.type!=='cone'||subzero.combat.jutsu_shape.r!==205||subzero.combat.jutsu_shape.a!==0.52)fail('Sub-Zero Freeze Blast cone geometry changed unexpectedly');
+const sj=subzero.abilities?.jutsu?.presentation||{};
+if(sj.range_rotation_mode!=='medium_enemy_horizontal_facing')fail('Freeze Blast must use medium-range horizontal facing');
+if(sj.target_focus_mode!=='preferred_distance_band'||sj.target_focus_min_px!==110||sj.target_focus_max_px!==180||sj.target_focus_preferred_px!==150||sj.target_focus_fallback_max_px!==205)fail('Freeze Blast medium-range focus band changed unexpectedly');
+if(sj.projectile_origin_mode!=='forward_facing')fail('Freeze Blast projectile must originate from Sub-Zero forward facing');
+const focusCandidates=[
+  {id:'close-right',x:50,y:0,hp:10},
+  {id:'medium-right',x:130,y:0,hp:10},
+  {id:'medium-left',x:-170,y:0,hp:10},
+  {id:'edge-right',x:200,y:0,hp:10}
+];
+const focus=P.resolveActionTarget(subzero,'jutsu',{x:0,y:0},focusCandidates);
+if(focus?.id!=='medium-left')fail('Freeze Blast should prefer the best medium-range target instead of the nearest enemy');
+const mediumRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},focusCandidates,0);
+if(!approx(mediumRotation,Math.PI))fail('Freeze Blast horizontal facing must follow the selected medium-range enemy side');
+const upRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:0,y:-150,hp:10}],0);
+const downLeftFallback=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:0,y:150,hp:10}],Math.PI);
+if(!approx(upRotation,0)||!approx(downLeftFallback,Math.PI))fail('Freeze Blast must stay horizontal even when the preferred medium enemy is vertically aligned');
+const fallbackFocus=P.resolveActionTarget(subzero,'jutsu',{x:0,y:0},[{id:'close',x:45,y:0,hp:10},{id:'fallback',x:-195,y:0,hp:10}]);
+if(fallbackFocus?.id!=='fallback')fail('Freeze Blast fallback should remain range-aware instead of snapping to the closest enemy');
 if(subzero.abilities?.jutsu?.cost!==4||subzero.abilities?.jutsu?.damage_multiplier!==2.1)fail('Freeze Blast cost/damage changed unexpectedly');
 const freeze=subzeroMap.abilities?.freeze_blast;
 if(freeze?.projectile_presentation?.cast_duration_ms!==340||freeze?.projectile_presentation?.flight_duration_ms!==420||freeze?.projectile_presentation?.freeze_hold_ms!==520)fail('Freeze Blast timing changed unexpectedly');
@@ -162,9 +177,9 @@ for(const marker of [
   "basicMeta.melee_animation_kind||'melee_attack'",
   ': animateLunge;',
   'basicTarget=wantsRetreat?enemy:to;',
-  'Freeze Blast horizontal-facing pass',
-  "resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0)",
+  'medium-range focus resolver',
+  "resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)",
   'lockRotation(state,unitName,facing)'
 ])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: Senku short/thin directional pear range, all-distance six-frame evasive bomb retreat, dedicated six-frame Asset Inbox helper/combo melee lunge, bounded 64-144px persistent primary reposition, delayed toss, horizontal-only thin Freeze Blast, Sub-Zero punch facing, and unchanged bomb/freeze combat semantics verified.');
+console.log('Gameplay presentation smoke PASS: Senku short/thin directional pear range, evasive retreat and dedicated melee; Sub-Zero close nearest-enemy punch plus medium-range-biased horizontal Freeze Blast focus/facing; unchanged bomb/freeze combat semantics verified.');
