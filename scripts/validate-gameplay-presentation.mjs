@@ -89,18 +89,18 @@ if(meleeSpec.events?.[0]?.frame!==6)fail('Senku melee contact frame must remain 
 for(const rel of meleeFrames){
   if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing tracked Senku melee frame: ${rel}`);
 }
-if(sm.melee_animation_kind!=='melee_attack'||sm.far_animation_kind!=='bomb_throw')fail('Senku melee and bomb-throw animation semantics must stay separated');
+if(sm.melee_animation_kind!=='melee_attack')fail('Senku semantic melee must stay routed to the dedicated melee animation');
 window.BlazingFrameRuntime={loadFrames:paths=>paths.map(src=>({src}))};
 const resolvedMelee=P.resolveFrames(senku,'punch',{punch:[{src:'legacy-bomb-body'}]});
 if(resolvedMelee.length!==6||resolvedMelee.some(frame=>!frame.src.includes('/sprites/runtime/attack/melee/')))fail('Senku semantic melee must resolve only to dedicated Asset Inbox melee frames');
 const resolvedBomb=P.resolveFrames(senku,'bomb_throw',{punch:[{src:'legacy-bomb-body'}]});
 if(resolvedBomb.length!==1||resolvedBomb[0].src!=='legacy-bomb-body')fail('Senku bomb throw must remain separate from melee body art');
 
-const primaryAnim=senkuMap.abilities?.explosive_bomb?.presentation_animations?.primary_retreat;
-const meleeAnim=senkuMap.abilities?.explosive_bomb?.presentation_animations?.melee;
-const helperAnim=senkuMap.abilities?.explosive_bomb?.presentation_animations?.helper_throw;
-if(primaryAnim!=='senku.animation.retreat_run'||meleeAnim!=='senku.animation.melee_attack'||helperAnim!=='senku.animation.basic_attack')fail('Senku runtime map must separate retreat, melee, and bomb-throw presentation art');
-const damageAction=(senkuMap.abilities?.explosive_bomb?.gameplay_actions||[]).find(a=>a.action_id==='damage_target');
+const explosiveMap=senkuMap.abilities?.explosive_bomb||{};
+const primaryAnim=explosiveMap.presentation_animations?.primary_retreat;
+const helperMeleeAnim=explosiveMap.presentation_animations?.helper_melee;
+if(explosiveMap.animation_id!=='senku.animation.retreat_run'||primaryAnim!=='senku.animation.retreat_run'||helperMeleeAnim!=='senku.animation.melee_attack')fail('Senku runtime map must separate primary retreat and helper/melee presentation art');
+const damageAction=(explosiveMap.gameplay_actions||[]).find(a=>a.action_id==='damage_target');
 if(damageAction?.event!=='on_projectile_arrival')fail('Senku bomb damage must remain on projectile arrival');
 const retreatResource=manifest.units?.senku?.animations?.retreat_run;
 const meleeResource=manifest.units?.senku?.animations?.melee_attack;
