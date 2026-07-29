@@ -19,9 +19,13 @@ if(!R)fail('BlazingRetreatRuntime did not initialize');
 
 if(!approx(P.rotationToward({x:0,y:0},{x:10,y:0}),0))fail('rotationToward must face right target at 0 radians');
 if(!approx(P.rotationToward({x:0,y:0},{x:0,y:-10}),-Math.PI/2))fail('rotationToward must preserve exact target direction');
+if(!approx(P.horizontalRotationToward({x:0,y:0},{x:-10,y:-80},0),Math.PI))fail('horizontalRotationToward must face left without vertical rotation');
+if(!approx(P.horizontalRotationToward({x:0,y:0},{x:10,y:80},Math.PI),0))fail('horizontalRotationToward must face right without vertical rotation');
 const anim={};
 P.lockFacing(anim,'Sub-Zero',{x:10,y:20},{x:-10,y:20});
 if(!approx(P.lockedFacing(anim,'Sub-Zero'),Math.PI))fail('locked attack facing must point at the resolved target');
+P.lockRotation(anim,'Sub-Zero',0);
+if(!approx(P.lockedFacing(anim,'Sub-Zero'),0))fail('lockRotation must preserve an authored action rotation');
 P.clearFacing(anim,'Sub-Zero');
 if(P.lockedFacing(anim,'Sub-Zero')!==null)fail('attack-facing lock must clear after the action');
 
@@ -112,11 +116,13 @@ if(meleeResource?.resource_id!=='senku.animation.melee_attack'||meleeResource?.r
 
 if(subzero.combat?.basic_rotation_deg!==0||subzero.combat?.jutsu_rotation_deg!==0)fail('Sub-Zero authored fallback rotation must remain 0 degrees');
 if(subzero.combat?.jutsu_shape?.type!=='cone'||subzero.combat.jutsu_shape.r!==205||subzero.combat.jutsu_shape.a!==0.52)fail('Sub-Zero Freeze Blast cone geometry changed unexpectedly');
-if(subzero.abilities?.jutsu?.presentation?.range_rotation_mode!=='nearest_enemy_facing')fail('Freeze Blast must use nearest-enemy forward-facing range rotation');
+if(subzero.abilities?.jutsu?.presentation?.range_rotation_mode!=='nearest_enemy_horizontal_facing')fail('Freeze Blast must use horizontal-only nearest-enemy-side rotation');
 if(subzero.abilities?.jutsu?.presentation?.projectile_origin_mode!=='forward_facing')fail('Freeze Blast projectile must originate from Sub-Zero forward facing');
-const leftRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:-30,y:0,hp:10}],0);
+const leftRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:-30,y:-80,hp:10}],0);
+const rightRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:30,y:80,hp:10}],Math.PI);
 const upRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:0,y:-30,hp:10}],0);
-if(!approx(leftRotation,Math.PI)||!approx(upRotation,-Math.PI/2))fail('Freeze Blast range rotation must follow enemy direction rather than screen-fixed angle');
+const downLeftFallback=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:0,y:30,hp:10}],Math.PI);
+if(!approx(leftRotation,Math.PI)||!approx(rightRotation,0)||!approx(upRotation,0)||!approx(downLeftFallback,Math.PI))fail('Freeze Blast must resolve only to horizontal right/left facing, never vertical angles');
 if(subzero.abilities?.basic?.presentation?.runtime_driver!=='animateLunge'||subzero.abilities?.basic?.presentation?.animation_kind!=='punch')fail('Sub-Zero basic must use canonical lunge/punch presentation');
 const subzeroBasic=P.selectBasicPresentation(subzero,{x:0,y:0},{x:50,y:0},'kick');
 if(subzeroBasic.runtimeDriver!=='animateLunge'||subzeroBasic.animationKind!=='punch')fail('Sub-Zero helper/basic selection must not alternate into missing kick art');
@@ -155,7 +161,10 @@ for(const marker of [
   'Senku pear hit geometry',
   "basicMeta.melee_animation_kind||'melee_attack'",
   ': animateLunge;',
-  'basicTarget=wantsRetreat?enemy:to;'
+  'basicTarget=wantsRetreat?enemy:to;',
+  'Freeze Blast horizontal-facing pass',
+  "resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0)",
+  'lockRotation(state,unitName,facing)'
 ])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: Senku short/thin directional pear range, all-distance six-frame evasive bomb retreat, dedicated six-frame Asset Inbox helper/combo melee lunge, bounded 64-144px persistent primary reposition, delayed toss, thin dynamic forward Freeze Blast, Sub-Zero punch facing, and unchanged bomb/freeze combat semantics verified.');
+console.log('Gameplay presentation smoke PASS: Senku short/thin directional pear range, all-distance six-frame evasive bomb retreat, dedicated six-frame Asset Inbox helper/combo melee lunge, bounded 64-144px persistent primary reposition, delayed toss, horizontal-only thin Freeze Blast, Sub-Zero punch facing, and unchanged bomb/freeze combat semantics verified.');
