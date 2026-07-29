@@ -69,6 +69,10 @@ No historical `dev-v2` explosion assets or other unpromoted gameplay changes wer
 
 The production build's Senku compatibility migration is idempotent with the Pass 4.1 frame resolver and still preserves the approved Ally Heal path.
 
+## Latest clean automated gate
+
+The clean PR merge ref passed the full runtime build with read-only CI. The gameplay-presentation smoke explicitly reports dynamic forward Freeze Blast rotation/origin and Senku melee-only close frames, while runtime routing, combat behavior, Pass 4 rendering, Senku Ally Heal production migration, and the Cloudflare build remain green.
+
 ## Shared repair rule
 
 Facing and body-animation selection must be fixed through shared attack presentation contracts wherever possible. Do not add one-off `Sub-Zero` or `Senku` sprite flips if the same issue can be solved by passing target/facing policy and semantic animation metadata through the shared attack path.
