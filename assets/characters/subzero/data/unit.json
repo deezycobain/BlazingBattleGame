@@ -46,6 +46,8 @@
       "damage_multiplier": 1.0,
       "chakra_gain": 1,
       "delivery": "melee",
+      "target_mode": "single",
+      "single_target_selector": "nearest_in_shape",
       "presentation": {
         "runtime_driver": "animateLunge",
         "animation_kind": "punch"
@@ -62,7 +64,12 @@
       "category": "jutsu",
       "ultimate": false,
       "presentation": {
-        "range_rotation_mode": "nearest_enemy_horizontal_facing",
+        "range_rotation_mode": "medium_enemy_horizontal_facing",
+        "target_focus_mode": "preferred_distance_band",
+        "target_focus_min_px": 110,
+        "target_focus_max_px": 180,
+        "target_focus_preferred_px": 150,
+        "target_focus_fallback_max_px": 205,
         "projectile_origin_mode": "forward_facing"
       }
     }
@@ -87,7 +94,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "v0.7 Pass 4.1 stabilization: normal/helper basics use the canonical punch presentation. Freeze Blast keeps its 205 px reach and thin 0.52 rad cone, but Jutsu facing is now horizontal-only: Sub-Zero may turn left or right toward the enemy side, while the cone and ice projectile can never rotate upward or downward.",
+    "notes": "v0.7 Pass 4.1 stabilization: Basic is a single-target close melee attack inside the existing 92 px range and faces the nearest in-shape enemy with the punch/lunge presentation. Freeze Blast remains a 205 px / 0.52 rad horizontal-only cone, but its facing now prefers medium-range enemies from 110-180 px (150 px preferred) instead of blindly following the nearest enemy; fallback remains inside the existing 205 px reach.",
     "animation_map": true
   },
   "balance": {
