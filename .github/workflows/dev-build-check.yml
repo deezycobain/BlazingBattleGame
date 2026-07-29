@@ -1,14 +1,14 @@
 name: Runtime build check
 on:
   push:
-    branches: [main, dev-v2]
+    branches: [main, dev-v2, agent/pass4.1-gameplay-stabilization]
   pull_request:
     branches: [main]
 permissions:
   contents: write
 jobs:
   migrate-pass41c-assets:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'agent/pass4.1-gameplay-stabilization' && github.actor != 'github-actions[bot]'
+    if: github.ref == 'refs/heads/agent/pass4.1-gameplay-stabilization' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +39,7 @@ jobs:
           git diff --cached --quiet || git commit -m "Add Senku evasive bomb retreat assets"
           git push
   build:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'agent/pass4.1-gameplay-stabilization' || github.actor == 'github-actions[bot]'
+    if: github.ref != 'refs/heads/agent/pass4.1-gameplay-stabilization' || github.actor == 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
