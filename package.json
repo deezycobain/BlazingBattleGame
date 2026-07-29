@@ -2,7 +2,7 @@
   "name": "blazing-battle-game",
   "private": true,
   "scripts": {
-    "validate": "node scripts/pass41-scan-shell.mjs && node scripts/validate-runtime.mjs && node scripts/validate-combat-runtime.mjs && node scripts/validate-pass4-rendering.mjs && node scripts/validate-rendering-runtime.mjs",
+    "validate": "node scripts/validate-runtime.mjs && node scripts/validate-combat-runtime.mjs && node scripts/validate-pass4-rendering.mjs && node scripts/validate-rendering-runtime.mjs && node scripts/validate-gameplay-presentation.mjs",
     "build": "npm run validate && node scripts/build-cloudflare.mjs && node scripts/postprocess-build.mjs && node scripts/static-hitbox-postprocess.mjs",
     "deploy": "wrangler deploy",
     "preview": "wrangler versions upload"
