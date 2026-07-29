@@ -5,6 +5,7 @@ on:
     paths-ignore:
       - 'dev-tools/pass41-gameplay-audit.txt'
       - 'dev-tools/pass41-animation-contract.txt'
+      - 'dev-tools/pass41-baseline-compare.txt'
 permissions:
   contents: write
 jobs:
@@ -15,12 +16,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: agent/pass4.1-gameplay-stabilization
+          fetch-depth: 1
+      - name: Fetch solid gameplay checkpoint
+        run: git fetch origin checkpoint/v0.7.0-solid-2026-07-28:refs/remotes/origin/pass41-solid --depth=1
       - name: Scan gameplay seams
-        run: node scripts/pass41-scan-shell.mjs
+        run: |
+          node scripts/pass41-scan-shell.mjs
+          node scripts/pass41-compare-baseline.mjs
       - name: Commit audit
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add dev-tools/pass41-gameplay-audit.txt dev-tools/pass41-animation-contract.txt 2>/dev/null || true
+          git add dev-tools/pass41-gameplay-audit.txt dev-tools/pass41-animation-contract.txt dev-tools/pass41-baseline-compare.txt 2>/dev/null || true
           git diff --cached --quiet || git commit -m "Record Pass 4.1 gameplay audit"
           git push
