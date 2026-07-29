@@ -26,11 +26,13 @@
       "type": "circle",
       "r": 92
     },
+    "basic_rotation_deg": 0,
     "jutsu_shape": {
       "type": "cone",
       "r": 205,
       "a": 1.05
     },
+    "jutsu_rotation_deg": 0,
     "chakra_max": 8,
     "chakra_start": 2
   },
@@ -43,7 +45,11 @@
       "name": "Basic Attack",
       "damage_multiplier": 1.0,
       "chakra_gain": 1,
-      "delivery": "melee"
+      "delivery": "melee",
+      "presentation": {
+        "runtime_driver": "animateLunge",
+        "animation_kind": "punch"
+      }
     },
     "jutsu": {
       "id": "freeze_blast",
@@ -77,7 +83,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "v0.7 baseline: chakra_start is canonical unit data. Existing runtime presentation retained.",
+    "notes": "v0.7 Pass 4.1 stabilization: basic and Freeze Blast retain authored horizontal rotation metadata; normal/helper basics use the canonical punch presentation. Existing combat values and Freeze Blast timing remain unchanged.",
     "animation_map": true
   },
   "balance": {
