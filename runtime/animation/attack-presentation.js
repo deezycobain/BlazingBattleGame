@@ -2,6 +2,7 @@
   'use strict';
 
   const finitePoint=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y);
+  const canonicalFrameCache=new Map();
 
   function rotationToward(from,target,fallback=0){
     if(!finitePoint(from)||!finitePoint(target))return Number.isFinite(fallback)?fallback:0;
@@ -56,6 +57,7 @@
 
   function resolveFrameKind(requestedKind,attackMap){
     const requested=requestedKind||'punch';
+    if(requested==='bomb_throw'&&attackMap?.punch?.length)return 'punch';
     if(attackMap?.[requested]?.length)return requested;
     if(['punch','kick','basic','basic_attack','melee_lunge','melee_clean'].includes(requested)){
       if(attackMap?.punch?.length)return 'punch';
@@ -64,10 +66,28 @@
     return requested;
   }
 
+  function canonicalAnimationFrames(unitData,animationKind){
+    const unitId=unitData?.id;
+    const spec=unitData?.animation_standard?.animations?.[animationKind];
+    const paths=spec?.frames;
+    if(!unitId||!Array.isArray(paths)||!paths.length||!window.BlazingFrameRuntime?.loadFrames)return [];
+    const key=`${unitId}:${animationKind}`;
+    if(!canonicalFrameCache.has(key)){
+      canonicalFrameCache.set(key,window.BlazingFrameRuntime.loadFrames(paths.map(rel=>`assets/characters/${unitId}/${rel}`)));
+    }
+    return canonicalFrameCache.get(key)||[];
+  }
+
   function resolveFrames(unitData,requestedKind,attackMap){
+    const presentation=unitData?.abilities?.basic?.presentation||{};
+    const meleeAliases=['punch','kick','basic','basic_attack','melee_lunge','melee_clean'];
+    const meleeKind=presentation.melee_animation_kind;
+    if(meleeKind&&meleeAliases.includes(requestedKind||'punch')){
+      const canonical=canonicalAnimationFrames(unitData,meleeKind);
+      if(canonical.length)return canonical;
+    }
     const resolvedKind=resolveFrameKind(requestedKind,attackMap);
     let frames=attackMap?.[resolvedKind]||[];
-    const presentation=unitData?.abilities?.basic?.presentation||{};
     const count=Number(presentation.close_body_frame_count);
     if(requestedKind===presentation.close_animation_kind&&Number.isFinite(count)&&count>0){
       frames=frames.slice(0,Math.min(frames.length,Math.floor(count)));
@@ -103,6 +123,7 @@
     facingFor,
     clearFacing,
     resolveFrameKind,
+    canonicalAnimationFrames,
     resolveFrames,
     selectBasicPresentation
   });
