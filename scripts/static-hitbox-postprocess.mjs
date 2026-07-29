@@ -4,20 +4,23 @@ import path from 'node:path';
 const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
 
-// Attack geometry is positional strategy, not auto-aim.
+// Attack geometry is positional strategy, not auto-aim. Mechanical shape rotation is
+// deliberately separate from character-body facing, which Pass 4.1 resolves against
+// the visual/resolved attack target in the source shell.
 // IMPORTANT: battle pairs also contain empty reserve placeholders and some stages
 // contain non-canonical enemies. Never let a presentation lookup throw during render.
 const facingRx=/function updateFacing\(\)\{[\s\S]*?\n\}\n\nfunction battleSpriteFor/;
 if(!facingRx.test(html))throw new Error('Static hitbox pass: updateFacing() block not found');
 const facingReplacement=`function updateFacing(){
   // Moving a unit changes only the authored attack-shape origin.
-  // Proximity never rotates or snaps the attack field toward a target.
-  function fixedAttackRotation(actor,fallbackDeg){
-    let deg=fallbackDeg;
+  // Proximity never rotates or snaps the mechanical attack field toward a target.
+  function authoredAttackRotation(actor,basicFallbackDeg,jutsuFallbackDeg=basicFallbackDeg){
+    let deg=S.action==='jutsu'?jutsuFallbackDeg:basicFallbackDeg;
     try{
       if(actor?.name){
         const combat=canonicalUnit(actor.name)?.combat||{};
-        if(Number.isFinite(combat.basic_rotation_deg))deg=combat.basic_rotation_deg;
+        if(S.action==='jutsu'&&Number.isFinite(combat.jutsu_rotation_deg))deg=combat.jutsu_rotation_deg;
+        else if(Number.isFinite(combat.basic_rotation_deg))deg=combat.basic_rotation_deg;
       }
     }catch(_){
       // Empty reserve slots and stage-only enemies intentionally use the fallback.
@@ -25,9 +28,9 @@ const facingReplacement=`function updateFacing(){
     return deg*Math.PI/180;
   }
   S.pairs.forEach(pair=>{
-    (pair.units||[]).forEach(u=>{if(u)u.rotation=fixedAttackRotation(u,-90);});
+    (pair.units||[]).forEach(u=>{if(u)u.rotation=authoredAttackRotation(u,-90,-90);});
   });
-  (S.enemies||[]).forEach(e=>{if(e)e.rotation=fixedAttackRotation(e,90);});
+  (S.enemies||[]).forEach(e=>{if(e)e.rotation=authoredAttackRotation(e,90,90);});
 }
 
 function battleSpriteFor`;
@@ -86,15 +89,15 @@ for(let i=visualHitIndices.length-1;i>=0;i--){
 const targetRx=/(\n\s*)if\(!targets\.length\)\{\s*\n\s*S\.log=`\$\{u\.name\} committed the move but caught no target\.`;return finishAction\(\)\s*\n\s*\}/;
 if(!targetRx.test(html))throw new Error('Single-target pass: player target-resolution anchor not found');
 html=html.replace(targetRx,(_match,indent)=>`${indent}if(!useJutsu){
-${indent} let basicAbility={};
-${indent} try{basicAbility=canonicalUnit(u.name)?.abilities?.basic||{}}catch(_){}
-${indent} if(basicAbility.target_mode==='single' && targets.length>1){
-${indent}  targets=[...targets].sort((a,b)=>d(p,a)-d(p,b)).slice(0,1);
-${indent} }
-${indent}}
-${indent}if(!targets.length){
-${indent} S.log=\`${'${u.name}'} committed the move but caught no target.\`;return finishAction()
-${indent}}`);
+ ${indent} let basicAbility={};
+ ${indent} try{basicAbility=canonicalUnit(u.name)?.abilities?.basic||{}}catch(_){}
+ ${indent} if(basicAbility.target_mode==='single' && targets.length>1){
+ ${indent}  targets=[...targets].sort((a,b)=>d(p,a)-d(p,b)).slice(0,1);
+ ${indent} }
+ ${indent}}
+ ${indent}if(!targets.length){
+ ${indent} S.log=\`${'${u.name}'} committed the move but caught no target.\`;return finishAction()
+ ${indent}}`);
 
 // Preserve the approved Senku bomb visual size curve.
 const bombStart=html.indexOf("else if(f.kind==='senkuBombProjectile'){");
@@ -147,4 +150,4 @@ if(!explosionBlock.includes('impact_hold_ratio')||!explosionBlock.includes('impa
 html=html.slice(0,explosionStart)+explosionBlock+html.slice(explosionEnd);
 
 await fs.writeFile(file,html);
-console.log(`Gameplay presentation pass: renderer-safe static hitboxes + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku bomb size/impact metadata applied`);
+console.log(`Gameplay presentation pass: authored action-specific hitbox rotations + decoupled body facing + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku bomb size/impact metadata applied`);
