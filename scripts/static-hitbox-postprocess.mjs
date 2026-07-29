@@ -5,7 +5,7 @@ const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
 
 // Authored fallback rotation remains separate from target-relative rotation requested by
-// canonical ability presentation metadata. Pass 4.1 uses nearest_enemy_facing for
+// canonical ability presentation metadata. Pass 4.1 uses target-relative modes for
 // directional abilities such as Sub-Zero Freeze Blast and Senku's pear-shaped basic.
 // IMPORTANT: battle pairs also contain empty reserve placeholders and some stages
 // contain non-canonical enemies. Never let a presentation lookup throw during render.
@@ -35,6 +35,14 @@ const facingReplacement=`function updateFacing(){
 
 function battleSpriteFor`;
 html=html.replace(facingRx,facingReplacement);
+
+// Freeze Blast is a forward-only horizontal shot. Canonical rotation chooses left/right
+// from the enemy side, then the same locked rotation drives body facing and projectile origin.
+const freezeFacingOld="const facing=window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);";
+const freezeFacingNew=`const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0);
+  window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`;
+if(html.includes(freezeFacingOld))html=html.replace(freezeFacingOld,freezeFacingNew);
+else if(!html.includes("resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0)"))throw new Error('Freeze Blast horizontal-facing pass: animation anchor not found');
 
 // Senku's basic range is a real directional pear shape, not a cosmetic overlay.
 // Keep the mechanical hit test mathematically aligned with BattlefieldRenderer.drawShape().
@@ -187,4 +195,4 @@ if(!explosionBlock.includes('impact_hold_ratio')||!explosionBlock.includes('impa
 html=html.slice(0,explosionStart)+explosionBlock+html.slice(explosionEnd);
 
 await fs.writeFile(file,html);
-console.log(`Gameplay presentation pass: authored/action-relative rotations + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku dedicated helper melee + Senku bomb size/impact metadata applied`);
+console.log(`Gameplay presentation pass: authored/action-relative rotations + horizontal-only Freeze Blast facing/origin + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku dedicated helper melee + Senku bomb size/impact metadata applied`);
