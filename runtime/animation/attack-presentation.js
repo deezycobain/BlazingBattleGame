@@ -80,16 +80,17 @@
 
   function resolveFrames(unitData,requestedKind,attackMap){
     const presentation=unitData?.abilities?.basic?.presentation||{};
+    const requested=requestedKind||'punch';
     const meleeAliases=['punch','kick','basic','basic_attack','melee_lunge','melee_clean'];
     const meleeKind=presentation.melee_animation_kind;
-    if(meleeKind&&meleeAliases.includes(requestedKind||'punch')){
+    if(meleeKind&&(requested===meleeKind||meleeAliases.includes(requested))){
       const canonical=canonicalAnimationFrames(unitData,meleeKind);
       if(canonical.length)return canonical;
     }
-    const resolvedKind=resolveFrameKind(requestedKind,attackMap);
+    const resolvedKind=resolveFrameKind(requested,attackMap);
     let frames=attackMap?.[resolvedKind]||[];
     const count=Number(presentation.close_body_frame_count);
-    if(requestedKind===presentation.close_animation_kind&&Number.isFinite(count)&&count>0){
+    if(requested===presentation.close_animation_kind&&Number.isFinite(count)&&count>0){
       frames=frames.slice(0,Math.min(frames.length,Math.floor(count)));
     }
     return frames;
