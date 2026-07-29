@@ -8,6 +8,7 @@
       "animation_id": "senku.animation.basic_attack",
       "presentation_animations": {
         "primary_retreat": "senku.animation.retreat_run",
+        "melee": "senku.animation.melee_attack",
         "helper_throw": "senku.animation.basic_attack"
       },
       "gameplay_actions": [
