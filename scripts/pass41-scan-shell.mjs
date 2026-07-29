@@ -31,20 +31,24 @@ function neighborhood(label,needle,radius=2200){
 }
 
 const declared=[...html.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[1]);
-const interestingNames=declared.filter(n=>/(lunge|combo|chain|attack|basic|facing|freeze|senku|target)/i.test(n));
+const interestingNames=declared.filter(n=>/(lunge|combo|chain|attack|basic|facing|freeze|senku|target|unit|sprite|shape)/i.test(n));
 
 let report='PASS 4.1 GAMEPLAY STABILIZATION AUDIT\n\n';
 report+=`Interesting function declarations (${interestingNames.length}):\n${interestingNames.join('\n')}\n\n`;
-for(const name of ['animateLunge','animateSenkuBomb','animateFreezeBlast','updateFacing','facingFlip'])report+=extractFunction(name)+'\n';
+for(const name of [
+  'unitAttackFrames','attackProxy','drawUnit','animateLunge','animateSenkuBomb','animateFreezeBlast',
+  'updateFacing','facingFlip','normalShape','jutsuShape','hits'
+])report+=extractFunction(name)+'\n';
 for(const name of interestingNames.filter(n=>/(combo|chain)/i.test(n)))report+=extractFunction(name)+'\n';
 for(const [label,needle] of [
+  ['attack pose reads','attackPose'],
+  ['attack sprite reads','ATTACK_SPRITES'],
   ['animateLunge calls','animateLunge('],
   ['combo state','combo'],
-  ['chain state','chain'],
   ['Sub-Zero references','Sub-Zero'],
   ['Senku references','Senku'],
   ['facing flip calls','facingFlip('],
-  ['jutsu shape','jutsu_shape'],
+  ['shape selection','jutsuShape('],
   ['draw shape calls','drawShape(']
 ])report+=neighborhood(label,needle)+'\n';
 
