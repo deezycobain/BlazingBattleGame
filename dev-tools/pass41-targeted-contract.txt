@@ -1,0 +1,3211 @@
+PASS 4.1 COMPACT PRESENTATION CONTRACT
+
+===== Sub-Zero ATTACK_SPRITES @ 25493737 =====
+'Sub-Zero':{
+    punch:makeImageFrames(["<embedded-image>"]),
+    kick:makeImageFrames(["<embedded-image>"]),
+    // No dedicated Jutsu/casting sprite exists in the supplied Sub-Zero pack yet.
+    // Keep the idle/cast body visible rather than incorrectly reusing the punch frame.
+    special:makeImageFrames([])
+  }
+};
+
+
+// v0.5.18 — grounded sprite / attack presentation pass.
+// Uses the user-supplied Crimson sheet: frame 3 for basic strikes and frame 4 for Jutsu/cast.
+// Runtime frames are normalized to a shared canvas so Crimson does not change footprint mid-action.
+ATTACK_SPRITES.Crimson={
+  punch:makeImageFrames(["<embedded-image>"]),
+  kick:makeImageFrames(["<embedded-image>"]),
+  special:makeImageFrames(["<embedded-image>"])
+};
+ATTACK_SPRITES['Sub-Zero']={freeze:makeImageFrames(["assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_01.png","assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_02.png","assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_03.png","assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_04.png"])};
+// v0.6.7: restore approved Sub-Zero normal attack alongside Freeze Blast.
+ATTACK_SPRITES['Sub-Zero'].punch=makeImageFrames(["<embedded-image>"]);
+const FREEZE_PROJECTILE_FRAMES=makeImageFrames(["<embedded-image>","<embedded-image>","<embedded-image>"]);
+
+
+
+
+// v0.6.7 — Lebee battle asset package.
+// Source sheets remain in assets/characters/lebee/sprites/source.
+// Runtime frames are normalized to one shared footprint to prevent size jumps.
+IDLE_SPRITES.Lebee=makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"]);
+ATTACK_SPRITES.Lebee={
+  punch:makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"]),
+  kick:makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"]),
+  special:makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"])
+};
+const HIT_SPRITES={Lebee:makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"])};
+
+
+// v0.6.8 — Senku isolated animation/VFX package.
+IDLE_SPRITES.Senku=makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"]);
+ATTACK_SPRITES.Senku={punch:makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"]),kick:makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"]),special:makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"])};
+HIT_SPRITES.Senku=makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"]);
+SPRITES.Senku=IDLE_SPRITES.Senku[0];
+const SENKU_BOMB_FRAMES=makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"]);
+const SENKU_EXPLOSION_FRAMES=makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"]);
+const SENKU_BASIC_STATIC_EXPLOSION=new Image();
+SENKU_BASIC_STATIC_EXPLOSION.src="<embedded-image>";
+const SENKU_CHEM_CAST_FRAMES=makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>", "<embedded-image>"]);
+const SENKU_CHEM_PROJECTILE_FRAMES=makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>"]);
+const SENKU_CHEM_IMPACT_FRAMES=makeImageFrames(["<embedded-image>", "<embedded-image>", "<embedded-image>"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src='assets/characters/lebee/vfx/basic/star_blast/projectile/frame_01.png';
+const LEBEE_METEOR_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/impact/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_COMBO=new Image();
+LEBEE_METEOR_IMPACT_COMBO.src='assets/characters/lebee/vfx/jutsu/meteor/finale/frame_01.png';
+const LEBEE_METEOR_AFTERMATH=new Image();
+LEBEE_METEOR_AFTERMATH.src='assets/characters/lebee/vfx/jutsu/meteor/aftermath/frame_01.png';
+
+
+function U(name,mark,speed,attack,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff=null,maxHp=110,maxChakra=8,defense=0,archetype='unassigned'){
+ return{name,mark,speed,attack,defense,archetype,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff,hp:maxHp,maxHp,chakra:2,maxChakra,rotation:0}
+}
+
+// v0.6.7 DATA AUTHORITY
+// Canonical stats/roles/shapes/ability costs live in each unit's data/unit.json.
+// The standalone embeds a generated copy in window.BLAZING_UNIT_DATA so mobile local-file play needs no fetch().
+const UNIT_DATA=window.BLAZING_UNIT_DATA||{};
+const UNIT_NAME_TO_ID=Object.freeze(Object.fromEntries(Object.entries(UNIT_DATA).map(([id,d])=>[d.display_name,id])));
+function canonicalUnit(nameOrId){
+ const id=UNIT_DATA[nameOrId]?nameOrId:UNIT_NAME_TO_ID[nameOrId];
+ const d=id?UNIT_DATA[id]:null;
+ if(!d)throw new Error(`Unknown canonical unit: ${nameOrId}`);
+ return d;
+}
+function runtimeDefinition(nameOrId){
+ const d=canonicalUnit(nameOrId),basic=d.abilities.basic||{},jutsu=d.abilities.jutsu||{};
+ return{
+  mark:d.combat.mark,speed:d.stats.speed,attack:d.stats.attack,defense:d.stats.defense,
+  hp:d.stats.hp,maxHp:d.stats.hp,shape:d.combat.basic_shape,jutsuShape:d.combat.jutsu_shape||{type:'circle',r:0},
+  maxChakra:d.combat.chakra_max||0,jutsuCost:jutsu.cost??99,
+  jutsuDamage:jutsu?window.BlazingCombatRuntime.computeScaledDamage(d.stats.attack,jutsu.damage_multiplier||1):0,
+  jutsuName:jutsu?.name||'Jutsu',archetype:d.archetype,render:d.render||{},
+  linkBuff:d.combat.link_buff||null
+ };
+}
+const BATTLE_ROSTER=Object.freeze(Object.fromEntries(
+ ['crimson','subzero','lebee','senku','anubis']
+   .filter(id=>UNIT_DATA[id])
+   .map(id=>[UNIT_DATA[id].display_name,runtimeDefinition(id)])
+));
+function makeRosterUnit(name,opts={}){
+ const d=BATTLE_ROSTER[name];
+ if(!d)throw new Error(`Unknown battle unit: ${name}`);
+ const u=U(name,d.mark,d.speed,d.attack,d.shape,d.jutsuShape,d.jutsuCost,d.jutsuDamage,d.linkBuff||null,d.maxHp,d.maxChakra,d.defense,d.archetype);
+ u.jutsuName=d.jutsuName||'Jutsu';
+ u.renderScale=d.render?.scale||1;
+ const start=opts.startingChakra??2;
+ u.chakra=start==='full'?u.maxChakra:Math.max(0,Math.min(u.maxChakra,start));
+ return u;
+}
+function makeEnemyFromData(id,name,x,y,mark,overrides={}){
+ const d=canonicalUnit(id),base=d.stats,combat=d.combat;
+ const hp=overrides.hp??base.hp;
+ return{name:name||d.display_name,spriteKey:d.display_name,mark:mark||combat.mark,x,y,r:overrides.r??19,
+  hp,maxHp:hp,speed:overrides.speed??base.speed,attack:overrides.attack??base.attack,defense:overrides.defense??base.defense,
+  gauge:0,shape:overrides.shape??combat.basic_shape,archetype:d.archetype};
+}
+
+// v0.5.19 core-roster whitelist. Legacy units stay in BATTLE_ROSTER for rollback only.
+const ACTIVE_PLAYABLE_UNITS=Object.freeze(['Crimson','Sub-Zero','Lebee','Senku']);
+const DEFAULT_ACTIVE_TEAM=Object.freeze(['Crimson','Lebee','Sub-Zero']);
+
+function validatePlayableRosterRegistration(){
+ const missing=ACTIVE_PLAYABLE_UNITS.filter(name=>!BATTLE_ROSTER[name]);
+ if(missing.length){
+   console.error('Playable roster registration missing:',missing);
+   return false;
+ }
+ return true;
+}
+const PLAYABLE_ROSTER_VALID=validatePlayableRosterRegistration();
+const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v1';
+
+function validActiveTeam(team){
+ return Array.isArray(team)
+   && team.length===3
+   && new Set(team).size===3
+   && team.every(name=>ACTIVE_PLAYABLE_UNITS.includes(name));
+}
+function getActiveTeam(){
+ if(validActiveTeam(window.BLAZING_ACTIVE_TEAM))return [...window.BLAZING_ACTIVE_TEAM];
+ try{
+   const saved=JSON.parse(localStorage.getItem(TEAM_STORAGE_KEY)||'null');
+   if(validActiveTeam(saved)){
+     window.BLAZING_ACTIVE_TEAM=[...saved];
+     return [...saved];
+   }
+ }catch(_){}
+ window.BLAZING_ACTIVE_TEAM=[...DEFAULT_ACTIVE_TEAM];
+ return [...DEFAULT_ACTIVE_TEAM];
+}
+function setActiveTeam(team){
+ if(!validActiveTeam(team))throw new Error('Invalid active team');
+ window.BLAZING_ACTIVE_TEAM=[...team];
+ try{localStorage.setItem(TEAM_STORAGE_KEY,JSON.stringify(team));}catch(_){}
+ return [...team];
+}
+function teamSpawnOptions(name){
+ // Current development test configuration: Lebee and Sub-Zero remain Jutsu-ready.
+ return (name==='Lebee'||name==='Sub-Zero')?{startingChakra:'full'}:{};
+}
+function buildPlayerPairs(y){
+ const xs=[95,240,385];
+ const team=getActiveTeam();
+
+ return team.map((name,i)=>{
+   if(!BATTLE_ROSTER[name]){
+     console.error(`Team unit "${name}" is not registered in BATTLE_ROSTER.`);
+     const fallback=DEFAULT_ACTIVE_TEAM.find(n=>BATTLE_ROSTER[n]&&!team.includes(n))
+       || DEFAULT_ACTIVE_TEAM.find(n=>BATTLE_ROSTER[n])
+       || Object.keys(BATTLE_ROSTER)[0];
+     name=fallback;
+   }
+
+   return {
+     x:xs[i],y,active:0,gauge:0,units:[
+       makeRosterUnit(name,teamSpawnOptions(name)),
+       emptyReserve()
+     ]
+   };
+ });
+}
+const ACTIVE_BOSSES=Object.freeze(['Anubis']);
+const ACTIVE_ENEMY_SPRITES=Object.freeze(['Onre','Gotoku','Yurei']);
+function emptyReserve(){
+ return {name:'—',mark:'',speed:0,attack:0,shape:{type:'circle',r:0},jutsuShape:{type:'circle',r:0},jutsuCost:99,jutsuDamage:0,linkBuff:null,hp:0,maxHp:0,chakra:0,maxChakra:0,rotation:0};
+}
+
+const LEVEL1_PORTRAIT_MAP=new Image();
+const ANUBIS_PORTRAIT_MAP=new Image();
+
+function setBattleMap(kind){
+ const isBoss=kind==='boss';
+ const src=isBoss?window.BLAZING_ASSETS.maps.anubisBoss:window.BLAZING_ASSETS.maps.level1;
+ const img=isBoss?ANUBIS_PORTRAIT_MAP:LEVEL1_PORTRAIT_MAP;
+
+ // CSS fallback renders immediately even if Edge delays Image() decode.
+ cvs.style.backgroundImage=`url("${src}")`;
+
+ if(img.src!==src){
+   img.src=src;
+ }
+ if(typeof img.decode==='function'){
+   img.decode().catch(()=>{});
+ }
+}
+setBattleMap('level');
+
+function fresh(){
+ return {
+  time:0,phase:'charge',action:'normal',ready:null,readyStarted:0,_chargeSince:performance.now(),drag:false,dragOrigin:null,dragVisual:null,anim:null,floaters:[],victoryFX:null,jutsuDim:null,bossBattle:false,battleMode:'level',log:'Waiting for the first fighter to become ready.',
+  pairs:buildPlayerPairs(575),
+  enemies:[
+   makeEnemyFromData('onre','Rogue 1',120,175,'1'),
+   makeEnemyFromData('gotoku','Rogue 2',355,225,'2'),
+   makeEnemyFromData('yurei','Rogue 3',175,335,'3'),
+   makeEnemyFromData('onre','Rogue 4',350,385,'4',{hp:105,speed:30,attack:16,shape:{type:'cross',l:160,t:48}})
+  ]
+ }}
+
+function freshBoss(){
+ return {
+  time:0,phase:'charge',action:'normal',ready:null,readyStarted:0,_chargeSince:performance.now(),drag:false,dragOrigin:null,dragVisual:null,anim:null,floaters:[],victoryFX:null,jutsuDim:null,
+  log:'BOSS BATTLE — Anubis, Judge of Souls.',
+  bossBattle:true,battleMode:'boss',
+  pairs:buildPlayerPairs(585),
+  enemies:[
+   {
+    name:'Anubis',spriteKey:'Anubis',mark:canonicalUnit('anubis').combat.mark,
+    x:240,y:195,r:29,
+    hp:canonicalUnit('anubis').stats.hp,maxHp:canonicalUnit('anubis').stats.hp,
+    speed:canonicalUnit('anubis').stats.speed,attack:canonicalUnit('anubis').stats.attack,defense:canonicalUnit('anubis').stats.defense,gauge:0,
+    shape:canonicalUnit('anubis').combat.basic_shape,
+    boss:true,sizeScale:canonicalUnit('anubis').render.battle_size_scale||2.0625
+   }
+  ]
+ };
+}
+
+let S=fresh();
+
+const front=p=>p.units[p.active], back=p=>p.units[1-p.active];
+const pairAlive=p=>p.units.some(u=>u.hp>0);
+const alivePairs=()=>S.pairs.filter(pairAlive);
+const aliveEnemies=()=>S.enemies.filter(e=>e.hp>0);
+const NORMAL_ATTACK_SHAPE={type:'circle',r:43};
+const normalShape=()=>NORMAL_ATTACK_SHAPE;
+const attackShape=u=>{
+ // Strict separation:
+ // NORMAL -> unit's canonical combat.basic_shape
+ // JUTSU  -> unit's canonical combat.jutsu_shape
+ if(S.action==='jutsu')return u.jutsuShape;
+ return u.shape||normalShape();
+};
+function attackProxy(u){return {...u,shape:attackShape(u)}}
+
+// Ability-tier lookup must live at battle scope because both the ground-field
+// pass and the later enemy target-feedback pass use it.
+function isUltimateAction(unit){
+ if(!unit)return false;
+ try{
+   // canonicalUnit already resolves both IDs and display names through UNIT_NAME_TO_ID.
+   const ability=canonicalUnit(unit.name)?.abilities?.jutsu;
+   return !!(ability?.ultimate===true || ability?.category==='ultimate' || ability?.tier==='ultimate');
+ }catch(_){
+   return false;
+ }
+}
+
+function isAllySupportJutsu(unit){
+ if(!unit)return false;
+ try{
+   const ability=canonicalUnit(unit.name)?.abilities?.jutsu;
+   return ability?.target==='all_allies' || ability?.effect==='heal_full';
+ }catch(_){
+   return false;
+ }
+}
+
+
+function ensureFront(p){
+ if(front(p).hp>0)return true;
+ if(front(p).hp<=0 && koAnimating(front(p).name))return true;
+ if(back(p).hp>0){p.active=1-p.active;return true}
+ return false
+}
+function fxMap(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.unitFX)S.anim.unitFX={};
+ return S.anim.unitFX;
+}
+function unitFX(name){
+ return S.anim?.unitFX?.[name]||null;
+}
+function koAnimating(name){
+ let fx=unitFX(name);
+ return !!(fx&&fx.kind==='ko'&&(performance.now()-fx.start)<fx.duration);
+}
+function renderWhileKO(name){
+ let fx=unitFX(name);
+ return !!(fx&&fx.kind==='ko'&&(performance.now()-fx.start)<fx.duration+90);
+}
+function startHitReaction(name,dir=1,strong=false){
+ fxMap()[name]={kind:'hit',start:performance.now(),duration:strong?230:180,dir:dir||1,strong:!!strong};
+}
+function startKOReaction(name,dir=1){
+ fxMap()[name]={kind:'ko',start:performance.now(),duration:520,dir:dir||1};
+}
+function pairRenderable(p){
+ return pairAlive(p)||renderWhileKO(front(p).name)||renderWhileKO(back(p).name);
+}
+function handleKO(p,defeatedName,dir=1){
+ addFloat(p.x,p.y-58,'KO','#ff7272');
+ startKOReaction(defeatedName,dir);
+ p.gauge=0;
+ if(back(p).hp>0){
+   S.log=`${defeatedName} was knocked out — ${back(p).name} is preparing to move to the front.`;
+   setTimeout(()=>{
+     if(front(p).name===defeatedName && back(p).hp>0){
+       p.active=1-p.active;
+       S.log=`${defeatedName} was knocked out — ${front(p).name} automatically moved to the front.`;
+     }
+   },380);
+ }else{
+   S.log=`${defeatedName} was knocked out — that pair has been defeated.`;
+ }
+}
+function handleEnemyKO(e,dir=1){
+ addFloat(e.x,e.y-46,'KO','#ff7272');
+ startKOReaction(e.name,dir);
+ e.gauge=0;
+ S.log=`${e.name} was defeated.`;
+}
+
+function local(p,u,e){let a=-(u.rotation||0),dx=e.x-p.x,dy=e.y-p.y;return{x:dx*Math.cos(a)-dy*Math.sin(a),y:dx*Math.sin(a)+dy*Math.cos(a)}}
+function circleRect(q,r,hw,hh){let x=clamp(q.x,-hw,hw),y=clamp(q.y,-hh,hh);return Math.hypot(q.x-x,q.y-y)<=r}
+function hits(p,u,e){let s=u.shape,q=local(p,u,e),er=e.r||20;
+ if(s.type==='screen_rect')return e.x>=BATTLE_BOUNDS.left&&e.x<=BATTLE_BOUNDS.right&&e.y>=BATTLE_BOUNDS.top&&e.y<=BATTLE_BOUNDS.bottom;
+ if(s.type==='circle')return d(p,e)<=s.r+er;
+ if(s.type==='rect'){
+   const rq={x:q.x-(s.offset_x||0),y:q.y-(s.offset_y||0)};
+   return circleRect(rq,er,s.w/2,s.h/2);
+ }
+ if(s.type==='square')return circleRect(q,er,s.s/2,s.s/2);
+ if(s.type==='cross')return circleRect(q,er,s.l/2,s.t/2)||circleRect(q,er,s.t/2,s.l/2);
+ if(s.type==='donut'){let z=Math.hypot(q.x,q.y);return z+er>=s.i&&z-er<=s.o}
+ if(s.type==='cone'){let z=Math.hypot(q.x,q.y),ang=Math.abs(Math.atan2(q.y,q.x)),pad=Math.asin(Math.min(1,er/Math.max(z,.01)));return q.x+er>=0&&z-er<=s.r&&ang<=s.a/2+pad}
+ return false}
+function drawField(){
+ return window.BlazingBattlefieldRenderer.drawField(ctx,{image:S.bossBattle?ANUBIS_PORTRAIT_MAP:LEVEL1_PORTRAIT_MAP,W,H,mapZoom:MAP_ZOOM});
+}
+function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
+ return window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:u.shape,rotation:u.rotation||0,color,glow,visualOffsetY,bounds:BATTLE_BOUNDS});
+}
+function actorPos(p,u){if(S.anim&&S.anim.positions&&S.anim.positions[u.name])return S.anim.positions[u.name];return p}
+
+function facingFlip(rot,name=null){
+ let dir=Math.cos(rot||0)>=0?1:-1;
+ // Some source art faces screen-left by default. Invert those assets while
+ // keeping mechanical facing/range logic unchanged.
+ if(name==='Crimson'||name==='Anubis')dir*=-1;
+ return dir;
+}
+
+function nearestEnemyPoint(x,y){
+ let alive=S.enemies.filter(e=>e.hp>0);
+ if(!alive.length)return null;
+ return alive.reduce((best,e)=>!best||d({x,y},e)<d({x,y},best)?e:best,null);
+}
+
+
+// v0.5.10: sprites are normalized during the asset-production step.
+// Never scan/crop millions of pixels on the phone gameplay thread.
+function getRenderableSprite(asset,spriteName=null){ return asset; }
+
+function spriteDims(asset){
+ return{
+   w:asset?(asset.naturalWidth||asset.width||0):0,
+   h:asset?(asset.naturalHeight||asset.height||0):0
+ };
+}
+
+function nearestPlayerPoint(x,y){
+ let alive=S.pairs.filter(p=>pairAlive(p));
+ if(!alive.length)return null;
+ return alive.reduce((best,p)=>!best||d({x,y},p)<d({x,y},best)?p:best,null);
+}
+
+function updateFacing(){
+ S.pairs.forEach(pair=>{
+   pair.units.forEach(u=>{
+     let pos=actorPos(pair,u);
+     let target=nearestEnemyPoint(pos.x,pos.y);
+     if(target)u.rotation=Math.atan2(target.y-pos.y,target.x-pos.x);
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   let target=nearestPlayerPoint(e.x,e.y);
+   if(target)e.rotation=Math.atan2(target.y-e.y,target.x-e.x);
+ });
+}
+
+function battleSpriteFor(name){
+ return (name && SPRITE_DATA[name]) ? SPRITE_DATA[name] : null;
+}
+function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=false,flipX=1,sizeScale=1){
+ // Body sprites must always begin from a clean canvas state.
+ ctx.globalCompositeOperation='source-over';
+ if(!Number.isFinite(ctx.globalAlpha) || ctx.globalAlpha<=0)ctx.globalAlpha=1;
+ let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;
+ let activePulse=1;
+ let fx=name?unitFX(name):null;
+
+ // Deterministic per-character idle timing offset.
+ // This MUST be initialized before any transform code references it.
+ let idlePhase=0;
+ if(name){
+   for(let i=0;i<name.length;i++)idlePhase+=name.charCodeAt(i)*(i+3);
+ }
+
+ if(active && !visual){
+   activePulse=1+Math.sin(performance.now()/170)*.018;
+ }
+
+ // PLAYER GROUND SHADOW — v0.5.18
+ // The sprite artwork is anchored with its feet at local y≈12. Keep the shadow
+ // directly on that contact point instead of floating well below the character.
+ // Width follows the same render scale used by the body so larger units receive
+ // a proportionally larger footprint without turning into a detached blob.
+ if(!isEnemy){
+   let liftRatio=clamp(lift/17,0,1);
+   let bodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let shadowW=clamp(10.5*bodyScale,10,18.5);
+   let shadowH=clamp(2.55*bodyScale,2.5,4.25);
+   let shadowAlpha=.24-.08*liftRatio;
+
+   ctx.save();
+   ctx.translate(x,y+11.5);
+   ctx.fillStyle=`rgba(0,0,0,${shadowAlpha})`;
+   ctx.shadowColor=`rgba(0,0,0,${.14+.04*(1-liftRatio)})`;
+   ctx.shadowBlur=1.5+4.5*liftRatio;
+   ctx.beginPath();
+   ctx.ellipse(0,0,shadowW,shadowH,0,0,Math.PI*2);
+   ctx.fill();
+   ctx.restore();
+ }
+
+ ctx.save();
+ ctx.translate(x,y-lift);
+
+ if(!visual){
+   let t=(performance.now()+idlePhase*5);
+   // Lebee's supplied idle sheet already contains floating motion.
+   if(name!=='Lebee'){
+     ctx.translate(0,Math.sin(t/420)*.55);
+     ctx.rotate(Math.sin(t/610)*.004);
+   }
+ }
+
+ if(fx){
+   let elapsed=performance.now()-fx.start;
+   if(elapsed<fx.duration){
+     if(fx.kind==='hit'){
+       let t=elapsed/fx.duration;
+       let bump=Math.sin(t*Math.PI);
+       ctx.translate((fx.dir||1)*7*bump,-1.6*bump);
+       ctx.rotate((fx.dir||1)*0.14*bump*(fx.strong?1.15:1));
+       scale*=1 + (fx.strong?.06:.035)*Math.sin(t*Math.PI*1.2);
+     }else if(fx.kind==='ko'){
+       let t=elapsed/fx.duration;
+       let ease=1-Math.pow(1-t,3);
+       ctx.translate((fx.dir||1)*(28*ease), -10*ease);
+       ctx.rotate((fx.dir||1)*(.72*ease));
+       scale*=1 - .18*ease;
+       ctx.globalAlpha=t<.6 ? 1 : 1-((t-.6)/.4);
+     }
+   }else if(S.anim?.unitFX){
+     delete S.anim.unitFX[name];
+   }
+ }
+
+ ctx.rotate(rot);
+ ctx.scale((flipX||1)*scale*activePulse,scale*activePulse);
+
+ // CPU enemies retain their small orientation shadow.
+ if(isEnemy){
+   ctx.beginPath();
+   ctx.ellipse(0,17,16,6,0,0,Math.PI*2);
+   ctx.fillStyle='rgba(0,0,0,.22)';
+   ctx.fill();
+ }
+
+ let sprite=name?SPRITES[name]:null;
+ let idleFrames=name?unitIdleFrames(name):null;
+ let attackState=(name&&S.anim?.attackPose)?S.anim.attackPose[name]:null;
+ let attackFrames=(name&&attackState)?unitAttackFrames(name,attackState.kind):null;
+
+ // Lebee has a real recoil sheet. Hit art temporarily overrides idle/attack art,
+ // but uses the same normalized canvas so her footprint stays stable.
+ if(!visual&&fx?.kind==='hit'&&HIT_SPRITES[name]?.length){
+   const hitElapsed=performance.now()-fx.start;
+   const hitProgress=clamp(hitElapsed/fx.duration,0,1);
+   const hitIndex=Math.min(HIT_SPRITES[name].length-1,Math.floor(hitProgress*HIT_SPRITES[name].length));
+   const hitSprite=HIT_SPRITES[name][hitIndex];
+   if(hitSprite?.complete&&hitSprite.naturalWidth>0)sprite=hitSprite;
+ }
+
+ // Attack art overrides idle only when a REAL, loaded attack frame exists.
+ // Previously every attack set attackState, which suppressed the idle art even
+ // for units such as Deezy that have no dedicated attack frames. The renderer
+ // then fell back to an older padded base sprite and the unit appeared to shrink.
+ let usingAttackSprite=false;
+ let attackProgress=0;
+ if(!visual&&attackState){
+   let elapsed=performance.now()-attackState.start;
+   attackProgress=clamp(elapsed/attackState.duration,0,1);
+
+   // Crimson's supplied sheet contains distinct idle / basic / Jutsu poses.
+   // Briefly hold the second idle pose as anticipation, then snap into the
+   // supplied action pose. This makes the frame change readable at phone scale
+   // instead of showing one static pose for the entire lunge.
+   if(name==='Crimson'&&idleFrames?.length){
+     const anticipation=attackState.kind==='special'?.16:.22;
+     if(attackProgress<anticipation){
+       let prep=idleFrames[Math.min(1,idleFrames.length-1)];
+       if(prep?.complete&&prep.naturalWidth>0){
+         sprite=prep;
+         usingAttackSprite=true;
+       }
+     }
+   }
+
+   if(!usingAttackSprite&&attackFrames?.length){
+     let frameIndex=Math.min(attackFrames.length-1,Math.floor(attackProgress*attackFrames.length));
+     let candidate=attackFrames[frameIndex];
+     if(candidate?.complete&&candidate.naturalWidth>0){
+       sprite=candidate;
+       usingAttackSprite=true;
+     }
+   }
+ }
+
+ // Keep the normalized idle animation visible whenever no valid attack frame
+ // is available. This guarantees a consistent battlefield footprint during
+ // lunges and Jutsu casts instead of silently swapping to legacy sprite art.
+ if(!usingAttackSprite && idleFrames?.length){
+   const idleMs=name==='Lebee'?520:185;
+   let frameIndex=Math.floor((performance.now()+idlePhase*7)/idleMs)%idleFrames.length;
+   let candidate=idleFrames[frameIndex];
+   if(candidate?.complete && candidate.naturalWidth>0)sprite=candidate;
+ }
+
+ let spriteRef=sprite?getRenderableSprite(sprite,name):null;
+ let dims=spriteDims(spriteRef);
+
+ if(spriteRef && dims.w>0 && dims.h>0){
+   let playerScale=isEnemy?1:1.07;
+   // v0.5.18: shared player scale; Crimson uses the same battlefield height target as Sub-Zero.
+   let playerRenderBonus=isEnemy?1:PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let h=(isEnemy?62:68)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus,
+       w=(isEnemy?42:48)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus;
+   let ratio=dims.w/dims.h;
+   if(ratio>0)w=h*ratio;
+   // Normalized action frames keep the exact same battlefield footprint as idle.
+
+   ctx.imageSmoothingEnabled=true;
+
+   // Deezy does not yet have a dedicated action-art pack. Give the existing
+   // sprite a real attack performance rather than simply translating the whole
+   // unit unchanged. Because this transform lives inside the already-facing
+   // coordinate system, it automatically follows his attack direction.
+   if(!visual&&attackState&&name==='Deezy'){
+     let p=attackProgress;
+     let strike=Math.sin(clamp(p/.78,0,1)*Math.PI);
+     let recoil=p>.72?Math.sin(((p-.72)/.28)*Math.PI)*.35:0;
+     let strength=attackState.kind==='special'?1.35:1;
+     ctx.translate((8.5*strength*strike)-(2.5*recoil),-2.2*strike);
+     ctx.rotate(-.105*strength*strike+.035*recoil);
+     let squash=1+.055*strike;
+     ctx.scale(squash,1-.028*strike);
+   }
+
+   if(active && !visual){
+     let elapsed=Math.max(0,performance.now()-(S.readyStarted||0));
+     let intro=Math.max(0,1-elapsed/230);
+     let breathe=.5+.5*Math.sin(performance.now()/190);
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     let crimson=name==='Crimson';
+     ctx.shadowColor=crimson?'rgba(255,58,86,.98)':'rgba(255,255,255,.98)';
+     ctx.shadowBlur=(crimson?9:6) + intro*10 + breathe*(crimson?4.5:2.5);
+     ctx.globalAlpha=.32 + intro*.35 + breathe*.08;
+     ctx.drawImage(spriteRef,-w/2,12-h,w,h);
+     ctx.restore();
+
+     if(intro>0){
+       ctx.save();
+       ctx.globalAlpha=.28*intro;
+       ctx.globalCompositeOperation='screen';
+       ctx.drawImage(spriteRef,-w/2,12-h,w,h);
+       ctx.restore();
+     }
+   }
+
+   ctx.globalAlpha=1;
+   ctx.drawImage(spriteRef,-w/2,12-h,w,h);
+
+ } else {
+   ctx.beginPath();
+   ctx.arc(0,0,16,0,Math.PI*2);
+   ctx.fillStyle=color;
+   ctx.fill();
+   ctx.strokeStyle='rgba(255,255,255,.82)';
+   ctx.lineWidth=1.3/Math.max(scale,0.01);
+   ctx.stroke();
+
+   ctx.fillStyle='#fff';
+   ctx.font='bold 11px system-ui';
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.fillText(label,0,0);
+ }
+
+ ctx.restore()
+}
+
+function playerLinkState(pair){
+  const active=S.ready?.kind==='pair' ? S.ready.ref : null;
+  if(!active || !pairAlive(active) || !pairAlive(pair))
+    return {linked:false,count:0};
+
+  let count=1;
+  let linked=false;
+
+  S.pairs.forEach(other=>{
+    if(other===active || !pairAlive(other))return;
+    if(unitsMutuallyLinked(active,other)){
+      count++;
+      if(pair===other)linked=true;
+    }
+  });
+
+  if(pair===active && count>1)linked=true;
+  return {linked,count};
+}
+
+
+function pairLinkVisualStrength(a,b){
+ if(!a||!b||!unitsMutuallyLinked(a,b))return 0;
+
+ // Mutual normal-link range is effectively normal radius + body radius.
+ const outer=normalShape().r+16;
+ const inner=30;
+ const dist=d(a,b);
+ const proximity=1-clamp((dist-inner)/Math.max(1,outer-inner),0,1);
+
+ // If either fighter is actively providing a Link Attack Buff, let that
+ // mechanical strength reinforce the visual strength too.
+ const ab=linkBuffFromProvider(a,b).ratio||0;
+ const ba=linkBuffFromProvider(b,a).ratio||0;
+
+ return clamp(Math.max(proximity,ab,ba),0,1);
+}
+
+function linkVisualStrength(pair){
+ const active=S.ready?.kind==='pair'?S.ready.ref:null;
+ if(!active||!pairAlive(active)||!pairAlive(pair))return 0;
+
+ if(pair===active){
+   let best=0;
+   S.pairs.forEach(other=>{
+     if(other!==active&&pairAlive(other)&&unitsMutuallyLinked(active,other))
+       best=Math.max(best,pairLinkVisualStrength(active,other));
+   });
+   return best;
+ }
+
+ return pairLinkVisualStrength(active,pair);
+}
+
+
+function playerSpriteTopY(pair,isActive=false){
+ const useDrag=isActive&&(S.drag||S.anim?.settle)&&S.dragVisual;
+ const scale=useDrag?(S.dragVisual.scale||1):1;
+ const lift=useDrag?(S.dragVisual.lift||0):0;
+
+ // Player sprites are drawn 68px high with their bottom at local y=12.
+ // This follows the real transformed top edge instead of using a fixed offset.
+ return pair.y-lift-56*scale;
+}
+
+function drawOverheadLinkIcon(x,y,strength){
+ return window.BlazingBattlefieldRenderer.drawOverheadLinkIcon(ctx,{x,y,strength});
+}
+
+function drawActiveLinkSummary(pair,pos,spriteTop){
+ if(S.phase!=='player'||S.ready?.kind!=='pair'||S.ready.ref!==pair)
+   return;
+
+ const previewing=(S.drag||S.action==='jutsu');
+ if(!previewing)return;
+
+ const members=comboMembers(null,pair);
+ if(members.length<=1)return;
+
+ const u=front(pair);
+ let damage=0,baseDamage=0;
+
+ if(S.action==='jutsu'){
+   const helpers=members.filter(p=>p!==pair);
+   damage=u.jutsuDamage+helpers.reduce((sum,p)=>sum+buffedNormalDamage(p).damage,0);
+   baseDamage=u.jutsuDamage+helpers.reduce((sum,p)=>sum+front(p).attack,0);
+ }else{
+   damage=members.reduce((sum,p)=>sum+buffedNormalDamage(p).damage,0);
+   baseDamage=members.reduce((sum,p)=>sum+front(p).attack,0);
+ }
+
+ const bonus=baseDamage>0?Math.max(0,damage/baseDamage-1):0;
+ const strength=linkVisualStrength(pair);
+ const sat=Math.round(28+72*strength);
+ const alpha=.45+.50*strength;
+ const accent=`hsla(143,${sat}%,58%,${alpha})`;
+
+ const label=`LINK ×${members.length} · ${damage} DMG${bonus>0?` · +${Math.round(bonus*100)}%`:''}`;
+ const y=spriteTop-27;
+
+ ctx.save();
+ ctx.font='bold 9px system-ui';
+ ctx.textAlign='center';
+ const width=Math.max(84,ctx.measureText(label).width+12);
+
+ ctx.fillStyle='rgba(7,10,12,.68)';
+ ctx.fillRect(pos.x-width/2,y-12,width,17);
+
+ ctx.strokeStyle=accent;
+ ctx.lineWidth=.8;
+ ctx.strokeRect(pos.x-width/2+.5,y-11.5,width-1,16);
+
+ ctx.fillStyle=accent;
+ ctx.fillText(label,pos.x,y);
+ ctx.restore();
+}
+
+function drawCompactHP(p,u){
+ let x=p.x,y=p.y+27,w=34,h=3;
+ ctx.save();
+
+ ctx.fillStyle='rgba(5,9,11,.55)';
+ ctx.fillRect(x-w/2,y,w,h);
+
+ let ratio=Math.max(0,u.hp/u.maxHp);
+ ctx.fillStyle=ratio>.5?'#53dc72':ratio>.25?'#ffbd4a':'#ff616a';
+ ctx.fillRect(x-w/2,y,w*ratio,h);
+
+ ctx.restore()
+}
+
+function drawPlayerResources(p,u,linkState={linked:false,count:0},active=false,pairRef=null){
+ const strength=pairRef?linkVisualStrength(pairRef):0;
+ const spriteTop=linkState.linked?(pairRef?playerSpriteTopY(pairRef,active):p.y-56):null;
+ return window.BlazingBattlefieldRenderer.drawPlayerResources(ctx,{x:p.x,y:p.y,hp:u.hp,maxHp:u.maxHp,chakra:u.chakra,maxChakra:u.maxChakra,linked:!!linkState.linked,linkStrength:strength,spriteTop});
+}
+
+function drawMoveReturnCue(){
+ if(!S.drag||!S.dragOrigin||S.ready?.kind!=='pair')return;
+ const p=S.ready.ref;
+ return window.BlazingBattlefieldRenderer.drawMoveReturnCue(ctx,{origin:S.dragOrigin,distance:d(p,S.dragOrigin),hintRadius:MOVE_RETURN_HINT_RADIUS,cancelRadius:MOVE_CANCEL_RADIUS});
+}
+
+
+function startVictorySequence(){
+ if(S.victoryFX)return;
+
+ S.victoryFX={
+   start:performance.now(),
+   textFade:700,
+   dimFade:2400,
+   maxDim:.55
+ };
+
+ S.phase='resolve';
+ S.log='Victory — all enemies defeated.';
+}
+
+function checkVictoryKillshot(){
+ if(!S.victoryFX && !aliveEnemies().length){
+   startVictorySequence();
+   return true;
+ }
+ return false;
+}
+
+function drawVictoryOverlay(){
+ return window.BlazingBattlefieldRenderer.drawVictoryOverlay(ctx,{victoryFX:S.victoryFX,victoryImage:VICTORY_IMAGE,W,H});
+}
+
+function render(){
+ try{
+ // Start every frame from a known-good canvas state.
+ ctx.globalAlpha=1;
+ ctx.globalCompositeOperation='source-over';
+ ctx.shadowBlur=0;
+ updateFacing();
+ drawField();
+ if(S.jutsuDim){
+   const now=performance.now();
+   const elapsed=now-S.jutsuDim.start;
+   const fadeIn=clamp(elapsed/220,0,1);
+   const fadeOut=S.jutsuDim.end?clamp((now-S.jutsuDim.end)/260,0,1):0;
+   const a=(S.jutsuDim.alpha||.42)*fadeIn*(1-fadeOut);
+   if(a>0){ctx.save();ctx.fillStyle=`rgba(3,2,10,${a})`;ctx.fillRect(0,0,W,H);ctx.restore()}
+   if(S.jutsuDim.end&&fadeOut>=1)S.jutsuDim=null;
+ }
+ drawMoveReturnCue();
+
+ const showPlayer=S.phase==='player'&&S.ready?.kind==='pair'&&(S.drag||S.action==='normal'||S.action==='jutsu');
+ const activePair=S.ready?.kind==='pair'?S.ready.ref:null;
+
+ // Attack/range fields live on the ground, so draw them before the pieces.
+ if(showPlayer&&activePair&&pairAlive(activePair)){
+   ensureFront(activePair);
+   const activeUnit=front(activePair);
+   const activePos=actorPos(activePair,activeUnit);
+   const proxy=attackProxy(activeUnit);
+   const jutsu=S.action==='jutsu';
+   const attackColor=!jutsu
+     ? '#ffffff'
+     : (isUltimateAction(activeUnit)?'#ff3548':'#45d7ff');
+   drawShape(activePos,proxy,attackColor,jutsu?.22:.12,jutsu,-22);
+ }
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   if(S.anim?.showEnemyRange===e)
+     drawShape(pos,{shape:normalShape(),rotation:0},'#ffffff',.14,false);
+ });
+
+ // Build ONE scene list so team identity never controls visual stacking.
+ const scene=[];
+
+ S.pairs.forEach((p,i)=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+   const lifted=selected&&((S.drag&&S.dragVisual)||(S.anim?.settle&&S.dragVisual));
+
+   scene.push({
+     kind:'player',
+     y:pos.y,
+     sortY:pos.y+(lifted?10000:0),
+     pair:p,index:i,unit:u,pos,selected,lifted
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   scene.push({
+     kind:'enemy',
+     y:pos.y,
+     sortY:pos.y,
+     enemy:e,pos
+   });
+ });
+
+ // Higher on map = farther away = rendered first.
+ // Lower on map = foreground = rendered later/on top.
+ scene.sort((a,b)=>{
+   if(a.sortY!==b.sortY)return a.sortY-b.sortY;
+   // Stable deterministic tie break when two baselines are essentially equal.
+   return a.kind==='enemy'&&b.kind==='player'?-1:
+          a.kind==='player'&&b.kind==='enemy'?1:0;
+ });
+
+ // BODY PASS — depth sorted.
+ scene.forEach(item=>{
+   if(item.kind==='player'){
+     const {pair:p,index:i,unit:u,pos,selected}=item;
+     const vis=((S.drag||S.anim?.settle)&&selected)?S.dragVisual:null;
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.shadowBlur=0;
+     ctx.globalAlpha=(activePair && !selected) ? .82 : 1;
+     drawUnit(
+       pos.x,pos.y,u.mark,COLORS[i],
+       S.phase==='player'&&selected,
+       vis,u.name,false,facingFlip(u.rotation,u.name),(u.renderScale||1)
+     );
+     ctx.restore();
+     return;
+   }
+
+   const e=item.enemy;
+   const pos=item.pos;
+   const activePlayer=S.ready?.kind==='pair'?front(S.ready.ref):null;
+   const proxy=activePlayer?attackProxy(activePlayer):null;
+   const supportJutsu=activePlayer&&S.action==='jutsu'&&isAllySupportJutsu(activePlayer);
+   const liveHit=showPlayer&&activePair&&!supportJutsu&&hits(activePair,proxy,e);
+
+   // Target feedback is part of the enemy's world layer.
+   if(liveHit){
+     const jutsu=S.action==='jutsu';
+
+     const linkedCount=comboMembers(e,activePair).length;
+     const comboLinked=linkedCount>1;
+     const targetColor=!jutsu
+       ? (comboLinked?'#39ff88':'#ffffff')
+       : (isUltimateAction(activePlayer)?'#ff3548':'#45d7ff');
+
+     // Bubble feedback is isolated so it can never mask the enemy sprite.
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.globalAlpha=1;
+     ctx.shadowBlur=0;
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+14,0,Math.PI*2);
+     ctx.fillStyle=!jutsu
+       ? 'rgba(255,255,255,.08)'
+       : (isUltimateAction(activePlayer)?'rgba(255,53,72,.09)':'rgba(69,215,255,.08)');
+     ctx.fill();
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+10+1.5*Math.sin(performance.now()/145),0,Math.PI*2);
+     ctx.strokeStyle=targetColor;
+     ctx.shadowColor=targetColor;
+     ctx.shadowBlur=jutsu?10:(comboLinked?8:6);
+     ctx.lineWidth=jutsu?1.8:1.45;
+     ctx.stroke();
+     ctx.restore();
+   }
+
+   ctx.save();
+   ctx.globalAlpha=1;
+   drawUnit(
+     pos.x,pos.y,e.mark,'#d84b54',
+     S.phase==='cpu'&&S.ready?.ref===e,
+     null,(e.spriteKey||e.name),true,facingFlip(e.rotation,(e.spriteKey||e.name)),(e.sizeScale||1)
+   );
+   ctx.restore();
+ });
+
+ // HUD PASS — stays readable above the depth-sorted bodies.
+ const supportPreviewUnit=(S.ready?.kind==='pair')?front(S.ready.ref):null;
+ const showAllyHealTargets=S.phase==='player'&&S.action==='jutsu'&&supportPreviewUnit&&isAllySupportJutsu(supportPreviewUnit);
+
+ S.pairs.forEach(p=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   if(u.hp<=0)return;
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+
+   if(showAllyHealTargets){
+     const pulse=.5+.5*Math.sin(performance.now()/170);
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y-15,31+3*pulse,0,Math.PI*2);
+     ctx.fillStyle='rgba(86,255,122,.10)';
+     ctx.fill();
+     ctx.strokeStyle='rgba(108,255,139,.92)';
+     ctx.shadowColor='#5dff76';
+     ctx.shadowBlur=10+4*pulse;
+     ctx.lineWidth=1.6;
+     ctx.stroke();
+
+     // Healing cross above each allied unit.
+     ctx.translate(pos.x,pos.y-58);
+     ctx.fillStyle='rgba(126,255,151,.96)';
+     ctx.shadowColor='#69ff82';
+     ctx.shadowBlur=8;
+     ctx.fillRect(-2.5,-8,5,16);
+     ctx.fillRect(-8,-2.5,16,5);
+     ctx.restore();
+   }
+
+   const linkState=playerLinkState(p);
+   drawPlayerResources(pos,u,linkState,selected,p);
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0)return;
+   if(renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+
+   ctx.save();
+   ctx.globalAlpha=S.phase==='player'?.92:1;
+   ctx.fillStyle='#222';
+   ctx.fillRect(pos.x-27,pos.y+29,54,6);
+   ctx.fillStyle='#ffbd4a';
+   ctx.fillRect(pos.x-27,pos.y+29,54*(e.hp/e.maxHp),6);
+   ctx.restore();
+ });
+
+ S.floaters.forEach(f=>{
+   ctx.save();
+   ctx.globalAlpha=f.life??1;
+   if(f.kind==='screenFlash'){
+     const elapsed=performance.now()-f.start;
+     const t=clamp(elapsed/f.duration,0,1);
+     ctx.setTransform(1,0,0,1,0,0);
+     ctx.globalCompositeOperation='source-over';
+     ctx.fillStyle=f.color||'#fff';
+     ctx.globalAlpha=f.fade?Math.max(0,1-t):1;
+     ctx.fillRect(0,0,W,H);
+   }else if(f.kind==='lebeeStarProjectile'){window.BlazingVfxRenderer.drawLebeeStarProjectile(ctx,f,LEBEE_STAR_PROJECTILE);}else if(f.kind==='senkuChemProjectile'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     const e=1-Math.pow(1-t,2.15);
+     const x=f.from.x+(f.to.x-f.from.x)*e;
+     const y=f.from.y+(f.to.y-f.from.y)*e-7*Math.sin(t*Math.PI);
+     const idx=Math.min(SENKU_CHEM_PROJECTILE_FRAMES.length-1,Math.floor(t*SENKU_CHEM_PROJECTILE_FRAMES.length));
+     const img=SENKU_CHEM_PROJECTILE_FRAMES[idx];
+     if(img?.complete&&img.naturalWidth>0){
+       const h=30+5*Math.sin(t*Math.PI),ratio=img.naturalWidth/img.naturalHeight,w=h*ratio;
+       ctx.translate(x,y);
+       ctx.shadowColor='#62ff63';ctx.shadowBlur=10;
+       ctx.drawImage(img,-w/2,-h/2,w,h);
+     }
+   }else if(f.kind==='senkuChemImpact'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     const idx=Math.min(SENKU_CHEM_IMPACT_FRAMES.length-1,Math.floor(t*SENKU_CHEM_IMPACT_FRAMES.length));
+     const img=SENKU_CHEM_IMPACT_FRAMES[idx];
+     if(img?.complete&&img.naturalWidth>0){
+       const h=72+45*Math.sin(Math.min(1,t)*Math.PI*.72);
+       const ratio=img.naturalWidth/img.naturalHeight,w=h*ratio;
+       ctx.translate(f.x,f.y);
+       ctx.globalAlpha=Math.max(0,1-Math.max(0,t-.75)/.25);
+       ctx.shadowColor='#5dff6e';ctx.shadowBlur=12;
+       ctx.drawImage(img,-w/2,-h*.70,w,h);
+     }
+   }else if(f.kind==='senkuBombProjectile'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     const e=t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+     const arc=f.arcHeight||86;
+     const x=f.from.x+(f.to.x-f.from.x)*e;
+     const baseY=f.from.y+(f.to.y-f.from.y)*e;
+     const y=baseY-4*arc*t*(1-t);
+
+     // Tangent direction of the parabolic trajectory.
+     const dx=f.to.x-f.from.x;
+     const dy=(f.to.y-f.from.y)-4*arc*(1-2*t);
+     const angle=Math.atan2(dy,dx);
+
+     const idx=Math.min(
+       SENKU_BOMB_FRAMES.length-1,
+       Math.floor(t*SENKU_BOMB_FRAMES.length)
+     );
+     const img=SENKU_BOMB_FRAMES[idx];
+     if(img?.complete&&img.naturalWidth>0){
+       const h=30,ratio=img.naturalWidth/img.naturalHeight,w=h*ratio;
+       ctx.translate(x,y);
+       ctx.rotate(angle);
+       ctx.shadowColor='#ff9a32';
+       ctx.shadowBlur=8;
+       ctx.drawImage(img,-w/2,-h/2,w,h);
+     }
+   }else if(f.kind==='senkuExplosion'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     const img=SENKU_BASIC_STATIC_EXPLOSION;
+
+     if(img?.complete&&img.naturalWidth>0){
+       const hold=.30;
+       const fade=t<=hold ? 1 : Math.max(0,1-(t-hold)/(1-hold));
+       const pop=Math.min(1,t/.12);
+       const scale=.90+.10*(1-Math.pow(1-pop,3));
+
+       // Compact basic-attack impact.
+       const baseH=58;
+       const h=baseH*scale;
+       const w=h*(img.naturalWidth/img.naturalHeight);
+
+       // Exact target ground-point placement.
+       const anchorX=.50;
+       const anchorY=.96;
+       const yNudge=3;
+
+       ctx.globalAlpha*=fade;
+       ctx.translate(f.x,f.y+yNudge);
+       ctx.shadowColor='#ff9a32';
+       ctx.shadowBlur=5*fade;
+       ctx.drawImage(img,-w*anchorX,-h*anchorY,w,h);
+     }
+   }else if(f.kind==='lebeeMeteor'){window.BlazingVfxRenderer.drawLebeeMeteor(ctx,f,{meteorFrames:LEBEE_METEOR_FRAMES,impactFrames:LEBEE_METEOR_IMPACT_FRAMES,finale:LEBEE_METEOR_IMPACT_COMBO,aftermath:LEBEE_METEOR_AFTERMATH});}else if(f.kind==='lebeeMeteorImpact'){window.BlazingVfxRenderer.drawLebeeMeteor(ctx,f,{meteorFrames:LEBEE_METEOR_FRAMES,impactFrames:LEBEE_METEOR_IMPACT_FRAMES,finale:LEBEE_METEOR_IMPACT_COMBO,aftermath:LEBEE_METEOR_AFTERMATH});}else if(f.kind==='lebeeMeteorFinale'){window.BlazingVfxRenderer.drawLebeeMeteor(ctx,f,{meteorFrames:LEBEE_METEOR_FRAMES,impactFrames:LEBEE_METEOR_IMPACT_FRAMES,finale:LEBEE_METEOR_IMPACT_COMBO,aftermath:LEBEE_METEOR_AFTERMATH});}else if(f.kind==='lebeeMeteorAftermath'){window.BlazingVfxRenderer.drawLebeeMeteor(ctx,f,{meteorFrames:LEBEE_METEOR_FRAMES,impactFrames:LEBEE_METEOR_IMPACT_FRAMES,finale:LEBEE_METEOR_IMPACT_COMBO,aftermath:LEBEE_METEOR_AFTERMATH});}else if(f.kind==='iceProjectile'){window.BlazingVfxRenderer.drawSubzeroFreezeProjectile(ctx,f,FREEZE_PROJECTILE_FRAMES);}else if(f.kind==='frozenTarget'){
+     const pulse=.72+.18*Math.sin(performance.now()/75);
+     ctx.translate(f.x,f.y-17);
+     ctx.globalCompositeOperation='screen';
+     ctx.strokeStyle=`rgba(133,236,255,${pulse})`;ctx.fillStyle='rgba(82,185,255,.16)';ctx.lineWidth=2.5;
+     ctx.shadowColor='#7feaff';ctx.shadowBlur=10;
+     ctx.beginPath();
+     ctx.moveTo(-19,18);ctx.lineTo(-14,-20);ctx.lineTo(-4,-31);ctx.lineTo(2,-22);ctx.lineTo(12,-34);ctx.lineTo(18,-13);ctx.lineTo(20,18);ctx.closePath();
+     ctx.fill();ctx.stroke();
+     ctx.globalCompositeOperation='source-over';
+   }else{
+     ctx.fillStyle=f.color||'#fff';
+     ctx.font='bold 19px system-ui';
+     ctx.fillText(f.text,f.x,f.y);
+   }
+   ctx.restore();
+ });
+
+ drawVictoryOverlay();
+
+ updateUI();
+ }catch(err){
+   console.error('Blazing Battle render error:',err);
+   phaseEl.textContent='Recovering renderer…';
+ }
+ requestAnimationFrame(render);
+}
+
+function updateMeter(){
+ [...meter.querySelectorAll('.icon')].forEach(n=>n.remove());
+ let entries=[];
+ S.pairs.forEach((p,i)=>{if(pairAlive(p)){ensureFront(p);entries.push({label:front(p).mark,name:front(p).name,speed:front(p).speed,g:p.gauge,color:COLORS[i]})}});
+ S.enemies.forEach(e=>{if(e.hp>0)entries.push({label:e.boss?'BOSS':'E'+e.mark,name:e.name,speed:e.speed,g:e.gauge,color:'#d84b54'})});
+ entries.forEach(e=>{
+ let n=document.createElement('div');
+ n.className='icon';
+ n.style.background=e.color;
+ const startX=26;
+ const readyInset=13; // must match .ready { right:13px }
+ const readyX=Math.max(startX,meter.clientWidth-readyInset);
+ const progress=Math.min(100,Math.max(0,e.g))/100;
+ const centerX=startX+(readyX-startX)*progress;
+ n.style.left=`${centerX-21}px`;
+ n.textContent=e.label;
+ meter.appendChild(n)
+})
+}
+
+function tacticalTickerItems(){
+ if(!gameStarted || S.phase!=='player' || S.ready?.kind!=='pair')
+   return [];
+
+ const attackPreview=S.action==='normal'||S.action==='jutsu'||S.drag;
+ if(!attackPreview)return [];
+
+ const activePair=S.ready.ref;
+ if(!pairAlive(activePair))return [];
+
+ ensureFront(activePair);
+
+ const members=comboMembers(null,activePair);
+ const items=[];
+
+ // Nothing shows until the formation actually enters a valid link area.
+ if(members.length>1){
+   const normalLinkDamage=members.reduce((sum,p)=>sum+buffedNormalDamage(p).damage,0);
+   items.push({
+     text:`LINK ATTACK ×${members.length} · ${normalLinkDamage} DMG`,
+     tone:'link'
+   });
+ }
+
+ // Buff currently RECEIVED by the active fighter.
+ const incoming=totalLinkAttackBuff(activePair);
+ if(incoming.bonus>0){
+   items.push({
+     text:`LINK ATK +${Math.round(incoming.bonus*100)}%`,
+     tone:'buff'
+   });
+ }
+
+ // Buff currently PROVIDED by the active fighter to linked allies.
+ let outgoing=[];
+ S.pairs.forEach(other=>{
+   if(other===activePair||!pairAlive(other))return;
+   const effect=linkBuffFromProvider(activePair,other);
+   if(effect.bonus>0)outgoing.push(effect.bonus);
+ });
+ if(outgoing.length){
+   items.push({
+     text:`ALLY ATK +${Math.round(Math.max(...outgoing)*100)}%`,
+     tone:'buff'
+   });
+ }
+
+ // The ticker is intentionally generic so Field Skills / Buddy Skills /
+ // debuffs can append their own segments later without adding map clutter.
+ return items;
+}
+
+function updateTacticalTicker(){
+ window.BlazingBattleUiRenderer.renderTacticalTicker(tacticalTicker,tacticalTickerItems());
+}
+
+function updateUI(){
+ updateMeter();
+ updateTacticalTicker();
+
+ const boss=S.bossBattle?S.enemies.find(e=>e.boss||e.name==='Anubis'):null;
+ window.BlazingBattleUiRenderer.renderBossHealth(bossHpHud,bossHpFill,boss);
+
+ let active=S.ready?.kind==='pair'?front(S.ready.ref):S.ready?.ref;
+ const phaseText=S.phase==='charge'?'Turn meter charging…'
+   :S.phase==='player'?`${active.name}'s turn — Basic builds chakra; closer linked allies can amplify Link Attack buffs. Choose an action, preview its range, then drag and release.`
+   :S.phase==='cpu'?`${active.name} is acting…`:'Resolving attack…';
+ const can=S.phase==='player'&&!S.drag&&!S.anim?.settle;
+ let jutsuLabel='Jutsu',canJutsu=false;
+ if(S.ready?.kind==='pair'){
+   const u=front(S.ready.ref);
+   jutsuLabel=`${u.jutsuName||'Jutsu'} · ${u.jutsuCost} ◆`;
+   canJutsu=can&&u.chakra>=u.jutsuCost;
+ }
+ const canSwap=can&&S.ready?.kind==='pair'&&back(S.ready.ref).hp>0;
+ const statusHtml=S.pairs.map((p,i)=>{
+   if(!pairAlive(p))return `<div class="card pair"><b>Pair ${i+1} defeated</b><br><span class="muted">Both fighters KO</span></div>`;
+   ensureFront(p);
+   const f=front(p),b=back(p);
+   if(b.name==='—')return `<div class="card pair ${S.ready?.ref===p?'activePair':''}">
+    <b>${f.name}</b><br>
+    <span class="muted">${f.hp}/${f.maxHp} HP · ${f.speed} SPD · <span class="chakraText">${f.chakra}/${f.maxChakra} ◆</span></span>
+   </div>`;
+   return `<div class="card pair ${S.ready?.ref===p?'activePair':''}">
+    <b>${f.name}</b> / ${b.name}<br>
+    <span class="muted">${f.hp}/${f.maxHp} HP · ${f.speed} SPD · <span class="chakraText">${f.chakra}/${f.maxChakra} ◆</span></span><br>
+    <span class="muted">Rear ${b.name}: ${b.hp}/${b.maxHp} HP · ${b.chakra}/${b.maxChakra} ◆</span>
+   </div>`;
+ }).join('');
+ window.BlazingBattleUiRenderer.renderActionControls(
+   {phaseEl,logEl,normalBtn,jutsuBtn,swapBtn,statusEl},
+   {phaseText,logText:S.log,action:S.action,canAct:can,canSwap,canJutsu,jutsuLabel,statusHtml}
+ );
+}
+
+function addFloat(x,y,text,color){S.floaters.push({x,y,text,color,life:1});let f=S.floaters.at(-1);let id=setInterval(()=>{f.y-=1;f.life-=.025;if(f.life<=0){clearInterval(id);S.floaters=S.floaters.filter(x=>x!==f)}},16)}
+function tick(){
+ if(!gameStarted||S.phase!=='charge')return;
+ // v0.5.10 stability: charge is a non-animation state. A stale render animation
+ // must never stop the turn meter. Clear it defensively instead of freezing.
+ if(S.anim)S.anim=null;
+ let max=null;
+ S.pairs.forEach(p=>{if(!pairAlive(p))return;ensureFront(p);p.gauge+=front(p).speed*.018;if(p.gauge>=100&&(!max||p.gauge>max.g))max={kind:'pair',ref:p,g:p.gauge}});
+ S.enemies.forEach(e=>{if(e.hp<=0)return;e.gauge+=e.speed*.018;if(e.gauge>=100&&(!max||e.gauge>max.g))max={kind:'enemy',ref:e,g:e.gauge}});
+ // v0.5.11 hard rescue: a charge phase may never strand the battlefield.
+ if(!S._chargeSince)S._chargeSince=performance.now();
+ if(!max && performance.now()-S._chargeSince>3800){
+   const rescuePair=alivePairs().sort((a,b)=>b.gauge-a.gauge)[0];
+   if(rescuePair){rescuePair.gauge=100;max={kind:'pair',ref:rescuePair,g:100};S.log='Turn system recovered — player control restored.';}
+ }
+ if(max){
+   S.ready=max;
+   S._chargeSince=0;
+   S.readyStarted=performance.now();
+   S.dragOrigin=null;
+   S.phase=max.kind==='pair'?'player':'cpu';
+   if(max.kind==='enemy')setTimeout(cpuTurn,350)
+ }
+}
+setInterval(tick,30);
+function settleCollision(p){
+ const minDist=47;
+ const blockers=[...S.pairs.filter(other=>other!==p&&pairAlive(other)),...aliveEnemies()];
+ for(let pass=0;pass<3;pass++){
+  blockers.forEach(b=>{
+   let dx=p.x-b.x,dy=p.y-b.y,len=Math.hypot(dx,dy);
+   if(len<minDist){
+    if(len<.01){dx=1;dy=0;len=1}
+    let push=minDist-len;
+    p.x=clamp(p.x+(dx/len)*push,BATTLE_BOUNDS.left,BATTLE_BOUNDS.right);
+    p.y=clamp(p.y+(dy/len)*push,BATTLE_BOUNDS.top,BATTLE_BOUNDS.bottom)
+   }
+  })
+ }
+}
+function inputPoint(ev){
+ let r=cvs.getBoundingClientRect();
+ return {x:(ev.clientX-r.left)*W/r.width,y:(ev.clientY-r.top)*H/r.height};
+}
+
+// ===== v0.5.15 MOBILE INPUT =====
+// Battlefield interaction is touch-first: press the active unit, drag to position,
+// and release to commit the selected Normal/Jutsu action.
+cvs.addEventListener('pointerdown',ev=>{
+ if(S.phase!=='player'||S.anim?.settle)return;
+ let p=S.ready?.ref,pt=inputPoint(ev);
+ if(!p||!pairAlive(p)||d(pt,p)>UNIT_TOUCH_RADIUS)return;
+ ev.preventDefault();
+ S.drag=true;
+ S.dragOrigin={x:p.x,y:p.y};
+ S.dragVisual={scale:1.0,rot:0,lift:0,lastX:pt.x,lastY:pt.y,targetScale:1.34,targetLift:17};
+ try{cvs.setPointerCapture(ev.pointerId)}catch(_e){}
+});
+
+cvs.addEventListener('pointermove',ev=>{
+ if(!S.drag)return;
+ ev.preventDefault();
+ let p=S.ready.ref,pt=inputPoint(ev),v=S.dragVisual;
+ let dx=pt.x-v.lastX,dy=pt.y-v.lastY;
+ let targetRot=clamp(dx*.022,-.34,.34);
+ v.rot=clamp(v.rot*.58 + targetRot*.72,-.36,.36);
+ let flutter=clamp(Math.abs(dy)*.08,0,2.2);
+ v.scale+=(v.targetScale-v.scale)*.32;
+ v.lift+=(v.targetLift+flutter-v.lift)*.30;
+ v.lastX=pt.x;v.lastY=pt.y;
+ let legal=clampToBattlefield(pt);
+ p.x=legal.x;p.y=legal.y;
+});
+
+cvs.addEventListener('pointerup',ev=>{
+ if(!S.drag)return;
+ ev.preventDefault();
+ let p=S.ready.ref;
+ let v=S.dragVisual;
+ let origin=S.dragOrigin?{...S.dragOrigin}:{x:p.x,y:p.y};
+ let cancelMove=d(p,origin)<=MOVE_CANCEL_RADIUS;
+ S.drag=false;
+ try{if(cvs.hasPointerCapture?.(ev.pointerId))cvs.releasePointerCapture(ev.pointerId)}catch(_e){}
+
+ if(v){
+   const releasePos={x:p.x,y:p.y};
+   const settleDur=cancelMove?150:180;
+   S.anim={positions:{},settle:{pair:p,start:performance.now(),dur:settleDur}};
+
+   function settle(n){
+     if(!S.anim?.settle){S.dragVisual=null;return}
+     let t=Math.min(1,(n-S.anim.settle.start)/S.anim.settle.dur);
+     let ease=1-Math.pow(1-t,3);
+     let bounce=Math.sin(t*Math.PI)*(cancelMove?.025:.045);
+     if(cancelMove){
+       p.x=releasePos.x+(origin.x-releasePos.x)*ease;
+       p.y=releasePos.y+(origin.y-releasePos.y)*ease;
+     }
+     S.dragVisual={scale:1.34-(.34*t)+bounce,rot:(1-t)*v.rot,lift:17*(1-t)};
+     if(t<1){requestAnimationFrame(settle);return}
+
+     S.dragVisual=null;S.anim=null;
+     if(cancelMove){
+       p.x=origin.x;p.y=origin.y;S.dragOrigin=null;
+       S.log=`Move preview canceled — ${front(p).name} returned to the turn-start position.`;
+       updateUI();return;
+     }
+     S.dragOrigin=null;
+     settleCollision(p);
+     resolvePlayer();
+   }
+   requestAnimationFrame(settle);
+ }else{
+   S.dragOrigin=null;
+   if(cancelMove){p.x=origin.x;p.y=origin.y;updateUI()}
+   else{settleCollision(p);resolvePlayer()}
+ }
+});
+
+cvs.addEventListener('pointercancel',()=>{
+ if(!S.drag)return;
+ let p=S.ready?.ref;
+ if(p&&S.dragOrigin){p.x=S.dragOrigin.x;p.y=S.dragOrigin.y}
+ S.drag=false;S.dragVisual=null;S.dragOrigin=null;
+ updateUI();
+});
+
+normalBtn.onclick=()=>{
+ if(S.phase!=='player'||S.drag||S.anim?.settle||S.ready?.kind!=='pair')return;
+ S.action='normal';
+ let p=S.ready.ref,u=front(p);
+ S.log=`${u.name} selected Basic attack — red hitbox active. Drag to reposition, then release to commit.`;
+ updateUI();
+};
+
+jutsuBtn.onclick=()=>{
+ if(S.phase!=='player'||S.drag||S.anim?.settle||S.ready?.kind!=='pair')return;
+ let p=S.ready.ref,u=front(p);
+ if(u.chakra<u.jutsuCost){S.log=`${u.name} needs ${u.jutsuCost} chakra for Jutsu.`;updateUI();return;}
+ S.action='jutsu';
+ S.log=`${u.name} selected ${u.jutsuName||'Jutsu'} — blue hitbox active. Drag to reposition, then release to cast.`;
+ updateUI();
+};
+
+swapBtn.onclick=()=>{
+ if(S.phase!=='player'||S.drag||S.anim?.settle)return;
+ let p=S.ready.ref;if(back(p).hp<=0)return;
+ p.active=1-p.active;
+ if(S.action==='jutsu'&&front(p).chakra<front(p).jutsuCost)S.action='normal';
+ {
+   let links=S.pairs.filter(other=>other!==p&&pairAlive(other)&&unitsMutuallyLinked(p,other)).length;
+   S.log=links
+     ? `${front(p).name} moved to the front — currently linked with ${links} allied pair${links===1?'':'s'}.`
+     : `${front(p).name} moved to the front — no active combo link.`;
+ }
+ updateUI();
+};
+
+document.getElementById('reset').onclick=()=>{
+ invalidateActions();
+ const boss=!!S.bossBattle;
+ S=boss?freshBoss():fresh();
+ S._chargeSince=performance.now();
+ setBattleMap(boss?'boss':'level');
+ gameStarted=true;
+ updateUI();
+};
+function unitsMutuallyLinked(pairA,pairB){
+ if(pairA===pairB || !pairAlive(pairA) || !pairAlive(pairB))return false;
+ ensureFront(pairA);ensureFront(pairB);
+
+ let unitA=front(pairA),unitB=front(pairB);
+ let bodyA={x:pairA.x,y:pairA.y,r:16};
+ let bodyB={x:pairB.x,y:pairB.y,r:16};
+
+ // Always use NORMAL attack geometry for combo-link eligibility.
+ let aCoversB=hits(pairA,{...unitA,shape:normalShape()},bodyB);
+ let bCoversA=hits(pairB,{...unitB,shape:normalShape()},bodyA);
+
+ return aCoversB && bCoversA
+}
+
+
+function linkBuffFromProvider(providerPair,receiverPair){
+ if(!pairAlive(providerPair)||!pairAlive(receiverPair)||providerPair===receiverPair)
+   return {bonus:0,ratio:0,provider:null};
+
+ ensureFront(providerPair);ensureFront(receiverPair);
+ let provider=front(providerPair);
+ if(!provider.linkBuff)return {bonus:0,ratio:0,provider:null};
+
+ // Buff only matters when the two units are currently combo-linked.
+ if(!unitsMutuallyLinked(providerPair,receiverPair))
+   return {bonus:0,ratio:0,provider:null};
+
+ let dist=d(providerPair,receiverPair);
+ let range=provider.linkBuff.range;
+ if(dist>range)return {bonus:0,ratio:0,provider:null};
+
+ // A small "full power" distance keeps the curve from exploding at zero.
+ let inner=34;
+ let t=1-clamp((dist-inner)/Math.max(1,range-inner),0,1);
+ let bonus=provider.linkBuff.minBonus+
+           (provider.linkBuff.maxBonus-provider.linkBuff.minBonus)*t;
+
+ return {bonus,ratio:t,provider};
+}
+
+function totalLinkAttackBuff(receiverPair){
+ let total=0,bestRatio=0,providers=[];
+ S.pairs.forEach(providerPair=>{
+   if(providerPair===receiverPair)return;
+   let result=linkBuffFromProvider(providerPair,receiverPair);
+   if(result.bonus>0){
+     total+=result.bonus;
+     bestRatio=Math.max(bestRatio,result.ratio);
+     providers.push(result.provider.name);
+   }
+ });
+ return {bonus:total,ratio:bestRatio,providers};
+}
+
+function buffedNormalDamage(pair){
+ let u=front(pair);
+ let buff=totalLinkAttackBuff(pair);
+ return {
+   base:u.attack,
+   buff,
+   damage:window.BlazingCombatRuntime.computeBuffedNormalDamage(u.attack,buff.bonus)
+ };
+}
+
+function comboMembers(enemy,initiatorPair){
+ // Enemy argument is retained because the attack sequence calls this per target,
+ // but combo membership itself is determined only by ally-to-ally range linking.
+ if(!pairAlive(initiatorPair))return [];
+ ensureFront(initiatorPair);
+
+ return S.pairs.filter(pair=>{
+   if(!pairAlive(pair))return false;
+   ensureFront(pair);
+   return pair===initiatorPair || unitsMutuallyLinked(initiatorPair,pair)
+ })
+}
+let ACTION_WATCHDOG=null;
+let ACTION_SEQUENCE=0;
+let ACTIVE_ACTION_TOKEN=0;
+function clearActionWatchdog(){
+ if(ACTION_WATCHDOG){clearTimeout(ACTION_WATCHDOG);ACTION_WATCHDOG=null}
+}
+function beginActionToken(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+ return ACTIVE_ACTION_TOKEN;
+}
+function invalidateActions(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+}
+function actionTokenAlive(token){return token===ACTIVE_ACTION_TOKEN}
+function recoverAction(reason='animation timeout'){
+ console.warn('Blazing Battle recovered action:',reason);
+ invalidateActions();
+ S.anim=null;S.drag=false;S.dragVisual=null;S.dragOrigin=null;S.action='normal';S.ready=null;
+ if(aliveEnemies().length&&alivePairs().length){S.phase='charge';S._chargeSince=performance.now();S.log='Action recovered — turn meter resumed.'}
+}
+function armActionWatchdog(reason='combat action',token=ACTIVE_ACTION_TOKEN){
+ clearActionWatchdog();
+ ACTION_WATCHDOG=setTimeout(()=>{
+   if(actionTokenAlive(token)&&gameStarted&&(S.phase==='resolve'||S.phase==='cpu'))recoverAction(reason);
+ },2600);
+}
+function ensureAnimState(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.positions)S.anim.positions={};
+ return S.anim;
+}
+function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ let start=performance.now(),dur=175,backDur=145;
+ let anim=ensureAnimState();
+ if(!anim.attackPose)anim.attackPose={};
+ anim.attackPose[unitName]={kind:attackKind,start,duration:dur+150};
+ function go(now){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState();
+  let t=Math.min(1,(now-start)/dur),ease=1-Math.pow(1-t,3);
+  state.positions[unitName]={x:from.x+(to.x-from.x)*ease,y:from.y+(to.y-from.y)*ease};
+  if(t<1)return requestAnimationFrame(go);
+  try{onImpact&&onImpact()}catch(err){console.error('Attack impact callback failed:',err);return recoverAction('impact callback')}
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   let bs=performance.now();
+   function ret(n){
+    if(!actionTokenAlive(token))return;
+    let st=ensureAnimState();
+    let q=Math.min(1,(n-bs)/backDur),e=1-Math.pow(1-q,3);
+    st.positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+
+===== Senku ATTACK_SPRITES =====
+START NOT FOUND: Senku:{
+
+===== CHARACTER_ANIMATION_MAPS Sub-Zero @ 41268200 =====
+'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+
+===== CHARACTER_ANIMATION_MAPS Senku @ 41268727 =====
+Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+
+===== drawUnit call sites: drawUnit( =====
+--- 1 @ 41283280 ---
+rmalized during the asset-production step.
+// Never scan/crop millions of pixels on the phone gameplay thread.
+function getRenderableSprite(asset,spriteName=null){ return asset; }
+
+function spriteDims(asset){
+ return{
+   w:asset?(asset.naturalWidth||asset.width||0):0,
+   h:asset?(asset.naturalHeight||asset.height||0):0
+ };
+}
+
+function nearestPlayerPoint(x,y){
+ let alive=S.pairs.filter(p=>pairAlive(p));
+ if(!alive.length)return null;
+ return alive.reduce((best,p)=>!best||d({x,y},p)<d({x,y},best)?p:best,null);
+}
+
+function updateFacing(){
+ S.pairs.forEach(pair=>{
+   pair.units.forEach(u=>{
+     let pos=actorPos(pair,u);
+     let target=nearestEnemyPoint(pos.x,pos.y);
+     if(target)u.rotation=Math.atan2(target.y-pos.y,target.x-pos.x);
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   let target=nearestPlayerPoint(e.x,e.y);
+   if(target)e.rotation=Math.atan2(target.y-e.y,target.x-e.x);
+ });
+}
+
+function battleSpriteFor(name){
+ return (name && SPRITE_DATA[name]) ? SPRITE_DATA[name] : null;
+}
+function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=false,flipX=1,sizeScale=1){
+ // Body sprites must always begin from a clean canvas state.
+ ctx.globalCompositeOperation='source-over';
+ if(!Number.isFinite(ctx.globalAlpha) || ctx.globalAlpha<=0)ctx.globalAlpha=1;
+ let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;
+ let activePulse=1;
+ let fx=name?unitFX(name):null;
+
+ // Deterministic per-character idle timing offset.
+ // This MUST be initialized before any transform code references it.
+ let idlePhase=0;
+ if(name){
+   for(let i=0;i<name.length;i++)idlePhase+=name.charCodeAt(i)*(i+3);
+ }
+
+ if(active && !visual){
+   activePulse=1+Math.sin(performance.now()/170)*.018;
+ }
+
+ // PLAYER GROUND SHADOW — v0.5.18
+ // The sprite artwork is anchored with its feet at local y≈12. Keep the shadow
+ // directly on that contact point instead of floating well below the character.
+ // Width follows the same render scale used by the body so larger units receive
+ // a proportionally larger footprint without turning into a detached blob.
+ if(!isEnemy){
+   let liftRatio=clamp(lift/17,0,1);
+   let bodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let shadowW=clamp(10.5*bodyScale,10,18.5);
+   let shadowH=clamp(2.55*bodyScale,2.5,4.25);
+   let shadowAlpha=.24-.08*liftRatio;
+
+   ctx.save();
+   ctx.translate(x,y+11.5);
+   ctx.fillStyle=`rgba(0,0,0,${shadowAlpha})`;
+   ctx.shadowColor=`rgba(0,0,0,${.14+.04*(1-liftRatio)})`;
+   ctx.shadowBlur=1.5+4.5*liftRatio;
+   ctx.beginPath();
+   ctx.ellipse(0,0,shadowW,shadowH,0,0,Math.PI*2);
+   ctx.fill();
+   ctx.restore();
+ }
+
+ ctx.save();
+ ctx.translate(x,y-lift);
+
+ if(!visual){
+   let t=(performance.now()+idlePhase*5);
+   // Lebee's supplied idle sheet already contains floating motion.
+   if(name!=='Lebee'){
+     ctx.translate(0,Math.sin(t/420)*.55);
+     ctx.rotate(Math.sin(t/610)*.004);
+   }
+ }
+
+ if(fx){
+   let elapsed=performance.now()-fx.start;
+   if(elapsed<fx.duration){
+     if(fx.kind==='hit'){
+       let t=elapsed/fx.duration;
+       let bump=Math.sin(t*Math.PI);
+       ctx.translate((fx.dir||1)*7*bump,-1.6*bump);
+       ctx.rotate((fx.dir||1)*0.
+--- 2 @ 41299589 ---
+unit:u,pos,selected,lifted
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   scene.push({
+     kind:'enemy',
+     y:pos.y,
+     sortY:pos.y,
+     enemy:e,pos
+   });
+ });
+
+ // Higher on map = farther away = rendered first.
+ // Lower on map = foreground = rendered later/on top.
+ scene.sort((a,b)=>{
+   if(a.sortY!==b.sortY)return a.sortY-b.sortY;
+   // Stable deterministic tie break when two baselines are essentially equal.
+   return a.kind==='enemy'&&b.kind==='player'?-1:
+          a.kind==='player'&&b.kind==='enemy'?1:0;
+ });
+
+ // BODY PASS — depth sorted.
+ scene.forEach(item=>{
+   if(item.kind==='player'){
+     const {pair:p,index:i,unit:u,pos,selected}=item;
+     const vis=((S.drag||S.anim?.settle)&&selected)?S.dragVisual:null;
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.shadowBlur=0;
+     ctx.globalAlpha=(activePair && !selected) ? .82 : 1;
+     drawUnit(
+       pos.x,pos.y,u.mark,COLORS[i],
+       S.phase==='player'&&selected,
+       vis,u.name,false,facingFlip(u.rotation,u.name),(u.renderScale||1)
+     );
+     ctx.restore();
+     return;
+   }
+
+   const e=item.enemy;
+   const pos=item.pos;
+   const activePlayer=S.ready?.kind==='pair'?front(S.ready.ref):null;
+   const proxy=activePlayer?attackProxy(activePlayer):null;
+   const supportJutsu=activePlayer&&S.action==='jutsu'&&isAllySupportJutsu(activePlayer);
+   const liveHit=showPlayer&&activePair&&!supportJutsu&&hits(activePair,proxy,e);
+
+   // Target feedback is part of the enemy's world layer.
+   if(liveHit){
+     const jutsu=S.action==='jutsu';
+
+     const linkedCount=comboMembers(e,activePair).length;
+     const comboLinked=linkedCount>1;
+     const targetColor=!jutsu
+       ? (comboLinked?'#39ff88':'#ffffff')
+       : (isUltimateAction(activePlayer)?'#ff3548':'#45d7ff');
+
+     // Bubble feedback is isolated so it can never mask the enemy sprite.
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.globalAlpha=1;
+     ctx.shadowBlur=0;
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+14,0,Math.PI*2);
+     ctx.fillStyle=!jutsu
+       ? 'rgba(255,255,255,.08)'
+       : (isUltimateAction(activePlayer)?'rgba(255,53,72,.09)':'rgba(69,215,255,.08)');
+     ctx.fill();
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+10+1.5*Math.sin(performance.now()/145),0,Math.PI*2);
+     ctx.strokeStyle=targetColor;
+     ctx.shadowColor=targetColor;
+     ctx.shadowBlur=jutsu?10:(comboLinked?8:6);
+     ctx.lineWidth=jutsu?1.8:1.45;
+     ctx.stroke();
+     ctx.restore();
+   }
+
+   ctx.save();
+   ctx.globalAlpha=1;
+   drawUnit(
+     pos.x,pos.y,e.mark,'#d84b54',
+     S.phase==='cpu'&&S.ready?.ref===e,
+     null,(e.spriteKey||e.name),true,facingFlip(e.rotation,(e.spriteKey||e.name)),(e.sizeScale||1)
+   );
+   ctx.restore();
+ });
+
+ // HUD PASS — stays readable above the depth-sorted bodies.
+ const supportPreviewUnit=(S.ready?.kind==='pair')?front(S.ready.ref):null;
+ const showAllyHealTargets=S.phase==='player'&&S.action==='jutsu'&&supportPreviewUnit&&isAllySupportJutsu(supportPreviewUnit);
+
+ S.pairs.forEach(p=>{
+   if(!pairRenderable(p))re
+--- 3 @ 41301261 ---
+nst linkedCount=comboMembers(e,activePair).length;
+     const comboLinked=linkedCount>1;
+     const targetColor=!jutsu
+       ? (comboLinked?'#39ff88':'#ffffff')
+       : (isUltimateAction(activePlayer)?'#ff3548':'#45d7ff');
+
+     // Bubble feedback is isolated so it can never mask the enemy sprite.
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.globalAlpha=1;
+     ctx.shadowBlur=0;
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+14,0,Math.PI*2);
+     ctx.fillStyle=!jutsu
+       ? 'rgba(255,255,255,.08)'
+       : (isUltimateAction(activePlayer)?'rgba(255,53,72,.09)':'rgba(69,215,255,.08)');
+     ctx.fill();
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+10+1.5*Math.sin(performance.now()/145),0,Math.PI*2);
+     ctx.strokeStyle=targetColor;
+     ctx.shadowColor=targetColor;
+     ctx.shadowBlur=jutsu?10:(comboLinked?8:6);
+     ctx.lineWidth=jutsu?1.8:1.45;
+     ctx.stroke();
+     ctx.restore();
+   }
+
+   ctx.save();
+   ctx.globalAlpha=1;
+   drawUnit(
+     pos.x,pos.y,e.mark,'#d84b54',
+     S.phase==='cpu'&&S.ready?.ref===e,
+     null,(e.spriteKey||e.name),true,facingFlip(e.rotation,(e.spriteKey||e.name)),(e.sizeScale||1)
+   );
+   ctx.restore();
+ });
+
+ // HUD PASS — stays readable above the depth-sorted bodies.
+ const supportPreviewUnit=(S.ready?.kind==='pair')?front(S.ready.ref):null;
+ const showAllyHealTargets=S.phase==='player'&&S.action==='jutsu'&&supportPreviewUnit&&isAllySupportJutsu(supportPreviewUnit);
+
+ S.pairs.forEach(p=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   if(u.hp<=0)return;
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+
+   if(showAllyHealTargets){
+     const pulse=.5+.5*Math.sin(performance.now()/170);
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y-15,31+3*pulse,0,Math.PI*2);
+     ctx.fillStyle='rgba(86,255,122,.10)';
+     ctx.fill();
+     ctx.strokeStyle='rgba(108,255,139,.92)';
+     ctx.shadowColor='#5dff76';
+     ctx.shadowBlur=10+4*pulse;
+     ctx.lineWidth=1.6;
+     ctx.stroke();
+
+     // Healing cross above each allied unit.
+     ctx.translate(pos.x,pos.y-58);
+     ctx.fillStyle='rgba(126,255,151,.96)';
+     ctx.shadowColor='#69ff82';
+     ctx.shadowBlur=8;
+     ctx.fillRect(-2.5,-8,5,16);
+     ctx.fillRect(-8,-2.5,16,5);
+     ctx.restore();
+   }
+
+   const linkState=playerLinkState(p);
+   drawPlayerResources(pos,u,linkState,selected,p);
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0)return;
+   if(renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+
+   ctx.save();
+   ctx.globalAlpha=S.phase==='player'?.92:1;
+   ctx.fillStyle='#222';
+   ctx.fillRect(pos.x-27,pos.y+29,54,6);
+   ctx.fillStyle='#ffbd4a';
+   ctx.fillRect(pos.x-27,pos.y+29,54*(e.hp/e.maxHp),6);
+   ctx.restore();
+ });
+
+ S.floaters.forEach(f=>{
+   ctx.save();
+   ctx.globalAlpha=f.life??1;
+   if(f.kind==='screenFlash'){
+     const elapsed=performance.now()-f.start;
+     const t=clamp(elapsed/f.duration,0,1);
+     ctx.setTransform(1,0,0,1,0,0);
+     ctx.globalCompositeOperation='source-over';
+     ctx.fillStyle=f.color||'#fff';
+     ctx.globalAlpha=f.fade?Math
+COUNT=3
+
+===== facingFlip call sites: facingFlip( =====
+--- 1 @ 41281815 ---
+x||0),y:q.y-(s.offset_y||0)};
+   return circleRect(rq,er,s.w/2,s.h/2);
+ }
+ if(s.type==='square')return circleRect(q,er,s.s/2,s.s/2);
+ if(s.type==='cross')return circleRect(q,er,s.l/2,s.t/2)||circleRect(q,er,s.t/2,s.l/2);
+ if(s.type==='donut'){let z=Math.hypot(q.x,q.y);return z+er>=s.i&&z-er<=s.o}
+ if(s.type==='cone'){let z=Math.hypot(q.x,q.y),ang=Math.abs(Math.atan2(q.y,q.x)),pad=Math.asin(Math.min(1,er/Math.max(z,.01)));return q.x+er>=0&&z-er<=s.r&&ang<=s.a/2+pad}
+ return false}
+function drawField(){
+ return window.BlazingBattlefieldRenderer.drawField(ctx,{image:S.bossBattle?ANUBIS_PORTRAIT_MAP:LEVEL1_PORTRAIT_MAP,W,H,mapZoom:MAP_ZOOM});
+}
+function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
+ return window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:u.shape,rotation:u.rotation||0,color,glow,visualOffsetY,bounds:BATTLE_BOUNDS});
+}
+function actorPos(p,u){if(S.anim&&S.anim.positions&&S.anim.positions[u.name])return S.anim.positions[u.name];return p}
+
+function facingFlip(rot,name=null){
+ let dir=Math.cos(rot||0)>=0?1:-1;
+ // Some source art faces screen-left by default. Invert those assets while
+ // keeping mechanical facing/range logic unchanged.
+ if(name==='Crimson'||name==='Anubis')dir*=-1;
+ return dir;
+}
+
+function nearestEnemyPoint(x,y){
+ let alive=S.enemies.filter(e=>e.hp>0);
+ if(!alive.length)return null;
+ return alive.reduce((best,e)=>!best||d({x,y},e)<d({x,y},best)?e:best,null);
+}
+
+
+// v0.5.10: sprites are normalized during the asset-production step.
+// Never scan/crop millions of pixels on the phone gameplay thread.
+function getRenderableSprite(asset,spriteName=null){ return asset; }
+
+function spriteDims(asset){
+ return{
+   w:asset?(asset.naturalWidth||asset.width||0):0,
+   h:asset?(asset.naturalHeight||asset.height||0):0
+ };
+}
+
+function nearestPlayerPoint(x,y){
+ let alive=S.pairs.filter(p=>pairAlive(p));
+ if(!alive.length)return null;
+ return alive.reduce((best,p)=>!best||d({x,y},p)<d({x,y},best)?p:best,null);
+}
+
+function updateFacing(){
+ S.pairs.forEach(pair=>{
+   pair.units.forEach(u=>{
+     let pos=actorPos(pair,u);
+     let target=nearestEnemyPoint(pos.x,pos.y);
+     if(target)u.rotation=Math.atan2(target.y-pos.y,target.x-pos.x);
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   let target=nearestPlayerPoint(e.x,e.y);
+   if(target)e.rotation=Math.atan2(target.y-e.y,target.x-e.x);
+ });
+}
+
+function battleSpriteFor(name){
+ return (name && SPRITE_DATA[name]) ? SPRITE_DATA[name] : null;
+}
+function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=false,flipX=1,sizeScale=1){
+ // Body sprites must always begin from a clean canvas state.
+ ctx.globalCompositeOperation='source-over';
+ if(!Number.isFinite(ctx.globalAlpha) || ctx.globalAlpha<=0)ctx.globalAlpha=1;
+ let scale=visual?.scale||1,rot=visual?.rot||0,lift=v
+--- 2 @ 41299697 ---
+rn;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   scene.push({
+     kind:'enemy',
+     y:pos.y,
+     sortY:pos.y,
+     enemy:e,pos
+   });
+ });
+
+ // Higher on map = farther away = rendered first.
+ // Lower on map = foreground = rendered later/on top.
+ scene.sort((a,b)=>{
+   if(a.sortY!==b.sortY)return a.sortY-b.sortY;
+   // Stable deterministic tie break when two baselines are essentially equal.
+   return a.kind==='enemy'&&b.kind==='player'?-1:
+          a.kind==='player'&&b.kind==='enemy'?1:0;
+ });
+
+ // BODY PASS — depth sorted.
+ scene.forEach(item=>{
+   if(item.kind==='player'){
+     const {pair:p,index:i,unit:u,pos,selected}=item;
+     const vis=((S.drag||S.anim?.settle)&&selected)?S.dragVisual:null;
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.shadowBlur=0;
+     ctx.globalAlpha=(activePair && !selected) ? .82 : 1;
+     drawUnit(
+       pos.x,pos.y,u.mark,COLORS[i],
+       S.phase==='player'&&selected,
+       vis,u.name,false,facingFlip(u.rotation,u.name),(u.renderScale||1)
+     );
+     ctx.restore();
+     return;
+   }
+
+   const e=item.enemy;
+   const pos=item.pos;
+   const activePlayer=S.ready?.kind==='pair'?front(S.ready.ref):null;
+   const proxy=activePlayer?attackProxy(activePlayer):null;
+   const supportJutsu=activePlayer&&S.action==='jutsu'&&isAllySupportJutsu(activePlayer);
+   const liveHit=showPlayer&&activePair&&!supportJutsu&&hits(activePair,proxy,e);
+
+   // Target feedback is part of the enemy's world layer.
+   if(liveHit){
+     const jutsu=S.action==='jutsu';
+
+     const linkedCount=comboMembers(e,activePair).length;
+     const comboLinked=linkedCount>1;
+     const targetColor=!jutsu
+       ? (comboLinked?'#39ff88':'#ffffff')
+       : (isUltimateAction(activePlayer)?'#ff3548':'#45d7ff');
+
+     // Bubble feedback is isolated so it can never mask the enemy sprite.
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.globalAlpha=1;
+     ctx.shadowBlur=0;
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+14,0,Math.PI*2);
+     ctx.fillStyle=!jutsu
+       ? 'rgba(255,255,255,.08)'
+       : (isUltimateAction(activePlayer)?'rgba(255,53,72,.09)':'rgba(69,215,255,.08)');
+     ctx.fill();
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+10+1.5*Math.sin(performance.now()/145),0,Math.PI*2);
+     ctx.strokeStyle=targetColor;
+     ctx.shadowColor=targetColor;
+     ctx.shadowBlur=jutsu?10:(comboLinked?8:6);
+     ctx.lineWidth=jutsu?1.8:1.45;
+     ctx.stroke();
+     ctx.restore();
+   }
+
+   ctx.save();
+   ctx.globalAlpha=1;
+   drawUnit(
+     pos.x,pos.y,e.mark,'#d84b54',
+     S.phase==='cpu'&&S.ready?.ref===e,
+     null,(e.spriteKey||e.name),true,facingFlip(e.rotation,(e.spriteKey||e.name)),(e.sizeScale||1)
+   );
+   ctx.restore();
+ });
+
+ // HUD PASS — stays r
+--- 3 @ 41301383 ---
+    ? (comboLinked?'#39ff88':'#ffffff')
+       : (isUltimateAction(activePlayer)?'#ff3548':'#45d7ff');
+
+     // Bubble feedback is isolated so it can never mask the enemy sprite.
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.globalAlpha=1;
+     ctx.shadowBlur=0;
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+14,0,Math.PI*2);
+     ctx.fillStyle=!jutsu
+       ? 'rgba(255,255,255,.08)'
+       : (isUltimateAction(activePlayer)?'rgba(255,53,72,.09)':'rgba(69,215,255,.08)');
+     ctx.fill();
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+10+1.5*Math.sin(performance.now()/145),0,Math.PI*2);
+     ctx.strokeStyle=targetColor;
+     ctx.shadowColor=targetColor;
+     ctx.shadowBlur=jutsu?10:(comboLinked?8:6);
+     ctx.lineWidth=jutsu?1.8:1.45;
+     ctx.stroke();
+     ctx.restore();
+   }
+
+   ctx.save();
+   ctx.globalAlpha=1;
+   drawUnit(
+     pos.x,pos.y,e.mark,'#d84b54',
+     S.phase==='cpu'&&S.ready?.ref===e,
+     null,(e.spriteKey||e.name),true,facingFlip(e.rotation,(e.spriteKey||e.name)),(e.sizeScale||1)
+   );
+   ctx.restore();
+ });
+
+ // HUD PASS — stays readable above the depth-sorted bodies.
+ const supportPreviewUnit=(S.ready?.kind==='pair')?front(S.ready.ref):null;
+ const showAllyHealTargets=S.phase==='player'&&S.action==='jutsu'&&supportPreviewUnit&&isAllySupportJutsu(supportPreviewUnit);
+
+ S.pairs.forEach(p=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   if(u.hp<=0)return;
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+
+   if(showAllyHealTargets){
+     const pulse=.5+.5*Math.sin(performance.now()/170);
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y-15,31+3*pulse,0,Math.PI*2);
+     ctx.fillStyle='rgba(86,255,122,.10)';
+     ctx.fill();
+     ctx.strokeStyle='rgba(108,255,139,.92)';
+     ctx.shadowColor='#5dff76';
+     ctx.shadowBlur=10+4*pulse;
+     ctx.lineWidth=1.6;
+     ctx.stroke();
+
+     // Healing cross above each allied unit.
+     ctx.translate(pos.x,pos.y-58);
+     ctx.fillStyle='rgba(126,255,151,.96)';
+     ctx.shadowColor='#69ff82';
+     ctx.shadowBlur=8;
+     ctx.fillRect(-2.5,-8,5,16);
+     ctx.fillRect(-8,-2.5,16,5);
+     ctx.restore();
+   }
+
+   const linkState=playerLinkState(p);
+   drawPlayerResources(pos,u,linkState,selected,p);
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0)return;
+   if(renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+
+   ctx.save();
+   ctx.globalAlpha=S.phase==='player'?.92:1;
+   ctx.fillStyle='#222';
+   ctx.fillRect(pos.x-27,pos.y+29,54,6);
+   ctx.fillStyle='#ffbd4a';
+   ctx.fillRect(pos.x-27,pos.y+29,54*(e.hp/e.maxHp),6);
+   ctx.restore();
+ });
+
+ S.floaters.forEach(f=>{
+   ctx.save();
+   ctx.globalAlpha=f.life?
+COUNT=3
+
+===== drawShape call sites: drawShape( =====
+--- 1 @ 41281473 ---
+=e.r||20;
+ if(s.type==='screen_rect')return e.x>=BATTLE_BOUNDS.left&&e.x<=BATTLE_BOUNDS.right&&e.y>=BATTLE_BOUNDS.top&&e.y<=BATTLE_BOUNDS.bottom;
+ if(s.type==='circle')return d(p,e)<=s.r+er;
+ if(s.type==='rect'){
+   const rq={x:q.x-(s.offset_x||0),y:q.y-(s.offset_y||0)};
+   return circleRect(rq,er,s.w/2,s.h/2);
+ }
+ if(s.type==='square')return circleRect(q,er,s.s/2,s.s/2);
+ if(s.type==='cross')return circleRect(q,er,s.l/2,s.t/2)||circleRect(q,er,s.t/2,s.l/2);
+ if(s.type==='donut'){let z=Math.hypot(q.x,q.y);return z+er>=s.i&&z-er<=s.o}
+ if(s.type==='cone'){let z=Math.hypot(q.x,q.y),ang=Math.abs(Math.atan2(q.y,q.x)),pad=Math.asin(Math.min(1,er/Math.max(z,.01)));return q.x+er>=0&&z-er<=s.r&&ang<=s.a/2+pad}
+ return false}
+function drawField(){
+ return window.BlazingBattlefieldRenderer.drawField(ctx,{image:S.bossBattle?ANUBIS_PORTRAIT_MAP:LEVEL1_PORTRAIT_MAP,W,H,mapZoom:MAP_ZOOM});
+}
+function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
+ return window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:u.shape,rotation:u.rotation||0,color,glow,visualOffsetY,bounds:BATTLE_BOUNDS});
+}
+function actorPos(p,u){if(S.anim&&S.anim.positions&&S.anim.positions[u.name])return S.anim.positions[u.name];return p}
+
+function facingFlip(rot,name=null){
+ let dir=Math.cos(rot||0)>=0?1:-1;
+ // Some source art faces screen-left by default. Invert those assets while
+ // keeping mechanical facing/range logic unchanged.
+ if(name==='Crimson'||name==='Anubis')dir*=-1;
+ return dir;
+}
+
+function nearestEnemyPoint(x,y){
+ let alive=S.enemies.filter(e=>e.hp>0);
+ if(!alive.length)return null;
+ return alive.reduce((best,e)=>!best||d({x,y},e)<d({x,y},best)?e:best,null);
+}
+
+
+// v0.5.10: sprites are normalized during the asset-production step.
+// Never scan/crop millions of pixels on the phone gameplay thread.
+function getRenderableSprite(asset,spriteName=null){ return asset; }
+
+function spriteDims(asset){
+ return{
+   w:asset?(asset.naturalWidth||asset.width||0):0,
+   h:asset?(asset.naturalHeight||asset.height||0):0
+ };
+}
+
+function nearestPlayerPoint(x,y){
+ let alive=S.pairs.filter(p=>pairAlive(p));
+ if(!alive.length)return null;
+ return alive.reduce((best,p)=>!best||d({x,y},p)<d({x,y},best)?p:best,null);
+}
+
+function updateFacing(){
+ S.pairs.forEach(pair=>{
+   pair.units.forEach(u=>{
+     let pos=actorPos(pair,u);
+     let target=nearestEnemyPoint(pos.x,pos.y);
+     if(target)u.rotation=Math.atan2(target.y-pos.y,target.x-pos.x);
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   let target=nearestPlayerPoint(e.x,e.y);
+   if(target)e.rotation=Math.atan2(target.y-e.y,target.x-e.x);
+ });
+}
+
+function battleSpriteFor(name){
+ return (name && SPRITE_DATA[name]) ? SPRITE_DATA[name] : null;
+}
+fu
+--- 2 @ 41281574 ---
+ATTLE_BOUNDS.top&&e.y<=BATTLE_BOUNDS.bottom;
+ if(s.type==='circle')return d(p,e)<=s.r+er;
+ if(s.type==='rect'){
+   const rq={x:q.x-(s.offset_x||0),y:q.y-(s.offset_y||0)};
+   return circleRect(rq,er,s.w/2,s.h/2);
+ }
+ if(s.type==='square')return circleRect(q,er,s.s/2,s.s/2);
+ if(s.type==='cross')return circleRect(q,er,s.l/2,s.t/2)||circleRect(q,er,s.t/2,s.l/2);
+ if(s.type==='donut'){let z=Math.hypot(q.x,q.y);return z+er>=s.i&&z-er<=s.o}
+ if(s.type==='cone'){let z=Math.hypot(q.x,q.y),ang=Math.abs(Math.atan2(q.y,q.x)),pad=Math.asin(Math.min(1,er/Math.max(z,.01)));return q.x+er>=0&&z-er<=s.r&&ang<=s.a/2+pad}
+ return false}
+function drawField(){
+ return window.BlazingBattlefieldRenderer.drawField(ctx,{image:S.bossBattle?ANUBIS_PORTRAIT_MAP:LEVEL1_PORTRAIT_MAP,W,H,mapZoom:MAP_ZOOM});
+}
+function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
+ return window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:u.shape,rotation:u.rotation||0,color,glow,visualOffsetY,bounds:BATTLE_BOUNDS});
+}
+function actorPos(p,u){if(S.anim&&S.anim.positions&&S.anim.positions[u.name])return S.anim.positions[u.name];return p}
+
+function facingFlip(rot,name=null){
+ let dir=Math.cos(rot||0)>=0?1:-1;
+ // Some source art faces screen-left by default. Invert those assets while
+ // keeping mechanical facing/range logic unchanged.
+ if(name==='Crimson'||name==='Anubis')dir*=-1;
+ return dir;
+}
+
+function nearestEnemyPoint(x,y){
+ let alive=S.enemies.filter(e=>e.hp>0);
+ if(!alive.length)return null;
+ return alive.reduce((best,e)=>!best||d({x,y},e)<d({x,y},best)?e:best,null);
+}
+
+
+// v0.5.10: sprites are normalized during the asset-production step.
+// Never scan/crop millions of pixels on the phone gameplay thread.
+function getRenderableSprite(asset,spriteName=null){ return asset; }
+
+function spriteDims(asset){
+ return{
+   w:asset?(asset.naturalWidth||asset.width||0):0,
+   h:asset?(asset.naturalHeight||asset.height||0):0
+ };
+}
+
+function nearestPlayerPoint(x,y){
+ let alive=S.pairs.filter(p=>pairAlive(p));
+ if(!alive.length)return null;
+ return alive.reduce((best,p)=>!best||d({x,y},p)<d({x,y},best)?p:best,null);
+}
+
+function updateFacing(){
+ S.pairs.forEach(pair=>{
+   pair.units.forEach(u=>{
+     let pos=actorPos(pair,u);
+     let target=nearestEnemyPoint(pos.x,pos.y);
+     if(target)u.rotation=Math.atan2(target.y-pos.y,target.x-pos.x);
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   let target=nearestPlayerPoint(e.x,e.y);
+   if(target)e.rotation=Math.atan2(target.y-e.y,target.x-e.x);
+ });
+}
+
+function battleSpriteFor(name){
+ return (name && SPRITE_DATA[name]) ? SPRITE_DATA[name] : null;
+}
+function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=false,flipX=1,sizeScale=1)
+--- 3 @ 41297821 ---
+);
+   const fadeOut=S.jutsuDim.end?clamp((now-S.jutsuDim.end)/260,0,1):0;
+   const a=(S.jutsuDim.alpha||.42)*fadeIn*(1-fadeOut);
+   if(a>0){ctx.save();ctx.fillStyle=`rgba(3,2,10,${a})`;ctx.fillRect(0,0,W,H);ctx.restore()}
+   if(S.jutsuDim.end&&fadeOut>=1)S.jutsuDim=null;
+ }
+ drawMoveReturnCue();
+
+ const showPlayer=S.phase==='player'&&S.ready?.kind==='pair'&&(S.drag||S.action==='normal'||S.action==='jutsu');
+ const activePair=S.ready?.kind==='pair'?S.ready.ref:null;
+
+ // Attack/range fields live on the ground, so draw them before the pieces.
+ if(showPlayer&&activePair&&pairAlive(activePair)){
+   ensureFront(activePair);
+   const activeUnit=front(activePair);
+   const activePos=actorPos(activePair,activeUnit);
+   const proxy=attackProxy(activeUnit);
+   const jutsu=S.action==='jutsu';
+   const attackColor=!jutsu
+     ? '#ffffff'
+     : (isUltimateAction(activeUnit)?'#ff3548':'#45d7ff');
+   drawShape(activePos,proxy,attackColor,jutsu?.22:.12,jutsu,-22);
+ }
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   if(S.anim?.showEnemyRange===e)
+     drawShape(pos,{shape:normalShape(),rotation:0},'#ffffff',.14,false);
+ });
+
+ // Build ONE scene list so team identity never controls visual stacking.
+ const scene=[];
+
+ S.pairs.forEach((p,i)=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+   const lifted=selected&&((S.drag&&S.dragVisual)||(S.anim?.settle&&S.dragVisual));
+
+   scene.push({
+     kind:'player',
+     y:pos.y,
+     sortY:pos.y+(lifted?10000:0),
+     pair:p,index:i,unit:u,pos,selected,lifted
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   scene.push({
+     kind:'enemy',
+     y:pos.y,
+     sortY:pos.y,
+     enemy:e,pos
+   });
+ });
+
+ // Higher on map = farther away = rendered first.
+ // Lower on map = foreground = rendered later/on top.
+ scene.sort((a,b)=>{
+   if(a.sortY!==b.sortY)return a.sortY-b.sortY;
+   // Stable deterministic tie break when two baselines are essentially equal.
+   return a.kind==='enemy'&&b.kind==='player'?-1:
+          a.kind==='player'&&b.kind==='enemy'?1:0;
+ });
+
+ // BODY PASS — depth sorted.
+ scene.forEach(item=>{
+   if(item.kind==='player'){
+     const {pair:p,index:i,unit:u,pos,selected}=item;
+     const vis=((S.drag||S.anim?.settle)&&selected)?S.dragVisual:null;
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.shadowBlur=0;
+     ctx.globalAlpha=(activePair && !selected) ? .82 : 1;
+     drawUnit(
+       pos.x,pos.y,u.m
+--- 4 @ 41298070 ---
+ut>=1)S.jutsuDim=null;
+ }
+ drawMoveReturnCue();
+
+ const showPlayer=S.phase==='player'&&S.ready?.kind==='pair'&&(S.drag||S.action==='normal'||S.action==='jutsu');
+ const activePair=S.ready?.kind==='pair'?S.ready.ref:null;
+
+ // Attack/range fields live on the ground, so draw them before the pieces.
+ if(showPlayer&&activePair&&pairAlive(activePair)){
+   ensureFront(activePair);
+   const activeUnit=front(activePair);
+   const activePos=actorPos(activePair,activeUnit);
+   const proxy=attackProxy(activeUnit);
+   const jutsu=S.action==='jutsu';
+   const attackColor=!jutsu
+     ? '#ffffff'
+     : (isUltimateAction(activeUnit)?'#ff3548':'#45d7ff');
+   drawShape(activePos,proxy,attackColor,jutsu?.22:.12,jutsu,-22);
+ }
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   if(S.anim?.showEnemyRange===e)
+     drawShape(pos,{shape:normalShape(),rotation:0},'#ffffff',.14,false);
+ });
+
+ // Build ONE scene list so team identity never controls visual stacking.
+ const scene=[];
+
+ S.pairs.forEach((p,i)=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+   const lifted=selected&&((S.drag&&S.dragVisual)||(S.anim?.settle&&S.dragVisual));
+
+   scene.push({
+     kind:'player',
+     y:pos.y,
+     sortY:pos.y+(lifted?10000:0),
+     pair:p,index:i,unit:u,pos,selected,lifted
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   scene.push({
+     kind:'enemy',
+     y:pos.y,
+     sortY:pos.y,
+     enemy:e,pos
+   });
+ });
+
+ // Higher on map = farther away = rendered first.
+ // Lower on map = foreground = rendered later/on top.
+ scene.sort((a,b)=>{
+   if(a.sortY!==b.sortY)return a.sortY-b.sortY;
+   // Stable deterministic tie break when two baselines are essentially equal.
+   return a.kind==='enemy'&&b.kind==='player'?-1:
+          a.kind==='player'&&b.kind==='enemy'?1:0;
+ });
+
+ // BODY PASS — depth sorted.
+ scene.forEach(item=>{
+   if(item.kind==='player'){
+     const {pair:p,index:i,unit:u,pos,selected}=item;
+     const vis=((S.drag||S.anim?.settle)&&selected)?S.dragVisual:null;
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.shadowBlur=0;
+     ctx.globalAlpha=(activePair && !selected) ? .82 : 1;
+     drawUnit(
+       pos.x,pos.y,u.mark,COLORS[i],
+       S.phase==='player'&&selected,
+       vis,u.name,false,facingFlip(u.rotation,u.name),(u.renderScale||1)
+     );
+     ctx.restore();
+     return;
+   }
+
+   const e=item.enemy;
+   const pos=item.pos;
+   const activePlayer=S.ready?.
+COUNT=4
+
+===== attackProxy call sites: attackProxy( =====
+--- 1 @ 41277786 ---
+ubis').stats.hp,maxHp:canonicalUnit('anubis').stats.hp,
+    speed:canonicalUnit('anubis').stats.speed,attack:canonicalUnit('anubis').stats.attack,defense:canonicalUnit('anubis').stats.defense,gauge:0,
+    shape:canonicalUnit('anubis').combat.basic_shape,
+    boss:true,sizeScale:canonicalUnit('anubis').render.battle_size_scale||2.0625
+   }
+  ]
+ };
+}
+
+let S=fresh();
+
+const front=p=>p.units[p.active], back=p=>p.units[1-p.active];
+const pairAlive=p=>p.units.some(u=>u.hp>0);
+const alivePairs=()=>S.pairs.filter(pairAlive);
+const aliveEnemies=()=>S.enemies.filter(e=>e.hp>0);
+const NORMAL_ATTACK_SHAPE={type:'circle',r:43};
+const normalShape=()=>NORMAL_ATTACK_SHAPE;
+const attackShape=u=>{
+ // Strict separation:
+ // NORMAL -> unit's canonical combat.basic_shape
+ // JUTSU  -> unit's canonical combat.jutsu_shape
+ if(S.action==='jutsu')return u.jutsuShape;
+ return u.shape||normalShape();
+};
+function attackProxy(u){return {...u,shape:attackShape(u)}}
+
+// Ability-tier lookup must live at battle scope because both the ground-field
+// pass and the later enemy target-feedback pass use it.
+function isUltimateAction(unit){
+ if(!unit)return false;
+ try{
+   // canonicalUnit already resolves both IDs and display names through UNIT_NAME_TO_ID.
+   const ability=canonicalUnit(unit.name)?.abilities?.jutsu;
+   return !!(ability?.ultimate===true || ability?.category==='ultimate' || ability?.tier==='ultimate');
+ }catch(_){
+   return false;
+ }
+}
+
+function isAllySupportJutsu(unit){
+ if(!unit)return false;
+ try{
+   const ability=canonicalUnit(unit.name)?.abilities?.jutsu;
+   return ability?.target==='all_allies' || ability?.effect==='heal_full';
+ }catch(_){
+   return false;
+ }
+}
+
+
+function ensureFront(p){
+ if(front(p).hp>0)return true;
+ if(front(p).hp<=0 && koAnimating(front(p).name))return true;
+ if(back(p).hp>0){p.active=1-p.active;return true}
+ return false
+}
+function fxMap(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.unitFX)S.anim.unitFX={};
+ return S.anim.unitFX;
+}
+function unitFX(name){
+ return S.anim?.unitFX?.[name]||null;
+}
+function koAnimating(name){
+ let fx=unitFX(name);
+ return !!(fx&&fx.kind==='ko'&&(performance.now()-fx.start)<fx.duration);
+}
+function renderWhileKO(name){
+ let fx=unitFX(name);
+ return !!(fx&&fx.kind==='ko'&&(performance.now()-fx.start)<fx.duration+90);
+}
+function startHitReaction(name,dir=1,strong=false){
+ fxMap()[name]={kind:'hit',start:performance.now(),duration:strong?230:180,dir:dir||1,strong:!!strong};
+}
+function startKOReaction(name,dir=1){
+ fxMap(
+--- 2 @ 41297654 ---
+dowBlur=0;
+ updateFacing();
+ drawField();
+ if(S.jutsuDim){
+   const now=performance.now();
+   const elapsed=now-S.jutsuDim.start;
+   const fadeIn=clamp(elapsed/220,0,1);
+   const fadeOut=S.jutsuDim.end?clamp((now-S.jutsuDim.end)/260,0,1):0;
+   const a=(S.jutsuDim.alpha||.42)*fadeIn*(1-fadeOut);
+   if(a>0){ctx.save();ctx.fillStyle=`rgba(3,2,10,${a})`;ctx.fillRect(0,0,W,H);ctx.restore()}
+   if(S.jutsuDim.end&&fadeOut>=1)S.jutsuDim=null;
+ }
+ drawMoveReturnCue();
+
+ const showPlayer=S.phase==='player'&&S.ready?.kind==='pair'&&(S.drag||S.action==='normal'||S.action==='jutsu');
+ const activePair=S.ready?.kind==='pair'?S.ready.ref:null;
+
+ // Attack/range fields live on the ground, so draw them before the pieces.
+ if(showPlayer&&activePair&&pairAlive(activePair)){
+   ensureFront(activePair);
+   const activeUnit=front(activePair);
+   const activePos=actorPos(activePair,activeUnit);
+   const proxy=attackProxy(activeUnit);
+   const jutsu=S.action==='jutsu';
+   const attackColor=!jutsu
+     ? '#ffffff'
+     : (isUltimateAction(activeUnit)?'#ff3548':'#45d7ff');
+   drawShape(activePos,proxy,attackColor,jutsu?.22:.12,jutsu,-22);
+ }
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   if(S.anim?.showEnemyRange===e)
+     drawShape(pos,{shape:normalShape(),rotation:0},'#ffffff',.14,false);
+ });
+
+ // Build ONE scene list so team identity never controls visual stacking.
+ const scene=[];
+
+ S.pairs.forEach((p,i)=>{
+   if(!pairRenderable(p))return;
+   ensureFront(p);
+
+   const u=front(p);
+   const pos=actorPos(p,u);
+   const selected=activePair===p;
+   const lifted=selected&&((S.drag&&S.dragVisual)||(S.anim?.settle&&S.dragVisual));
+
+   scene.push({
+     kind:'player',
+     y:pos.y,
+     sortY:pos.y+(lifted?10000:0),
+     pair:p,index:i,unit:u,pos,selected,lifted
+   });
+ });
+
+ S.enemies.forEach(e=>{
+   if(e.hp<=0 && !renderWhileKO(e.name))return;
+   const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
+   scene.push({
+     kind:'enemy',
+     y:pos.y,
+     sortY:pos.y,
+     enemy:e,pos
+   });
+ });
+
+ // Higher on map = farther away = rendered first.
+ // Lower on map = foreground = rendered later/on top.
+ scene.sort((a,b)=>{
+   if(a.sortY!==b.sortY)return a.sortY-b.sortY;
+   // Stable deterministic tie break when two baselines are essentially equal.
+   return a.kind==='enemy'&&b.kind==='player'?-1:
+          a.kind==='player'&&b.kind==='enemy'?1:0;
+ });
+
+ // BODY PASS — depth sor
+--- 3 @ 41299937 ---
+ortY;
+   // Stable deterministic tie break when two baselines are essentially equal.
+   return a.kind==='enemy'&&b.kind==='player'?-1:
+          a.kind==='player'&&b.kind==='enemy'?1:0;
+ });
+
+ // BODY PASS — depth sorted.
+ scene.forEach(item=>{
+   if(item.kind==='player'){
+     const {pair:p,index:i,unit:u,pos,selected}=item;
+     const vis=((S.drag||S.anim?.settle)&&selected)?S.dragVisual:null;
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.shadowBlur=0;
+     ctx.globalAlpha=(activePair && !selected) ? .82 : 1;
+     drawUnit(
+       pos.x,pos.y,u.mark,COLORS[i],
+       S.phase==='player'&&selected,
+       vis,u.name,false,facingFlip(u.rotation,u.name),(u.renderScale||1)
+     );
+     ctx.restore();
+     return;
+   }
+
+   const e=item.enemy;
+   const pos=item.pos;
+   const activePlayer=S.ready?.kind==='pair'?front(S.ready.ref):null;
+   const proxy=activePlayer?attackProxy(activePlayer):null;
+   const supportJutsu=activePlayer&&S.action==='jutsu'&&isAllySupportJutsu(activePlayer);
+   const liveHit=showPlayer&&activePair&&!supportJutsu&&hits(activePair,proxy,e);
+
+   // Target feedback is part of the enemy's world layer.
+   if(liveHit){
+     const jutsu=S.action==='jutsu';
+
+     const linkedCount=comboMembers(e,activePair).length;
+     const comboLinked=linkedCount>1;
+     const targetColor=!jutsu
+       ? (comboLinked?'#39ff88':'#ffffff')
+       : (isUltimateAction(activePlayer)?'#ff3548':'#45d7ff');
+
+     // Bubble feedback is isolated so it can never mask the enemy sprite.
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     ctx.globalAlpha=1;
+     ctx.shadowBlur=0;
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+14,0,Math.PI*2);
+     ctx.fillStyle=!jutsu
+       ? 'rgba(255,255,255,.08)'
+       : (isUltimateAction(activePlayer)?'rgba(255,53,72,.09)':'rgba(69,215,255,.08)');
+     ctx.fill();
+
+     ctx.beginPath();
+     ctx.arc(pos.x,pos.y,(e.r||19)+10+1.5*Math.sin(performance.now()/145),0,Math.PI*2);
+     ctx.strokeStyle=targetColor;
+     ctx.shadowColor=targetColor;
+     ctx.shadowBlur=jutsu?10:(comboLinked?8:6);
+     ctx.lineWidth=jutsu?1.8:1.45;
+     ctx.stroke();
+     ctx.restore();
+   }
+
+   ctx.save();
+   ctx.globalAlpha=1;
+   drawUnit(
+     pos.x,pos.y,e.mark,'#d84b54',
+     S.phase==='cpu'&&S.ready?.ref===e,
+     null,(e.spriteKey||e.name),true,facingFlip(e.rotation,(e.spriteKey||e.name)),(e.sizeScale||1)
+   );
+   ctx.restore();
+ });
+
+ // HUD PASS — stays readable above the depth-sorted bodies.
+ 
+--- 4 @ 41336875 ---
+      if(!actionTokenAlive(token))return;
+       try{
+         onDone&&onDone();
+       }catch(err){
+         recoverAction('Lebee Meteor completion');
+       }
+     });
+   },finalImpact);
+
+ },castDuration);
+}
+
+function recoil(enemy,done,dir=1,strong=false){
+ const token=ACTIVE_ACTION_TOKEN;
+ startHitReaction(enemy.name,dir,strong);
+ let ox=enemy.x,oy=enemy.y,dx=18*(dir||1),start=performance.now();
+ function f(n){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState(),t=Math.min(1,(n-start)/130),off=Math.sin(t*Math.PI)*dx;
+  state.positions[enemy.name]={x:ox+off,y:oy};
+  if(t<1)return requestAnimationFrame(f);
+  delete state.positions[enemy.name];
+  try{done&&done()}catch(err){console.error('Recoil callback failed:',err);recoverAction('recoil callback')}
+ }
+ requestAnimationFrame(f)
+}
+function resolvePlayer(){
+
+ let p=S.ready.ref,u=front(p),useJutsu=S.action==='jutsu',proxy=attackProxy(u);
+ const supportJutsu=useJutsu&&isAllySupportJutsu(u);
+ let targets=supportJutsu?[]:aliveEnemies().filter(e=>hits(p,proxy,e));
+ p.gauge=0;S.phase='resolve';S.anim={positions:{}};const playerActionToken=beginActionToken();armActionWatchdog('player attack',playerActionToken);
+
+ if(useJutsu&&u.chakra<u.jutsuCost){
+  S.log=`${u.name} does not have enough chakra.`;S.action='normal';return finishAction()
+ }
+
+ if(supportJutsu){
+  window.BlazingCombatRuntime.spendChakra(u,u.jutsuCost);
+
+  const allies=alivePairs().filter(pair=>front(pair).hp>0);
+  if(!allies.length){
+   S.log=`${u.name} activated ${u.jutsuName||'Jutsu'}, but no allies can be healed.`;
+   return finishAction();
+  }
+
+  const teamCenter={
+   x:allies.reduce((sum,pair)=>sum+pair.x,0)/allies.length,
+   y:allies.reduce((sum,pair)=>sum+pair.y,0)/allies.length-18
+  };
+
+  const from={x:p.x,y:p.y};
+  S.log=`${u.name} activated ${u.jutsuName||'Revival Formula'} — restoring all active allies to full HP.`;
+
+  return animateSenkuChemicalReaction(
+   u.name,from,teamCenter,
+   ()=>{
+    allies.forEach(pair=>{
+     const ally=front(pair);
+     const healed=window.BlazingCombatRuntime.healPercentMaxHp(ally,1,{minimumHeal:1,ignoreDefeated:true}).amount;
+
+     addImpactFlash(pair.x,pair.y-18,'#64ff7d');
+     if(healed>0){
+      addFloat(pair.x,pair.y-40,`+${healed}`,'#74ff91');
+     }else{
+      addFloat(pair.x,pair.y-40,'FULL','#74ff91');
+     }
+    });
+   },
+   ()=>finishAction()
+  );
+ }
+
+ if(!targets.length){
+  S.log=`${u.name} committed the move but caught no target.`;return finishAction()
+ }
+
+ if(useJutsu){
+  windo
+COUNT=4
+
+===== useJutsu preview paths: useJutsu =====
+--- 1 @ 41336841 ---
+     }
+
+     // Meteors immediately begin disappearing once the final hit lands.
+     S.floaters=S.floaters.filter(x=>!meteors.includes(x));
+     if(S.jutsuDim)S.jutsuDim.end=performance.now();
+
+     playLebeeMeteorImpactFlash(()=>{
+       if(!actionTokenAlive(token))return;
+       try{
+         onDone&&onDone();
+       }catch(err){
+         recoverAction('Lebee Meteor completion');
+       }
+     });
+   },finalImpact);
+
+ },castDuration);
+}
+
+function recoil(enemy,done,dir=1,strong=false){
+ const token=ACTIVE_ACTION_TOKEN;
+ startHitReaction(enemy.name,dir,strong);
+ let ox=enemy.x,oy=enemy.y,dx=18*(dir||1),start=performance.now();
+ function f(n){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState(),t=Math.min(1,(n-start)/130),off=Math.sin(t*Math.PI)*dx;
+  state.positions[enemy.name]={x:ox+off,y:oy};
+  if(t<1)return requestAnimationFrame(f);
+  delete state.positions[enemy.name];
+  try{done&&done()}catch(err){console.error('Recoil callback failed:',err);recoverAction('recoil callback')}
+ }
+ requestAnimationFrame(f)
+}
+function resolvePlayer(){
+
+ let p=S.ready.ref,u=front(p),useJutsu=S.action==='jutsu',proxy=attackProxy(u);
+ const supportJutsu=useJutsu&&isAllySupportJutsu(u);
+ let targets=supportJutsu?[]:aliveEnemies().filter(e=>hits(p,proxy,e));
+ p.gauge=0;S.phase='resolve';S.anim={positions:{}};const playerActionToken=beginActionToken();armActionWatchdog('player attack',playerActionToken);
+
+ if(useJutsu&&u.chakra<u.jutsuCost){
+  S.log=`${u.name} does not have enough chakra.`;S.action='normal';return finishAction()
+ }
+
+ if(supportJutsu){
+  window.BlazingCombatRuntime.spendChakra(u,u.jutsuCost);
+
+  const allies=alivePairs().filter(pair=>front(pair).hp>0);
+  if(!allies.length){
+   S.log=`${u.name} activated ${u.jutsuName||'Jutsu'}, but no allies can be healed.`;
+   return finishAction();
+  }
+
+  const teamCenter={
+   x:allies.reduce((sum,pair)=>sum+pair.x,0)/allies.length,
+   y:allies.reduce((sum,pair)=>sum+pair.y,0)/allies.length-18
+  };
+
+  const from={x:p.x,y:p.y};
+  S.log=`${u.name} activated ${u.jutsuName||'Revival Formula'} — restoring all active allies to full HP.`;
+
+  return animateSenkuChemicalReaction(
+   u.name,from,teamCenter,
+   ()=>{
+    allies.forEach(pair=>{
+     const ally=front(pair);
+     const healed=window.BlazingCombatRuntime.healPercentMaxHp(ally,1,{minimumHeal:1,ignoreDefeated:true}).amount;
+
+     addImpactFlash(pair.x,pair.y-18,'#64ff7d');
+     if(healed>0){
+      addFloat(pair.x,pair.y-40,`+${healed}`,'#74ff91');
+     }else{
+      addFloat(pair.x,pair.y-40,'FULL','#74ff91');
+     }
+    });
+   },
+   ()=>finishAction()
+  );
+ }
+
+ if(!targets.length){
+  S.log=`${u.name} committed the move but caught no target.`;return finishAction()
+ }
+
+ if(useJutsu){
+  window.BlazingCombatRuntime.spendChakra(u,u.jutsuCost);
+
+  if(u.name==='Lebee'){
+   S.log=`Lebee activated Meteor Jutsu — ${targets.length} target${targets.length===1?'':'s'} caught in the cosmic impact zone.`;
+   const from={x:p.x,y:p.y};
+   return animateLebeeMeteorJutsu(
+    u.name,from,targets,
+    ()=>{
+     targets.forEach(enemy=>{
+      if(enemy.hp<=0)return;
+      window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:u.jutsuDamage});
+      
+--- 2 @ 41336911 ---
+hit lands.
+     S.floaters=S.floaters.filter(x=>!meteors.includes(x));
+     if(S.jutsuDim)S.jutsuDim.end=performance.now();
+
+     playLebeeMeteorImpactFlash(()=>{
+       if(!actionTokenAlive(token))return;
+       try{
+         onDone&&onDone();
+       }catch(err){
+         recoverAction('Lebee Meteor completion');
+       }
+     });
+   },finalImpact);
+
+ },castDuration);
+}
+
+function recoil(enemy,done,dir=1,strong=false){
+ const token=ACTIVE_ACTION_TOKEN;
+ startHitReaction(enemy.name,dir,strong);
+ let ox=enemy.x,oy=enemy.y,dx=18*(dir||1),start=performance.now();
+ function f(n){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState(),t=Math.min(1,(n-start)/130),off=Math.sin(t*Math.PI)*dx;
+  state.positions[enemy.name]={x:ox+off,y:oy};
+  if(t<1)return requestAnimationFrame(f);
+  delete state.positions[enemy.name];
+  try{done&&done()}catch(err){console.error('Recoil callback failed:',err);recoverAction('recoil callback')}
+ }
+ requestAnimationFrame(f)
+}
+function resolvePlayer(){
+
+ let p=S.ready.ref,u=front(p),useJutsu=S.action==='jutsu',proxy=attackProxy(u);
+ const supportJutsu=useJutsu&&isAllySupportJutsu(u);
+ let targets=supportJutsu?[]:aliveEnemies().filter(e=>hits(p,proxy,e));
+ p.gauge=0;S.phase='resolve';S.anim={positions:{}};const playerActionToken=beginActionToken();armActionWatchdog('player attack',playerActionToken);
+
+ if(useJutsu&&u.chakra<u.jutsuCost){
+  S.log=`${u.name} does not have enough chakra.`;S.action='normal';return finishAction()
+ }
+
+ if(supportJutsu){
+  window.BlazingCombatRuntime.spendChakra(u,u.jutsuCost);
+
+  const allies=alivePairs().filter(pair=>front(pair).hp>0);
+  if(!allies.length){
+   S.log=`${u.name} activated ${u.jutsuName||'Jutsu'}, but no allies can be healed.`;
+   return finishAction();
+  }
+
+  const teamCenter={
+   x:allies.reduce((sum,pair)=>sum+pair.x,0)/allies.length,
+   y:allies.reduce((sum,pair)=>sum+pair.y,0)/allies.length-18
+  };
+
+  const from={x:p.x,y:p.y};
+  S.log=`${u.name} activated ${u.jutsuName||'Revival Formula'} — restoring all active allies to full HP.`;
+
+  return animateSenkuChemicalReaction(
+   u.name,from,teamCenter,
+   ()=>{
+    allies.forEach(pair=>{
+     const ally=front(pair);
+     const healed=window.BlazingCombatRuntime.healPercentMaxHp(ally,1,{minimumHeal:1,ignoreDefeated:true}).amount;
+
+     addImpactFlash(pair.x,pair.y-18,'#64ff7d');
+     if(healed>0){
+      addFloat(pair.x,pair.y-40,`+${healed}`,'#74ff91');
+     }else{
+      addFloat(pair.x,pair.y-40,'FULL','#74ff91');
+     }
+    });
+   },
+   ()=>finishAction()
+  );
+ }
+
+ if(!targets.length){
+  S.log=`${u.name} committed the move but caught no target.`;return finishAction()
+ }
+
+ if(useJutsu){
+  window.BlazingCombatRuntime.spendChakra(u,u.jutsuCost);
+
+  if(u.name==='Lebee'){
+   S.log=`Lebee activated Meteor Jutsu — ${targets.length} target${targets.length===1?'':'s'} caught in the cosmic impact zone.`;
+   const from={x:p.x,y:p.y};
+   return animateLebeeMeteorJutsu(
+    u.name,from,targets,
+    ()=>{
+     targets.forEach(enemy=>{
+      if(enemy.hp<=0)return;
+      window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:u.jutsuDamage});
+      addImpactFlash(enemy.x,enemy.y-8,'#ff7ae6');
+      addFloat(enemy.x,en
+--- 3 @ 41337169 ---
+(err){
+         recoverAction('Lebee Meteor completion');
+       }
+     });
+   },finalImpact);
+
+ },castDuration);
+}
+
+function recoil(enemy,done,dir=1,strong=false){
+ const token=ACTIVE_ACTION_TOKEN;
+ startHitReaction(enemy.name,dir,strong);
+ let ox=enemy.x,oy=enemy.y,dx=18*(dir||1),start=performance.now();
+ function f(n){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState(),t=Math.min(1,(n-start)/130),off=Math.sin(t*Math.PI)*dx;
+  state.positions[enemy.name]={x:ox+off,y:oy};
+  if(t<1)return requestAnimationFrame(f);
+  delete state.positions[enemy.name];
+  try{done&&done()}catch(err){console.error('Recoil callback failed:',err);recoverAction('recoil callback')}
+ }
+ requestAnimationFrame(f)
+}
+function resolvePlayer(){
+
+ let p=S.ready.ref,u=front(p),useJutsu=S.action==='jutsu',proxy=attackProxy(u);
+ const supportJutsu=useJutsu&&isAllySupportJutsu(u);
+ let targets=supportJutsu?[]:aliveEnemies().filter(e=>hits(p,proxy,e));
+ p.gauge=0;S.phase='resolve';S.anim={positions:{}};const playerActionToken=beginActionToken();armActionWatchdog('player attack',playerActionToken);
+
+ if(useJutsu&&u.chakra<u.jutsuCost){
+  S.log=`${u.name} does not have enough chakra.`;S.action='normal';return finishAction()
+ }
+
+ if(supportJutsu){
+  window.BlazingCombatRuntime.spendChakra(u,u.jutsuCost);
+
+  const allies=alivePairs().filter(pair=>front(pair).hp>0);
+  if(!allies.length){
+   S.log=`${u.name} activated ${u.jutsuName||'Jutsu'}, but no allies can be healed.`;
+   return finishAction();
+  }
+
+  const teamCenter={
+   x:allies.reduce((sum,pair)=>sum+pair.x,0)/allies.length,
+   y:allies.reduce((sum,pair)=>sum+pair.y,0)/allies.length-18
+  };
+
+  const from={x:p.x,y:p.y};
+  S.log=`${u.name} activated ${u.jutsuName||'Revival Formula'} — restoring all active allies to full HP.`;
+
+  return animateSenkuChemicalReaction(
+   u.name,from,teamCenter,
+   ()=>{
+    allies.forEach(pair=>{
+     const ally=front(pair);
+     const healed=window.BlazingCombatRuntime.healPercentMaxHp(ally,1,{minimumHeal:1,ignoreDefeated:true}).amount;
+
+     addImpactFlash(pair.x,pair.y-18,'#64ff7d');
+     if(healed>0){
+      addFloat(pair.x,pair.y-40,`+${healed}`,'#74ff91');
+     }else{
+      addFloat(pair.x,pair.y-40,'FULL','#74ff91');
+     }
+    });
+   },
+   ()=>finishAction()
+  );
+ }
+
+ if(!targets.length){
+  S.log=`${u.name} committed the move but caught no target.`;return finishAction()
+ }
+
+ if(useJutsu){
+  window.BlazingCombatRuntime.spendChakra(u,u.jutsuCost);
+
+  if(u.name==='Lebee'){
+   S.log=`Lebee activated Meteor Jutsu — ${targets.length} target${targets.length===1?'':'s'} caught in the cosmic impact zone.`;
+   const from={x:p.x,y:p.y};
+   return animateLebeeMeteorJutsu(
+    u.name,from,targets,
+    ()=>{
+     targets.forEach(enemy=>{
+      if(enemy.hp<=0)return;
+      window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:u.jutsuDamage});
+      addImpactFlash(enemy.x,enemy.y-8,'#ff7ae6');
+      addFloat(enemy.x,enemy.y-34,'-'+u.jutsuDamage,'#ff8be8');
+      const dir=Math.sign(enemy.x-p.x)||1;
+      if(enemy.hp<=0)handleEnemyKO(enemy,dir); else recoil(enemy,()=>{},dir,true);
+     });
+     checkVictoryKillshot();
+    },
+    ()=>finishAction()
+   );
+  }
+
+  // Every Jut
+--- 4 @ 41338457 ---
+,u.jutsuCost);
+
+  const allies=alivePairs().filter(pair=>front(pair).hp>0);
+  if(!allies.length){
+   S.log=`${u.name} activated ${u.jutsuName||'Jutsu'}, but no allies can be healed.`;
+   return finishAction();
+  }
+
+  const teamCenter={
+   x:allies.reduce((sum,pair)=>sum+pair.x,0)/allies.length,
+   y:allies.reduce((sum,pair)=>sum+pair.y,0)/allies.length-18
+  };
+
+  const from={x:p.x,y:p.y};
+  S.log=`${u.name} activated ${u.jutsuName||'Revival Formula'} — restoring all active allies to full HP.`;
+
+  return animateSenkuChemicalReaction(
+   u.name,from,teamCenter,
+   ()=>{
+    allies.forEach(pair=>{
+     const ally=front(pair);
+     const healed=window.BlazingCombatRuntime.healPercentMaxHp(ally,1,{minimumHeal:1,ignoreDefeated:true}).amount;
+
+     addImpactFlash(pair.x,pair.y-18,'#64ff7d');
+     if(healed>0){
+      addFloat(pair.x,pair.y-40,`+${healed}`,'#74ff91');
+     }else{
+      addFloat(pair.x,pair.y-40,'FULL','#74ff91');
+     }
+    });
+   },
+   ()=>finishAction()
+  );
+ }
+
+ if(!targets.length){
+  S.log=`${u.name} committed the move but caught no target.`;return finishAction()
+ }
+
+ if(useJutsu){
+  window.BlazingCombatRuntime.spendChakra(u,u.jutsuCost);
+
+  if(u.name==='Lebee'){
+   S.log=`Lebee activated Meteor Jutsu — ${targets.length} target${targets.length===1?'':'s'} caught in the cosmic impact zone.`;
+   const from={x:p.x,y:p.y};
+   return animateLebeeMeteorJutsu(
+    u.name,from,targets,
+    ()=>{
+     targets.forEach(enemy=>{
+      if(enemy.hp<=0)return;
+      window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:u.jutsuDamage});
+      addImpactFlash(enemy.x,enemy.y-8,'#ff7ae6');
+      addFloat(enemy.x,enemy.y-34,'-'+u.jutsuDamage,'#ff8be8');
+      const dir=Math.sign(enemy.x-p.x)||1;
+      if(enemy.hp<=0)handleEnemyKO(enemy,dir); else recoil(enemy,()=>{},dir,true);
+     });
+     checkVictoryKillshot();
+    },
+    ()=>finishAction()
+   );
+  }
+
+  // Every Jutsu target gets:
+  //   active fighter's Jutsu hit
+  //   + normal attacks from OTHER allies whose normal range covers that target.
+  let jutsuQueue=targets.map(enemy=>{
+    let helpers=comboMembers(enemy,p).filter(helper=>helper!==p);
+    return {enemy,helpers};
+  });
+
+  let anyHelpers=jutsuQueue.some(item=>item.helpers.length>0);
+  S.log=anyHelpers
+    ? `${u.name} activated ${u.jutsuName||'Jutsu'} — normal combo partners are joining where their ranges overlap.`
+    : `${u.name} activated ${u.jutsuName||'Jutsu'} — ${targets.length} target${targets.length===1?'':'s'} caught in the field.`;
+
+  let targetIndex=0;
+
+  function runJutsuTarget(){
+   if(targetIndex>=jutsuQueue.length)return finishAction();
+
+   let item=jutsuQueue[targetIndex++];
+   let enemy=item.enemy;
+   let helpers=item.helpers;
+
+   // First: the active fighter performs the Jutsu hit.
+   let dx=enemy.x-p.x,dy=enemy.y-p.y,len=Math.max(1,Math.hypot(dx,dy));
+   let to={x:enemy.x-dx/len*((enemy.r||19)+27),y:enemy.y-dy/len*((enemy.r||19)+27)};
+   let from={x:p.x,y:p.y};
+
+   const runActiveJutsu=(u.name==='Sub-Zero')?animateFreezeBlast:animateLunge;
+   const activeFrom=(u.name==='Sub-Zero')?from:from;
+   const activeTarget=(u.name==='Sub-Zero')?enemy:to;
+   runActiveJutsu(
+    u.name,activeFrom,activeTarget,
+  
+COUNT=4
+
