@@ -21,28 +21,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          bundle=/tmp/pass41c-senku-retreat.tar.gz
-          if tar -tzf dev-tools/pass41c-assets.tar.gz >/tmp/direct-list.txt 2>/dev/null; then
-            cp dev-tools/pass41c-assets.tar.gz "$bundle"
-          else
-            cat dev-tools/pass41c-assets/part_*.txt | base64 --decode > "$bundle"
-          fi
-          tar -tzf "$bundle" | tee /tmp/pass41c-assets.txt
-          if grep -Ev '^assets/characters/senku/sprites/' /tmp/pass41c-assets.txt | grep -q .; then
-            echo 'Archive contains a path outside Senku sprite assets.' >&2
+          bundle=/tmp/pass41d-senku-retreat.tar.gz
+          cat dev-tools/pass41c-assets-q55/part_*.txt | base64 --decode > "$bundle"
+          tar -tzf "$bundle" | tee /tmp/pass41d-assets.txt
+          if grep -E '^assets/' /tmp/pass41d-assets.txt | grep -Ev '^assets/characters/senku/sprites/' | grep -q .; then
+            echo 'Archive contains an asset outside Senku sprite assets.' >&2
             exit 1
           fi
           tar -xzf "$bundle"
-          expected_source=f459dc179a77f0d174a40cd68c861179b8e95c15
-          actual_source=$(git hash-object assets/characters/senku/sprites/source/retreat_run/source_sheet.jpg)
+          expected_source=e9fac3e8909087d7f67bb8c77033fae939af73d2
+          actual_source=$(git hash-object assets/characters/senku/sprites/source/retreat_run/source_sheet.webp)
           test "$actual_source" = "$expected_source"
           expected=(
-            a7ea447469141e22c7a31d06e6a85061733c3e90
-            50e20bbf88d2634eed5df90388493b741e81a2ba
-            593e97cd41b87841eeb9b8f4dd3938a720259947
-            bacef60923b2fa62d759c54672903bd9c357977b
-            a16d8aa19a19d61040353f7827e77c559f7aaec5
-            67879c77af64997590d28d8e5268e5aff3905bc1
+            62b826167424f0a01e3194d32935c2fed2240714
+            9eb215a4c8f60490672b088b6b44c15a7c26c59b
+            1b5a93d23ad8b8a59117786495886f7ab282463f
+            68058946a2ec935e12f1ee499dd4a151026b3904
+            2a4769b4558aa15942c0fff9b6d3b32d5ee4fc4a
+            7e0484663b6a491ca82fe072172a2675e628363c
           )
           for i in 0 1 2 3 4 5; do
             n=$(printf '%02d' $((i+1)))
