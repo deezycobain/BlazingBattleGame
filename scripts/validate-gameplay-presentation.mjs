@@ -89,17 +89,20 @@ if(meleeSpec.events?.[0]?.frame!==6)fail('Senku melee contact frame must remain 
 for(const rel of meleeFrames){
   if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing tracked Senku melee frame: ${rel}`);
 }
-if(sm.melee_animation_kind!=='melee_attack')fail('Senku semantic melee must stay routed to the dedicated melee animation');
+if(sm.melee_animation_kind!=='melee_attack')fail('Senku semantic melee kind must remain dedicated melee_attack art');
 window.BlazingFrameRuntime={loadFrames:paths=>paths.map(src=>({src}))};
-const resolvedMelee=P.resolveFrames(senku,'punch',{punch:[{src:'legacy-bomb-body'}]});
-if(resolvedMelee.length!==6||resolvedMelee.some(frame=>!frame.src.includes('/sprites/runtime/attack/melee/')))fail('Senku semantic melee must resolve only to dedicated Asset Inbox melee frames');
+for(const requested of ['punch','kick','melee_attack']){
+  const resolved=P.resolveFrames(senku,requested,{punch:[{src:'legacy-bomb-body'}]});
+  if(resolved.length!==6||resolved.some(frame=>!frame.src.includes('/sprites/runtime/attack/melee/')))fail(`Senku ${requested} semantic melee must resolve only to dedicated Asset Inbox melee frames`);
+}
 const resolvedBomb=P.resolveFrames(senku,'bomb_throw',{punch:[{src:'legacy-bomb-body'}]});
-if(resolvedBomb.length!==1||resolvedBomb[0].src!=='legacy-bomb-body')fail('Senku bomb throw must remain separate from melee body art');
+if(resolvedBomb.length!==1||resolvedBomb[0].src!=='legacy-bomb-body')fail('Senku legacy bomb body fallback must stay separate from semantic melee art');
 
 const explosiveMap=senkuMap.abilities?.explosive_bomb||{};
 const primaryAnim=explosiveMap.presentation_animations?.primary_retreat;
-const helperMeleeAnim=explosiveMap.presentation_animations?.helper_melee;
-if(explosiveMap.animation_id!=='senku.animation.retreat_run'||primaryAnim!=='senku.animation.retreat_run'||helperMeleeAnim!=='senku.animation.melee_attack')fail('Senku runtime map must separate primary retreat and helper/melee presentation art');
+const helperMelee=explosiveMap.presentation_animations?.helper_melee;
+if(explosiveMap.animation_id!=='senku.animation.retreat_run'||primaryAnim!=='senku.animation.retreat_run'||helperMelee!=='senku.animation.melee_attack')fail('Senku runtime map must route primary retreat and helper melee separately');
+if(explosiveMap.presentation_animations?.helper_throw)fail('Senku helper must not route through legacy bomb-throw body art');
 const damageAction=(explosiveMap.gameplay_actions||[]).find(a=>a.action_id==='damage_target');
 if(damageAction?.event!=='on_projectile_arrival')fail('Senku bomb damage must remain on projectile arrival');
 const retreatResource=manifest.units?.senku?.animations?.retreat_run;
@@ -134,7 +137,6 @@ for(const marker of [
   "const wantsRetreat=basicPresentation.runtimeDriver==='animateSenkuRetreatBomb'",
   'const isPrimaryAttacker=attackIndex===1;',
   'basicPresentation.repositionScope',
-  "basicMeta.far_animation_kind||requestedBasicKind",
   'releaseOrigin:()=>ensureAnimState().positions?.[unitName]||from',
   'window.BlazingAttackPresentation.resolveActionRotation(',
   'function bodyFacingRotation(',
@@ -146,6 +148,14 @@ if(shell.includes("const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlas
 const renderer=await read('runtime/rendering/battlefield-renderer.js');
 for(const marker of ['function pearHalfWidth(',"s.type==='pear'",'ctx.lineTo(x,y)'])if(!renderer.includes(marker))fail(`battlefield renderer missing pear marker: ${marker}`);
 const staticPass=await read('scripts/static-hitbox-postprocess.mjs');
-for(const marker of ['combat.jutsu_rotation_deg','combat.basic_rotation_deg',"if(s.type==='pear')",'Senku pear hit geometry'])if(!staticPass.includes(marker))fail(`static hitbox compatibility pass missing ${marker}`);
+for(const marker of [
+  'combat.jutsu_rotation_deg',
+  'combat.basic_rotation_deg',
+  "if(s.type==='pear')",
+  'Senku pear hit geometry',
+  "basicMeta.melee_animation_kind||'melee_attack'",
+  ': animateLunge;',
+  'basicTarget=wantsRetreat?enemy:to;'
+])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: Senku directional pear range, all-distance six-frame evasive bomb retreat, dedicated six-frame Asset Inbox melee art, bounded 48-88px persistent primary reposition, delayed toss, dynamic forward Freeze Blast, Sub-Zero punch facing, and unchanged bomb/freeze combat semantics verified.');
+console.log('Gameplay presentation smoke PASS: Senku directional pear range, all-distance six-frame evasive bomb retreat, dedicated six-frame Asset Inbox helper/combo melee lunge, bounded 48-88px persistent primary reposition, delayed toss, dynamic forward Freeze Blast, Sub-Zero punch facing, and unchanged bomb/freeze combat semantics verified.');
