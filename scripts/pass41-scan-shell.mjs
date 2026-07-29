@@ -28,20 +28,33 @@ function neighborhood(label,needle,before=1800,after=3200){
   return `===== ${label} @ ${at} =====\n${html.slice(Math.max(0,at-before),Math.min(html.length,at+after))}\n`;
 }
 
+function allNeighborhoods(label,needle,before=1000,after=1800,max=12){
+  let out=`===== ${label}: ${needle} =====\n`,from=0,count=0;
+  while(count<max){
+    const at=html.indexOf(needle,from);if(at<0)break;
+    out+=`--- HIT ${count+1} @ ${at} ---\n${html.slice(Math.max(0,at-before),Math.min(html.length,at+after))}\n`;
+    from=at+needle.length;count++;
+  }
+  return out+`TOTAL SHOWN: ${count}\n`;
+}
+
 let report='PASS 4.1 ANIMATION / FACING CONTRACT AUDIT\n\n';
 for(const name of [
-  'unitAnimationMap','unitAttackFrames','attackShape','normalShape','jutsuShape','hits',
-  'facingFlip','updateFacing','drawUnit','animateLunge','animateFreezeBlast','animateSenkuBomb'
+  'unitAnimationMap','unitAttackFrames','hits','facingFlip','updateFacing','drawUnit',
+  'animateLunge','animateFreezeBlast','animateSenkuBomb'
 ])report+=extractFunction(name)+'\n';
 
 for(const [label,needle,before,after] of [
+  ['ATTACK_SPRITES construction','const ATTACK_SPRITES',1400,6500],
   ['character animation map construction','CHARACTER_ANIMATION_MAPS',2200,5200],
-  ['player drawUnit call','drawUnit(pos.x,pos.y',2600,4200],
   ['basic dispatcher','const runBasicAttack=',2400,4200],
   ['jutsu dispatcher','const runActiveJutsu=',2400,3800],
-  ['attack pose assignment','anim.attackPose[unitName]',1000,1800],
-  ['Sub-Zero freeze shape path',"u.name==='Sub-Zero'",2200,3800]
+  ['canonical runtime shape mapping','jutsuShape:d.combat.jutsu_shape',2200,3200]
 ])report+=neighborhood(label,needle,before,after)+'\n';
+
+report+=allNeighborhoods('drawUnit call sites','drawUnit(',1200,2200,10)+'\n';
+report+=allNeighborhoods('facingFlip call sites','facingFlip(',1200,2200,10)+'\n';
+report+=allNeighborhoods('drawShape call sites','drawShape(',1000,1800,10)+'\n';
 
 await fs.mkdir('dev-tools',{recursive:true});
 await fs.writeFile('dev-tools/pass41-animation-contract.txt',report);
