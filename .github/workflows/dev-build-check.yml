@@ -1,65 +1,13 @@
 name: Runtime build check
 on:
   push:
-    branches: [main, dev-v2, agent/pass4.1-gameplay-stabilization]
+    branches: [main, dev-v2]
   pull_request:
     branches: [main]
 permissions:
-  contents: write
+  contents: read
 jobs:
-  migrate-pass41d-senku:
-    if: >-
-      github.actor != 'github-actions[bot]' &&
-      ((github.event_name == 'pull_request' && github.head_ref == 'agent/pass4.1-gameplay-stabilization') ||
-       (github.event_name == 'push' && github.ref == 'refs/heads/agent/pass4.1-gameplay-stabilization'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: agent/pass4.1-gameplay-stabilization
-      - name: Decode and verify Senku retreat assets
-        shell: bash
-        run: |
-          set -euo pipefail
-          bundle=/tmp/pass41d-senku-retreat.tar.gz
-          cat dev-tools/pass41c-assets-q55/part_*.txt | base64 --decode > "$bundle"
-          tar -tzf "$bundle" | tee /tmp/pass41d-assets.txt
-          if grep -E '^assets/' /tmp/pass41d-assets.txt | grep -Ev '^assets/characters/senku/sprites/' | grep -q .; then
-            echo 'Archive contains an asset outside Senku sprite assets.' >&2
-            exit 1
-          fi
-          tar -xzf "$bundle"
-          expected_source=e9fac3e8909087d7f67bb8c77033fae939af73d2
-          actual_source=$(git hash-object assets/characters/senku/sprites/source/retreat_run/source_sheet.webp)
-          test "$actual_source" = "$expected_source"
-          expected=(
-            62b826167424f0a01e3194d32935c2fed2240714
-            9eb215a4c8f60490672b088b6b44c15a7c26c59b
-            1b5a93d23ad8b8a59117786495886f7ab282463f
-            68058946a2ec935e12f1ee499dd4a151026b3904
-            2a4769b4558aa15942c0fff9b6d3b32d5ee4fc4a
-            7e0484663b6a491ca82fe072172a2675e628363c
-          )
-          for i in 0 1 2 3 4 5; do
-            n=$(printf '%02d' $((i+1)))
-            file="assets/characters/senku/sprites/runtime/movement/retreat_run/frame_${n}.webp"
-            test -s "$file"
-            actual=$(git hash-object "$file")
-            test "$actual" = "${expected[$i]}"
-          done
-      - name: Apply guarded Senku pear-range migration
-        run: node scripts/pass41d-fix-senku.mjs
-      - name: Commit verified Senku retreat repair
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add index.html runtime/rendering/battlefield-renderer.js assets/characters/senku/sprites/runtime/movement/retreat_run assets/characters/senku/sprites/source/retreat_run
-          git diff --cached --quiet || git commit -m "Fix Senku evasive bomb presentation"
-          git push
   build:
-    if: >-
-      !((github.event_name == 'pull_request' && github.head_ref == 'agent/pass4.1-gameplay-stabilization' && github.actor != 'github-actions[bot]') ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/agent/pass4.1-gameplay-stabilization' && github.actor != 'github-actions[bot]'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
