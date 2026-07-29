@@ -15,7 +15,7 @@ Manual testing exposed presentation behavior that automated structural/build tes
 - Freeze Blast must always project forward from Sub-Zero's current body facing.
 - Sub-Zero's body facing follows the nearest live enemy during preview/commit, so the cone may point right, left, upward, downward, or diagonally depending on enemy direction.
 - The projectile origin must stay on the forward side of his body rather than always spawning from screen-right.
-- Canonical Freeze Blast combat geometry remains the existing cone (`r: 205`, `a: 1.05`).
+- Freeze Blast keeps its long `205 px` reach but uses the approved thinner cone (`a: 0.52`).
 - Damage, target eligibility, projectile timing, freeze hold, and the `-35` gauge effect remain unchanged.
 
 ### B. Sub-Zero regular basic attack
@@ -33,10 +33,11 @@ Manual testing exposed presentation behavior that automated structural/build tes
 ### D. Senku directional Explosive Bomb retreat
 
 - Senku Basic uses real directional **pear-shaped** range geometry, not a cosmetic overlay.
+- The approved pear is deliberately short and thin (`rear: 24`, `reach: 82`, `width: 58`) so Senku must begin relatively close before creating distance with the retreat.
 - The pear rotates toward the nearest live enemy and uses the same mathematical shape for preview and hit testing.
 - Any valid primary Senku Basic uses the evasive bomb-retreat presentation; the earlier `78 px` close-only split is retired.
 - Senku throws Explosive Bomb while simultaneously turning/running directly away from the already-resolved target.
-- Retreat distance is randomized between `48 px` and `88 px`, intentionally below Senku's existing `92 px` movement scale so the move reads as a few evasive paces instead of a full-screen escape.
+- Retreat distance is randomized between `64 px` and `144 px`, producing visibly more variation while remaining battlefield-clamped.
 - Retreat destination is clamped to normal battlefield bounds.
 - The bomb releases late enough for the six-frame retreat sequence to visibly read (`close_bomb_release_ratio: 0.68`, canonical release event on frame 5).
 - Bomb damage remains single-target and applies to the original resolved target on projectile arrival.
@@ -78,7 +79,7 @@ Pass 4.1 uses shared presentation/movement helpers rather than character-specifi
 
 Sub-Zero canonical presentation keeps `0°` as fallback rotation, while Freeze Blast declares `range_rotation_mode: nearest_enemy_facing` and `projectile_origin_mode: forward_facing`.
 
-Senku canonical Basic declares the directional pear geometry plus `range_rotation_mode: nearest_enemy_facing`, `animateSenkuRetreatBomb`, `retreat_run`, and primary-attacker reposition. The dedicated melee resource is declared as `melee_animation_kind: melee_attack`; runtime routing declares `senku.animation.retreat_run` as the primary Basic animation and `senku.animation.melee_attack` as the helper/combo presentation animation.
+Senku canonical Basic declares the short/thin directional pear geometry plus `range_rotation_mode: nearest_enemy_facing`, `animateSenkuRetreatBomb`, `retreat_run`, and primary-attacker reposition. The dedicated melee resource is declared as `melee_animation_kind: melee_attack`; runtime routing declares `senku.animation.retreat_run` as the primary Basic animation and `senku.animation.melee_attack` as the helper/combo presentation animation.
 
 The source shell continues to own action/combo sequencing. The production compatibility pass switches a non-repositioning helper Senku to the shared lunge driver while leaving the primary attacker on the retreat driver. The existing bomb callback still applies damage on projectile arrival.
 
@@ -92,12 +93,12 @@ No historical `dev-v2` explosion assets or unrelated unpromoted gameplay changes
 - dynamic `nearest_enemy_facing` Freeze Blast rotation in multiple directions,
 - forward-facing Freeze Blast projectile origin contract,
 - missing Sub-Zero melee-kind fallback to canonical punch art,
-- unchanged Freeze Blast cone dimensions, cost, multiplier, timing, and `-35` gauge effect,
-- deterministic Senku retreat RNG endpoints at `48 px` / `88 px`,
+- approved thin Freeze Blast cone (`r: 205`, `a: 0.52`) with unchanged cost, multiplier, timing, and `-35` gauge effect,
+- deterministic Senku retreat RNG endpoints at `64 px` / `144 px`,
 - retreat direction increasing separation from the target,
 - battlefield clamping and finite overlap fallback,
 - retreat interpolation endpoints,
-- Senku directional pear geometry and nearest-enemy rotation,
+- Senku short/thin directional pear geometry (`24 / 82 / 58`) and nearest-enemy rotation,
 - all-distance primary bomb-retreat selection,
 - six tracked retreat runtime frames and canonical source sheet,
 - six tracked dedicated melee runtime frames and canonical source sheet,
@@ -130,7 +131,7 @@ Pass 4.1 still does not redesign:
 - boss AI,
 - Anubis `boss_rotation` wiring.
 
-The only target/hit geometry intentionally changed in this stabilization pass is Senku Basic's approved directional pear shape.
+The only target/hit geometry intentionally changed in this stabilization pass is Senku Basic's approved directional pear shape and the explicitly requested Sub-Zero Freeze Blast cone thickness.
 
 ## Promotion gate
 
@@ -139,5 +140,5 @@ Before Pass 5 begins:
 1. Structural and behavior regression checks for these presentation contracts must pass.
 2. Existing runtime/combat/rendering validation must remain green.
 3. The full Cloudflare build must pass on the exact clean PR merge ref.
-4. A fresh Cloudflare preview must be manually checked for Sub-Zero facing/animation, Senku's pear range and visible bomb-retreat animation, and Senku's dedicated helper/combo melee body animation, including mobile.
+4. A fresh Cloudflare preview must be manually checked for Sub-Zero facing/animation and thinner cone, Senku's short/thin pear range and visible larger/random bomb-retreat animation, and Senku's dedicated helper/combo melee body animation, including mobile.
 5. Only after that manual verification should `docs/PROJECT_MASTER_STATE.md` and `docs/ARCHITECTURE_BASELINE_V070.md` be updated to declare Pass 4.1 production-complete, the PR be promoted, and a new gameplay-stable checkpoint be frozen.
