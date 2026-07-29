@@ -50,6 +50,7 @@
         "idle": {"resource_id":"senku.animation.idle","path":"assets/characters/senku/sprites/runtime/idle/"},
         "recoil": {"resource_id":"senku.animation.recoil","path":"assets/characters/senku/sprites/runtime/recoil/"},
         "basic_attack": {"resource_id":"senku.animation.basic_attack","path":"assets/characters/senku/sprites/runtime/attack/basic/"},
+        "retreat_run": {"resource_id":"senku.animation.retreat_run","path":"assets/characters/senku/sprites/runtime/movement/retreat_run/","required_runtime_frames":6,"renderer":"BlazingFrameRuntime","usage":"Close-range evasive run used while Senku throws Explosive Bomb and permanently repositions a bounded distance away from the resolved target."},
         "ally_heal_cast": {
           "resource_id":"senku.animation.jutsu.ally_heal.cast",
           "path":"assets/characters/senku/sprites/runtime/jutsu/chemical_reaction/cast/",
