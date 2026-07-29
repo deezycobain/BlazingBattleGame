@@ -89,7 +89,8 @@
       distance,
       threshold:hasSplit?threshold:null,
       runtimeDriver:presentation[`${prefix}runtime_driver`]||presentation.runtime_driver||null,
-      animationKind:presentation[`${prefix}animation_kind`]||presentation.animation_kind||requestedKind
+      animationKind:presentation[`${prefix}animation_kind`]||presentation.animation_kind||requestedKind,
+      repositionScope:presentation[`${prefix}reposition_scope`]||presentation.reposition_scope||null
     });
   }
 
