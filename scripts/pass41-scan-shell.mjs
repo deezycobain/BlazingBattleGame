@@ -22,36 +22,27 @@ function extractFunction(name){
   return `===== ${name} @ ${start} =====\nUNTERMINATED\n`;
 }
 
-function neighborhood(label,needle,radius=2200){
-  const hits=[];let from=0;
-  while(true){const at=html.indexOf(needle,from);if(at<0)break;hits.push(at);from=at+needle.length;}
-  let out=`===== ${label}: ${needle} (${hits.length} hits) =====\n`;
-  for(const at of hits.slice(0,12))out+=`--- @ ${at} ---\n${html.slice(Math.max(0,at-radius),Math.min(html.length,at+radius))}\n`;
-  return out;
+function neighborhood(label,needle,before=1800,after=3200){
+  const at=html.indexOf(needle);
+  if(at<0)return `===== ${label} =====\nNOT FOUND: ${needle}\n`;
+  return `===== ${label} @ ${at} =====\n${html.slice(Math.max(0,at-before),Math.min(html.length,at+after))}\n`;
 }
 
-const declared=[...html.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[1]);
-const interestingNames=declared.filter(n=>/(lunge|combo|chain|attack|basic|facing|freeze|senku|target|unit|sprite|shape)/i.test(n));
-
-let report='PASS 4.1 GAMEPLAY STABILIZATION AUDIT V2\n\n';
-report+=`Interesting function declarations (${interestingNames.length}):\n${interestingNames.join('\n')}\n\n`;
+let report='PASS 4.1 ANIMATION / FACING CONTRACT AUDIT\n\n';
 for(const name of [
-  'unitAttackFrames','attackProxy','drawUnit','animateLunge','animateSenkuBomb','animateFreezeBlast',
-  'updateFacing','facingFlip','normalShape','jutsuShape','hits'
+  'unitAnimationMap','unitAttackFrames','attackShape','normalShape','jutsuShape','hits',
+  'facingFlip','updateFacing','drawUnit','animateLunge','animateFreezeBlast','animateSenkuBomb'
 ])report+=extractFunction(name)+'\n';
-for(const name of interestingNames.filter(n=>/(combo|chain)/i.test(n)))report+=extractFunction(name)+'\n';
-for(const [label,needle] of [
-  ['attack pose reads','attackPose'],
-  ['attack sprite reads','ATTACK_SPRITES'],
-  ['animateLunge calls','animateLunge('],
-  ['combo state','combo'],
-  ['Sub-Zero references','Sub-Zero'],
-  ['Senku references','Senku'],
-  ['facing flip calls','facingFlip('],
-  ['shape selection','jutsuShape('],
-  ['draw shape calls','drawShape(']
-])report+=neighborhood(label,needle)+'\n';
+
+for(const [label,needle,before,after] of [
+  ['character animation map construction','CHARACTER_ANIMATION_MAPS',2200,5200],
+  ['player drawUnit call','drawUnit(pos.x,pos.y',2600,4200],
+  ['basic dispatcher','const runBasicAttack=',2400,4200],
+  ['jutsu dispatcher','const runActiveJutsu=',2400,3800],
+  ['attack pose assignment','anim.attackPose[unitName]',1000,1800],
+  ['Sub-Zero freeze shape path',"u.name==='Sub-Zero'",2200,3800]
+])report+=neighborhood(label,needle,before,after)+'\n';
 
 await fs.mkdir('dev-tools',{recursive:true});
-await fs.writeFile('dev-tools/pass41-gameplay-audit.txt',report);
-console.log(`Pass 4.1 audit wrote ${report.length} chars`);
+await fs.writeFile('dev-tools/pass41-animation-contract.txt',report);
+console.log(`Pass 4.1 contract audit wrote ${report.length} chars`);
