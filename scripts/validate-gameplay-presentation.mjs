@@ -6,15 +6,19 @@ const ROOT=process.cwd();
 const fail=msg=>{throw new Error(`Gameplay presentation validation failed: ${msg}`)};
 const read=rel=>fs.readFile(path.join(ROOT,rel),'utf8');
 const readJson=async rel=>JSON.parse(await read(rel));
+const exists=async rel=>{try{await fs.access(path.join(ROOT,rel));return true}catch{return false}};
 const approx=(a,b,eps=1e-9)=>Math.abs(a-b)<=eps;
 
-// Load the pure presentation helper in a minimal browser-like global.
+// Load pure browser-IIFE presentation/movement helpers in a minimal global.
 globalThis.window={};
 vm.runInThisContext(await read('runtime/animation/attack-presentation.js'),{filename:'attack-presentation.js'});
+vm.runInThisContext(await read('runtime/movement/retreat-runtime.js'),{filename:'retreat-runtime.js'});
 const P=window.BlazingAttackPresentation;
+const R=window.BlazingRetreatRuntime;
 if(!P)fail('BlazingAttackPresentation did not initialize');
+if(!R)fail('BlazingRetreatRuntime did not initialize');
 
-// Exact-target facing is independent from mechanical hitbox rotation.
+// Exact-target facing remains separate from mechanical hitbox rotation.
 if(!approx(P.rotationToward({x:0,y:0},{x:10,y:0}),0))fail('rotationToward must face right target at 0 radians');
 if(!approx(P.rotationToward({x:0,y:0},{x:0,y:-10}),-Math.PI/2))fail('rotationToward must preserve exact target direction');
 const anim={};
@@ -23,30 +27,55 @@ if(!approx(P.lockedFacing(anim,'Sub-Zero'),Math.PI))fail('locked attack facing m
 P.clearFacing(anim,'Sub-Zero');
 if(P.lockedFacing(anim,'Sub-Zero')!==null)fail('attack-facing lock must clear after the action');
 
-// Missing optional attack kinds must fall back to real canonical basic art.
+// Missing optional melee kinds still fall back to real canonical basic art.
 const punchFrame={id:'punch'};
 const kickFrame={id:'kick'};
 if(P.resolveFrameKind('kick',{punch:[punchFrame],kick:[]})!=='punch')fail('missing kick frames must fall back to punch frames');
 if(P.resolveFrameKind('kick',{punch:[punchFrame],kick:[kickFrame]})!=='kick')fail('existing kick frames must remain selectable');
 if(P.resolveFrameKind('freeze',{punch:[punchFrame],freeze:[]})!=='freeze')fail('special/Jutsu kinds must not silently fall back to melee art');
 
+// Bounded retreat math is deterministic under an injected RNG and always moves away.
+if(!approx(R.randomDistance(48,88,()=>0),48)||!approx(R.randomDistance(48,88,()=>1),88))fail('retreat RNG endpoints must remain 48-88 px');
+const bounds={left:24,right:616,top:70,bottom:318};
+const leftPlan=R.computeRetreatPlan({from:{x:100,y:100},threat:{x:120,y:100},minDistance:48,maxDistance:88,bounds,rng:()=>0.5});
+if(!approx(leftPlan.requestedDistance,68)||leftPlan.destination.x>=100||!approx(leftPlan.destination.y,100))fail('retreat must move directly away from a right-side threat');
+if(Math.hypot(leftPlan.destination.x-120,leftPlan.destination.y-100)<=20)fail('retreat must increase separation from the threat');
+const clamped=R.computeRetreatPlan({from:{x:30,y:80},threat:{x:80,y:120},minDistance:88,maxDistance:88,bounds,rng:()=>1});
+if(clamped.destination.x<bounds.left||clamped.destination.y<bounds.top||clamped.destination.x>bounds.right||clamped.destination.y>bounds.bottom)fail('retreat destination must clamp inside battlefield bounds');
+const overlap=R.computeRetreatPlan({from:{x:100,y:100},threat:{x:100,y:100},minDistance:48,maxDistance:88,bounds,rng:()=>0});
+if(!Number.isFinite(overlap.destination.x)||!Number.isFinite(overlap.destination.y))fail('overlap retreat fallback must remain finite');
+const p0=R.interpolate({x:10,y:20},{x:60,y:80},0),p1=R.interpolate({x:10,y:20},{x:60,y:80},1);
+if(!approx(p0.x,10)||!approx(p0.y,20)||!approx(p1.x,60)||!approx(p1.y,80))fail('retreat interpolation endpoints changed');
+
 const senku=await readJson('assets/characters/senku/data/unit.json');
+const senkuMap=await readJson('assets/characters/senku/data/runtime-map.json');
+const manifest=await readJson('runtime/registry/asset-manifest.json');
 const subzero=await readJson('assets/characters/subzero/data/unit.json');
 const subzeroMap=await readJson('assets/characters/subzero/data/runtime-map.json');
 
-// Senku close/far presentation is metadata-driven and close melee cannot reach bomb-release frames.
+// Senku close/far behavior is canonical and preserves the existing bomb combat action.
 const near=P.selectBasicPresentation(senku,{x:0,y:0},{x:70,y:0},'kick');
 const far=P.selectBasicPresentation(senku,{x:0,y:0},{x:90,y:0},'kick');
-const senkuFrames=[{id:1},{id:2},{id:3},{id:4}];
-const closeFrames=P.resolveFrames(senku,'melee_clean',{punch:senkuFrames,kick:[]});
-if(senku.abilities?.basic?.presentation?.close_range_threshold_px!==78)fail('Senku close-range threshold must remain 78 px');
-if(near.mode!=='close'||near.runtimeDriver!=='animateLunge'||near.animationKind!=='melee_clean')fail('Senku close basic must select clean melee/lunge presentation');
-if(far.mode!=='far'||far.runtimeDriver!=='animateSenkuBomb'||far.animationKind!=='punch')fail('Senku far basic must select bomb presentation');
-if(senku.abilities?.basic?.presentation?.close_body_frame_count!==2)fail('Senku close melee must remain limited to two pre-release body frames');
-if(closeFrames.length!==2||closeFrames[0]!==senkuFrames[0]||closeFrames[1]!==senkuFrames[1])fail('Senku close melee frame resolver must exclude projectile-release/bomb frames');
-if(senku.abilities?.basic?.damage_multiplier!==1||senku.abilities?.basic?.target_mode!=='single'||senku.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Senku Pass 4.1 must not alter basic damage/targeting semantics');
+const sm=senku.abilities?.basic?.presentation||{};
+if(sm.close_range_threshold_px!==78)fail('Senku close-range threshold must remain 78 px');
+if(near.mode!=='close'||near.runtimeDriver!=='animateSenkuRetreatBomb'||near.animationKind!=='retreat_run'||near.repositionScope!=='primary_attacker')fail('Senku close basic must select primary-attacker evasive bomb retreat');
+if(far.mode!=='far'||far.runtimeDriver!=='animateSenkuBomb'||far.animationKind!=='punch')fail('Senku far basic must retain normal bomb presentation');
+if(sm.close_retreat_min_px!==48||sm.close_retreat_max_px!==88||sm.close_retreat_duration_ms!==540||sm.close_retreat_frame_ms!==90||!approx(sm.close_bomb_release_ratio,0.22))fail('Senku retreat distance/timing contract changed');
+if(senku.abilities?.basic?.damage_multiplier!==1||senku.abilities?.basic?.target_mode!=='single'||senku.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Senku retreat change must retain basic damage/targeting semantics');
+const retreatFrames=senku.animation_standard?.animations?.retreat_run?.frames||[];
+if(retreatFrames.length!==6||senku.animation_standard.animations.retreat_run.frame_ms!==90)fail('Senku retreat animation must remain six frames at 90 ms');
+for(const rel of retreatFrames){
+  if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing Senku retreat frame: ${rel}`);
+}
+if(!await exists('assets/characters/senku/sprites/source/retreat_run/source_sheet.jpg'))fail('preserved Senku retreat source sheet is missing');
+const closeAnim=senkuMap.abilities?.explosive_bomb?.presentation_animations?.close_retreat;
+if(closeAnim!=='senku.animation.retreat_run')fail('Senku runtime map must route close retreat animation resource');
+const damageAction=(senkuMap.abilities?.explosive_bomb?.gameplay_actions||[]).find(a=>a.action_id==='damage_target');
+if(damageAction?.event!=='on_projectile_arrival')fail('Senku bomb damage must remain on projectile arrival');
+const retreatResource=manifest.units?.senku?.animations?.retreat_run;
+if(retreatResource?.resource_id!=='senku.animation.retreat_run'||retreatResource?.required_runtime_frames!==6)fail('Senku retreat resource manifest entry is incomplete');
 
-// Sub-Zero Freeze Blast follows body-facing direction to the nearest live enemy while retaining combat geometry.
+// Sub-Zero Freeze Blast remains forward-facing toward nearest live enemy with unchanged combat geometry.
 if(subzero.combat?.basic_rotation_deg!==0||subzero.combat?.jutsu_rotation_deg!==0)fail('Sub-Zero authored fallback rotation must remain 0 degrees');
 if(subzero.combat?.jutsu_shape?.type!=='cone'||subzero.combat.jutsu_shape.r!==205||subzero.combat.jutsu_shape.a!==1.05)fail('Sub-Zero Freeze Blast cone geometry changed unexpectedly');
 if(subzero.abilities?.jutsu?.presentation?.range_rotation_mode!=='nearest_enemy_facing')fail('Freeze Blast must use nearest-enemy forward-facing range rotation');
@@ -63,22 +92,24 @@ if(freeze?.projectile_presentation?.cast_duration_ms!==340||freeze?.projectile_p
 const gaugeAction=(freeze.gameplay_actions||[]).find(a=>a.action_id==='reduce_target_gauge');
 if(gaugeAction?.parameters?.amount!==35)fail('Freeze Blast gauge reduction must remain 35');
 
-// Shell integration: geometry, body facing, frame selection and distance split remain separate contracts.
+// Shell integration: target resolution, bomb impact and turn/combo completion remain existing orchestration seams.
 const shell=await read('index.html');
 for(const marker of [
   'runtime/animation/attack-presentation.js',
-  'window.BlazingAttackPresentation.resolveFrames(unitData,kind,attackMap)',
+  'runtime/movement/retreat-runtime.js',
+  'const SENKU_RETREAT_RUN_FRAMES=',
+  'function animateSenkuRetreatBomb(',
+  'window.BlazingRetreatRuntime.computeRetreatPlan({',
+  'pair.x=plan.destination.x;',
+  "const wantsRetreat=basicPresentation.runtimeDriver==='animateSenkuRetreatBomb'",
+  'const isPrimaryAttacker=attackIndex===1;',
+  'basicPresentation.repositionScope',
+  "basicMeta.far_animation_kind||requestedBasicKind",
+  "releaseRatio:meta.close_bomb_release_ratio??.22",
+  "releaseOrigin:()=>ensureAnimState().positions?.[unitName]||from",
   'window.BlazingAttackPresentation.resolveActionRotation(',
   'function bodyFacingRotation(',
-  'window.BlazingAttackPresentation.lockedFacing',
-  'facingFlip(bodyFacingRotation(u,pos,false),u.name)',
-  'facingFlip(bodyFacingRotation(e,pos,true),(e.spriteKey||e.name))',
-  'window.BlazingAttackPresentation.lockFacing(anim,unitName,from,to)',
-  'const facing=window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy)',
   "mode==='forward_facing'",
-  'window.BlazingAttackPresentation.selectBasicPresentation(canonicalUnit(au.name),from,enemy,requestedBasicKind)',
-  "basicPresentation.runtimeDriver==='animateSenkuBomb'?animateSenkuBomb:animateLunge",
-  'basicPresentation.animationKind',
   'function authoredAttackRotation('
 ])if(!shell.includes(marker))fail(`index.html missing Pass 4.1 marker: ${marker}`);
 if(shell.includes("const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlast:(au.name==='Senku'?animateSenkuBomb:animateLunge);"))fail('legacy forced-Senku-bomb dispatcher returned');
@@ -86,4 +117,4 @@ if(shell.includes("const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlas
 const staticPass=await read('scripts/static-hitbox-postprocess.mjs');
 for(const marker of ['combat.jutsu_rotation_deg','combat.basic_rotation_deg','authored action-specific hitbox rotations'])if(!staticPass.includes(marker))fail(`static hitbox compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: exact-target body facing, dynamic forward Freeze Blast rotation/origin, Sub-Zero punch fallback, Senku melee-only close frames, and unchanged combat semantics verified.');
+console.log('Gameplay presentation smoke PASS: dynamic forward Freeze Blast, Sub-Zero punch facing, bounded 48-88px Senku evasive bomb retreat with persistent primary-attacker reposition, six-frame retreat assets, and unchanged bomb combat semantics verified.');
