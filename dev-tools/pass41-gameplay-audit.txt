@@ -1,10 +1,23 @@
 PASS 4.1 GAMEPLAY STABILIZATION AUDIT
 
-Interesting function declarations (18):
+Interesting function declarations (33):
+unitAnimationMap
+unitVfxSequence
+unitIdleFrames
 unitAttackFrames
+canonicalUnit
+makeRosterUnit
 attackProxy
+unitFX
+drawShape
 facingFlip
+getRenderableSprite
+spriteDims
 updateFacing
+battleSpriteFor
+drawUnit
+playerSpriteTopY
+unitsMutuallyLinked
 totalLinkAttackBuff
 comboMembers
 animateLunge
@@ -19,6 +32,239 @@ targetScore
 cpuAttack
 runTarget
 runAttacker
+spriteForSummon
+openUnit
+
+===== unitAttackFrames @ 41269073 =====
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+===== attackProxy @ 41277777 =====
+function attackProxy(u){return {...u,shape:attackShape(u)}}
+
+===== drawUnit @ 41283271 =====
+function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=false,flipX=1,sizeScale=1){
+ // Body sprites must always begin from a clean canvas state.
+ ctx.globalCompositeOperation='source-over';
+ if(!Number.isFinite(ctx.globalAlpha) || ctx.globalAlpha<=0)ctx.globalAlpha=1;
+ let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;
+ let activePulse=1;
+ let fx=name?unitFX(name):null;
+
+ // Deterministic per-character idle timing offset.
+ // This MUST be initialized before any transform code references it.
+ let idlePhase=0;
+ if(name){
+   for(let i=0;i<name.length;i++)idlePhase+=name.charCodeAt(i)*(i+3);
+ }
+
+ if(active && !visual){
+   activePulse=1+Math.sin(performance.now()/170)*.018;
+ }
+
+ // PLAYER GROUND SHADOW — v0.5.18
+ // The sprite artwork is anchored with its feet at local y≈12. Keep the shadow
+ // directly on that contact point instead of floating well below the character.
+ // Width follows the same render scale used by the body so larger units receive
+ // a proportionally larger footprint without turning into a detached blob.
+ if(!isEnemy){
+   let liftRatio=clamp(lift/17,0,1);
+   let bodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let shadowW=clamp(10.5*bodyScale,10,18.5);
+   let shadowH=clamp(2.55*bodyScale,2.5,4.25);
+   let shadowAlpha=.24-.08*liftRatio;
+
+   ctx.save();
+   ctx.translate(x,y+11.5);
+   ctx.fillStyle=`rgba(0,0,0,${shadowAlpha})`;
+   ctx.shadowColor=`rgba(0,0,0,${.14+.04*(1-liftRatio)})`;
+   ctx.shadowBlur=1.5+4.5*liftRatio;
+   ctx.beginPath();
+   ctx.ellipse(0,0,shadowW,shadowH,0,0,Math.PI*2);
+   ctx.fill();
+   ctx.restore();
+ }
+
+ ctx.save();
+ ctx.translate(x,y-lift);
+
+ if(!visual){
+   let t=(performance.now()+idlePhase*5);
+   // Lebee's supplied idle sheet already contains floating motion.
+   if(name!=='Lebee'){
+     ctx.translate(0,Math.sin(t/420)*.55);
+     ctx.rotate(Math.sin(t/610)*.004);
+   }
+ }
+
+ if(fx){
+   let elapsed=performance.now()-fx.start;
+   if(elapsed<fx.duration){
+     if(fx.kind==='hit'){
+       let t=elapsed/fx.duration;
+       let bump=Math.sin(t*Math.PI);
+       ctx.translate((fx.dir||1)*7*bump,-1.6*bump);
+       ctx.rotate((fx.dir||1)*0.14*bump*(fx.strong?1.15:1));
+       scale*=1 + (fx.strong?.06:.035)*Math.sin(t*Math.PI*1.2);
+     }else if(fx.kind==='ko'){
+       let t=elapsed/fx.duration;
+       let ease=1-Math.pow(1-t,3);
+       ctx.translate((fx.dir||1)*(28*ease), -10*ease);
+       ctx.rotate((fx.dir||1)*(.72*ease));
+       scale*=1 - .18*ease;
+       ctx.globalAlpha=t<.6 ? 1 : 1-((t-.6)/.4);
+     }
+   }else if(S.anim?.unitFX){
+     delete S.anim.unitFX[name];
+   }
+ }
+
+ ctx.rotate(rot);
+ ctx.scale((flipX||1)*scale*activePulse,scale*activePulse);
+
+ // CPU enemies retain their small orientation shadow.
+ if(isEnemy){
+   ctx.beginPath();
+   ctx.ellipse(0,17,16,6,0,0,Math.PI*2);
+   ctx.fillStyle='rgba(0,0,0,.22)';
+   ctx.fill();
+ }
+
+ let sprite=name?SPRITES[name]:null;
+ let idleFrames=name?unitIdleFrames(name):null;
+ let attackState=(name&&S.anim?.attackPose)?S.anim.attackPose[name]:null;
+ let attackFrames=(name&&attackState)?unitAttackFrames(name,attackState.kind):null;
+
+ // Lebee has a real recoil sheet. Hit art temporarily overrides idle/attack art,
+ // but uses the same normalized canvas so her footprint stays stable.
+ if(!visual&&fx?.kind==='hit'&&HIT_SPRITES[name]?.length){
+   const hitElapsed=performance.now()-fx.start;
+   const hitProgress=clamp(hitElapsed/fx.duration,0,1);
+   const hitIndex=Math.min(HIT_SPRITES[name].length-1,Math.floor(hitProgress*HIT_SPRITES[name].length));
+   const hitSprite=HIT_SPRITES[name][hitIndex];
+   if(hitSprite?.complete&&hitSprite.naturalWidth>0)sprite=hitSprite;
+ }
+
+ // Attack art overrides idle only when a REAL, loaded attack frame exists.
+ // Previously every attack set attackState, which suppressed the idle art even
+ // for units such as Deezy that have no dedicated attack frames. The renderer
+ // then fell back to an older padded base sprite and the unit appeared to shrink.
+ let usingAttackSprite=false;
+ let attackProgress=0;
+ if(!visual&&attackState){
+   let elapsed=performance.now()-attackState.start;
+   attackProgress=clamp(elapsed/attackState.duration,0,1);
+
+   // Crimson's supplied sheet contains distinct idle / basic / Jutsu poses.
+   // Briefly hold the second idle pose as anticipation, then snap into the
+   // supplied action pose. This makes the frame change readable at phone scale
+   // instead of showing one static pose for the entire lunge.
+   if(name==='Crimson'&&idleFrames?.length){
+     const anticipation=attackState.kind==='special'?.16:.22;
+     if(attackProgress<anticipation){
+       let prep=idleFrames[Math.min(1,idleFrames.length-1)];
+       if(prep?.complete&&prep.naturalWidth>0){
+         sprite=prep;
+         usingAttackSprite=true;
+       }
+     }
+   }
+
+   if(!usingAttackSprite&&attackFrames?.length){
+     let frameIndex=Math.min(attackFrames.length-1,Math.floor(attackProgress*attackFrames.length));
+     let candidate=attackFrames[frameIndex];
+     if(candidate?.complete&&candidate.naturalWidth>0){
+       sprite=candidate;
+       usingAttackSprite=true;
+     }
+   }
+ }
+
+ // Keep the normalized idle animation visible whenever no valid attack frame
+ // is available. This guarantees a consistent battlefield footprint during
+ // lunges and Jutsu casts instead of silently swapping to legacy sprite art.
+ if(!usingAttackSprite && idleFrames?.length){
+   const idleMs=name==='Lebee'?520:185;
+   let frameIndex=Math.floor((performance.now()+idlePhase*7)/idleMs)%idleFrames.length;
+   let candidate=idleFrames[frameIndex];
+   if(candidate?.complete && candidate.naturalWidth>0)sprite=candidate;
+ }
+
+ let spriteRef=sprite?getRenderableSprite(sprite,name):null;
+ let dims=spriteDims(spriteRef);
+
+ if(spriteRef && dims.w>0 && dims.h>0){
+   let playerScale=isEnemy?1:1.07;
+   // v0.5.18: shared player scale; Crimson uses the same battlefield height target as Sub-Zero.
+   let playerRenderBonus=isEnemy?1:PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let h=(isEnemy?62:68)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus,
+       w=(isEnemy?42:48)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus;
+   let ratio=dims.w/dims.h;
+   if(ratio>0)w=h*ratio;
+   // Normalized action frames keep the exact same battlefield footprint as idle.
+
+   ctx.imageSmoothingEnabled=true;
+
+   // Deezy does not yet have a dedicated action-art pack. Give the existing
+   // sprite a real attack performance rather than simply translating the whole
+   // unit unchanged. Because this transform lives inside the already-facing
+   // coordinate system, it automatically follows his attack direction.
+   if(!visual&&attackState&&name==='Deezy'){
+     let p=attackProgress;
+     let strike=Math.sin(clamp(p/.78,0,1)*Math.PI);
+     let recoil=p>.72?Math.sin(((p-.72)/.28)*Math.PI)*.35:0;
+     let strength=attackState.kind==='special'?1.35:1;
+     ctx.translate((8.5*strength*strike)-(2.5*recoil),-2.2*strike);
+     ctx.rotate(-.105*strength*strike+.035*recoil);
+     let squash=1+.055*strike;
+     ctx.scale(squash,1-.028*strike);
+   }
+
+   if(active && !visual){
+     let elapsed=Math.max(0,performance.now()-(S.readyStarted||0));
+     let intro=Math.max(0,1-elapsed/230);
+     let breathe=.5+.5*Math.sin(performance.now()/190);
+
+     ctx.save();
+     ctx.globalCompositeOperation='source-over';
+     let crimson=name==='Crimson';
+     ctx.shadowColor=crimson?'rgba(255,58,86,.98)':'rgba(255,255,255,.98)';
+     ctx.shadowBlur=(crimson?9:6) + intro*10 + breathe*(crimson?4.5:2.5);
+     ctx.globalAlpha=.32 + intro*.35 + breathe*.08;
+     ctx.drawImage(spriteRef,-w/2,12-h,w,h);
+     ctx.restore();
+
+     if(intro>0){
+       ctx.save();
+       ctx.globalAlpha=.28*intro;
+       ctx.globalCompositeOperation='screen';
+       ctx.drawImage(spriteRef,-w/2,12-h,w,h);
+       ctx.restore();
+     }
+   }
+
+   ctx.globalAlpha=1;
+   ctx.drawImage(spriteRef,-w/2,12-h,w,h);
+
+ } else {
+   ctx.beginPath();
+   ctx.arc(0,0,16,0,Math.PI*2);
+   ctx.fillStyle=color;
+   ctx.fill();
+   ctx.strokeStyle='rgba(255,255,255,.82)';
+   ctx.lineWidth=1.3/Math.max(scale,0.01);
+   ctx.stroke();
+
+   ctx.fillStyle='#fff';
+   ctx.font='bold 11px system-ui';
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.fillText(label,0,0);
+ }
+
+ ctx.restore()
+}
 
 ===== animateLunge @ 41323022 =====
 function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
@@ -190,6 +436,26 @@ function facingFlip(rot,name=null){
  return dir;
 }
 
+===== normalShape =====
+NOT FOUND
+
+===== jutsuShape =====
+NOT FOUND
+
+===== hits @ 41280521 =====
+function hits(p,u,e){let s=u.shape,q=local(p,u,e),er=e.r||20;
+ if(s.type==='screen_rect')return e.x>=BATTLE_BOUNDS.left&&e.x<=BATTLE_BOUNDS.right&&e.y>=BATTLE_BOUNDS.top&&e.y<=BATTLE_BOUNDS.bottom;
+ if(s.type==='circle')return d(p,e)<=s.r+er;
+ if(s.type==='rect'){
+   const rq={x:q.x-(s.offset_x||0),y:q.y-(s.offset_y||0)};
+   return circleRect(rq,er,s.w/2,s.h/2);
+ }
+ if(s.type==='square')return circleRect(q,er,s.s/2,s.s/2);
+ if(s.type==='cross')return circleRect(q,er,s.l/2,s.t/2)||circleRect(q,er,s.t/2,s.l/2);
+ if(s.type==='donut'){let z=Math.hypot(q.x,q.y);return z+er>=s.i&&z-er<=s.o}
+ if(s.type==='cone'){let z=Math.hypot(q.x,q.y),ang=Math.abs(Math.atan2(q.y,q.x)),pad=Math.asin(Math.min(1,er/Math.max(z,.01)));return q.x+er>=0&&z-er<=s.r&&ang<=s.a/2+pad}
+ return false}
+
 ===== comboMembers @ 41321349 =====
 function comboMembers(enemy,initiatorPair){
  // Enemy argument is retained because the attack sequence calls this per target,
@@ -206,6 +472,1888 @@ function comboMembers(enemy,initiatorPair){
 
 ===== enemyComboMembers @ 41345219 =====
 UNTERMINATED
+
+===== attack pose reads: attackPose (32 hits) =====
+--- @ 41286307 ---
+ // directly on that contact point instead of floating well below the character.
+ // Width follows the same render scale used by the body so larger units receive
+ // a proportionally larger footprint without turning into a detached blob.
+ if(!isEnemy){
+   let liftRatio=clamp(lift/17,0,1);
+   let bodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let shadowW=clamp(10.5*bodyScale,10,18.5);
+   let shadowH=clamp(2.55*bodyScale,2.5,4.25);
+   let shadowAlpha=.24-.08*liftRatio;
+
+   ctx.save();
+   ctx.translate(x,y+11.5);
+   ctx.fillStyle=`rgba(0,0,0,${shadowAlpha})`;
+   ctx.shadowColor=`rgba(0,0,0,${.14+.04*(1-liftRatio)})`;
+   ctx.shadowBlur=1.5+4.5*liftRatio;
+   ctx.beginPath();
+   ctx.ellipse(0,0,shadowW,shadowH,0,0,Math.PI*2);
+   ctx.fill();
+   ctx.restore();
+ }
+
+ ctx.save();
+ ctx.translate(x,y-lift);
+
+ if(!visual){
+   let t=(performance.now()+idlePhase*5);
+   // Lebee's supplied idle sheet already contains floating motion.
+   if(name!=='Lebee'){
+     ctx.translate(0,Math.sin(t/420)*.55);
+     ctx.rotate(Math.sin(t/610)*.004);
+   }
+ }
+
+ if(fx){
+   let elapsed=performance.now()-fx.start;
+   if(elapsed<fx.duration){
+     if(fx.kind==='hit'){
+       let t=elapsed/fx.duration;
+       let bump=Math.sin(t*Math.PI);
+       ctx.translate((fx.dir||1)*7*bump,-1.6*bump);
+       ctx.rotate((fx.dir||1)*0.14*bump*(fx.strong?1.15:1));
+       scale*=1 + (fx.strong?.06:.035)*Math.sin(t*Math.PI*1.2);
+     }else if(fx.kind==='ko'){
+       let t=elapsed/fx.duration;
+       let ease=1-Math.pow(1-t,3);
+       ctx.translate((fx.dir||1)*(28*ease), -10*ease);
+       ctx.rotate((fx.dir||1)*(.72*ease));
+       scale*=1 - .18*ease;
+       ctx.globalAlpha=t<.6 ? 1 : 1-((t-.6)/.4);
+     }
+   }else if(S.anim?.unitFX){
+     delete S.anim.unitFX[name];
+   }
+ }
+
+ ctx.rotate(rot);
+ ctx.scale((flipX||1)*scale*activePulse,scale*activePulse);
+
+ // CPU enemies retain their small orientation shadow.
+ if(isEnemy){
+   ctx.beginPath();
+   ctx.ellipse(0,17,16,6,0,0,Math.PI*2);
+   ctx.fillStyle='rgba(0,0,0,.22)';
+   ctx.fill();
+ }
+
+ let sprite=name?SPRITES[name]:null;
+ let idleFrames=name?unitIdleFrames(name):null;
+ let attackState=(name&&S.anim?.attackPose)?S.anim.attackPose[name]:null;
+ let attackFrames=(name&&attackState)?unitAttackFrames(name,attackState.kind):null;
+
+ // Lebee has a real recoil sheet. Hit art temporarily overrides idle/attack art,
+ // but uses the same normalized canvas so her footprint stays stable.
+ if(!visual&&fx?.kind==='hit'&&HIT_SPRITES[name]?.length){
+   const hitElapsed=performance.now()-fx.start;
+   const hitProgress=clamp(hitElapsed/fx.duration,0,1);
+   const hitIndex=Math.min(HIT_SPRITES[name].length-1,Math.floor(hitProgress*HIT_SPRITES[name].length));
+   const hitSprite=HIT_SPRITES[name][hitIndex];
+   if(hitSprite?.complete&&hitSprite.naturalWidth>0)sprite=hitSprite;
+ }
+
+ // Attack art overrides idle only when a REAL, loaded attack frame exists.
+ // Previously every attack set attackState, which suppressed the idle art even
+ // for units such as Deezy that have no dedicated attack frames. The renderer
+ // then fell back to an older padded base sprite and the unit appeared to shrink.
+ let usingAttackSprite=false;
+ let attackProgress=0;
+ if(!visual&&attackState){
+   let elapsed=performance.now()-attackState.start;
+   attackProgress=clamp(elapsed/attackState.duration,0,1);
+
+   // Crimson's supplied sheet contains distinct idle / basic / Jutsu poses.
+   // Briefly hold the second idle pose as anticipation, then snap into the
+   // supplied action pose. This makes the frame change readable at phone scale
+   // instead of showing one static pose for the entire lunge.
+   if(name==='Crimson'&&idleFrames?.length){
+     const anticipation=attackState.kind==='special'?.16:.22;
+     if(attackProgress<anticipation){
+       let prep=idleFrames[Math.min(1,idleFrames.length-1)];
+       if(prep?.complete&&prep.naturalWidth>0){
+         sprite=prep;
+         usingAttackSprite=true;
+       }
+     }
+   }
+
+   if(!usingAttackSprite&&attackFrames?.length){
+     let frameIndex=Math.min(attackFrames.length-1,Math.floor(attackProgress*attackFrames.length));
+     let candidate=attackFrames[frameIndex];
+     if(candidate?.complete&&candidate.naturalWidth>0){
+       sprite=candidate;
+       usingAttackSprite=true;
+     }
+   }
+ }
+
+ // Keep the normalized idle animation visible whenever no valid attack
+--- @ 41286326 ---
+t contact point instead of floating well below the character.
+ // Width follows the same render scale used by the body so larger units receive
+ // a proportionally larger footprint without turning into a detached blob.
+ if(!isEnemy){
+   let liftRatio=clamp(lift/17,0,1);
+   let bodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1);
+   let shadowW=clamp(10.5*bodyScale,10,18.5);
+   let shadowH=clamp(2.55*bodyScale,2.5,4.25);
+   let shadowAlpha=.24-.08*liftRatio;
+
+   ctx.save();
+   ctx.translate(x,y+11.5);
+   ctx.fillStyle=`rgba(0,0,0,${shadowAlpha})`;
+   ctx.shadowColor=`rgba(0,0,0,${.14+.04*(1-liftRatio)})`;
+   ctx.shadowBlur=1.5+4.5*liftRatio;
+   ctx.beginPath();
+   ctx.ellipse(0,0,shadowW,shadowH,0,0,Math.PI*2);
+   ctx.fill();
+   ctx.restore();
+ }
+
+ ctx.save();
+ ctx.translate(x,y-lift);
+
+ if(!visual){
+   let t=(performance.now()+idlePhase*5);
+   // Lebee's supplied idle sheet already contains floating motion.
+   if(name!=='Lebee'){
+     ctx.translate(0,Math.sin(t/420)*.55);
+     ctx.rotate(Math.sin(t/610)*.004);
+   }
+ }
+
+ if(fx){
+   let elapsed=performance.now()-fx.start;
+   if(elapsed<fx.duration){
+     if(fx.kind==='hit'){
+       let t=elapsed/fx.duration;
+       let bump=Math.sin(t*Math.PI);
+       ctx.translate((fx.dir||1)*7*bump,-1.6*bump);
+       ctx.rotate((fx.dir||1)*0.14*bump*(fx.strong?1.15:1));
+       scale*=1 + (fx.strong?.06:.035)*Math.sin(t*Math.PI*1.2);
+     }else if(fx.kind==='ko'){
+       let t=elapsed/fx.duration;
+       let ease=1-Math.pow(1-t,3);
+       ctx.translate((fx.dir||1)*(28*ease), -10*ease);
+       ctx.rotate((fx.dir||1)*(.72*ease));
+       scale*=1 - .18*ease;
+       ctx.globalAlpha=t<.6 ? 1 : 1-((t-.6)/.4);
+     }
+   }else if(S.anim?.unitFX){
+     delete S.anim.unitFX[name];
+   }
+ }
+
+ ctx.rotate(rot);
+ ctx.scale((flipX||1)*scale*activePulse,scale*activePulse);
+
+ // CPU enemies retain their small orientation shadow.
+ if(isEnemy){
+   ctx.beginPath();
+   ctx.ellipse(0,17,16,6,0,0,Math.PI*2);
+   ctx.fillStyle='rgba(0,0,0,.22)';
+   ctx.fill();
+ }
+
+ let sprite=name?SPRITES[name]:null;
+ let idleFrames=name?unitIdleFrames(name):null;
+ let attackState=(name&&S.anim?.attackPose)?S.anim.attackPose[name]:null;
+ let attackFrames=(name&&attackState)?unitAttackFrames(name,attackState.kind):null;
+
+ // Lebee has a real recoil sheet. Hit art temporarily overrides idle/attack art,
+ // but uses the same normalized canvas so her footprint stays stable.
+ if(!visual&&fx?.kind==='hit'&&HIT_SPRITES[name]?.length){
+   const hitElapsed=performance.now()-fx.start;
+   const hitProgress=clamp(hitElapsed/fx.duration,0,1);
+   const hitIndex=Math.min(HIT_SPRITES[name].length-1,Math.floor(hitProgress*HIT_SPRITES[name].length));
+   const hitSprite=HIT_SPRITES[name][hitIndex];
+   if(hitSprite?.complete&&hitSprite.naturalWidth>0)sprite=hitSprite;
+ }
+
+ // Attack art overrides idle only when a REAL, loaded attack frame exists.
+ // Previously every attack set attackState, which suppressed the idle art even
+ // for units such as Deezy that have no dedicated attack frames. The renderer
+ // then fell back to an older padded base sprite and the unit appeared to shrink.
+ let usingAttackSprite=false;
+ let attackProgress=0;
+ if(!visual&&attackState){
+   let elapsed=performance.now()-attackState.start;
+   attackProgress=clamp(elapsed/attackState.duration,0,1);
+
+   // Crimson's supplied sheet contains distinct idle / basic / Jutsu poses.
+   // Briefly hold the second idle pose as anticipation, then snap into the
+   // supplied action pose. This makes the frame change readable at phone scale
+   // instead of showing one static pose for the entire lunge.
+   if(name==='Crimson'&&idleFrames?.length){
+     const anticipation=attackState.kind==='special'?.16:.22;
+     if(attackProgress<anticipation){
+       let prep=idleFrames[Math.min(1,idleFrames.length-1)];
+       if(prep?.complete&&prep.naturalWidth>0){
+         sprite=prep;
+         usingAttackSprite=true;
+       }
+     }
+   }
+
+   if(!usingAttackSprite&&attackFrames?.length){
+     let frameIndex=Math.min(attackFrames.length-1,Math.floor(attackProgress*attackFrames.length));
+     let candidate=attackFrames[frameIndex];
+     if(candidate?.complete&&candidate.naturalWidth>0){
+       sprite=candidate;
+       usingAttackSprite=true;
+     }
+   }
+ }
+
+ // Keep the normalized idle animation visible whenever no valid attack frame
+ // is avail
+--- @ 41323221 ---
+;
+     providers.push(result.provider.name);
+   }
+ });
+ return {bonus:total,ratio:bestRatio,providers};
+}
+
+function buffedNormalDamage(pair){
+ let u=front(pair);
+ let buff=totalLinkAttackBuff(pair);
+ return {
+   base:u.attack,
+   buff,
+   damage:window.BlazingCombatRuntime.computeBuffedNormalDamage(u.attack,buff.bonus)
+ };
+}
+
+function comboMembers(enemy,initiatorPair){
+ // Enemy argument is retained because the attack sequence calls this per target,
+ // but combo membership itself is determined only by ally-to-ally range linking.
+ if(!pairAlive(initiatorPair))return [];
+ ensureFront(initiatorPair);
+
+ return S.pairs.filter(pair=>{
+   if(!pairAlive(pair))return false;
+   ensureFront(pair);
+   return pair===initiatorPair || unitsMutuallyLinked(initiatorPair,pair)
+ })
+}
+let ACTION_WATCHDOG=null;
+let ACTION_SEQUENCE=0;
+let ACTIVE_ACTION_TOKEN=0;
+function clearActionWatchdog(){
+ if(ACTION_WATCHDOG){clearTimeout(ACTION_WATCHDOG);ACTION_WATCHDOG=null}
+}
+function beginActionToken(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+ return ACTIVE_ACTION_TOKEN;
+}
+function invalidateActions(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+}
+function actionTokenAlive(token){return token===ACTIVE_ACTION_TOKEN}
+function recoverAction(reason='animation timeout'){
+ console.warn('Blazing Battle recovered action:',reason);
+ invalidateActions();
+ S.anim=null;S.drag=false;S.dragVisual=null;S.dragOrigin=null;S.action='normal';S.ready=null;
+ if(aliveEnemies().length&&alivePairs().length){S.phase='charge';S._chargeSince=performance.now();S.log='Action recovered — turn meter resumed.'}
+}
+function armActionWatchdog(reason='combat action',token=ACTIVE_ACTION_TOKEN){
+ clearActionWatchdog();
+ ACTION_WATCHDOG=setTimeout(()=>{
+   if(actionTokenAlive(token)&&gameStarted&&(S.phase==='resolve'||S.phase==='cpu'))recoverAction(reason);
+ },2600);
+}
+function ensureAnimState(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.positions)S.anim.positions={};
+ return S.anim;
+}
+function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ let start=performance.now(),dur=175,backDur=145;
+ let anim=ensureAnimState();
+ if(!anim.attackPose)anim.attackPose={};
+ anim.attackPose[unitName]={kind:attackKind,start,duration:dur+150};
+ function go(now){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState();
+  let t=Math.min(1,(now-start)/dur),ease=1-Math.pow(1-t,3);
+  state.positions[unitName]={x:from.x+(to.x-from.x)*ease,y:from.y+(to.y-from.y)*ease};
+  if(t<1)return requestAnimationFrame(go);
+  try{onImpact&&onImpact()}catch(err){console.error('Attack impact callback failed:',err);return recoverAction('impact callback')}
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   let bs=performance.now();
+   function ret(n){
+    if(!actionTokenAlive(token))return;
+    let st=ensureAnimState();
+    let q=Math.min(1,(n-bs)/backDur),e=1-Math.pow(1-q,3);
+    st.positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+function addImpactFlash(x,y,color='#ffffff'){
+ let f={x,y,text:'✦',color,life:1,impact:true};
+ S.floaters.push(f);
+ let id=setInterval(()=>{
+   f.y-=.25;
+   f.life-=.07;
+   if(f.life<=0){
+     clearInterval(id);
+     S.floaters=S.floaters.filter(item=>item!==f);
+   }
+ },16);
+}
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are played by drawUnit via
+ // ATTACK_SPRITES['Sub-Zero'].freeze while he remains planted in place.
+ state.attackPose[unitName]={kind:'freeze',start:castStart,duration:castDuration+flightDuration};
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectileStart=performance.now();
+   const projectile={kind:'iceProjectile',from:{x:from.x+10,y:from.y-22},to:{
+--- @ 41323237 ---
+.push(result.provider.name);
+   }
+ });
+ return {bonus:total,ratio:bestRatio,providers};
+}
+
+function buffedNormalDamage(pair){
+ let u=front(pair);
+ let buff=totalLinkAttackBuff(pair);
+ return {
+   base:u.attack,
+   buff,
+   damage:window.BlazingCombatRuntime.computeBuffedNormalDamage(u.attack,buff.bonus)
+ };
+}
+
+function comboMembers(enemy,initiatorPair){
+ // Enemy argument is retained because the attack sequence calls this per target,
+ // but combo membership itself is determined only by ally-to-ally range linking.
+ if(!pairAlive(initiatorPair))return [];
+ ensureFront(initiatorPair);
+
+ return S.pairs.filter(pair=>{
+   if(!pairAlive(pair))return false;
+   ensureFront(pair);
+   return pair===initiatorPair || unitsMutuallyLinked(initiatorPair,pair)
+ })
+}
+let ACTION_WATCHDOG=null;
+let ACTION_SEQUENCE=0;
+let ACTIVE_ACTION_TOKEN=0;
+function clearActionWatchdog(){
+ if(ACTION_WATCHDOG){clearTimeout(ACTION_WATCHDOG);ACTION_WATCHDOG=null}
+}
+function beginActionToken(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+ return ACTIVE_ACTION_TOKEN;
+}
+function invalidateActions(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+}
+function actionTokenAlive(token){return token===ACTIVE_ACTION_TOKEN}
+function recoverAction(reason='animation timeout'){
+ console.warn('Blazing Battle recovered action:',reason);
+ invalidateActions();
+ S.anim=null;S.drag=false;S.dragVisual=null;S.dragOrigin=null;S.action='normal';S.ready=null;
+ if(aliveEnemies().length&&alivePairs().length){S.phase='charge';S._chargeSince=performance.now();S.log='Action recovered — turn meter resumed.'}
+}
+function armActionWatchdog(reason='combat action',token=ACTIVE_ACTION_TOKEN){
+ clearActionWatchdog();
+ ACTION_WATCHDOG=setTimeout(()=>{
+   if(actionTokenAlive(token)&&gameStarted&&(S.phase==='resolve'||S.phase==='cpu'))recoverAction(reason);
+ },2600);
+}
+function ensureAnimState(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.positions)S.anim.positions={};
+ return S.anim;
+}
+function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ let start=performance.now(),dur=175,backDur=145;
+ let anim=ensureAnimState();
+ if(!anim.attackPose)anim.attackPose={};
+ anim.attackPose[unitName]={kind:attackKind,start,duration:dur+150};
+ function go(now){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState();
+  let t=Math.min(1,(now-start)/dur),ease=1-Math.pow(1-t,3);
+  state.positions[unitName]={x:from.x+(to.x-from.x)*ease,y:from.y+(to.y-from.y)*ease};
+  if(t<1)return requestAnimationFrame(go);
+  try{onImpact&&onImpact()}catch(err){console.error('Attack impact callback failed:',err);return recoverAction('impact callback')}
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   let bs=performance.now();
+   function ret(n){
+    if(!actionTokenAlive(token))return;
+    let st=ensureAnimState();
+    let q=Math.min(1,(n-bs)/backDur),e=1-Math.pow(1-q,3);
+    st.positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+function addImpactFlash(x,y,color='#ffffff'){
+ let f={x,y,text:'✦',color,life:1,impact:true};
+ S.floaters.push(f);
+ let id=setInterval(()=>{
+   f.y-=.25;
+   f.life-=.07;
+   if(f.life<=0){
+     clearInterval(id);
+     S.floaters=S.floaters.filter(item=>item!==f);
+   }
+ },16);
+}
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are played by drawUnit via
+ // ATTACK_SPRITES['Sub-Zero'].freeze while he remains planted in place.
+ state.attackPose[unitName]={kind:'freeze',start:castStart,duration:castDuration+flightDuration};
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectileStart=performance.now();
+   const projectile={kind:'iceProjectile',from:{x:from.x+10,y:from.y-22},to:{x:enemy.x,y:enem
+--- @ 41323258 ---
+.name);
+   }
+ });
+ return {bonus:total,ratio:bestRatio,providers};
+}
+
+function buffedNormalDamage(pair){
+ let u=front(pair);
+ let buff=totalLinkAttackBuff(pair);
+ return {
+   base:u.attack,
+   buff,
+   damage:window.BlazingCombatRuntime.computeBuffedNormalDamage(u.attack,buff.bonus)
+ };
+}
+
+function comboMembers(enemy,initiatorPair){
+ // Enemy argument is retained because the attack sequence calls this per target,
+ // but combo membership itself is determined only by ally-to-ally range linking.
+ if(!pairAlive(initiatorPair))return [];
+ ensureFront(initiatorPair);
+
+ return S.pairs.filter(pair=>{
+   if(!pairAlive(pair))return false;
+   ensureFront(pair);
+   return pair===initiatorPair || unitsMutuallyLinked(initiatorPair,pair)
+ })
+}
+let ACTION_WATCHDOG=null;
+let ACTION_SEQUENCE=0;
+let ACTIVE_ACTION_TOKEN=0;
+function clearActionWatchdog(){
+ if(ACTION_WATCHDOG){clearTimeout(ACTION_WATCHDOG);ACTION_WATCHDOG=null}
+}
+function beginActionToken(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+ return ACTIVE_ACTION_TOKEN;
+}
+function invalidateActions(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+}
+function actionTokenAlive(token){return token===ACTIVE_ACTION_TOKEN}
+function recoverAction(reason='animation timeout'){
+ console.warn('Blazing Battle recovered action:',reason);
+ invalidateActions();
+ S.anim=null;S.drag=false;S.dragVisual=null;S.dragOrigin=null;S.action='normal';S.ready=null;
+ if(aliveEnemies().length&&alivePairs().length){S.phase='charge';S._chargeSince=performance.now();S.log='Action recovered — turn meter resumed.'}
+}
+function armActionWatchdog(reason='combat action',token=ACTIVE_ACTION_TOKEN){
+ clearActionWatchdog();
+ ACTION_WATCHDOG=setTimeout(()=>{
+   if(actionTokenAlive(token)&&gameStarted&&(S.phase==='resolve'||S.phase==='cpu'))recoverAction(reason);
+ },2600);
+}
+function ensureAnimState(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.positions)S.anim.positions={};
+ return S.anim;
+}
+function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ let start=performance.now(),dur=175,backDur=145;
+ let anim=ensureAnimState();
+ if(!anim.attackPose)anim.attackPose={};
+ anim.attackPose[unitName]={kind:attackKind,start,duration:dur+150};
+ function go(now){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState();
+  let t=Math.min(1,(now-start)/dur),ease=1-Math.pow(1-t,3);
+  state.positions[unitName]={x:from.x+(to.x-from.x)*ease,y:from.y+(to.y-from.y)*ease};
+  if(t<1)return requestAnimationFrame(go);
+  try{onImpact&&onImpact()}catch(err){console.error('Attack impact callback failed:',err);return recoverAction('impact callback')}
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   let bs=performance.now();
+   function ret(n){
+    if(!actionTokenAlive(token))return;
+    let st=ensureAnimState();
+    let q=Math.min(1,(n-bs)/backDur),e=1-Math.pow(1-q,3);
+    st.positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+function addImpactFlash(x,y,color='#ffffff'){
+ let f={x,y,text:'✦',color,life:1,impact:true};
+ S.floaters.push(f);
+ let id=setInterval(()=>{
+   f.y-=.25;
+   f.life-=.07;
+   if(f.life<=0){
+     clearInterval(id);
+     S.floaters=S.floaters.filter(item=>item!==f);
+   }
+ },16);
+}
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are played by drawUnit via
+ // ATTACK_SPRITES['Sub-Zero'].freeze while he remains planted in place.
+ state.attackPose[unitName]={kind:'freeze',start:castStart,duration:castDuration+flightDuration};
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectileStart=performance.now();
+   const projectile={kind:'iceProjectile',from:{x:from.x+10,y:from.y-22},to:{x:enemy.x,y:enemy.y-18},start:project
+--- @ 41324132 ---
+Timeout(ACTION_WATCHDOG);ACTION_WATCHDOG=null}
+}
+function beginActionToken(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+ return ACTIVE_ACTION_TOKEN;
+}
+function invalidateActions(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+}
+function actionTokenAlive(token){return token===ACTIVE_ACTION_TOKEN}
+function recoverAction(reason='animation timeout'){
+ console.warn('Blazing Battle recovered action:',reason);
+ invalidateActions();
+ S.anim=null;S.drag=false;S.dragVisual=null;S.dragOrigin=null;S.action='normal';S.ready=null;
+ if(aliveEnemies().length&&alivePairs().length){S.phase='charge';S._chargeSince=performance.now();S.log='Action recovered — turn meter resumed.'}
+}
+function armActionWatchdog(reason='combat action',token=ACTIVE_ACTION_TOKEN){
+ clearActionWatchdog();
+ ACTION_WATCHDOG=setTimeout(()=>{
+   if(actionTokenAlive(token)&&gameStarted&&(S.phase==='resolve'||S.phase==='cpu'))recoverAction(reason);
+ },2600);
+}
+function ensureAnimState(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.positions)S.anim.positions={};
+ return S.anim;
+}
+function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ let start=performance.now(),dur=175,backDur=145;
+ let anim=ensureAnimState();
+ if(!anim.attackPose)anim.attackPose={};
+ anim.attackPose[unitName]={kind:attackKind,start,duration:dur+150};
+ function go(now){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState();
+  let t=Math.min(1,(now-start)/dur),ease=1-Math.pow(1-t,3);
+  state.positions[unitName]={x:from.x+(to.x-from.x)*ease,y:from.y+(to.y-from.y)*ease};
+  if(t<1)return requestAnimationFrame(go);
+  try{onImpact&&onImpact()}catch(err){console.error('Attack impact callback failed:',err);return recoverAction('impact callback')}
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   let bs=performance.now();
+   function ret(n){
+    if(!actionTokenAlive(token))return;
+    let st=ensureAnimState();
+    let q=Math.min(1,(n-bs)/backDur),e=1-Math.pow(1-q,3);
+    st.positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+function addImpactFlash(x,y,color='#ffffff'){
+ let f={x,y,text:'✦',color,life:1,impact:true};
+ S.floaters.push(f);
+ let id=setInterval(()=>{
+   f.y-=.25;
+   f.life-=.07;
+   if(f.life<=0){
+     clearInterval(id);
+     S.floaters=S.floaters.filter(item=>item!==f);
+   }
+ },16);
+}
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are played by drawUnit via
+ // ATTACK_SPRITES['Sub-Zero'].freeze while he remains planted in place.
+ state.attackPose[unitName]={kind:'freeze',start:castStart,duration:castDuration+flightDuration};
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectileStart=performance.now();
+   const projectile={kind:'iceProjectile',from:{x:from.x+10,y:from.y-22},to:{x:enemy.x,y:enemy.y-18},start:projectileStart,duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   function fly(now){
+     if(!actionTokenAlive(token))return;
+     const t=Math.min(1,(now-projectileStart)/flightDuration);
+     if(t<1)return requestAnimationFrame(fly);
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Freeze Blast impact failed:',err);return recoverAction('freeze blast impact')}
+     const ice={kind:'frozenTarget',x:enemy.x,y:enemy.y,start:performance.now(),life:1};
+     S.floaters.push(ice);
+     setTimeout(()=>{
+       if(!actionTokenAlive(token))return;
+       S.floaters=S.floaters.filter(x=>x!==ice);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+       try{onDone&&onDone()}catch(err){console.error('Freeze Blast completion failed:',err);recoverAction('freeze bla
+--- @ 41324153 ---
+OG);ACTION_WATCHDOG=null}
+}
+function beginActionToken(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+ return ACTIVE_ACTION_TOKEN;
+}
+function invalidateActions(){
+ clearActionWatchdog();
+ ACTIVE_ACTION_TOKEN=++ACTION_SEQUENCE;
+}
+function actionTokenAlive(token){return token===ACTIVE_ACTION_TOKEN}
+function recoverAction(reason='animation timeout'){
+ console.warn('Blazing Battle recovered action:',reason);
+ invalidateActions();
+ S.anim=null;S.drag=false;S.dragVisual=null;S.dragOrigin=null;S.action='normal';S.ready=null;
+ if(aliveEnemies().length&&alivePairs().length){S.phase='charge';S._chargeSince=performance.now();S.log='Action recovered — turn meter resumed.'}
+}
+function armActionWatchdog(reason='combat action',token=ACTIVE_ACTION_TOKEN){
+ clearActionWatchdog();
+ ACTION_WATCHDOG=setTimeout(()=>{
+   if(actionTokenAlive(token)&&gameStarted&&(S.phase==='resolve'||S.phase==='cpu'))recoverAction(reason);
+ },2600);
+}
+function ensureAnimState(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.positions)S.anim.positions={};
+ return S.anim;
+}
+function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ let start=performance.now(),dur=175,backDur=145;
+ let anim=ensureAnimState();
+ if(!anim.attackPose)anim.attackPose={};
+ anim.attackPose[unitName]={kind:attackKind,start,duration:dur+150};
+ function go(now){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState();
+  let t=Math.min(1,(now-start)/dur),ease=1-Math.pow(1-t,3);
+  state.positions[unitName]={x:from.x+(to.x-from.x)*ease,y:from.y+(to.y-from.y)*ease};
+  if(t<1)return requestAnimationFrame(go);
+  try{onImpact&&onImpact()}catch(err){console.error('Attack impact callback failed:',err);return recoverAction('impact callback')}
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   let bs=performance.now();
+   function ret(n){
+    if(!actionTokenAlive(token))return;
+    let st=ensureAnimState();
+    let q=Math.min(1,(n-bs)/backDur),e=1-Math.pow(1-q,3);
+    st.positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+function addImpactFlash(x,y,color='#ffffff'){
+ let f={x,y,text:'✦',color,life:1,impact:true};
+ S.floaters.push(f);
+ let id=setInterval(()=>{
+   f.y-=.25;
+   f.life-=.07;
+   if(f.life<=0){
+     clearInterval(id);
+     S.floaters=S.floaters.filter(item=>item!==f);
+   }
+ },16);
+}
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are played by drawUnit via
+ // ATTACK_SPRITES['Sub-Zero'].freeze while he remains planted in place.
+ state.attackPose[unitName]={kind:'freeze',start:castStart,duration:castDuration+flightDuration};
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectileStart=performance.now();
+   const projectile={kind:'iceProjectile',from:{x:from.x+10,y:from.y-22},to:{x:enemy.x,y:enemy.y-18},start:projectileStart,duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   function fly(now){
+     if(!actionTokenAlive(token))return;
+     const t=Math.min(1,(now-projectileStart)/flightDuration);
+     if(t<1)return requestAnimationFrame(fly);
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Freeze Blast impact failed:',err);return recoverAction('freeze blast impact')}
+     const ice={kind:'frozenTarget',x:enemy.x,y:enemy.y,start:performance.now(),life:1};
+     S.floaters.push(ice);
+     setTimeout(()=>{
+       if(!actionTokenAlive(token))return;
+       S.floaters=S.floaters.filter(x=>x!==ice);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+       try{onDone&&onDone()}catch(err){console.error('Freeze Blast completion failed:',err);recoverAction('freeze blast completion')}
+    
+--- @ 41324973 ---
+(()=>{
+   if(actionTokenAlive(token)&&gameStarted&&(S.phase==='resolve'||S.phase==='cpu'))recoverAction(reason);
+ },2600);
+}
+function ensureAnimState(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.positions)S.anim.positions={};
+ return S.anim;
+}
+function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ let start=performance.now(),dur=175,backDur=145;
+ let anim=ensureAnimState();
+ if(!anim.attackPose)anim.attackPose={};
+ anim.attackPose[unitName]={kind:attackKind,start,duration:dur+150};
+ function go(now){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState();
+  let t=Math.min(1,(now-start)/dur),ease=1-Math.pow(1-t,3);
+  state.positions[unitName]={x:from.x+(to.x-from.x)*ease,y:from.y+(to.y-from.y)*ease};
+  if(t<1)return requestAnimationFrame(go);
+  try{onImpact&&onImpact()}catch(err){console.error('Attack impact callback failed:',err);return recoverAction('impact callback')}
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   let bs=performance.now();
+   function ret(n){
+    if(!actionTokenAlive(token))return;
+    let st=ensureAnimState();
+    let q=Math.min(1,(n-bs)/backDur),e=1-Math.pow(1-q,3);
+    st.positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+function addImpactFlash(x,y,color='#ffffff'){
+ let f={x,y,text:'✦',color,life:1,impact:true};
+ S.floaters.push(f);
+ let id=setInterval(()=>{
+   f.y-=.25;
+   f.life-=.07;
+   if(f.life<=0){
+     clearInterval(id);
+     S.floaters=S.floaters.filter(item=>item!==f);
+   }
+ },16);
+}
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are played by drawUnit via
+ // ATTACK_SPRITES['Sub-Zero'].freeze while he remains planted in place.
+ state.attackPose[unitName]={kind:'freeze',start:castStart,duration:castDuration+flightDuration};
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectileStart=performance.now();
+   const projectile={kind:'iceProjectile',from:{x:from.x+10,y:from.y-22},to:{x:enemy.x,y:enemy.y-18},start:projectileStart,duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   function fly(now){
+     if(!actionTokenAlive(token))return;
+     const t=Math.min(1,(now-projectileStart)/flightDuration);
+     if(t<1)return requestAnimationFrame(fly);
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Freeze Blast impact failed:',err);return recoverAction('freeze blast impact')}
+     const ice={kind:'frozenTarget',x:enemy.x,y:enemy.y,start:performance.now(),life:1};
+     S.floaters.push(ice);
+     setTimeout(()=>{
+       if(!actionTokenAlive(token))return;
+       S.floaters=S.floaters.filter(x=>x!==ice);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+       try{onDone&&onDone()}catch(err){console.error('Freeze Blast completion failed:',err);recoverAction('freeze blast completion')}
+     },freezeHold);
+   }
+   requestAnimationFrame(fly);
+ },castDuration);
+}
+
+
+function animateLebeeStarBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=320,flightDuration=300;
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={kind:'punch',start:performance.now(),duration:castDuration+flightDuration};
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectile={kind:'lebeeStarProjectile',from:{x:from.x,y:from.y-20},to:{x:enemy.x,y:enemy.y-12},start:performance.now(),duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   setTimeout(()=>{
+     if(!actionTokenAlive(token))return;
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error
+--- @ 41324990 ---
+onTokenAlive(token)&&gameStarted&&(S.phase==='resolve'||S.phase==='cpu'))recoverAction(reason);
+ },2600);
+}
+function ensureAnimState(){
+ if(!S.anim)S.anim={positions:{}};
+ if(!S.anim.positions)S.anim.positions={};
+ return S.anim;
+}
+function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ let start=performance.now(),dur=175,backDur=145;
+ let anim=ensureAnimState();
+ if(!anim.attackPose)anim.attackPose={};
+ anim.attackPose[unitName]={kind:attackKind,start,duration:dur+150};
+ function go(now){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState();
+  let t=Math.min(1,(now-start)/dur),ease=1-Math.pow(1-t,3);
+  state.positions[unitName]={x:from.x+(to.x-from.x)*ease,y:from.y+(to.y-from.y)*ease};
+  if(t<1)return requestAnimationFrame(go);
+  try{onImpact&&onImpact()}catch(err){console.error('Attack impact callback failed:',err);return recoverAction('impact callback')}
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   let bs=performance.now();
+   function ret(n){
+    if(!actionTokenAlive(token))return;
+    let st=ensureAnimState();
+    let q=Math.min(1,(n-bs)/backDur),e=1-Math.pow(1-q,3);
+    st.positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+function addImpactFlash(x,y,color='#ffffff'){
+ let f={x,y,text:'✦',color,life:1,impact:true};
+ S.floaters.push(f);
+ let id=setInterval(()=>{
+   f.y-=.25;
+   f.life-=.07;
+   if(f.life<=0){
+     clearInterval(id);
+     S.floaters=S.floaters.filter(item=>item!==f);
+   }
+ },16);
+}
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are played by drawUnit via
+ // ATTACK_SPRITES['Sub-Zero'].freeze while he remains planted in place.
+ state.attackPose[unitName]={kind:'freeze',start:castStart,duration:castDuration+flightDuration};
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectileStart=performance.now();
+   const projectile={kind:'iceProjectile',from:{x:from.x+10,y:from.y-22},to:{x:enemy.x,y:enemy.y-18},start:projectileStart,duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   function fly(now){
+     if(!actionTokenAlive(token))return;
+     const t=Math.min(1,(now-projectileStart)/flightDuration);
+     if(t<1)return requestAnimationFrame(fly);
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Freeze Blast impact failed:',err);return recoverAction('freeze blast impact')}
+     const ice={kind:'frozenTarget',x:enemy.x,y:enemy.y,start:performance.now(),life:1};
+     S.floaters.push(ice);
+     setTimeout(()=>{
+       if(!actionTokenAlive(token))return;
+       S.floaters=S.floaters.filter(x=>x!==ice);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+       try{onDone&&onDone()}catch(err){console.error('Freeze Blast completion failed:',err);recoverAction('freeze blast completion')}
+     },freezeHold);
+   }
+   requestAnimationFrame(fly);
+ },castDuration);
+}
+
+
+function animateLebeeStarBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=320,flightDuration=300;
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={kind:'punch',start:performance.now(),duration:castDuration+flightDuration};
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectile={kind:'lebeeStarProjectile',from:{x:from.x,y:from.y-20},to:{x:enemy.x,y:enemy.y-12},start:performance.now(),duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   setTimeout(()=>{
+     if(!actionTokenAlive(token))return;
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Lebee star blas
+--- @ 41325151 ---
+ions:{}};
+ if(!S.anim.positions)S.anim.positions={};
+ return S.anim;
+}
+function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
+ const token=ACTIVE_ACTION_TOKEN;
+ let start=performance.now(),dur=175,backDur=145;
+ let anim=ensureAnimState();
+ if(!anim.attackPose)anim.attackPose={};
+ anim.attackPose[unitName]={kind:attackKind,start,duration:dur+150};
+ function go(now){
+  if(!actionTokenAlive(token))return;
+  let state=ensureAnimState();
+  let t=Math.min(1,(now-start)/dur),ease=1-Math.pow(1-t,3);
+  state.positions[unitName]={x:from.x+(to.x-from.x)*ease,y:from.y+(to.y-from.y)*ease};
+  if(t<1)return requestAnimationFrame(go);
+  try{onImpact&&onImpact()}catch(err){console.error('Attack impact callback failed:',err);return recoverAction('impact callback')}
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   let bs=performance.now();
+   function ret(n){
+    if(!actionTokenAlive(token))return;
+    let st=ensureAnimState();
+    let q=Math.min(1,(n-bs)/backDur),e=1-Math.pow(1-q,3);
+    st.positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+function addImpactFlash(x,y,color='#ffffff'){
+ let f={x,y,text:'✦',color,life:1,impact:true};
+ S.floaters.push(f);
+ let id=setInterval(()=>{
+   f.y-=.25;
+   f.life-=.07;
+   if(f.life<=0){
+     clearInterval(id);
+     S.floaters=S.floaters.filter(item=>item!==f);
+   }
+ },16);
+}
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are played by drawUnit via
+ // ATTACK_SPRITES['Sub-Zero'].freeze while he remains planted in place.
+ state.attackPose[unitName]={kind:'freeze',start:castStart,duration:castDuration+flightDuration};
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectileStart=performance.now();
+   const projectile={kind:'iceProjectile',from:{x:from.x+10,y:from.y-22},to:{x:enemy.x,y:enemy.y-18},start:projectileStart,duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   function fly(now){
+     if(!actionTokenAlive(token))return;
+     const t=Math.min(1,(now-projectileStart)/flightDuration);
+     if(t<1)return requestAnimationFrame(fly);
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Freeze Blast impact failed:',err);return recoverAction('freeze blast impact')}
+     const ice={kind:'frozenTarget',x:enemy.x,y:enemy.y,start:performance.now(),life:1};
+     S.floaters.push(ice);
+     setTimeout(()=>{
+       if(!actionTokenAlive(token))return;
+       S.floaters=S.floaters.filter(x=>x!==ice);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+       try{onDone&&onDone()}catch(err){console.error('Freeze Blast completion failed:',err);recoverAction('freeze blast completion')}
+     },freezeHold);
+   }
+   requestAnimationFrame(fly);
+ },castDuration);
+}
+
+
+function animateLebeeStarBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=320,flightDuration=300;
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={kind:'punch',start:performance.now(),duration:castDuration+flightDuration};
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectile={kind:'lebeeStarProjectile',from:{x:from.x,y:from.y-20},to:{x:enemy.x,y:enemy.y-12},start:performance.now(),duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   setTimeout(()=>{
+     if(!actionTokenAlive(token))return;
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Lebee star blast impact failed:',err);return recoverAction('Lebee basic impact')}
+     const st=ensureAnimState();if(st.attackPose)delete st.attackPose[unitName];
+     setTimeo
+--- @ 41326172 ---
+positions[unitName]={x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+function addImpactFlash(x,y,color='#ffffff'){
+ let f={x,y,text:'✦',color,life:1,impact:true};
+ S.floaters.push(f);
+ let id=setInterval(()=>{
+   f.y-=.25;
+   f.life-=.07;
+   if(f.life<=0){
+     clearInterval(id);
+     S.floaters=S.floaters.filter(item=>item!==f);
+   }
+ },16);
+}
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are played by drawUnit via
+ // ATTACK_SPRITES['Sub-Zero'].freeze while he remains planted in place.
+ state.attackPose[unitName]={kind:'freeze',start:castStart,duration:castDuration+flightDuration};
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectileStart=performance.now();
+   const projectile={kind:'iceProjectile',from:{x:from.x+10,y:from.y-22},to:{x:enemy.x,y:enemy.y-18},start:projectileStart,duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   function fly(now){
+     if(!actionTokenAlive(token))return;
+     const t=Math.min(1,(now-projectileStart)/flightDuration);
+     if(t<1)return requestAnimationFrame(fly);
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Freeze Blast impact failed:',err);return recoverAction('freeze blast impact')}
+     const ice={kind:'frozenTarget',x:enemy.x,y:enemy.y,start:performance.now(),life:1};
+     S.floaters.push(ice);
+     setTimeout(()=>{
+       if(!actionTokenAlive(token))return;
+       S.floaters=S.floaters.filter(x=>x!==ice);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+       try{onDone&&onDone()}catch(err){console.error('Freeze Blast completion failed:',err);recoverAction('freeze blast completion')}
+     },freezeHold);
+   }
+   requestAnimationFrame(fly);
+ },castDuration);
+}
+
+
+function animateLebeeStarBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=320,flightDuration=300;
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={kind:'punch',start:performance.now(),duration:castDuration+flightDuration};
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectile={kind:'lebeeStarProjectile',from:{x:from.x,y:from.y-20},to:{x:enemy.x,y:enemy.y-12},start:performance.now(),duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   setTimeout(()=>{
+     if(!actionTokenAlive(token))return;
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Lebee star blast impact failed:',err);return recoverAction('Lebee basic impact')}
+     const st=ensureAnimState();if(st.attackPose)delete st.attackPose[unitName];
+     setTimeout(()=>{if(actionTokenAlive(token)){try{onDone&&onDone()}catch(err){recoverAction('Lebee basic completion')}}},90);
+   },flightDuration);
+ },castDuration*.48);
+}
+
+
+function animateSenkuChemicalReaction(unitName,from,target,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const meta=canonicalUnit('senku').abilities.jutsu.presentation||{};
+ const castDuration=meta.cast_duration_ms||680;
+ const flightDuration=meta.flight_duration_ms||420;
+ const impactDuration=meta.impact_duration_ms||620;
+
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={kind:'special',start:performance.now(),duration:castDuration};
+
+ if(meta.screen_dim_alpha){
+   S.jutsuDim={start:performance.now(),alpha:meta.screen_dim_alpha,end:null};
+ }
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+
+   const projectile={
+     kind:'senkuChemProjectile',
+     from:{x:from.x,y:from.y-30},
+     to:{x:target.x,y:target.y-10},
+     start:performance.now(),
+     duration:flightDuration,
+   
+--- @ 41326193 ---
+x:to.x+(from.x-to.x)*e,y:to.y+(from.y-to.y)*e};
+    if(q<1)return requestAnimationFrame(ret);
+    delete st.positions[unitName];
+    if(st.attackPose)delete st.attackPose[unitName];
+    try{onDone&&onDone()}catch(err){console.error('Attack completion callback failed:',err);recoverAction('completion callback')}
+   }
+   requestAnimationFrame(ret)
+  },65)
+ }
+ requestAnimationFrame(go)
+}
+function addImpactFlash(x,y,color='#ffffff'){
+ let f={x,y,text:'✦',color,life:1,impact:true};
+ S.floaters.push(f);
+ let id=setInterval(()=>{
+   f.y-=.25;
+   f.life-=.07;
+   if(f.life<=0){
+     clearInterval(id);
+     S.floaters=S.floaters.filter(item=>item!==f);
+   }
+ },16);
+}
+function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=340;
+ const flightDuration=420;
+ const freezeHold=520;
+ const totalDuration=castDuration+flightDuration+freezeHold;
+ const castStart=performance.now();
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ // The four user-supplied cast frames are played by drawUnit via
+ // ATTACK_SPRITES['Sub-Zero'].freeze while he remains planted in place.
+ state.attackPose[unitName]={kind:'freeze',start:castStart,duration:castDuration+flightDuration};
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectileStart=performance.now();
+   const projectile={kind:'iceProjectile',from:{x:from.x+10,y:from.y-22},to:{x:enemy.x,y:enemy.y-18},start:projectileStart,duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   function fly(now){
+     if(!actionTokenAlive(token))return;
+     const t=Math.min(1,(now-projectileStart)/flightDuration);
+     if(t<1)return requestAnimationFrame(fly);
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Freeze Blast impact failed:',err);return recoverAction('freeze blast impact')}
+     const ice={kind:'frozenTarget',x:enemy.x,y:enemy.y,start:performance.now(),life:1};
+     S.floaters.push(ice);
+     setTimeout(()=>{
+       if(!actionTokenAlive(token))return;
+       S.floaters=S.floaters.filter(x=>x!==ice);
+       const st=ensureAnimState();
+       if(st.attackPose)delete st.attackPose[unitName];
+       try{onDone&&onDone()}catch(err){console.error('Freeze Blast completion failed:',err);recoverAction('freeze blast completion')}
+     },freezeHold);
+   }
+   requestAnimationFrame(fly);
+ },castDuration);
+}
+
+
+function animateLebeeStarBlast(unitName,from,enemy,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const castDuration=320,flightDuration=300;
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={kind:'punch',start:performance.now(),duration:castDuration+flightDuration};
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   const projectile={kind:'lebeeStarProjectile',from:{x:from.x,y:from.y-20},to:{x:enemy.x,y:enemy.y-12},start:performance.now(),duration:flightDuration,life:1};
+   S.floaters.push(projectile);
+   setTimeout(()=>{
+     if(!actionTokenAlive(token))return;
+     S.floaters=S.floaters.filter(x=>x!==projectile);
+     try{onImpact&&onImpact()}catch(err){console.error('Lebee star blast impact failed:',err);return recoverAction('Lebee basic impact')}
+     const st=ensureAnimState();if(st.attackPose)delete st.attackPose[unitName];
+     setTimeout(()=>{if(actionTokenAlive(token)){try{onDone&&onDone()}catch(err){recoverAction('Lebee basic completion')}}},90);
+   },flightDuration);
+ },castDuration*.48);
+}
+
+
+function animateSenkuChemicalReaction(unitName,from,target,onImpact,onDone){
+ const token=ACTIVE_ACTION_TOKEN;
+ const meta=canonicalUnit('senku').abilities.jutsu.presentation||{};
+ const castDuration=meta.cast_duration_ms||680;
+ const flightDuration=meta.flight_duration_ms||420;
+ const impactDuration=meta.impact_duration_ms||620;
+
+ const state=ensureAnimState();
+ if(!state.attackPose)state.attackPose={};
+ state.attackPose[unitName]={kind:'special',start:performance.now(),duration:castDuration};
+
+ if(meta.screen_dim_alpha){
+   S.jutsuDim={start:performance.now(),alpha:meta.screen_dim_alpha,end:null};
+ }
+
+ setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+
+   const projectile={
+     kind:'senkuChemProjectile',
+     from:{x:from.x,y:from.y-30},
+     to:{x:target.x,y:target.y-10},
+     start:performance.now(),
+     duration:flightDuration,
+     life:1
+   };
+   S.f
+
+===== attack sprite reads: ATTACK_SPRITES (18 hits) =====
+--- @ 24622511 ---
+ntById('rareExampleImg'),superExampleImg=document.getElementById('superExampleImg'),legendaryExampleImg=document.getElementById('legendaryExampleImg');
+const pullRareExampleImg=document.getElementById('pullRareExampleImg'),pullSuperExampleImg=document.getElementById('pullSuperExampleImg'),pullLegendaryExampleImg=document.getElementById('pullLegendaryExampleImg'),pullBannerLebeeImage=document.getElementById('pullBannerLebeeImage');
+const pullSparkField=document.getElementById('pullSparkField'),pullCardImage=document.getElementById('pullCardImage'),pullRarity=document.getElementById('pullRarity'),pullName=document.getElementById('pullName'),pullStars=document.getElementById('pullStars'),pullMessage=document.getElementById('pullMessage');
+const pullResultsPanel=document.getElementById('pullResultsPanel'),pullResultsGrid=document.getElementById('pullResultsGrid'),returnToSummonsBtn=document.getElementById('returnToSummonsBtn');
+let gameStarted=false;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const BATTLE_BOUNDS={left:24,right:W-24,top:70,bottom:H-42};
+const MAP_ZOOM=1.095;
+const UNIT_RENDER_SCALE=1.14;
+const PLAYER_RENDER_BONUS=1.09;
+const CRIMSON_RENDER_BONUS=1.00;
+const UNIT_TOUCH_RADIUS=62;
+const MOVE_CANCEL_RADIUS=10;
+const MOVE_RETURN_HINT_RADIUS=24;
+function clampToBattlefield(pos){
+ return {
+   x:clamp(pos.x,BATTLE_BOUNDS.left,BATTLE_BOUNDS.right),
+   y:clamp(pos.y,BATTLE_BOUNDS.top,BATTLE_BOUNDS.bottom)
+ };
+}
+const COLORS=['#8b5cf6','#22c55e','#0ea5e9'];
+const SPRITE_DATA=window.BLAZING_ASSETS.sprites;
+const SPRITES={};
+for(const [name,src] of Object.entries(SPRITE_DATA)){
+  const img=new Image();
+  img.src=src;
+  SPRITES[name]=img;
+}
+
+const CARD_DATA=window.BLAZING_ASSETS.cards;
+const IDLE_DATA=window.BLAZING_ASSETS.idle;
+const VICTORY_IMAGE=new Image();
+VICTORY_IMAGE.src=(window.BLAZING_ASSETS.fx&&window.BLAZING_ASSETS.fx.victory)||'';
+
+const IDLE_SPRITES={};
+for(const [name,frames] of Object.entries(IDLE_DATA)){
+  IDLE_SPRITES[name]=(frames||[]).map(src=>{
+    const img=new Image();
+    img.src=src;
+    return img;
+  });
+}
+
+function makeImageFrames(list){return window.BlazingFrameRuntime.loadFrames(list);}
+const ATTACK_SPRITES={
+  Crimson:{
+    punch:makeImageFrames(["data:image/png;base64,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
+--- @ 28586076 ---
+iFU7zwC/fDc8/dL9xmmjGEgOvra0xTvID99PRU1IX/H/mywZkY/OlhhAItjIzYreMoR/NKOdr4NdPljbbeoTWsLQcr8HxIfbAdiPTv4mCtHHgsy4FEDt6JeKnKw9+q7DhQ3h/vLjZEDXjt5AQPKJQFM+rY5VFLJjWI3qdx/pqo5flyH/eA+cakmiA+WxmE167INtCp2KpMYgVyy4qFHhBx3sX2cp1yXgXCCOifKVwUofWh1u4bjns23nlXfYBVXxJ5rLJePPP9wHubeP2QB7u5tsHKmfL3ZA9AOS8qii2AUoOOPMq3rCcmgOnZlpqUsCYrxA43Y+LKk8pcHdYy2AhxIdmDDDut6DdjcLZJNR0bzsen5LhD2t9thvTcpvhOKg7z610eNeZ16bNdVFZr8uN7rlxE0p5EfEsWpvy+FqHlW4p2JniSTorBRZLZgJXWQFXnIXYchOO8ZgHHGy2w590jptW0al2sz5WYZCfBg10fUdyID0bimLWEkRLI0PgmrPTn2hc1131wWfmHvvKWP82kolOwe21Gpx7lhEenXB4HlZu+RJ+CHRfS44QNSEAsVrNnmqDgkqZdF9uzwzbTaYCUU0AvNCIiUR155XtJd8nvrJm4aXSrNzGuG6iMV4Hsvk2W3H8Wmw9pHOM3uCf/0uK6m0+IT2zRS8oqTuAk/9+4S9EMJbMHfjfXxdVDDROW8Jah0+X4cvL3ReNIRkshC7tHzYA6rD18nSv6akENfgzebStFj+MLq54daXwdMkpmJS+T3IqqyMpiIEs7Rt0WhuWPv7BXA8HhcGA7jeJl5rthB4SAe3efwSsPXg2vPni1zNgfjxOuri6xv9nj6uqapnnCPBHCGPD48SXe/L//xfd/8D38yxv/iiePH+PyyRM8+sn/Y39zg/k4Ia+ZDUE1LteUVEmapfMvO6pmwjiO2I0jzi/OcXZ2hou7d3B2doY7d+7ipZdewmu/8RpeeP4F3Lt3D2dn5zg9O8fJyUm4OL/A+dkpTsYdhnEsjmc6HvH48RMMQ9TsIt4wYBwHzHPa8RX0LhO5ghwDkboLAMbljBq0kA7ush+16w5oSbS5jUKrUy3UOrItdNCzo0qyWRGyclsBTOZzDVyVqerWr4yY6e5UYOvWy8hbcirgN7HJ/p4HwjzQcGLBAkNVH500gNY6ifp9GSAItsnHtw1YZunZd7lDTOqFfTzCetZx0KYkhvxWBheLOgfk2CoO114JGrmBmihnQVqHbkUadoFN/kDZGQz9baTxWQqATNV+Vq0IGgOkp7Ua3qpXZeZZziJnbay88TZPyK0fSSz6JAtttZl89M1EcaloV43UV+QNBLC2epLNez2x6S24xZe9YipnEBMfOd0qxAZCoBQbQupeRS+q3nr9WbdC7+cxYE6NQSXAGQhmk29alifWO/INulGW2sNxo2JHMtqYuHicLcgylGRpXZALOvpyPw2faEGuDe8JpI7DqOKh/iBBnaDqMczlOHNPp9cpkWzGHnKwk5a/eb9AsY3Zdcymf1in52d9VJyeBTu+5d2GPI4uXY+gWBvCyJzmxLy5RUOPN/pXQbxXSYRK1tbNvBXkjyEFk8C7Kecyto8ZUeVJspU+Yln4X4uMJPgupyDH0k4WoSKWDWSdKtNCjV+vqUxaBU7NjlfeJKF5zUnGTbfRiTKgKkTUe1L3Y3VINWpJDFOj0O9d/1JLtpl+CmCMyuIn5wDTAAAAAElFTkSuQmCC"]),
+    // No dedicated Jutsu/casting sprite exists in the supplied Sub-Zero pack yet.
+    // Keep the idle/cast body visible rather than incorrectly reusing the punch frame.
+    special:makeImageFrames([])
+  }
+};
+
+
+// v0.5.18 — grounded sprite / attack presentation pass.
+// Uses the user-supplied Crimson sheet: frame 3 for basic strikes and frame 4 for Jutsu/cast.
+// Runtime frames are normalized to a shared canvas so Crimson does not change footprint mid-action.
+ATTACK_SPRITES.Crimson={
+  punch:makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFoCAYAAAAmbyLxAAEAAElEQVR42uy9Z7xeVZn3/11r7XrX009yctJDC0UBCShqgiKioI46AQuKNdjQYRx11HGOGbuPiowOAg4qKqJEx4bISJGIggKhcyAhlNTTy113X+v/4j7JOD7OjFP+z1j29/M5L5IcksPe+/7ta13ld0FOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk7OnwgbN250AM4444yLLrjgAvPWt771ZQAjIyNWfnVycnL+qFm8eHFhZGTEAT6/es1q8/SnP/1lAOvXr88FMOePFplfgj9tjj/+eBvgGSc/42M333hTJKV8neu6eJ5n51cnJxfAnD9qSqWSe8455xRvuukmd+vPbzHLly1r/flL/7x16qmnJgAbNmzIL1JOTs4fF+eee64H8J53vecTT3/qyQZoVSsV09/T/5r/6svx//yf/1N88YtfPNDd3V0dGhrqBSqvfOUrK8YYkV/xnN9H8vzOnybiiiuuSABny5YthSBoZ0B6xGFHcMQRh/nLVq6Uo6Oj1pYtW+J/7y8xxgghhNm0aVPfbbfdlt1333333XzzzcNZliGESNasWWNHUcSrX/3qPmAmv+w5OTn/6+IHSGOMc9xxx/390OJFpqtcCR3bzl79qlcF3/32t18FcOmll9r/kfgB4vrrr6++6U1vemzNmjUGSAuFgl66dOk0oD7/+c//4ulPf/p4tVrtyi97Tk7O/7r4jYyMOO985zuLH/zgBy/auHGjGejvD5YuGY7WPeWE+rNPefar4bdWfsWvfTEyMiIBfvrTn3b93d/93aPr1q3TQKiUCs8777yp++67bxBQ+eXOycn5veH00093Ad7znvf8zUknnWQcx2k96ZhjwsG+AWNJ67wF8fN+i/j9X1x33XU9F1988SNDQ0MGSH3fNytWrDDA4AGxHBkZsfI2mpzfZ/K39B/nERfAPvnkk4847rjjvO3bt9c3btyofvCDH6QnnXSSPzw8/JwgCE6anZ0VSZyQZZll2+qfgzC8fdeuXelvCt/IBRf0NJOkPwzD6ote9KLBtWvXFvfs2bP1pz/96SEPP/xwalmWesYznrFbCFEvFotXzc7OzgFs3bpV79q1S+e3JCcn5/+V+FlXX311aeXKlRcsX77cnHLKKZ868IfGGO/UZ536D8c9+VhzyKrV4dIlw8aSKhpatNise8q6v/vQhz608qqrrjrUGOMB/OR7Pxl6xStesep5pz339mOOPtoMDg6a9evXm2c961lGKWUADbT7+/sNsDS//Dl5BJjzv8amTZvsbdu2pS972ctO7+rq+sq111772ccff/yd733ve/uPO/LIJV/92tfeU2803n7br37ZrlaqvjGGcrms0jRl0aJF65VU77At6/yrt1ztPfroo7v6Bruv2v3E7v9zx513LDaGxLIsvWf3nmzf/n2Z67oySRKzaNEiZ/ny5XvWrFnzrWKxWJ+amjKAye9Gzh/ScSnnj4CNGzeqffv2Ffr7+1/V3d190d69ey+fm5s7//Wvf/3Hb/nZz//yW9+8iuHhpdnc3KxyXZeBgQGUsjBG02g0siiKtTap8TzXsW2bWm0ezy3Evl+wASGlxLJt2kGb+fl5E4aheNe73rV78+bNTxFCTI2MjMjNmzfnR96cXABz/t+yfv16a8OGDfoHP/jBWfPz81etXXuEed3rXvul7373+/dkWfa5X952W6NRrxcsy1aO4+B5HkopwCCFxLItpFQICVKKNE1TLaW02q1ARlGMUgpjDHGSoI02MzMz0dq1a/ffddddTwMm6TROZ/mdyMmPwDn/z9m1a5feunWr0XF7cb1Rf5lt2/Hhhx++bt/ePc//yT9fl5bLJT8IA1ks+nR3d1GulLBshQQKvosEpADHdYiiSM7NzalGoyHiOAahUZaFFJJ2u019vh5
+--- @ 29047567 ---
+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"])
+};
+ATTACK_SPRITES['Sub-Zero']={freeze:makeImageFrames(["assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_01.png","assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_02.png","assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_03.png","assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_04.png"])};
+// v0.6.7: restore approved Sub-Zero normal attack alongside Freeze Blast.
+ATTACK_SPRITES['Sub-Zero'].punch=makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABKcAAAOeCAYAAADWUnOWAAEAAElEQVR4nNz9eaBtSVUfjn9q73POvffdN/R7r+duaGZsRAERRBFBv2oSv9FERVHjEDUx36hJHINRk2iMGodonGfFIA4xaAyCIgIGf8YBEJB57m66mx7e637zHc7Ze33/2DWsVbWqdu1z78P8vtV93z1n76pVq6rW8Fmrau9rrly5DCIAAIgIs9kMi8UCSSH3jwFMevsgZW9vD13XebrmsDtQyubmJoxZsx83YRPar1Yr7O/vi2u8uePFkS6VuNdcE22MxDpJxk8V68s7i+p1XYf9/b1wO5kfjXAgWDP2uCwWC8xmM9A6jRM2qGpNd3Z24oa2GPHRsCrrckdE2NhYoG1bFBeGsl8myakru7u7k+dU64aTMP4feY8ImM3avN25SuZgf7mPbrWCMSaRvSm2IZ6n0JbCGDEMY9BJ4KoNKipd12Fvby/iy5WCMk8tZiBHRF4ns10BgFEWVgjLNH6kTmZYdDY2Ukg+LzmZF9cJaOczbGjyOqVU+BFCmKq9vT30fc/uuHJ4suRkk4jQNA02Njaq2vn5MQfz386H5H2HXJ+DmH0isvZ1A7PZbOiTKGuruQysjR1s2d/fx2q1csTSGWN8yK70fsd4M8Zgc3NzXXbXKqvVCvvL/Yw8JAZB+ZT3m4OYRtiGCPPFHLN2praJKltCig06oO05mGzoeu3Wl4gwm8+xmM+n0fRkC7bGkLpWBGDJ5RX5MZoY+Hj+WZ1ogbU1NsZgY2NjzblkRCe0X66WWC2XmGpPVdzj/ymVwfY0TVvfmYbzDtFXOlLr2VU/6eGKt69tPc2UjF4nZ1YMYW9vH13XJVNjYv74vczYx3BtEb/GzAnaDo+M9+cBlgFef8c+vefhffzD2zdNS6vJEHkc16e2uZQbcPQO6hO14nIDB6cdYXQx9wRn+ZyfNEmLEtnpPsPzYYDlcon9/WXgLEMqhQERlxTLs45rnU4OMeXEMiY7EfNO3wjE7E7e9/PSTOAqQ/j/n8tHbixFgzBRsCnzeXLj9SoMJcMyMQVJx3x15vvAiamByuHS0D9OLuvZvELQ/7dYBGDTwGrM51UwORq2Oxz50UoA6gKP/5+xHIdbJo1pJFtbKfRJ4r12YjNmKdte86WkXF+3lPimXEcm+n14rKyjD24tDB0OP3keOOA6lK5E4F9D8jBGSJEX599jPsbGGXNdlWD9CBSDUqLyoMnwjO7X6KWfhwKIOUC56tM8uYNxW+ES9omMDAbBJ3JZgzydqEJibict1TqT6ZzuxCQTzGSTrnYx2TccpjOp7/HqUQyfp2y6F0lW35epmhykTJpPNEfyYEFlo4TfnJ1W7hibAALwhjv38Otva/Hh3YZmTQNjYH+M/Rnjvfb0QbiWbfL/GSwbMED4Vt/uYN2yjZlqOdQ3Eaq7je15dbfr5CrCvzV9uhqznnuKCUwFo3PI0kkp2Bo6BEDV+Uy9uOSzkc5a35NNm4YvBSfm0+8uXxgux7ub/qBSDEbj/niW1+3s8UyoMr7cuoRlVISsRvBqZJMIPRwwdaPhv+VHdcXZxKn+305ecmoFdRKSzLHhBoLd8fM9NOCBTJ6ycmUtO+BO9JjEybsdyoQP4+YgyKFzbO5+lpfCPbdC8Wp4mYSc0/A5rk9y
+--- @ 29048022 ---
+VIucDc0gJOzc/Acz1kQoAaDJnIYJ7ZzKJKwjQNOI6DrmIRpmFisV5DxDm4zFY2oDodgCtYjoMwiOWhQ4+Yb/q1XTfdd9/f2P5XvnTz64b3WyMjQ/pIkk6AZ4d2u52maSrWDqyV5285D2nQBpESRd/BwEAfCsUupJlAxDkSAFwqLFVrCDsBcq4LphTCegMkSOBSC9ykkJaJyYWZ7NjR51TKU9LstOI3X/om33W8HSfnpp68bPtlF3/5oW/gj//0T54dHFjV9dCXv/zLBw8enN2wYYOlLIPIhCpiGiAGS+v1+ny9Xtcj72XCOBJSKXjFnOFaDpTIwCkwOT+HjBBkACRPQSkghESMGD3FIhzXRZqmoJSit78PS40aMrXyfInTBFIqMGYgTTkgJRVCJooLe2Fhzv/Agw9mV1/t6Wr8FeysWYR/8ZjDNddc885MiLtPHDuZWYYF17ZQyufR3VNEPpeDYZqgBoOUQMIlAIJms4VGrQGoDEoIZIID2UoFAcbQTmP4hTzz8jkYhoFKqRtxGL7pjnvvOjQ8PExHRkYkADz66KOlSqXCtm7duvwTxFxXf2eMjo7azXojfnjs7xF2OpkII7iejzBOcezUCdbbNwAJCS44XNeGY9tgFPBsE4wxCJHBsizYlo2EpxBEIY5jZKkAoQbiIABPUsRxeibsJN3+xu3itRddfPP7PviBm4eHh82RkRFdBeoK8BfXi2e8lpeX/+cll1zw+b8f+8a7kjT5CKEEjAKErez4KiUgMgUiCSgYoCiQKYABChJMSoAqwDABpQBF4XgeXNe9/IqrrngsSWxy0UWb1dvf/vb6mf/74nSWXHbZZfWXJTr1Q5KfTnwvc8MNNyS333572S943SefP3m84PlQPEGt00aaxdJ0bWowhrmZGeRdBwYITIOCEoosTUAURRLFqC5XlRBcAoRYlkUNxkAFR95yEXKFTtSG7/voBB0sLyx5YRgWAKharaZ343UCPDscPHgwPHjwYAjgLwH8txcf+f+WdcUyKZPJmcnWxz/+8R/5vR/zt676foTrrruuDqBeLpeLgrpEZom68j9d3p/zu47ef///SHrK3faGdesQtZrocn0QCMzPziGKAsiMIIhDWJZNPNdhBgHatTqSNIFpWLANC6Zlob/cjUqlG9PzczCgYDKid+N1AjxrZQB+KpeP1mo1PVL+ndRqtdaL8T5x4kTrXe/6ky3r1609+szhw+lv7HyzNTs1jULOBwRH07Kwfs1aGKaVDfT1sXKl8q1P3nPnm29697t/x2TGXz99ZCJu1hvO8lINlUoFpuNAKoVTk5Not9uq3eqsPJCOH9eB1wlQ037ukE9/+pPHbr3l1q27dr7puXvvuSftr1QsLk0oleGCbduwaeNGmKbJZMpR7um55L5PfLLWarWNpaVFFIsFx3VdVPr6oShFEMWYmZlGBtBNWzeTYk955UWAc88FxsZ0tF+JA0yHQPsFGKPqom3btrwwPf3cUr2eupRanu/CMkxYzIDgHJkQMBiDBJAJAS7Eyk09hgmpCAhjaAYdXunrNdefs+G2rdvOf+/s7Kx5ZrlE0wlQ036+k+DHPvaxC7uK+cNLc/Pp/PyC1azXkfN82LYNKSUYo1BqZVlP4czFFJSCUQrXz/H+wUGzHXbu+tDw8B8O33gj05cjaJqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqmaZqm/eL6ZywdZvxlEdOgAAAAAElFTkSuQmCC"])
+};
+ATTACK_SPRITES['Sub-Zero']={freeze:makeImageFrames(["assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_01.png","assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_02.png","assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_03.png","assets/characters/subzero/sprites/runtime/jutsu/freeze_blast/cast/frame_04.png"])};
+// v0.6.7: restore approved Sub-Zero normal attack alongside Freeze Blast.
+ATTACK_SPRITES['Sub-Zero'].punch=makeImageFrames(["data:image/png;base64,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
+--- @ 31762279 ---
+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"]);
+ATTACK_SPRITES.Lebee={
+  punch:makeImageFrames(["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAYAAAB+TFE1AAEAAElEQVR4nOz9d5idV3nv/7/XWk/bbXrXqPfi3rtNMdimJki0hNQvJgklh5BCOInswElCJ5icgIHQiyUMobgEMLbB3ZJt2epdGknTZ3Z/9tPW+v6xRU77ne8vIeQYcdbrunRdumZG0szo0b611rrX5wbLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsizLsqxfGOL5/gQs6xfB5s2bnbm5OXXPPQeAg//y9htuuIGrrroq3bhxI/fcc4/z8Y/fAxz4l/e//e1vJ5fLZdddd136f/6ztizLsn4pGGPEli1bvBUrVvj/3t/rbW97m2+Msf/Bs6x/B/sPyLKA8fHx6+742h0vu/POb6XlctkJwyZdXV3p61+/ybnxZS/72po1a7Kpqdlfe99f/U16+OhhJ0lihgb70z98xzuc8y44914hxA8AsWXLFnfTpk3x8/31WNaZyBYk6/8axhi5detW8cMf/lDefvvtqTGmeP+PHvziG9/4a5E25urRkUXDcRzT3d2HlILJySlcD5ph7ciqVat1T0//8qe2P4Xr+riuTytsMTIyTL1RP3H99S96/M/e/c6/CIJgzzXXXOM8+OCDdgvPsv6NbEGy/q9kjHHe8uY/ePbHDz24tr93lEsvvZzevoG4UWsKkGZqeoq9e/aIgwf3GWTqTYyPk+p6fN65l4hLLr7MeF4eo6WoN0Jz+NABr96ocPjQ/iO3/f1Hp9/4a6+9RgjRAiNAmOf7a7WsM4XzfH8ClvUfafPmzfLlL3+5uvDCC5Oxw4f/4f77H3jZd793d7phzTn+3Hxt+MYbXpa++ldex/33Pyi/950fetVqHZ1p4iTBdT0WjKymVCzoVSsSDh7c7R08eBytPbq6BkiilK7OXlavOst0dheyrp6upX/67ncvHRs/dsAYs1gIoY0xQghblCzrX8OukKxfZgIwxhj51+9974e//88//MP9Bw/Q2zmIUAGvetVr9MoVa+VHP/p3nDgxQUdnN8aA7/sYY/A8D6U8lFB4niRfkBw8so8Tp06wfOkali5ZQbVao1qt0NPbyUUXn2uOHjugn3jyIfXe9916/Dd+/Y1nCSGqmzdvdm655ZbMFibL+v9mC5L1Sy2qRWddcMl5r2s2kj9fvXp9/JpffZ374IMPU6s0UY4vHn3sCZJI09XVg5Sy/cNRCCEQQiCli8Ih1RGOZyiVPI4cPczExCQLFy5hZHQJwiiarQaNWpUrLr+YE6eO6qNH98vbPv6hQy988dVXCSHGob1au/XWW/Xz/T2xrF9UtiBZv3Q2b94s3/KWt+S6unp/80Pvf/8nPvTRj/Gud7zHDA4vEnd9925OnJygWm7gOD4LFoySyxUYHx9nZmaKIAgQCsCglEIKByU9tEnRpOQLLoVCwHM7n6NWq7N06Sq6uvsxWuAqh1qtwtKlCzl8eHc2OzeuXv3qlz1z3bXX/vmrX3PjU0KIyS1btqhNmzZlz/f3yLJ+Ecnn+xOwrJ8zAeud4eHhxvve+zefuPV9fxv/l7+6TSepJz70oU+wZ+8RPK9EV9cAvb1DLBxdwvLly7noogtYtHiUTEcIEjwXPNcgRIIWEWkW43s5dCpJE0H/4CBCCcYnxgjDBo5ySTJDsaOXI4ePs2DBUuU6BXPb399+7he//JW7//qvP/iZ6enp0q5du8TGjVvU8/1NsqxfRHaFZ
+--- @ 36562097 ---
+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"]);
+ATTACK_SPRITES.Senku={punch:makeImageFrames(["data:image/png;base64,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
+--- @ 41268055 ---
+JGUqMgXMC7O+uwKTxpCcb84l6ULKG+LseMm8PCudnlziluuliEC1htxzasIel2un0z74FlgXEeMmhO6UXe22IAnX8dd+zOlv1ZRgdZ/E7t9XYs1BrpZgeXm+92LhFOdF190MFg5280WgyTFoQe7XdcEIjMP8wOVAKCg7vLuujaugWTjOZwbTiO0jH6YeYw2VPubt5m47qZFVyTUXvDFbqjq2mvh6Q960XmO5pdusvsHs+eT7uR3QxaabcTYUkmgvZQ4sWScmGNMM0mSswELvy5mVe31G4TjhZeo3aNNBhpW3a3/s6unTI7L1sPgoHG+T80XYnZZ+B/R09iMQjMDpi24dWq7AgcVFh3w9MiR72jtJpLEOYD5Gwtti5tNFtr3X3brXS7Xq53ZfmziqgxIJqdp59D55qTqC4PtN6gxna8arusjuD61uH1ztG5ut9pofLtGtDM/X0HRZgL/l3xwDJ8tZHpLQZh1+3gLziZd1PxuY27kJEuEonnG1rLeWl3O4bzAXyeDiIvgAjmHX6aAEudQrU1n+iccK0KpcWyaM4ejT6nVFoWgLvuQYFE3C70WZYobYBe9mC7DxiYYd5N5rmIIc8rWTr3juchmPnMXubAf+Ywy7WLj3cPrIUw3FxfM80BkM6mpQ6+52blXQe6mvVoZtlPt3xbJJfPM0pwJ3lQ7VgTubOBIK35UacaCgEMNIPIus9yaaW3+P1prrK4m4k2cBPNML8XQF93AuSSA8vbVQqU0iEoLC/f59fHfHBBl9u+0ABqAlgzwvsOfZNenI3OvdZOd5kJH1r/jNa/BMvjwIIXQPfwnfkVN0ozvDChm68cZEGwQHPPtEnOtFafw3y4W33oOzddFg8MavlvTUbUXC8F5sDsJJ9vtS1K7P4uXtuLSoAujoQ7p+JyiW4bPF8AnmPJ6SqQu3SVOWcen3VIWzJiLtDMHCM+F1VuF+oss5XWUKeL6c57TszupxM/Dpm5o+cTb2XIXePjud1Oc+7vtLgollz24kHYVApe8URwXdimXaCykAmEe+tm/EjnpLOouc0uiNSdhLQrOPE8ZbkTGGYuzzNMrx1x0gnYaKEldwfqag416lDqFhu1vhJr0OMZJopla7bDxRRaAHGa+87UYciE8pZ4xuppqpGGBtXhr4ss8Nk79Mxu0CL6PB8SuisC7fJHIXcc+xraoYiA5jLPuxhpt3JbvgfljtKrqTLaauNzaQy0sACWfT/p8M9f7HDQBT0aSKtzqs9XnLScInZH2dr5WUt3wch8cJmVH5g1DoC73b/O4iKeNYMWO37dTLY7YuROBtslJC8pkRaD9xy2App7sK3qRNycycOLaB9zVmqdU7LBjgXzgg6090XunL4L0XqpnUWT8S9TmSwwHhYaf41MccZGgHTGZyzi2Z3ot3gPuvh2NxAsw+FFZKmw5K5kcVZyNweVE7cErujghUsCvsxFAfk7qUK0qExsD0FqN3aL1S8cZjJXdcxnrPOf331mWKKJnCXgizgnMA+jdTvztGAyPXcYgjCfxDdVTvd9wqthWspittpWHoQXq6KkU0F0+hrL8OEWSxe5s7fapp284DkFA/V2lmJ3fXeqrqXp/Nza+HybGAHdYe7c9T3oHl7oVFidpnand0JLKKXLG+zUft7/D1UnNx5NxFTuAAAAAElFTkSuQmCC"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src='assets/characters/lebee/vfx/basic/star_blast/projectile/frame_01.png';
+const LEBEE_METEOR_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/impact/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_COMBO=new Image();
+LEBEE_METEOR_IMPACT_COMBO.src='assets/characters/lebee/vfx/jutsu/meteor/finale/frame_01.png';
+const LEBEE_METEOR_AFTERMATH=new Image();
+LEBEE_METEOR_AFTERMATH.src='assets/characters/lebee/vfx/jutsu/meteor/aftermath/frame_01.png';
+
+
+function U(name,mark,speed,attack,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff=null,maxHp=110,maxChakra=8,defense=0,archetype='unassigned'){
+ return{name,mark,speed,attack,defense,arch
+--- @ 41268101 ---
+uliEC1htxzasIel2un0z74FlgXEeMmhO6UXe22IAnX8dd+zOlv1ZRgdZ/E7t9XYs1BrpZgeXm+92LhFOdF190MFg5280WgyTFoQe7XdcEIjMP8wOVAKCg7vLuujaugWTjOZwbTiO0jH6YeYw2VPubt5m47qZFVyTUXvDFbqjq2mvh6Q960XmO5pdusvsHs+eT7uR3QxaabcTYUkmgvZQ4sWScmGNMM0mSswELvy5mVe31G4TjhZeo3aNNBhpW3a3/s6unTI7L1sPgoHG+T80XYnZZ+B/R09iMQjMDpi24dWq7AgcVFh3w9MiR72jtJpLEOYD5Gwtti5tNFtr3X3brXS7Xq53ZfmziqgxIJqdp59D55qTqC4PtN6gxna8arusjuD61uH1ztG5ut9pofLtGtDM/X0HRZgL/l3xwDJ8tZHpLQZh1+3gLziZd1PxuY27kJEuEonnG1rLeWl3O4bzAXyeDiIvgAjmHX6aAEudQrU1n+iccK0KpcWyaM4ejT6nVFoWgLvuQYFE3C70WZYobYBe9mC7DxiYYd5N5rmIIc8rWTr3juchmPnMXubAf+Ywy7WLj3cPrIUw3FxfM80BkM6mpQ6+52blXQe6mvVoZtlPt3xbJJfPM0pwJ3lQ7VgTubOBIK35UacaCgEMNIPIus9yaaW3+P1prrK4m4k2cBPNML8XQF93AuSSA8vbVQqU0iEoLC/f59fHfHBBl9u+0ABqAlgzwvsOfZNenI3OvdZOd5kJH1r/jNa/BMvjwIIXQPfwnfkVN0ozvDChm68cZEGwQHPPtEnOtFafw3y4W33oOzddFg8MavlvTUbUXC8F5sDsJJ9vtS1K7P4uXtuLSoAujoQ7p+JyiW4bPF8AnmPJ6SqQu3SVOWcen3VIWzJiLtDMHCM+F1VuF+oss5XWUKeL6c57TszupxM/Dpm5o+cTb2XIXePjud1Oc+7vtLgollz24kHYVApe8URwXdimXaCykAmEe+tm/EjnpLOouc0uiNSdhLQrOPE8ZbkTGGYuzzNMrx1x0gnYaKEldwfqag416lDqFhu1vhJr0OMZJopla7bDxRRaAHGa+87UYciE8pZ4xuppqpGGBtXhr4ss8Nk79Mxu0CL6PB8SuisC7fJHIXcc+xraoYiA5jLPuxhpt3JbvgfljtKrqTLaauNzaQy0sACWfT/p8M9f7HDQBT0aSKtzqs9XnLScInZH2dr5WUt3wch8cJmVH5g1DoC73b/O4iKeNYMWO37dTLY7YuROBtslJC8pkRaD9xy2App7sK3qRNycycOLaB9zVmqdU7LBjgXzgg6090XunL4L0XqpnUWT8S9TmSwwHhYaf41MccZGgHTGZyzi2Z3ot3gPuvh2NxAsw+FFZKmw5K5kcVZyNweVE7cErujghUsCvsxFAfk7qUK0qExsD0FqN3aL1S8cZjJXdcxnrPOf331mWKKJnCXgizgnMA+jdTvztGAyPXcYgjCfxDdVTvd9wqthWspittpWHoQXq6KkU0F0+hrL8OEWSxe5s7fapp284DkFA/V2lmJ3fXeqrqXp/Nza+HybGAHdYe7c9T3oHl7oVFidpnand0JLKKXLG+zUft7/D1UnNx5NxFTuAAAAAElFTkSuQmCC"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src='assets/characters/lebee/vfx/basic/star_blast/projectile/frame_01.png';
+const LEBEE_METEOR_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/impact/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_COMBO=new Image();
+LEBEE_METEOR_IMPACT_COMBO.src='assets/characters/lebee/vfx/jutsu/meteor/finale/frame_01.png';
+const LEBEE_METEOR_AFTERMATH=new Image();
+LEBEE_METEOR_AFTERMATH.src='assets/characters/lebee/vfx/jutsu/meteor/aftermath/frame_01.png';
+
+
+function U(name,mark,speed,attack,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff=null,maxHp=110,maxChakra=8,defense=0,archetype='unassigned'){
+ return{name,mark,speed,attack,defense,archetype,shape,jutsuShape,jutsuCost,jutsuDamage,l
+--- @ 41268149 ---
+lv1ZRgdZ/E7t9XYs1BrpZgeXm+92LhFOdF190MFg5280WgyTFoQe7XdcEIjMP8wOVAKCg7vLuujaugWTjOZwbTiO0jH6YeYw2VPubt5m47qZFVyTUXvDFbqjq2mvh6Q960XmO5pdusvsHs+eT7uR3QxaabcTYUkmgvZQ4sWScmGNMM0mSswELvy5mVe31G4TjhZeo3aNNBhpW3a3/s6unTI7L1sPgoHG+T80XYnZZ+B/R09iMQjMDpi24dWq7AgcVFh3w9MiR72jtJpLEOYD5Gwtti5tNFtr3X3brXS7Xq53ZfmziqgxIJqdp59D55qTqC4PtN6gxna8arusjuD61uH1ztG5ut9pofLtGtDM/X0HRZgL/l3xwDJ8tZHpLQZh1+3gLziZd1PxuY27kJEuEonnG1rLeWl3O4bzAXyeDiIvgAjmHX6aAEudQrU1n+iccK0KpcWyaM4ejT6nVFoWgLvuQYFE3C70WZYobYBe9mC7DxiYYd5N5rmIIc8rWTr3juchmPnMXubAf+Ywy7WLj3cPrIUw3FxfM80BkM6mpQ6+52blXQe6mvVoZtlPt3xbJJfPM0pwJ3lQ7VgTubOBIK35UacaCgEMNIPIus9yaaW3+P1prrK4m4k2cBPNML8XQF93AuSSA8vbVQqU0iEoLC/f59fHfHBBl9u+0ABqAlgzwvsOfZNenI3OvdZOd5kJH1r/jNa/BMvjwIIXQPfwnfkVN0ozvDChm68cZEGwQHPPtEnOtFafw3y4W33oOzddFg8MavlvTUbUXC8F5sDsJJ9vtS1K7P4uXtuLSoAujoQ7p+JyiW4bPF8AnmPJ6SqQu3SVOWcen3VIWzJiLtDMHCM+F1VuF+oss5XWUKeL6c57TszupxM/Dpm5o+cTb2XIXePjud1Oc+7vtLgollz24kHYVApe8URwXdimXaCykAmEe+tm/EjnpLOouc0uiNSdhLQrOPE8ZbkTGGYuzzNMrx1x0gnYaKEldwfqag416lDqFhu1vhJr0OMZJopla7bDxRRaAHGa+87UYciE8pZ4xuppqpGGBtXhr4ss8Nk79Mxu0CL6PB8SuisC7fJHIXcc+xraoYiA5jLPuxhpt3JbvgfljtKrqTLaauNzaQy0sACWfT/p8M9f7HDQBT0aSKtzqs9XnLScInZH2dr5WUt3wch8cJmVH5g1DoC73b/O4iKeNYMWO37dTLY7YuROBtslJC8pkRaD9xy2App7sK3qRNycycOLaB9zVmqdU7LBjgXzgg6090XunL4L0XqpnUWT8S9TmSwwHhYaf41MccZGgHTGZyzi2Z3ot3gPuvh2NxAsw+FFZKmw5K5kcVZyNweVE7cErujghUsCvsxFAfk7qUK0qExsD0FqN3aL1S8cZjJXdcxnrPOf331mWKKJnCXgizgnMA+jdTvztGAyPXcYgjCfxDdVTvd9wqthWspittpWHoQXq6KkU0F0+hrL8OEWSxe5s7fapp284DkFA/V2lmJ3fXeqrqXp/Nza+HybGAHdYe7c9T3oHl7oVFidpnand0JLKKXLG+zUft7/D1UnNx5NxFTuAAAAAElFTkSuQmCC"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src='assets/characters/lebee/vfx/basic/star_blast/projectile/frame_01.png';
+const LEBEE_METEOR_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/impact/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_COMBO=new Image();
+LEBEE_METEOR_IMPACT_COMBO.src='assets/characters/lebee/vfx/jutsu/meteor/finale/frame_01.png';
+const LEBEE_METEOR_AFTERMATH=new Image();
+LEBEE_METEOR_AFTERMATH.src='assets/characters/lebee/vfx/jutsu/meteor/aftermath/frame_01.png';
+
+
+function U(name,mark,speed,attack,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff=null,maxHp=110,maxChakra=8,defense=0,archetype='unassigned'){
+ return{name,mark,speed,attack,defense,archetype,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff,hp:maxHp,maxHp,chakra:2,maxChakra,rotati
+--- @ 41268305 ---
+YUkmgvZQ4sWScmGNMM0mSswELvy5mVe31G4TjhZeo3aNNBhpW3a3/s6unTI7L1sPgoHG+T80XYnZZ+B/R09iMQjMDpi24dWq7AgcVFh3w9MiR72jtJpLEOYD5Gwtti5tNFtr3X3brXS7Xq53ZfmziqgxIJqdp59D55qTqC4PtN6gxna8arusjuD61uH1ztG5ut9pofLtGtDM/X0HRZgL/l3xwDJ8tZHpLQZh1+3gLziZd1PxuY27kJEuEonnG1rLeWl3O4bzAXyeDiIvgAjmHX6aAEudQrU1n+iccK0KpcWyaM4ejT6nVFoWgLvuQYFE3C70WZYobYBe9mC7DxiYYd5N5rmIIc8rWTr3juchmPnMXubAf+Ywy7WLj3cPrIUw3FxfM80BkM6mpQ6+52blXQe6mvVoZtlPt3xbJJfPM0pwJ3lQ7VgTubOBIK35UacaCgEMNIPIus9yaaW3+P1prrK4m4k2cBPNML8XQF93AuSSA8vbVQqU0iEoLC/f59fHfHBBl9u+0ABqAlgzwvsOfZNenI3OvdZOd5kJH1r/jNa/BMvjwIIXQPfwnfkVN0ozvDChm68cZEGwQHPPtEnOtFafw3y4W33oOzddFg8MavlvTUbUXC8F5sDsJJ9vtS1K7P4uXtuLSoAujoQ7p+JyiW4bPF8AnmPJ6SqQu3SVOWcen3VIWzJiLtDMHCM+F1VuF+oss5XWUKeL6c57TszupxM/Dpm5o+cTb2XIXePjud1Oc+7vtLgollz24kHYVApe8URwXdimXaCykAmEe+tm/EjnpLOouc0uiNSdhLQrOPE8ZbkTGGYuzzNMrx1x0gnYaKEldwfqag416lDqFhu1vhJr0OMZJopla7bDxRRaAHGa+87UYciE8pZ4xuppqpGGBtXhr4ss8Nk79Mxu0CL6PB8SuisC7fJHIXcc+xraoYiA5jLPuxhpt3JbvgfljtKrqTLaauNzaQy0sACWfT/p8M9f7HDQBT0aSKtzqs9XnLScInZH2dr5WUt3wch8cJmVH5g1DoC73b/O4iKeNYMWO37dTLY7YuROBtslJC8pkRaD9xy2App7sK3qRNycycOLaB9zVmqdU7LBjgXzgg6090XunL4L0XqpnUWT8S9TmSwwHhYaf41MccZGgHTGZyzi2Z3ot3gPuvh2NxAsw+FFZKmw5K5kcVZyNweVE7cErujghUsCvsxFAfk7qUK0qExsD0FqN3aL1S8cZjJXdcxnrPOf331mWKKJnCXgizgnMA+jdTvztGAyPXcYgjCfxDdVTvd9wqthWspittpWHoQXq6KkU0F0+hrL8OEWSxe5s7fapp284DkFA/V2lmJ3fXeqrqXp/Nza+HybGAHdYe7c9T3oHl7oVFidpnand0JLKKXLG+zUft7/D1UnNx5NxFTuAAAAAElFTkSuQmCC"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src='assets/characters/lebee/vfx/basic/star_blast/projectile/frame_01.png';
+const LEBEE_METEOR_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/impact/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_COMBO=new Image();
+LEBEE_METEOR_IMPACT_COMBO.src='assets/characters/lebee/vfx/jutsu/meteor/finale/frame_01.png';
+const LEBEE_METEOR_AFTERMATH=new Image();
+LEBEE_METEOR_AFTERMATH.src='assets/characters/lebee/vfx/jutsu/meteor/aftermath/frame_01.png';
+
+
+function U(name,mark,speed,attack,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff=null,maxHp=110,maxChakra=8,defense=0,archetype='unassigned'){
+ return{name,mark,speed,attack,defense,archetype,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff,hp:maxHp,maxHp,chakra:2,maxChakra,rotation:0}
+}
+
+// v0.6.7 DATA AUTHORITY
+// Canonical stats/roles/shapes/ability costs live in each unit's data/unit.json.
+// The standalone embeds a generated cop
+--- @ 41268355 ---
+a3/s6unTI7L1sPgoHG+T80XYnZZ+B/R09iMQjMDpi24dWq7AgcVFh3w9MiR72jtJpLEOYD5Gwtti5tNFtr3X3brXS7Xq53ZfmziqgxIJqdp59D55qTqC4PtN6gxna8arusjuD61uH1ztG5ut9pofLtGtDM/X0HRZgL/l3xwDJ8tZHpLQZh1+3gLziZd1PxuY27kJEuEonnG1rLeWl3O4bzAXyeDiIvgAjmHX6aAEudQrU1n+iccK0KpcWyaM4ejT6nVFoWgLvuQYFE3C70WZYobYBe9mC7DxiYYd5N5rmIIc8rWTr3juchmPnMXubAf+Ywy7WLj3cPrIUw3FxfM80BkM6mpQ6+52blXQe6mvVoZtlPt3xbJJfPM0pwJ3lQ7VgTubOBIK35UacaCgEMNIPIus9yaaW3+P1prrK4m4k2cBPNML8XQF93AuSSA8vbVQqU0iEoLC/f59fHfHBBl9u+0ABqAlgzwvsOfZNenI3OvdZOd5kJH1r/jNa/BMvjwIIXQPfwnfkVN0ozvDChm68cZEGwQHPPtEnOtFafw3y4W33oOzddFg8MavlvTUbUXC8F5sDsJJ9vtS1K7P4uXtuLSoAujoQ7p+JyiW4bPF8AnmPJ6SqQu3SVOWcen3VIWzJiLtDMHCM+F1VuF+oss5XWUKeL6c57TszupxM/Dpm5o+cTb2XIXePjud1Oc+7vtLgollz24kHYVApe8URwXdimXaCykAmEe+tm/EjnpLOouc0uiNSdhLQrOPE8ZbkTGGYuzzNMrx1x0gnYaKEldwfqag416lDqFhu1vhJr0OMZJopla7bDxRRaAHGa+87UYciE8pZ4xuppqpGGBtXhr4ss8Nk79Mxu0CL6PB8SuisC7fJHIXcc+xraoYiA5jLPuxhpt3JbvgfljtKrqTLaauNzaQy0sACWfT/p8M9f7HDQBT0aSKtzqs9XnLScInZH2dr5WUt3wch8cJmVH5g1DoC73b/O4iKeNYMWO37dTLY7YuROBtslJC8pkRaD9xy2App7sK3qRNycycOLaB9zVmqdU7LBjgXzgg6090XunL4L0XqpnUWT8S9TmSwwHhYaf41MccZGgHTGZyzi2Z3ot3gPuvh2NxAsw+FFZKmw5K5kcVZyNweVE7cErujghUsCvsxFAfk7qUK0qExsD0FqN3aL1S8cZjJXdcxnrPOf331mWKKJnCXgizgnMA+jdTvztGAyPXcYgjCfxDdVTvd9wqthWspittpWHoQXq6KkU0F0+hrL8OEWSxe5s7fapp284DkFA/V2lmJ3fXeqrqXp/Nza+HybGAHdYe7c9T3oHl7oVFidpnand0JLKKXLG+zUft7/D1UnNx5NxFTuAAAAAElFTkSuQmCC"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src='assets/characters/lebee/vfx/basic/star_blast/projectile/frame_01.png';
+const LEBEE_METEOR_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/impact/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_COMBO=new Image();
+LEBEE_METEOR_IMPACT_COMBO.src='assets/characters/lebee/vfx/jutsu/meteor/finale/frame_01.png';
+const LEBEE_METEOR_AFTERMATH=new Image();
+LEBEE_METEOR_AFTERMATH.src='assets/characters/lebee/vfx/jutsu/meteor/aftermath/frame_01.png';
+
+
+function U(name,mark,speed,attack,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff=null,maxHp=110,maxChakra=8,defense=0,archetype='unassigned'){
+ return{name,mark,speed,attack,defense,archetype,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff,hp:maxHp,maxHp,chakra:2,maxChakra,rotation:0}
+}
+
+// v0.6.7 DATA AUTHORITY
+// Canonical stats/roles/shapes/ability costs live in each unit's data/unit.json.
+// The standalone embeds a generated copy in window.BLAZING_UNIT_DATA so mobile local-file
+--- @ 41268406 ---
+Fh3w9MiR72jtJpLEOYD5Gwtti5tNFtr3X3brXS7Xq53ZfmziqgxIJqdp59D55qTqC4PtN6gxna8arusjuD61uH1ztG5ut9pofLtGtDM/X0HRZgL/l3xwDJ8tZHpLQZh1+3gLziZd1PxuY27kJEuEonnG1rLeWl3O4bzAXyeDiIvgAjmHX6aAEudQrU1n+iccK0KpcWyaM4ejT6nVFoWgLvuQYFE3C70WZYobYBe9mC7DxiYYd5N5rmIIc8rWTr3juchmPnMXubAf+Ywy7WLj3cPrIUw3FxfM80BkM6mpQ6+52blXQe6mvVoZtlPt3xbJJfPM0pwJ3lQ7VgTubOBIK35UacaCgEMNIPIus9yaaW3+P1prrK4m4k2cBPNML8XQF93AuSSA8vbVQqU0iEoLC/f59fHfHBBl9u+0ABqAlgzwvsOfZNenI3OvdZOd5kJH1r/jNa/BMvjwIIXQPfwnfkVN0ozvDChm68cZEGwQHPPtEnOtFafw3y4W33oOzddFg8MavlvTUbUXC8F5sDsJJ9vtS1K7P4uXtuLSoAujoQ7p+JyiW4bPF8AnmPJ6SqQu3SVOWcen3VIWzJiLtDMHCM+F1VuF+oss5XWUKeL6c57TszupxM/Dpm5o+cTb2XIXePjud1Oc+7vtLgollz24kHYVApe8URwXdimXaCykAmEe+tm/EjnpLOouc0uiNSdhLQrOPE8ZbkTGGYuzzNMrx1x0gnYaKEldwfqag416lDqFhu1vhJr0OMZJopla7bDxRRaAHGa+87UYciE8pZ4xuppqpGGBtXhr4ss8Nk79Mxu0CL6PB8SuisC7fJHIXcc+xraoYiA5jLPuxhpt3JbvgfljtKrqTLaauNzaQy0sACWfT/p8M9f7HDQBT0aSKtzqs9XnLScInZH2dr5WUt3wch8cJmVH5g1DoC73b/O4iKeNYMWO37dTLY7YuROBtslJC8pkRaD9xy2App7sK3qRNycycOLaB9zVmqdU7LBjgXzgg6090XunL4L0XqpnUWT8S9TmSwwHhYaf41MccZGgHTGZyzi2Z3ot3gPuvh2NxAsw+FFZKmw5K5kcVZyNweVE7cErujghUsCvsxFAfk7qUK0qExsD0FqN3aL1S8cZjJXdcxnrPOf331mWKKJnCXgizgnMA+jdTvztGAyPXcYgjCfxDdVTvd9wqthWspittpWHoQXq6KkU0F0+hrL8OEWSxe5s7fapp284DkFA/V2lmJ3fXeqrqXp/Nza+HybGAHdYe7c9T3oHl7oVFidpnand0JLKKXLG+zUft7/D1UnNx5NxFTuAAAAAElFTkSuQmCC"]);
+
+
+
+// v0.6.16 animation/VFX data accessors.
+function unitAnimationMap(unitName){
+ const unit=canonicalUnit(unitName);
+ return unit?.animation_standard||null;
+}
+function unitVfxSequence(unitName,key){
+ return unitAnimationMap(unitName)?.vfx?.[key]||null;
+}
+
+// v0.6.7 strict per-character body-animation routing.
+// A unit can only resolve animation frames from its own map.
+const CHARACTER_ANIMATION_MAPS=Object.freeze({
+  Crimson:Object.freeze({
+    idle:IDLE_SPRITES.Crimson||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Crimson?.punch||[],
+      kick:ATTACK_SPRITES.Crimson?.kick||[],
+      special:ATTACK_SPRITES.Crimson?.special||[]
+    })
+  }),
+  'Sub-Zero':Object.freeze({
+    idle:IDLE_SPRITES['Sub-Zero']||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES['Sub-Zero']?.punch||[],
+      kick:ATTACK_SPRITES['Sub-Zero']?.kick||[],
+      freeze:ATTACK_SPRITES['Sub-Zero']?.freeze||[]
+    })
+  }),
+  Lebee:Object.freeze({
+    idle:IDLE_SPRITES.Lebee||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Lebee?.punch||[],
+      kick:ATTACK_SPRITES.Lebee?.kick||[],
+      special:ATTACK_SPRITES.Lebee?.special||[]
+    }),
+    recoil:HIT_SPRITES.Lebee||[]
+  }),
+  Senku:Object.freeze({
+    idle:IDLE_SPRITES.Senku||[],
+    attack:Object.freeze({
+      punch:ATTACK_SPRITES.Senku?.punch||[],
+      kick:ATTACK_SPRITES.Senku?.kick||[],
+      special:SENKU_CHEM_CAST_FRAMES||[]
+    }),
+    recoil:HIT_SPRITES.Senku||[]
+  })
+});
+
+function unitIdleFrames(name){
+  return CHARACTER_ANIMATION_MAPS[name]?.idle||[];
+}
+function unitAttackFrames(name,kind){
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}
+
+const LEBEE_STAR_PROJECTILE=new Image();
+LEBEE_STAR_PROJECTILE.src='assets/characters/lebee/vfx/basic/star_blast/projectile/frame_01.png';
+const LEBEE_METEOR_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/impact/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_03.png"]);
+const LEBEE_METEOR_IMPACT_COMBO=new Image();
+LEBEE_METEOR_IMPACT_COMBO.src='assets/characters/lebee/vfx/jutsu/meteor/finale/frame_01.png';
+const LEBEE_METEOR_AFTERMATH=new Image();
+LEBEE_METEOR_AFTERMATH.src='assets/characters/lebee/vfx/jutsu/meteor/aftermath/frame_01.png';
+
+
+function U(name,mark,speed,attack,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff=null,maxHp=110,maxChakra=8,defense=0,archetype='unassigned'){
+ return{name,mark,speed,attack,defense,archetype,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff,hp:maxHp,maxHp,chakra:2,maxChakra,rotation:0}
+}
+
+// v0.6.7 DATA AUTHORITY
+// Canonical stats/roles/shapes/ability costs live in each unit's data/unit.json.
+// The standalone embeds a generated copy in window.BLAZING_UNIT_DATA so mobile local-file play needs no fetch().
+const UNIT_DATA=window.BLAZ
 
 ===== animateLunge calls: animateLunge( (3 hits) =====
 --- @ 41323031 ---
@@ -2176,8 +4324,6 @@ ction='normal';return finishAction()
        ()=>{
         let 
 
-===== chain state: chain (0 hits) =====
-
 ===== Sub-Zero references: Sub-Zero (35 hits) =====
 --- @ 4162072 ---
   }
@@ -3197,266 +5343,7 @@ airAlive(activePair)){
      ctx.fillRect(0,0,W,H);
    }else if(f.kind==='lebeeStarProjectile'){window.BlazingVfxRenderer.drawLebee
 
-===== jutsu shape: jutsu_shape (11 hits) =====
---- @ 24599344 ---
-CcMDkHJ5zzsa+SAQkGZCQkJCQyEhUznoMYAKinc5tEeVB0ISAyQHvOefss+MpdQYkJCQkJDIKOz/5iIK//ADBkgtz64i0MlIPPwLuoUPZvjqm0jMgISEhIZFRqHr0MYTkA6IrBZj9P6HvsWY/w4hHeQaEVVHAYHkFLjh/nx5TmUAoISEhIZExCK5aRWsHDgbBBAOBU/vIAAAQOAQTMLI0DNhczhx5efvsuErPgISEhIRExqD+0UehCBMms9QBQqECTvH1BKJJQTRCAsQGCeScPBn7MhGwxkNCQkJCQiIDYNTUoHbOnNCZPsbKi1aj/Tzhd/POu2CfH1vpGZCQkJCQyAhUvvAi+fw+qArAQOG8gYQugWYEgCM6ZwAwIeDo3w9Zxx7L9vWxlZ4BCQkJCYm0B5kmamc9adl9hphcgfZBQDADnmlXgXFpCqVnQEJCQkIi7dHw9ttkblgDDVZ7YkahngJxDvXUFuMuwL3ZyD/3fCZHV5IBCQkJCYkMQNXjjwKWUwAKASCrLDARGADN/nuoIREgotzhHN4LLoKamysHF7K0UEJCQkIizVH/ww+08+BD4VdMgAEuwzL2Opr1H4jyCDgAeGzT7wOgQ0AFwEKEgKnotmI5tAH9pWcAMmdAQkJCQiLNUfHoLChQrURBsogAb9WAhX5CDZcRCggQCAIENnGiJAJRkGECCQkJCYm0hb5tO9Err0EgJBpkggNozYrr4GiAAwwcgAEOAwYIJrdem3fTdXJwJRmQkJCQkMgE+GY/AyUYAEGAE8BIsYWEI42G4oFsQsDiGDrPxEnIO2qU9ApEQeYMSEhISEikJYRhYE2f3mRu2QZOgGZJDUEHBzGrjoBTPErAwezQgEUarB6FKgwwhaP7jz/CccABkgxIz4CEhISERLpjx8cfklG+BYyFPAKWSde5ZfA1ESICzQmB9ZMWdSCYjAFkEQTnRZdKIiDJgISEhIREpqBi/rvIMUN6AgJ+mwgQ42DNPQKs2f8ThfMKGCOATLCiHiiccY8kAnEgqwkkJCQkJNISjYsWRSULcquYgFknf04hAiB2JQKwXmRyQFes/IEmVYPn2afhKC6SAys9AxISEhISmQC9ogK5a9bBCBEBMHAwOOw8N4bm3Qhj899MBvhtIsCEE8pFF6PLyROlV0CSAQkJCQmJTAGtWkUOU8DkPCwmxCFibD6FvQK7JsITGAyoADjcpT3R74E/SyIgyYCEhISEREZ5BhrqYTK1mZ2PDQcwmxwkalrIhAPM7UCvf74MLdcrB7UFyJwBCQkJCYn0g+aEYAl0BlmCPIHoHyFAAaHspTlwDx8uvQLSMyAhISEhkXHGqWs3OzxgRAhA3POsSHDSJXS/dzoKTj5REgHpGZCQkJCQyEQ4BvRnwaK8FohAtBnb1d5nTb0GhTffJImAJAMSEhISEpkKpijAxGPb9dq8qdPQ45FHJRGQZEBCQkJCItNReuXViY0XRfoSRpcYem64AcUzZzLGJBeQZEBCQkJCIuORf+hvWda4MYCgZpeAaNZXh7ncKPrrQ+jx4F8lC2gHZKMiCQkJCYm0hb5hA2088ECIunrrBOvNAc/NBc/NhdajDI4hQ+AYOgSek05kSn6+HLB24v8BpFi13jUgJKsAAAAASUVORK5CYII="}};</script>
-<div id="meteorScreenFlash" aria-hidden="true"></div>
-<script id="blazing-unit-data">window.BLAZING_UNIT_DATA={"senku":{"schema_version":2,"id":"senku","display_name":"Senku","title":"The Kingdom of Science","role":"playable","archetype":"ranged_tactician","element":"Nature","rarity":"Legendary","collection":{"owned":true,"inventory_visible":true,"battle_ready":true},"stats":{"level":1,"hp":180,"attack":38,"defense":28,"speed":64},"combat":{"mark":"S","movement_range":92,"basic_shape":{"type":"rect","w":255,"h":58,"offset_x":116},"jutsu_shape":{"type":"screen_rect","scope":"all_allies"},"chakra_max":8},"render":{"scale":1.3},"abilities":{"basic":{"id":"explosive_bomb","name":"Explosive Bomb","damage_multiplier":1.0,"chakra_gain":1,"delivery":"ranged_projectile","range_presentation":"forward_lane","presentation":{"cast_duration_ms":560,"flight_duration_ms":620,"impact_duration_ms":360,"arc_height_px":86,"release_frame":3,"projectile_rotation":true,"impact_anchor":{"target":"feet","x":0.5,"y":0.96,"ground_offset_y_px":3,"layer":"ground"},"impact_vfx_mode":"single_frame_fade","impact_frame_index":4,"impact_fade_start":0.34,"impact_height_px":58,"impact_animation":"static_hold_fade","impact_asset":"vfx/bomb/static_impact/explosion.png","projectile_assets":["vfx/bomb/projectile_clean/frame_01.png","vfx/bomb/projectile_clean/frame_02.png","vfx/bomb/projectile_clean/frame_03.png","vfx/bomb/projectile_clean/frame_04.png","vfx/bomb/projectile_clean/frame_05.png"],"projectile_cleaned":true}},"jutsu":{"id":"revival_formula","name":"Revival Formula","cost":4,"damage_multiplier":0,"delivery":"bottle_party_heal","category":"jutsu","ultimate":false,"status_effect":null,"status_chance":0,"presentation":{"cast_frames":4,"projectile_frames":3,"impact_frames":3,"cast_duration_ms":680,"flight_duration_ms":420,"impact_duration_ms":620,"screen_dim_alpha":0.12},"target":"all_allies","effect":"heal_full","heal_percent":1.0}},"assets":{"art":"art/senku_full_art.jpeg","card":"cards/senku_card.jpeg","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/chemical_reaction/cast/"},"vfx":{"projectile":"vfx/bomb/projectile/","explosion":"vfx/bomb/explosion/","jutsu_projectile":"vfx/jutsu/chemical_reaction/projectile/","jutsu_impact":"vfx/jutsu/chemical_reaction/impact/"}},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":true,"notes":"v0.6.22: Bomb projectile frames cleaned to remove detached source-sheet/text-like artifacts while retaining bomb, fuse spark, and intended trail. Arc/timing unchanged.","animation_map":true},"balance":{"status":"provisional","pass":"v0.6.8"},
---- @ 24604451 ---
-ctile_arrival","vfx":"bomb/explosion"}]},"recoil":{"frames":["sprites/runtime/recoil/frame_01.png","sprites/runtime/recoil/frame_02.png","sprites/runtime/recoil/frame_03.png","sprites/runtime/recoil/frame_04.png"],"frame_ms":92,"loop":false,"events":[]},"jutsu":{"chemical_reaction/cast":{"frames":["sprites/runtime/jutsu/chemical_reaction/cast/frame_01.png","sprites/runtime/jutsu/chemical_reaction/cast/frame_02.png","sprites/runtime/jutsu/chemical_reaction/cast/frame_03.png","sprites/runtime/jutsu/chemical_reaction/cast/frame_04.png"],"frame_ms":150,"loop":false,"events":[{"frame":3,"event":"release_projectile","vfx":"jutsu/chemical_reaction/projectile"},{"event":"on_projectile_arrival","vfx":"jutsu/chemical_reaction/impact"},{"event":"on_impact","action":"heal_all_allies_full"}]}}},"vfx":{"bomb/explosion":{"frames":["vfx/bomb/explosion/frame_01.png","vfx/bomb/explosion/frame_02.png","vfx/bomb/explosion/frame_03.png","vfx/bomb/explosion/frame_04.png","vfx/bomb/explosion/frame_05.png"],"frame_ms":90,"loop":false,"body_asset":false},"bomb/projectile":{"frames":["vfx/bomb/projectile/frame_01.png","vfx/bomb/projectile/frame_02.png","vfx/bomb/projectile/frame_03.png","vfx/bomb/projectile/frame_04.png","vfx/bomb/projectile/frame_05.png"],"frame_ms":90,"loop":false,"body_asset":false},"jutsu/chemical_reaction/impact":{"frames":["vfx/jutsu/chemical_reaction/impact/frame_01.png","vfx/jutsu/chemical_reaction/impact/frame_02.png","vfx/jutsu/chemical_reaction/impact/frame_03.png"],"frame_ms":90,"loop":false,"body_asset":false},"jutsu/chemical_reaction/projectile":{"frames":["vfx/jutsu/chemical_reaction/projectile/frame_01.png","vfx/jutsu/chemical_reaction/projectile/frame_02.png","vfx/jutsu/chemical_reaction/projectile/frame_03.png"],"frame_ms":90,"loop":false,"body_asset":false}}}},"anubis":{"schema_version":2,"id":"anubis","display_name":"Anubis","title":"Judge of Souls","role":"boss","archetype":"boss_tank_controller","element":"Dark","rarity":"Boss","collection":{"owned":false,"inventory_visible":false,"battle_ready":true},"stats":{"level":1,"hp":950,"attack":38,"defense":32,"speed":43},"combat":{"mark":"BOSS","movement_range":72,"basic_shape":{"type":"circle","r":105},"jutsu_shape":{"type":"circle","r":205},"chakra_max":8},"render":{"scale":1.25,"battle_size_scale":2.3713},"abilities":{"basic":{"id":"staff_strike","name":"Staff Strike","damage_multiplier":1.0,"delivery":"melee"},"jutsu":{"id":"boss_rotation","name":"Boss Rotation","cost":5,"damage_multiplier":2.05,"delivery":"boss_rotation"}},"assets":{"art":null,"card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":false,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":false,"notes":"Boss definition. Existing combat code remains authoritative until migration.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png"],"frame_ms":180,"loop":true,"events":[]}},"vfx":{}}},"crimson":{"schema_version":2,"id":"crimson","display_name":"Crimson","title":"Blazing Vanguard","role":"playable","archetype":"assassin_melee","element":"Fire","rarity":"Legendary","collection":{"owned":true,"inventory_visible":true,"battle_ready":true},"stats":{"level":1,"hp":118,"attack":35,"defense":18,"speed":68},"combat":{"mark":"V","movement_range":96,"basic_shape":{"type":"cone","r":182,"a":1.0},"jutsu_shape":{"type":"rect","w":310,"h":86},"chakra_max":8},"render":{"scale":1.0},"abilities":{"basic":{"id":"basic_strike","name":"Basic Strike","damage_multiplier":1.0,"chakra_gain":1,"delivery":"melee"},"jutsu":{"id":"current_jutsu","name":"Crimson Jutsu","cost":4,"damage_multiplier":1.9,"delivery":"forward_area","category":"jutsu","ultimate":false}},"assets":{"art":"art/current_collection_art.jpg","card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/","jutsu_cast":"
---- @ 24606008 ---
-eaction/projectile":{"frames":["vfx/jutsu/chemical_reaction/projectile/frame_01.png","vfx/jutsu/chemical_reaction/projectile/frame_02.png","vfx/jutsu/chemical_reaction/projectile/frame_03.png"],"frame_ms":90,"loop":false,"body_asset":false}}}},"anubis":{"schema_version":2,"id":"anubis","display_name":"Anubis","title":"Judge of Souls","role":"boss","archetype":"boss_tank_controller","element":"Dark","rarity":"Boss","collection":{"owned":false,"inventory_visible":false,"battle_ready":true},"stats":{"level":1,"hp":950,"attack":38,"defense":32,"speed":43},"combat":{"mark":"BOSS","movement_range":72,"basic_shape":{"type":"circle","r":105},"jutsu_shape":{"type":"circle","r":205},"chakra_max":8},"render":{"scale":1.25,"battle_size_scale":2.3713},"abilities":{"basic":{"id":"staff_strike","name":"Staff Strike","damage_multiplier":1.0,"delivery":"melee"},"jutsu":{"id":"boss_rotation","name":"Boss Rotation","cost":5,"damage_multiplier":2.05,"delivery":"boss_rotation"}},"assets":{"art":null,"card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":false,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":false,"notes":"Boss definition. Existing combat code remains authoritative until migration.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png"],"frame_ms":180,"loop":true,"events":[]}},"vfx":{}}},"crimson":{"schema_version":2,"id":"crimson","display_name":"Crimson","title":"Blazing Vanguard","role":"playable","archetype":"assassin_melee","element":"Fire","rarity":"Legendary","collection":{"owned":true,"inventory_visible":true,"battle_ready":true},"stats":{"level":1,"hp":118,"attack":35,"defense":18,"speed":68},"combat":{"mark":"V","movement_range":96,"basic_shape":{"type":"cone","r":182,"a":1.0},"jutsu_shape":{"type":"rect","w":310,"h":86},"chakra_max":8},"render":{"scale":1.0},"abilities":{"basic":{"id":"basic_strike","name":"Basic Strike","damage_multiplier":1.0,"chakra_gain":1,"delivery":"melee"},"jutsu":{"id":"current_jutsu","name":"Crimson Jutsu","cost":4,"damage_multiplier":1.9,"delivery":"forward_area","category":"jutsu","ultimate":false}},"assets":{"art":"art/current_collection_art.jpg","card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/","jutsu_cast":"assets/characters/crimson/sprites/runtime/jutsu/cast.png"},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":false,"notes":"v0.5.47: Crimson special animation corrected to Crimson-only Jutsu asset. Strict per-character routing prevents Lebee/Sub-Zero body frames from resolving on Crimson.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png","sprites/runtime/idle/frame_02.png"],"frame_ms":180,"loop":true,"events":[]},"basic_attack":{"frames":["sprites/runtime/attack/basic/frame_01.png"],"frame_ms":120,"loop":false,"events":[{"frame":1,"event":"release_projectile_or_apply_melee"}]},"jutsu":{"current":{"frames":["sprites/runtime/jutsu/current/frame_01.png"],"frame_ms":150,"loop":false,"events":[{"frame":1,"event":"release_jutsu_vfx"}]}}},"vfx":{}}},"lebee":{"schema_version":2,"id":"lebee","display_name":"Lebee","title":"Cosmic Wish","role":"playable","archetype":"caster_aoe","element":"Cosmic","rarity":"Legendary","collection":{"owned":true,"inventory_visible":true,"battle_ready":true},"stats":{"level":1,"hp":105,"attack":30,"defense":16,"speed":62},"combat":{"mark":"L","movement_range":90,"basic_shape":{"type":"rect","w":255,"h":58,"offset_x":116},"jutsu_shape":{"type":"screen_rect","padding":18},"chakra_max":8},"r
---- @ 24608141 ---
-"movement_range":96,"basic_shape":{"type":"cone","r":182,"a":1.0},"jutsu_shape":{"type":"rect","w":310,"h":86},"chakra_max":8},"render":{"scale":1.0},"abilities":{"basic":{"id":"basic_strike","name":"Basic Strike","damage_multiplier":1.0,"chakra_gain":1,"delivery":"melee"},"jutsu":{"id":"current_jutsu","name":"Crimson Jutsu","cost":4,"damage_multiplier":1.9,"delivery":"forward_area","category":"jutsu","ultimate":false}},"assets":{"art":"art/current_collection_art.jpg","card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/","jutsu_cast":"assets/characters/crimson/sprites/runtime/jutsu/cast.png"},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":false,"notes":"v0.5.47: Crimson special animation corrected to Crimson-only Jutsu asset. Strict per-character routing prevents Lebee/Sub-Zero body frames from resolving on Crimson.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png","sprites/runtime/idle/frame_02.png"],"frame_ms":180,"loop":true,"events":[]},"basic_attack":{"frames":["sprites/runtime/attack/basic/frame_01.png"],"frame_ms":120,"loop":false,"events":[{"frame":1,"event":"release_projectile_or_apply_melee"}]},"jutsu":{"current":{"frames":["sprites/runtime/jutsu/current/frame_01.png"],"frame_ms":150,"loop":false,"events":[{"frame":1,"event":"release_jutsu_vfx"}]}}},"vfx":{}}},"lebee":{"schema_version":2,"id":"lebee","display_name":"Lebee","title":"Cosmic Wish","role":"playable","archetype":"caster_aoe","element":"Cosmic","rarity":"Legendary","collection":{"owned":true,"inventory_visible":true,"battle_ready":true},"stats":{"level":1,"hp":105,"attack":30,"defense":16,"speed":62},"combat":{"mark":"L","movement_range":90,"basic_shape":{"type":"rect","w":255,"h":58,"offset_x":116},"jutsu_shape":{"type":"screen_rect","padding":18},"chakra_max":8},"render":{"scale":1.0},"abilities":{"basic":{"id":"star_blast","name":"Star Blast","damage_multiplier":1.0,"chakra_gain":1,"delivery":"ranged_projectile","range_presentation":"forward_lane"},"jutsu":{"id":"meteor_jutsu","name":"Meteor Jutsu","cost":4,"damage_multiplier":2.25,"delivery":"battlefield_aoe","area":"battlefield_rectangle","aoe":true,"presentation":{"cast_duration_ms":900,"meteor_fall_duration_ms":700,"meteor_count":7,"screen_dim_alpha":0.34,"meteor_scale_start":2.65,"meteor_scale_end":0.9,"meteor_stagger_ms":72,"impact_scatter_x":54,"impact_scatter_y":34,"cast_frame_count":6,"cast_sequence_path":"assets/characters/lebee/sprites/runtime/jutsu/meteor/sequence_v0532/","impact_hold_ms":680,"aftermath_hold_ms":420,"meteor_start_scale":132,"meteor_end_scale":42,"post_damage_fade_ms":150,"impact_art_enabled":false,"final_flash":true,"final_flash_yellow_ms":240,"final_flash_white_ms":105,"final_flash_fade_ms":120,"final_flash_mode":"fullscreen_overlay","final_flash_white_hold_ms":220,"final_flash_white_fade_ms":780,"flash_yellow_trigger":"second_to_last_meteor","flash_white_trigger":"final_meteor","meteor_entry_side":"opposite_caster","meteor_entry_top_margin":128,"meteor_entry_horizontal_spread":92},"category":"ultimate","ultimate":true}},"assets":{"art":"art/full_art_cosmic_wish.jpeg","card":"cards/unit_details_cosmic_wish.jpeg","portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":true,"notes":"v0.6.10: Lebee normal attack uses canonical thin forward rectangular ranged hitbox. Jutsu geometry remains independently defined by jutsu_shape.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.36","notes":"Initial archetype-based values. Tune freely during balance testing."},"presentation":{"idle":{"mode":"source_aligned_four_frame","source":"assets/characters/lebee/sprites/source/lebee_idle_sheet_v0538.jpeg","runtime_path":"as
---- @ 24610020 ---
-ole":"playable","archetype":"caster_aoe","element":"Cosmic","rarity":"Legendary","collection":{"owned":true,"inventory_visible":true,"battle_ready":true},"stats":{"level":1,"hp":105,"attack":30,"defense":16,"speed":62},"combat":{"mark":"L","movement_range":90,"basic_shape":{"type":"rect","w":255,"h":58,"offset_x":116},"jutsu_shape":{"type":"screen_rect","padding":18},"chakra_max":8},"render":{"scale":1.0},"abilities":{"basic":{"id":"star_blast","name":"Star Blast","damage_multiplier":1.0,"chakra_gain":1,"delivery":"ranged_projectile","range_presentation":"forward_lane"},"jutsu":{"id":"meteor_jutsu","name":"Meteor Jutsu","cost":4,"damage_multiplier":2.25,"delivery":"battlefield_aoe","area":"battlefield_rectangle","aoe":true,"presentation":{"cast_duration_ms":900,"meteor_fall_duration_ms":700,"meteor_count":7,"screen_dim_alpha":0.34,"meteor_scale_start":2.65,"meteor_scale_end":0.9,"meteor_stagger_ms":72,"impact_scatter_x":54,"impact_scatter_y":34,"cast_frame_count":6,"cast_sequence_path":"assets/characters/lebee/sprites/runtime/jutsu/meteor/sequence_v0532/","impact_hold_ms":680,"aftermath_hold_ms":420,"meteor_start_scale":132,"meteor_end_scale":42,"post_damage_fade_ms":150,"impact_art_enabled":false,"final_flash":true,"final_flash_yellow_ms":240,"final_flash_white_ms":105,"final_flash_fade_ms":120,"final_flash_mode":"fullscreen_overlay","final_flash_white_hold_ms":220,"final_flash_white_fade_ms":780,"flash_yellow_trigger":"second_to_last_meteor","flash_white_trigger":"final_meteor","meteor_entry_side":"opposite_caster","meteor_entry_top_margin":128,"meteor_entry_horizontal_spread":92},"category":"ultimate","ultimate":true}},"assets":{"art":"art/full_art_cosmic_wish.jpeg","card":"cards/unit_details_cosmic_wish.jpeg","portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":true,"notes":"v0.6.10: Lebee normal attack uses canonical thin forward rectangular ranged hitbox. Jutsu geometry remains independently defined by jutsu_shape.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.36","notes":"Initial archetype-based values. Tune freely during balance testing."},"presentation":{"idle":{"mode":"source_aligned_four_frame","source":"assets/characters/lebee/sprites/source/lebee_idle_sheet_v0538.jpeg","runtime_path":"assets/characters/lebee/sprites/runtime/idle/","frame_duration_ms":520,"sequence":["frame_01.png","frame_02.png","frame_03.png","frame_04.png","frame_03.png","frame_02.png"],"anchor":{"type":"fixed_lower_body","canvas":[420,420],"x":210,"baseline_y":396},"procedural_bob":false,"procedural_rotation":false}},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png","sprites/runtime/idle/frame_02.png","sprites/runtime/idle/frame_03.png","sprites/runtime/idle/frame_04.png"],"frame_ms":180,"loop":true,"events":[]},"basic_attack":{"frames":["sprites/runtime/attack/basic/frame_01.png","sprites/runtime/attack/basic/frame_02.png","sprites/runtime/attack/basic/frame_03.png","sprites/runtime/attack/basic/frame_04.png","sprites/runtime/attack/basic/frame_05.png","sprites/runtime/attack/basic/frame_06.png","sprites/runtime/attack/basic/frame_07.png"],"frame_ms":120,"loop":false,"events":[{"frame":6,"event":"release_projectile_or_apply_melee"}]},"recoil":{"frames":["sprites/runtime/recoil/frame_01.png","sprites/runtime/recoil/frame_02.png","sprites/runtime/recoil/frame_03.png","sprites/runtime/recoil/frame_04.png"],"frame_ms":100,"loop":false,"events":[]},"jutsu":{"meteor":{"frames":["sprites/runtime/jutsu/meteor/frame_01.png","sprites/runtime/jutsu/meteor/frame_02.png","sprites/runtime/jutsu/meteor/frame_03.png","sprites/runtime/jutsu/meteor/frame_04.png"],"frame_ms":150,"loop":false,"events":[{"frame":3,"event":"release_jutsu_vfx"}]},"meteor/bridge":{"frames":["sprites/runtime/jutsu/meteor/bridge/frame_01.png","sprites/runtime/jutsu/meteor/bridge/frame_02.png"],"frame_ms":150,"loop":false,"events":[{"frame":1,"event":"release_jutsu_vfx"}]},"meteor/sequence_v0532":{"frames":["sprites/runtime/jutsu/meteor/sequence_v0532/frame_01.png","sprites/runt
---- @ 24612998 ---
-ntime/idle/frame_01.png","sprites/runtime/idle/frame_02.png","sprites/runtime/idle/frame_03.png","sprites/runtime/idle/frame_04.png"],"frame_ms":180,"loop":true,"events":[]},"basic_attack":{"frames":["sprites/runtime/attack/basic/frame_01.png","sprites/runtime/attack/basic/frame_02.png","sprites/runtime/attack/basic/frame_03.png","sprites/runtime/attack/basic/frame_04.png","sprites/runtime/attack/basic/frame_05.png","sprites/runtime/attack/basic/frame_06.png","sprites/runtime/attack/basic/frame_07.png"],"frame_ms":120,"loop":false,"events":[{"frame":6,"event":"release_projectile_or_apply_melee"}]},"recoil":{"frames":["sprites/runtime/recoil/frame_01.png","sprites/runtime/recoil/frame_02.png","sprites/runtime/recoil/frame_03.png","sprites/runtime/recoil/frame_04.png"],"frame_ms":100,"loop":false,"events":[]},"jutsu":{"meteor":{"frames":["sprites/runtime/jutsu/meteor/frame_01.png","sprites/runtime/jutsu/meteor/frame_02.png","sprites/runtime/jutsu/meteor/frame_03.png","sprites/runtime/jutsu/meteor/frame_04.png"],"frame_ms":150,"loop":false,"events":[{"frame":3,"event":"release_jutsu_vfx"}]},"meteor/bridge":{"frames":["sprites/runtime/jutsu/meteor/bridge/frame_01.png","sprites/runtime/jutsu/meteor/bridge/frame_02.png"],"frame_ms":150,"loop":false,"events":[{"frame":1,"event":"release_jutsu_vfx"}]},"meteor/sequence_v0532":{"frames":["sprites/runtime/jutsu/meteor/sequence_v0532/frame_01.png","sprites/runtime/jutsu/meteor/sequence_v0532/frame_02.png","sprites/runtime/jutsu/meteor/sequence_v0532/frame_03.png","sprites/runtime/jutsu/meteor/sequence_v0532/frame_04.png","sprites/runtime/jutsu/meteor/sequence_v0532/frame_05.png","sprites/runtime/jutsu/meteor/sequence_v0532/frame_06.png"],"frame_ms":150,"loop":false,"events":[{"frame":5,"event":"release_jutsu_vfx"}]}}},"vfx":{}}},"subzero":{"schema_version":2,"id":"subzero","display_name":"Sub-Zero","title":"Absolute Zero","role":"playable","archetype":"ranged_controller","element":"Ice","rarity":"Legendary","collection":{"owned":true,"inventory_visible":true,"battle_ready":true},"stats":{"level":1,"hp":126,"attack":31,"defense":24,"speed":60},"combat":{"mark":"SZ","movement_range":88,"basic_shape":{"type":"circle","r":92},"jutsu_shape":{"type":"cone","r":205,"a":1.05},"chakra_max":8},"render":{"scale":0.88},"abilities":{"basic":{"id":"basic_attack","name":"Basic Attack","damage_multiplier":1.0,"chakra_gain":1,"delivery":"melee"},"jutsu":{"id":"freeze_blast","name":"Freeze Blast","cost":4,"damage_multiplier":2.1,"delivery":"projectile","status_effect":"freeze","status_chance":1.0,"category":"jutsu","ultimate":false}},"assets":{"art":"art/full_art_absolute_zero_v2.jpeg","card":"cards/unit_details_absolute_zero_v2.jpeg","portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":true,"notes":"v0.5.46: battlefield render scale reduced to 0.88 so Sub-Zero visually matches the current Crimson/Lebee team footprint. Applies consistently to all body animations.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png"],"frame_ms":180,"loop":true,"events":[]},"basic_attack":{"frames":["sprites/runtime/attack/basic/frame_01.png","sprites/runtime/attack/basic/frame_01_alt.png"],"frame_ms":120,"loop":false,"events":[{"frame":1,"event":"release_projectile_or_apply_melee"}]}},"vfx":{"jutsu/freeze_blast/projectile":{"frames":["vfx/jutsu/freeze_blast/projectile/frame_01.png","vfx/jutsu/freeze_blast/projectile/frame_02.png","vfx/jutsu/freeze_blast/projectile/frame_03.png"],"frame_ms":90,"loop":false,"body_asset":false}}}},"gotoku":{"schema_version":2,"id":"gotoku","display_name":"Gotoku","title":null,"role":"enemy","archetype":"ghost_striker","element":"Spirit","rarity":null,"collection":{"owned":false,"inventory_visible":false,"battle_ready":true},"stats":{"level":1,"hp":100,"attack":15,"defense":9,"speed":31},"combat":{"mark":"G","movement_range":70,"basic_shape":{"type":"rect","w":18
---- @ 24615209 ---
-":{"type":"cone","r":205,"a":1.05},"chakra_max":8},"render":{"scale":0.88},"abilities":{"basic":{"id":"basic_attack","name":"Basic Attack","damage_multiplier":1.0,"chakra_gain":1,"delivery":"melee"},"jutsu":{"id":"freeze_blast","name":"Freeze Blast","cost":4,"damage_multiplier":2.1,"delivery":"projectile","status_effect":"freeze","status_chance":1.0,"category":"jutsu","ultimate":false}},"assets":{"art":"art/full_art_absolute_zero_v2.jpeg","card":"cards/unit_details_absolute_zero_v2.jpeg","portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/basic/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":true,"battle":true,"idle":true,"basic_attack":true,"jutsu":true,"recoil":true,"notes":"v0.5.46: battlefield render scale reduced to 0.88 so Sub-Zero visually matches the current Crimson/Lebee team footprint. Applies consistently to all body animations.","animation_map":true},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png"],"frame_ms":180,"loop":true,"events":[]},"basic_attack":{"frames":["sprites/runtime/attack/basic/frame_01.png","sprites/runtime/attack/basic/frame_01_alt.png"],"frame_ms":120,"loop":false,"events":[{"frame":1,"event":"release_projectile_or_apply_melee"}]}},"vfx":{"jutsu/freeze_blast/projectile":{"frames":["vfx/jutsu/freeze_blast/projectile/frame_01.png","vfx/jutsu/freeze_blast/projectile/frame_02.png","vfx/jutsu/freeze_blast/projectile/frame_03.png"],"frame_ms":90,"loop":false,"body_asset":false}}}},"gotoku":{"schema_version":2,"id":"gotoku","display_name":"Gotoku","title":null,"role":"enemy","archetype":"ghost_striker","element":"Spirit","rarity":null,"collection":{"owned":false,"inventory_visible":false,"battle_ready":true},"stats":{"level":1,"hp":100,"attack":15,"defense":9,"speed":31},"combat":{"mark":"G","movement_range":70,"basic_shape":{"type":"rect","w":180,"h":55},"jutsu_shape":null,"chakra_max":0},"render":{"scale":1.0},"abilities":{"basic":{"id":"ghost_strike","name":"Ghost Strike","damage_multiplier":1.0,"delivery":"melee"},"jutsu":null},"assets":{"art":null,"card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":false,"battle":true,"idle":true,"basic_attack":false,"jutsu":false,"recoil":false,"notes":"Existing ghost enemy; stats remain in current runtime during migration."},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."}},"yurei":{"schema_version":2,"id":"yurei","display_name":"Yurei","title":null,"role":"enemy","archetype":"ghost_skirmisher","element":"Spirit","rarity":null,"collection":{"owned":false,"inventory_visible":false,"battle_ready":true},"stats":{"level":1,"hp":110,"attack":15,"defense":8,"speed":36},"combat":{"mark":"G","movement_range":76,"basic_shape":{"type":"circle","r":76},"jutsu_shape":null,"chakra_max":0},"render":{"scale":1.0},"abilities":{"basic":{"id":"spirit_claw","name":"Spirit Claw","damage_multiplier":1.0,"delivery":"melee"},"jutsu":null},"assets":{"art":null,"card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":false,"battle":true,"idle":true,"basic_attack":false,"jutsu":false,"recoil":false,"notes":"Existing ghost enemy; stats remain in current runtime during migration."},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."}},"onre":{"schema_version":2,"id":"onre","display_name":"Onre","title":null,"role":"enemy","archetype":"ghost_skirmisher","element":"Spirit","rarity":null,"collection":{"owned":false,"inventory_visible":false,"battle_ready":true},"stats":{"level":1,"hp":100,"attack":14,"defense":8,"speed":34},"combat":{"mark":"G","movement_range":72,"basic_shape"
---- @ 24616325 ---
-g balance testing."},"animation_standard":{"version":"v0.6.16","canvas":{"width":420,"height":420,"anchor_x":210,"anchor_y":392},"animations":{"idle":{"frames":["sprites/runtime/idle/frame_01.png"],"frame_ms":180,"loop":true,"events":[]},"basic_attack":{"frames":["sprites/runtime/attack/basic/frame_01.png","sprites/runtime/attack/basic/frame_01_alt.png"],"frame_ms":120,"loop":false,"events":[{"frame":1,"event":"release_projectile_or_apply_melee"}]}},"vfx":{"jutsu/freeze_blast/projectile":{"frames":["vfx/jutsu/freeze_blast/projectile/frame_01.png","vfx/jutsu/freeze_blast/projectile/frame_02.png","vfx/jutsu/freeze_blast/projectile/frame_03.png"],"frame_ms":90,"loop":false,"body_asset":false}}}},"gotoku":{"schema_version":2,"id":"gotoku","display_name":"Gotoku","title":null,"role":"enemy","archetype":"ghost_striker","element":"Spirit","rarity":null,"collection":{"owned":false,"inventory_visible":false,"battle_ready":true},"stats":{"level":1,"hp":100,"attack":15,"defense":9,"speed":31},"combat":{"mark":"G","movement_range":70,"basic_shape":{"type":"rect","w":180,"h":55},"jutsu_shape":null,"chakra_max":0},"render":{"scale":1.0},"abilities":{"basic":{"id":"ghost_strike","name":"Ghost Strike","damage_multiplier":1.0,"delivery":"melee"},"jutsu":null},"assets":{"art":null,"card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":false,"battle":true,"idle":true,"basic_attack":false,"jutsu":false,"recoil":false,"notes":"Existing ghost enemy; stats remain in current runtime during migration."},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."}},"yurei":{"schema_version":2,"id":"yurei","display_name":"Yurei","title":null,"role":"enemy","archetype":"ghost_skirmisher","element":"Spirit","rarity":null,"collection":{"owned":false,"inventory_visible":false,"battle_ready":true},"stats":{"level":1,"hp":110,"attack":15,"defense":8,"speed":36},"combat":{"mark":"G","movement_range":76,"basic_shape":{"type":"circle","r":76},"jutsu_shape":null,"chakra_max":0},"render":{"scale":1.0},"abilities":{"basic":{"id":"spirit_claw","name":"Spirit Claw","damage_multiplier":1.0,"delivery":"melee"},"jutsu":null},"assets":{"art":null,"card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":false,"battle":true,"idle":true,"basic_attack":false,"jutsu":false,"recoil":false,"notes":"Existing ghost enemy; stats remain in current runtime during migration."},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."}},"onre":{"schema_version":2,"id":"onre","display_name":"Onre","title":null,"role":"enemy","archetype":"ghost_skirmisher","element":"Spirit","rarity":null,"collection":{"owned":false,"inventory_visible":false,"battle_ready":true},"stats":{"level":1,"hp":100,"attack":14,"defense":8,"speed":34},"combat":{"mark":"G","movement_range":72,"basic_shape":{"type":"circle","r":82},"jutsu_shape":null,"chakra_max":0},"render":{"scale":1.0},"abilities":{"basic":{"id":"ghost_swipe","name":"Ghost Swipe","damage_multiplier":1.0,"delivery":"melee"},"jutsu":null},"assets":{"art":null,"card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":false,"battle":true,"idle":true,"basic_attack":false,"jutsu":false,"recoil":false,"notes":"Existing ghost enemy; stats remain in current runtime during migration."},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."}}};</script>
-<script>
-const cvs=document.getElementById('game');
-const LOGICAL_W=480,LOGICAL_H=720;
-const RENDER_DPR=Math.min(window.devicePixelRatio||1,2);
-cvs.width=Math.round(LOGICAL_W*RENDER_DPR);
-cvs.height=Math.round(LOGICAL_H*RENDER_DPR);
-const ctx=cvs.getContext('2d');
-ctx.setTransform(RENDER_DPR,0,0,RENDER_DPR,0,0);
-const W=LOGICAL_W,H=LOGICA
---- @ 24617436 ---
-ax":0},"render":{"scale":1.0},"abilities":{"basic":{"id":"ghost_strike","name":"Ghost Strike","damage_multiplier":1.0,"delivery":"melee"},"jutsu":null},"assets":{"art":null,"card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":false,"battle":true,"idle":true,"basic_attack":false,"jutsu":false,"recoil":false,"notes":"Existing ghost enemy; stats remain in current runtime during migration."},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."}},"yurei":{"schema_version":2,"id":"yurei","display_name":"Yurei","title":null,"role":"enemy","archetype":"ghost_skirmisher","element":"Spirit","rarity":null,"collection":{"owned":false,"inventory_visible":false,"battle_ready":true},"stats":{"level":1,"hp":110,"attack":15,"defense":8,"speed":36},"combat":{"mark":"G","movement_range":76,"basic_shape":{"type":"circle","r":76},"jutsu_shape":null,"chakra_max":0},"render":{"scale":1.0},"abilities":{"basic":{"id":"spirit_claw","name":"Spirit Claw","damage_multiplier":1.0,"delivery":"melee"},"jutsu":null},"assets":{"art":null,"card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":false,"battle":true,"idle":true,"basic_attack":false,"jutsu":false,"recoil":false,"notes":"Existing ghost enemy; stats remain in current runtime during migration."},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."}},"onre":{"schema_version":2,"id":"onre","display_name":"Onre","title":null,"role":"enemy","archetype":"ghost_skirmisher","element":"Spirit","rarity":null,"collection":{"owned":false,"inventory_visible":false,"battle_ready":true},"stats":{"level":1,"hp":100,"attack":14,"defense":8,"speed":34},"combat":{"mark":"G","movement_range":72,"basic_shape":{"type":"circle","r":82},"jutsu_shape":null,"chakra_max":0},"render":{"scale":1.0},"abilities":{"basic":{"id":"ghost_swipe","name":"Ghost Swipe","damage_multiplier":1.0,"delivery":"melee"},"jutsu":null},"assets":{"art":null,"card":null,"portrait":"portraits/","icon":"icons/","sprites":{"idle":"sprites/runtime/idle/","attack_basic":"sprites/runtime/attack/","recoil":"sprites/runtime/recoil/","jutsu":"sprites/runtime/jutsu/"},"vfx":"vfx/"},"readiness":{"collection":false,"battle":true,"idle":true,"basic_attack":false,"jutsu":false,"recoil":false,"notes":"Existing ghost enemy; stats remain in current runtime during migration."},"balance":{"status":"provisional","pass":"v0.5.30","notes":"Initial archetype-based values. Tune freely during balance testing."}}};</script>
-<script>
-const cvs=document.getElementById('game');
-const LOGICAL_W=480,LOGICAL_H=720;
-const RENDER_DPR=Math.min(window.devicePixelRatio||1,2);
-cvs.width=Math.round(LOGICAL_W*RENDER_DPR);
-cvs.height=Math.round(LOGICAL_H*RENDER_DPR);
-const ctx=cvs.getContext('2d');
-ctx.setTransform(RENDER_DPR,0,0,RENDER_DPR,0,0);
-const W=LOGICAL_W,H=LOGICAL_H;
-const phaseEl=document.getElementById('phase'),logEl=document.getElementById('log'),statusEl=document.getElementById('status'),meter=document.getElementById('meter');
-const normalBtn=document.getElementById('normal'),jutsuBtn=document.getElementById('jutsu'),swapBtn=document.getElementById('swap');
-const bossHpHud=document.getElementById('bossHpHud'),bossHpFill=document.getElementById('bossHpFill');
-const meteorScreenFlash=document.getElementById('meteorScreenFlash');
-function getMeteorScreenFlash(){return meteorScreenFlash||document.getElementById('meteorScreenFlash');}
-const menuScreen=document.getElementById('menuScreen'),battleScreen=document.getElementById('battleScreen'),level1Btn=document.getElementById('level1Btn'),boss1Btn=document.getElementById('boss1Btn'),tacticalTicker=document.getElementById('tacticalTicker');
-const summonScreen=document.getElementById('summonScreen'),summonsBtn=document.getElementById('summonsBtn'),summonBackBtn=document.getElementById('summonBackBtn');
-const singleSummonBtn=document.getElementById('singleSummonBtn'),multiSummonBtn=document.getElementById('m
---- @ 41271257 ---
-e]?.idle||[];
-}
-function unitAttackFrames(name,kind){
-  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
-}
-
-const LEBEE_STAR_PROJECTILE=new Image();
-LEBEE_STAR_PROJECTILE.src='assets/characters/lebee/vfx/basic/star_blast/projectile/frame_01.png';
-const LEBEE_METEOR_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/meteor/frame_03.png"]);
-const LEBEE_METEOR_IMPACT_FRAMES=makeImageFrames(["assets/characters/lebee/vfx/jutsu/meteor/impact/frame_01.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_02.png","assets/characters/lebee/vfx/jutsu/meteor/impact/frame_03.png"]);
-const LEBEE_METEOR_IMPACT_COMBO=new Image();
-LEBEE_METEOR_IMPACT_COMBO.src='assets/characters/lebee/vfx/jutsu/meteor/finale/frame_01.png';
-const LEBEE_METEOR_AFTERMATH=new Image();
-LEBEE_METEOR_AFTERMATH.src='assets/characters/lebee/vfx/jutsu/meteor/aftermath/frame_01.png';
-
-
-function U(name,mark,speed,attack,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff=null,maxHp=110,maxChakra=8,defense=0,archetype='unassigned'){
- return{name,mark,speed,attack,defense,archetype,shape,jutsuShape,jutsuCost,jutsuDamage,linkBuff,hp:maxHp,maxHp,chakra:2,maxChakra,rotation:0}
-}
-
-// v0.6.7 DATA AUTHORITY
-// Canonical stats/roles/shapes/ability costs live in each unit's data/unit.json.
-// The standalone embeds a generated copy in window.BLAZING_UNIT_DATA so mobile local-file play needs no fetch().
-const UNIT_DATA=window.BLAZING_UNIT_DATA||{};
-const UNIT_NAME_TO_ID=Object.freeze(Object.fromEntries(Object.entries(UNIT_DATA).map(([id,d])=>[d.display_name,id])));
-function canonicalUnit(nameOrId){
- const id=UNIT_DATA[nameOrId]?nameOrId:UNIT_NAME_TO_ID[nameOrId];
- const d=id?UNIT_DATA[id]:null;
- if(!d)throw new Error(`Unknown canonical unit: ${nameOrId}`);
- return d;
-}
-function runtimeDefinition(nameOrId){
- const d=canonicalUnit(nameOrId),basic=d.abilities.basic||{},jutsu=d.abilities.jutsu||{};
- return{
-  mark:d.combat.mark,speed:d.stats.speed,attack:d.stats.attack,defense:d.stats.defense,
-  hp:d.stats.hp,maxHp:d.stats.hp,shape:d.combat.basic_shape,jutsuShape:d.combat.jutsu_shape||{type:'circle',r:0},
-  maxChakra:d.combat.chakra_max||0,jutsuCost:jutsu.cost??99,
-  jutsuDamage:jutsu?window.BlazingCombatRuntime.computeScaledDamage(d.stats.attack,jutsu.damage_multiplier||1):0,
-  jutsuName:jutsu?.name||'Jutsu',archetype:d.archetype,render:d.render||{},
-  linkBuff:d.combat.link_buff||null
- };
-}
-const BATTLE_ROSTER=Object.freeze(Object.fromEntries(
- ['crimson','subzero','lebee','senku','anubis']
-   .filter(id=>UNIT_DATA[id])
-   .map(id=>[UNIT_DATA[id].display_name,runtimeDefinition(id)])
-));
-function makeRosterUnit(name,opts={}){
- const d=BATTLE_ROSTER[name];
- if(!d)throw new Error(`Unknown battle unit: ${name}`);
- const u=U(name,d.mark,d.speed,d.attack,d.shape,d.jutsuShape,d.jutsuCost,d.jutsuDamage,d.linkBuff||null,d.maxHp,d.maxChakra,d.defense,d.archetype);
- u.jutsuName=d.jutsuName||'Jutsu';
- u.renderScale=d.render?.scale||1;
- const start=opts.startingChakra??2;
- u.chakra=start==='full'?u.maxChakra:Math.max(0,Math.min(u.maxChakra,start));
- return u;
-}
-function makeEnemyFromData(id,name,x,y,mark,overrides={}){
- const d=canonicalUnit(id),base=d.stats,combat=d.combat;
- const hp=overrides.hp??base.hp;
- return{name:name||d.display_name,spriteKey:d.display_name,mark:mark||combat.mark,x,y,r:overrides.r??19,
-  hp,maxHp:hp,speed:overrides.speed??base.speed,attack:overrides.attack??base.attack,defense:overrides.defense??base.defense,
-  gauge:0,shape:overrides.shape??combat.basic_shape,archetype:d.archetype};
-}
-
-// v0.5.19 core-roster whitelist. Legacy units stay in BATTLE_ROSTER for rollback only.
-const ACTIVE_PLAYABLE_UNITS=Object.freeze(['Crimson','Sub-Zero','Lebee','Senku']);
-const DEFAULT_ACTIVE_TEAM=Object.freeze(['Crimson','Lebee','Sub-Zero']);
-
-function validatePlayableRosterRegistration(){
- const missing=ACTIVE_PLAYABLE_UNITS.filter(name=>!BATTLE_ROSTER[name]);
- if(missing.length){
-   console.error('Playable roster registration missing:',missing);
-   return false;
- }
- return true;
-}
-const PLAYABLE_ROSTER_VALID=validatePlayableRosterRegistration();
-const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v1';
-
-function validActiveTeam(team){
- return Array.isArray(team)
-   && team.length===3
-   && new Set(team).size===3
-   && team.every(name=
---- @ 41277686 ---
-ORTRAIT_MAP:LEVEL1_PORTRAIT_MAP;
-
- // CSS fallback renders immediately even if Edge delays Image() decode.
- cvs.style.backgroundImage=`url("${src}")`;
-
- if(img.src!==src){
-   img.src=src;
- }
- if(typeof img.decode==='function'){
-   img.decode().catch(()=>{});
- }
-}
-setBattleMap('level');
-
-function fresh(){
- return {
-  time:0,phase:'charge',action:'normal',ready:null,readyStarted:0,_chargeSince:performance.now(),drag:false,dragOrigin:null,dragVisual:null,anim:null,floaters:[],victoryFX:null,jutsuDim:null,bossBattle:false,battleMode:'level',log:'Waiting for the first fighter to become ready.',
-  pairs:buildPlayerPairs(575),
-  enemies:[
-   makeEnemyFromData('onre','Rogue 1',120,175,'1'),
-   makeEnemyFromData('gotoku','Rogue 2',355,225,'2'),
-   makeEnemyFromData('yurei','Rogue 3',175,335,'3'),
-   makeEnemyFromData('onre','Rogue 4',350,385,'4',{hp:105,speed:30,attack:16,shape:{type:'cross',l:160,t:48}})
-  ]
- }}
-
-function freshBoss(){
- return {
-  time:0,phase:'charge',action:'normal',ready:null,readyStarted:0,_chargeSince:performance.now(),drag:false,dragOrigin:null,dragVisual:null,anim:null,floaters:[],victoryFX:null,jutsuDim:null,
-  log:'BOSS BATTLE — Anubis, Judge of Souls.',
-  bossBattle:true,battleMode:'boss',
-  pairs:buildPlayerPairs(585),
-  enemies:[
-   {
-    name:'Anubis',spriteKey:'Anubis',mark:canonicalUnit('anubis').combat.mark,
-    x:240,y:195,r:29,
-    hp:canonicalUnit('anubis').stats.hp,maxHp:canonicalUnit('anubis').stats.hp,
-    speed:canonicalUnit('anubis').stats.speed,attack:canonicalUnit('anubis').stats.attack,defense:canonicalUnit('anubis').stats.defense,gauge:0,
-    shape:canonicalUnit('anubis').combat.basic_shape,
-    boss:true,sizeScale:canonicalUnit('anubis').render.battle_size_scale||2.0625
-   }
-  ]
- };
-}
-
-let S=fresh();
-
-const front=p=>p.units[p.active], back=p=>p.units[1-p.active];
-const pairAlive=p=>p.units.some(u=>u.hp>0);
-const alivePairs=()=>S.pairs.filter(pairAlive);
-const aliveEnemies=()=>S.enemies.filter(e=>e.hp>0);
-const NORMAL_ATTACK_SHAPE={type:'circle',r:43};
-const normalShape=()=>NORMAL_ATTACK_SHAPE;
-const attackShape=u=>{
- // Strict separation:
- // NORMAL -> unit's canonical combat.basic_shape
- // JUTSU  -> unit's canonical combat.jutsu_shape
- if(S.action==='jutsu')return u.jutsuShape;
- return u.shape||normalShape();
-};
-function attackProxy(u){return {...u,shape:attackShape(u)}}
-
-// Ability-tier lookup must live at battle scope because both the ground-field
-// pass and the later enemy target-feedback pass use it.
-function isUltimateAction(unit){
- if(!unit)return false;
- try{
-   // canonicalUnit already resolves both IDs and display names through UNIT_NAME_TO_ID.
-   const ability=canonicalUnit(unit.name)?.abilities?.jutsu;
-   return !!(ability?.ultimate===true || ability?.category==='ultimate' || ability?.tier==='ultimate');
- }catch(_){
-   return false;
- }
-}
-
-function isAllySupportJutsu(unit){
- if(!unit)return false;
- try{
-   const ability=canonicalUnit(unit.name)?.abilities?.jutsu;
-   return ability?.target==='all_allies' || ability?.effect==='heal_full';
- }catch(_){
-   return false;
- }
-}
-
-
-function ensureFront(p){
- if(front(p).hp>0)return true;
- if(front(p).hp<=0 && koAnimating(front(p).name))return true;
- if(back(p).hp>0){p.active=1-p.active;return true}
- return false
-}
-function fxMap(){
- if(!S.anim)S.anim={positions:{}};
- if(!S.anim.unitFX)S.anim.unitFX={};
- return S.anim.unitFX;
-}
-function unitFX(name){
- return S.anim?.unitFX?.[name]||null;
-}
-function koAnimating(name){
- let fx=unitFX(name);
- return !!(fx&&fx.kind==='ko'&&(performance.now()-fx.start)<fx.duration);
-}
-function renderWhileKO(name){
- let fx=unitFX(name);
- return !!(fx&&fx.kind==='ko'&&(performance.now()-fx.start)<fx.duration+90);
-}
-function startHitReaction(name,dir=1,strong=false){
- fxMap()[name]={kind:'hit',start:performance.now(),duration:strong?230:180,dir:dir||1,strong:!!strong};
-}
-function startKOReaction(name,dir=1){
- fxMap()[name]={kind:'ko',start:performance.now(),duration:520,dir:dir||1};
-}
-function pairRenderable(p){
- return pairAlive(p)||renderWhileKO(front(p).name)||renderWhileKO(back(p).name);
-}
-function handleKO(p,defeatedName,dir=1){
- addFloat(p.x,p.y-58,'KO','#ff7272');
- startKOReaction(defeatedName,dir);
- p.gauge=0;
- if(back(p).hp>0){
-   S.log=`${defeatedName} was knocked out — ${back(p).name} is preparing to move to the front.`;
-   setTimeout(()=>{
-     if(front(p).name===defeatedName && back(p).hp>0){
-
+===== shape selection: jutsuShape( (0 hits) =====
 
 ===== draw shape calls: drawShape( (4 hits) =====
 --- @ 41281473 ---
