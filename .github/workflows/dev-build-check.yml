@@ -8,7 +8,10 @@ permissions:
   contents: write
 jobs:
   migrate-pass41d-senku:
-    if: github.ref == 'refs/heads/agent/pass4.1-gameplay-stabilization' && github.actor != 'github-actions[bot]'
+    if: >-
+      github.actor != 'github-actions[bot]' &&
+      ((github.event_name == 'pull_request' && github.head_ref == 'agent/pass4.1-gameplay-stabilization') ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/agent/pass4.1-gameplay-stabilization'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +61,9 @@ jobs:
           git diff --cached --quiet || git commit -m "Fix Senku evasive bomb presentation"
           git push
   build:
-    if: github.ref != 'refs/heads/agent/pass4.1-gameplay-stabilization' || github.actor == 'github-actions[bot]'
+    if: >-
+      !((github.event_name == 'pull_request' && github.head_ref == 'agent/pass4.1-gameplay-stabilization' && github.actor != 'github-actions[bot]') ||
+        (github.event_name == 'push' && github.ref == 'refs/heads/agent/pass4.1-gameplay-stabilization' && github.actor != 'github-actions[bot]'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
