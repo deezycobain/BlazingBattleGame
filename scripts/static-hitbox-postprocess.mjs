@@ -4,16 +4,16 @@ import path from 'node:path';
 const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
 
-// Attack geometry is positional strategy, not auto-aim. Mechanical shape rotation is
-// deliberately separate from character-body facing, which Pass 4.1 resolves against
-// the visual/resolved attack target in the source shell.
+// Authored fallback rotation remains separate from target-relative rotation requested by
+// canonical ability presentation metadata. Pass 4.1 uses nearest_enemy_facing for
+// directional abilities such as Sub-Zero Freeze Blast and Senku's pear-shaped basic.
 // IMPORTANT: battle pairs also contain empty reserve placeholders and some stages
 // contain non-canonical enemies. Never let a presentation lookup throw during render.
 const facingRx=/function updateFacing\(\)\{[\s\S]*?\n\}\n\nfunction battleSpriteFor/;
 if(!facingRx.test(html))throw new Error('Static hitbox pass: updateFacing() block not found');
 const facingReplacement=`function updateFacing(){
-  // Moving a unit changes only the authored attack-shape origin.
-  // Proximity never rotates or snaps the mechanical attack field toward a target.
+  // Moving a unit resets only the authored fallback rotation. attackProxy() may then
+  // apply canonical target-relative rotation for abilities that explicitly request it.
   function authoredAttackRotation(actor,basicFallbackDeg,jutsuFallbackDeg=basicFallbackDeg){
     let deg=S.action==='jutsu'?jutsuFallbackDeg:basicFallbackDeg;
     try{
@@ -35,6 +35,23 @@ const facingReplacement=`function updateFacing(){
 
 function battleSpriteFor`;
 html=html.replace(facingRx,facingReplacement);
+
+// Senku's basic range is a real directional pear shape, not a cosmetic overlay.
+// Keep the mechanical hit test mathematically aligned with BattlefieldRenderer.drawShape().
+if(!html.includes("if(s.type==='pear')")){
+  const pearAnchor=" if(s.type==='circle')return d(p,e)<=s.r+er;";
+  if(!html.includes(pearAnchor))throw new Error('Pear hitbox pass: circle geometry anchor not found');
+  const pearHit=`${pearAnchor}
+ if(s.type==='pear'){
+  const rear=Number(s.rear??48),reach=Number(s.reach??140),width=Number(s.width??102);
+  const curve=Number(s.curve??.72),stem=Number(s.stem??.52),bulge=Number(s.bulge??.72);
+  if(q.x<-rear-er||q.x>reach+er)return false;
+  const x=clamp(q.x,-rear,reach),span=rear+reach,t=span>0?(x+rear)/span:0;
+  const half=(t>0&&t<1&&width>0)?width*Math.pow(Math.max(0,Math.sin(Math.PI*t)),curve)*(stem+bulge*t):0;
+  return Math.abs(q.y)<=half+er;
+ }`;
+  html=html.replace(pearAnchor,pearHit);
+}
 
 // UI-only target filtering. Never wrap or replace global hits(): the geometry helper
 // recursively calls itself for compound shapes, and altering that path can take down
@@ -150,4 +167,4 @@ if(!explosionBlock.includes('impact_hold_ratio')||!explosionBlock.includes('impa
 html=html.slice(0,explosionStart)+explosionBlock+html.slice(explosionEnd);
 
 await fs.writeFile(file,html);
-console.log(`Gameplay presentation pass: authored action-specific hitbox rotations + decoupled body facing + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku bomb size/impact metadata applied`);
+console.log(`Gameplay presentation pass: authored/action-relative rotations + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku bomb size/impact metadata applied`);
