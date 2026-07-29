@@ -2,7 +2,10 @@ import fs from 'node:fs/promises';
 
 const html=await fs.readFile('index.html','utf8');
 const anchors=[
+  'const SENKU_CHEM_CAST_FRAMES',
+  'const CHARACTER_ANIMATION_MAPS',
   'function unitAttackFrames',
+  'function drawUnit',
   'function attackProxy',
   'function animateSenkuBomb',
   'function animateLunge',
@@ -10,15 +13,14 @@ const anchors=[
   "basicPresentation.runtimeDriver==='animateSenkuBomb'?animateSenkuBomb:animateLunge",
   'function bodyFacingRotation',
   'function updateFacing',
-  'function clamp(',
-  'const W=',
-  'const H='
+  'function clampToBattlefield',
+  'const BATTLE_BOUNDS'
 ];
 for(const anchor of anchors){
   const at=html.indexOf(anchor);
   console.log(`\n===== ${anchor} @ ${at} =====`);
   if(at<0)continue;
-  const start=Math.max(0,at-500);
-  const end=Math.min(html.length,at+5000);
+  const start=Math.max(0,at-700);
+  const end=Math.min(html.length,at+6500);
   console.log(html.slice(start,end));
 }
