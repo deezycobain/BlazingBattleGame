@@ -30,7 +30,7 @@
     "jutsu_shape": {
       "type": "cone",
       "r": 205,
-      "a": 1.05
+      "a": 0.52
     },
     "jutsu_rotation_deg": 0,
     "chakra_max": 8,
@@ -87,7 +87,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "v0.7 Pass 4.1 stabilization: normal/helper basics use the canonical punch presentation. Freeze Blast keeps the same cone and combat timing, but its cone and projectile presentation stay forward from Sub-Zero by following his nearest live-enemy facing direction instead of a fixed screen angle.",
+    "notes": "v0.7 Pass 4.1 stabilization: normal/helper basics use the canonical punch presentation. Freeze Blast keeps its 205 px reach and combat timing while using a thinner 0.52 rad forward-facing cone that follows Sub-Zero toward the nearest live enemy.",
     "animation_map": true
   },
   "balance": {
