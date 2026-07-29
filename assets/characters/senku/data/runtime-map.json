@@ -6,6 +6,10 @@
     "explosive_bomb": {
       "slot": "basic",
       "animation_id": "senku.animation.basic_attack",
+      "presentation_animations": {
+        "close_retreat": "senku.animation.retreat_run",
+        "far_throw": "senku.animation.basic_attack"
+      },
       "gameplay_actions": [
         {
           "event": "on_projectile_arrival",
