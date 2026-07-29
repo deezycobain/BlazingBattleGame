@@ -60,7 +60,11 @@
       "status_effect": "freeze",
       "status_chance": 1.0,
       "category": "jutsu",
-      "ultimate": false
+      "ultimate": false,
+      "presentation": {
+        "range_rotation_mode": "nearest_enemy_facing",
+        "projectile_origin_mode": "forward_facing"
+      }
     }
   },
   "assets": {
@@ -83,7 +87,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "v0.7 Pass 4.1 stabilization: basic and Freeze Blast retain authored horizontal rotation metadata; normal/helper basics use the canonical punch presentation. Existing combat values and Freeze Blast timing remain unchanged.",
+    "notes": "v0.7 Pass 4.1 stabilization: normal/helper basics use the canonical punch presentation. Freeze Blast keeps the same cone and combat timing, but its cone and projectile presentation stay forward from Sub-Zero by following his nearest live-enemy facing direction instead of a fixed screen angle.",
     "animation_map": true
   },
   "balance": {
