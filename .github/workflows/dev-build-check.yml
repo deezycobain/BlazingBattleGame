@@ -14,16 +14,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Fetch Asset Inbox Senku melee source
-        run: |
-          curl -L --fail --retry 3 'https://github.com/user-attachments/assets/ad4c4bc7-f8bd-4791-b679-07038ef655a5' -o /tmp/senku-melee.png
-          test -s /tmp/senku-melee.png
-          file /tmp/senku-melee.png
-      - name: Export Senku melee source artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: senku-melee-asset-inbox
-          path: /tmp/senku-melee.png
-          retention-days: 1
       - run: npm install
       - run: npm run build
