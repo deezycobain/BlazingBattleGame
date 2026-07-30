@@ -34,6 +34,58 @@ for(const entry of unitIndex.units||[]){
 html=html.replace(unitTag,(_,a,_json,c)=>a+JSON.stringify(embedded)+c);
 console.log(`Canonical unit sync applied: ${(unitIndex.units||[]).map(x=>x.id).join(', ')}`);
 
+// Sub-Zero Basic Attack v2: the approved Drive/GitHub upload is a 3x2 source sheet.
+// Build-time wiring keeps the source sheet canonical while the browser derives six
+// transparent canvas frames at load time. The old two frame files remain a fallback
+// until this preview has passed mobile validation.
+const subzeroBasic=embedded.subzero?.animation_standard?.animations?.basic_attack;
+const subzeroSheet=subzeroBasic?.source_sheet;
+if(!subzeroSheet?.path||subzeroSheet.columns!==3||subzeroSheet.rows!==2||subzeroSheet.frame_count!==6){
+  throw new Error('Postprocess: Sub-Zero Basic Attack v2 sheet metadata is invalid');
+}
+const subzeroSheetPath=path.posix.join('assets/characters/subzero',subzeroSheet.path);
+const attackFrameAnchor="function unitAttackFrames(name,kind){\n  if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];\n  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];\n}";
+const subzeroAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
+ const cfg=${JSON.stringify({
+   path:subzeroSheetPath,
+   columns:subzeroSheet.columns,
+   rows:subzeroSheet.rows,
+   frameWidth:subzeroSheet.frame_width,
+   frameHeight:subzeroSheet.frame_height,
+   frameCount:subzeroSheet.frame_count
+ })};
+ const frames=Array.from({length:cfg.frameCount},()=>{const c=document.createElement('canvas');c.width=cfg.frameWidth;c.height=cfg.frameHeight;return c;});
+ const state={frames,ready:false};
+ const sheet=new Image();
+ sheet.addEventListener('load',()=>{
+  try{
+   for(let i=0;i<cfg.frameCount;i++){
+    const sx=(i%cfg.columns)*cfg.frameWidth,sy=Math.floor(i/cfg.columns)*cfg.frameHeight;
+    const canvas=frames[i],ctx=canvas.getContext('2d',{willReadFrequently:true});
+    ctx.clearRect(0,0,cfg.frameWidth,cfg.frameHeight);
+    ctx.drawImage(sheet,sx,sy,cfg.frameWidth,cfg.frameHeight,0,0,cfg.frameWidth,cfg.frameHeight);
+    const pixels=ctx.getImageData(0,0,cfg.frameWidth,cfg.frameHeight),data=pixels.data;
+    for(let p=0;p<data.length;p+=4){
+     const r=data[p],g=data[p+1],b=data[p+2],hi=Math.max(r,g,b),lo=Math.min(r,g,b);
+     if(lo>235&&hi-lo<12)data[p+3]=0;
+    }
+    ctx.putImageData(pixels,0,0);
+   }
+   state.ready=true;
+  }catch(err){console.error('Sub-Zero Basic Attack sheet processing failed:',err);}
+ });
+ sheet.addEventListener('error',()=>console.error('Sub-Zero Basic Attack sheet failed to load:',cfg.path));
+ sheet.src=cfg.path;
+ return state;
+})();
+function unitAttackFrames(name,kind){
+  if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];
+  if(name==='Sub-Zero'&&(kind==='basic'||kind==='normal'||kind==='attack')&&SUBZERO_BASIC_ATTACK_RUNTIME.ready)return SUBZERO_BASIC_ATTACK_RUNTIME.frames;
+  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+}`;
+replaceRequired(attackFrameAnchor,subzeroAttackRuntime,'Sub-Zero Basic Attack v2 runtime frames');
+console.log(`Sub-Zero Basic Attack v2 sheet wired: ${subzeroSheetPath}`);
+
 replaceRequired(
   "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Crimson','Lebee','Sub-Zero']);",
   "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Senku','Lebee','Sub-Zero']);",
