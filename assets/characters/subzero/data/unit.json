@@ -77,7 +77,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "v0.7 baseline: chakra_start is canonical unit data. Existing runtime presentation retained.",
+    "notes": "Sub-Zero Basic Attack v2 uses the approved six-pose close-range sprite sheet from the canonical runtime basic-attack folder. Legacy two-frame files remain temporary fallback assets until mobile preview validation passes.",
     "animation_map": true
   },
   "balance": {
@@ -86,7 +86,7 @@
     "notes": "Initial archetype-based values. Tune freely during balance testing."
   },
   "animation_standard": {
-    "version": "v0.6.16",
+    "version": "v0.7.1-subzero-basic-v2",
     "canvas": {
       "width": 420,
       "height": 420,
@@ -103,15 +103,24 @@
         "events": []
       },
       "basic_attack": {
+        "source_sheet": {
+          "path": "sprites/runtime/attack/basic/43297C1D-6DB2-4EE0-88FA-29F9452906C2.png",
+          "columns": 3,
+          "rows": 2,
+          "frame_width": 512,
+          "frame_height": 512,
+          "frame_count": 6,
+          "background_cleanup": "light_checkerboard_to_alpha"
+        },
         "frames": [
           "sprites/runtime/attack/basic/frame_01.png",
           "sprites/runtime/attack/basic/frame_01_alt.png"
         ],
-        "frame_ms": 120,
+        "frame_ms": 95,
         "loop": false,
         "events": [
           {
-            "frame": 1,
+            "frame": 4,
             "event": "release_projectile_or_apply_melee"
           }
         ]
