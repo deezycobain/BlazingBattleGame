@@ -103,7 +103,7 @@
     const s=shape;
     if(!s)return;
     const icyCone=s.type==='cone'&&s.visual_style==='subzero_ice';
-    const pulse=1+Math.sin(now/(icyCone?420:180))*(icyCone?.028:.014);
+    const pulse=1+Math.sin(now/(icyCone?420:180))*(icyCone ? .028 : .014);
     const breathe=.5+.5*Math.sin(now/(icyCone?420:230));
 
     if(s.type==='screen_rect'){
