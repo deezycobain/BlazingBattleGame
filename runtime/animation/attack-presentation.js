@@ -3,6 +3,7 @@
 
   const finitePoint=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y);
   const canonicalFrameCache=new Map();
+  const assistedTargetCache=new Map();
 
   function rotationToward(from,target,fallback=0){
     if(!finitePoint(from)||!finitePoint(target))return Number.isFinite(fallback)?fallback:0;
@@ -22,6 +23,11 @@
   function pointDistance(origin,target){
     if(!finitePoint(origin)||!finitePoint(target))return Infinity;
     return Math.hypot(target.x-origin.x,target.y-origin.y);
+  }
+
+  function angleDelta(a,b){
+    if(!Number.isFinite(a)||!Number.isFinite(b))return Math.PI;
+    return Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)));
   }
 
   function livePoints(candidates=[]){
@@ -44,37 +50,57 @@
     const max=Number(options.max);
     const preferred=Number(options.preferred);
     const fallbackMax=Number(options.fallbackMax);
+    const facing=Number(options.facing);
+    const angleWeight=Number(options.angleWeight);
+    const stickyTarget=options.stickyTarget||null;
+    const stickyBonus=Number(options.stickyBonus);
+    const switchMargin=Number(options.switchMargin);
     const safeMin=Number.isFinite(min)?Math.max(0,min):0;
     const safeMax=Number.isFinite(max)?Math.max(safeMin,max):Infinity;
     const safePreferred=Number.isFinite(preferred)?Math.min(safeMax,Math.max(safeMin,preferred)):(safeMin+safeMax)/2;
     const safeFallbackMax=Number.isFinite(fallbackMax)?Math.max(safeMax,fallbackMax):safeMax;
+    const safeAngleWeight=Number.isFinite(angleWeight)?Math.max(0,angleWeight):0;
+    const safeStickyBonus=Number.isFinite(stickyBonus)?Math.max(0,stickyBonus):0;
+    const safeSwitchMargin=Number.isFinite(switchMargin)?Math.max(0,switchMargin):0;
     const scored=livePoints(candidates)
-      .map(candidate=>({candidate,distance:pointDistance(origin,candidate)}))
+      .map(candidate=>{
+        const distance=pointDistance(origin,candidate);
+        const direction=rotationToward(origin,candidate,facing);
+        const anglePenalty=Number.isFinite(facing)?angleDelta(direction,facing)*safeAngleWeight:0;
+        return {candidate,distance,score:Math.abs(distance-safePreferred)+anglePenalty};
+      })
       .filter(entry=>entry.distance<=safeFallbackMax);
     if(!scored.length)return null;
     const band=scored.filter(entry=>entry.distance>=safeMin&&entry.distance<=safeMax);
     const pool=band.length?band:scored;
-    pool.sort((a,b)=>{
-      const da=Math.abs(a.distance-safePreferred),db=Math.abs(b.distance-safePreferred);
-      if(Math.abs(da-db)>1e-9)return da-db;
-      // Equal-quality targets should bias toward the nearer body. This makes lock-on
-      // selection feel predictable instead of unexpectedly choosing the farther enemy.
-      return a.distance-b.distance;
-    });
-    return pool[0]?.candidate||null;
+    pool.sort((a,b)=>Math.abs(a.score-b.score)>1e-9?a.score-b.score:a.distance-b.distance);
+    const best=pool[0];
+    const sticky=stickyTarget?pool.find(entry=>entry.candidate===stickyTarget):null;
+    // Hysteresis: keep the current lock unless another target is meaningfully better.
+    if(sticky&&sticky.score-safeStickyBonus<=best.score+safeSwitchMargin)return sticky.candidate;
+    return best?.candidate||null;
   }
 
-  function resolveActionTarget(unitData,action,origin,candidates=[]){
+  function resolveActionTarget(unitData,action,origin,candidates=[],fallback=0){
     const ability=action==='jutsu'?unitData?.abilities?.jutsu:unitData?.abilities?.basic;
     const presentation=ability?.presentation||{};
     const mode=presentation.range_rotation_mode;
     if(mode==='medium_enemy_horizontal_facing'||mode==='medium_enemy_assisted_facing'){
-      return preferredRangePoint(origin,candidates,{
+      const key=`${unitData?.id||unitData?.display_name||'unit'}:${action}`;
+      const previous=assistedTargetCache.get(key)||null;
+      const target=preferredRangePoint(origin,candidates,{
         min:presentation.target_focus_min_px,
         max:presentation.target_focus_max_px,
         preferred:presentation.target_focus_preferred_px,
-        fallbackMax:presentation.target_focus_fallback_max_px
+        fallbackMax:presentation.target_focus_fallback_max_px,
+        facing:fallback,
+        angleWeight:presentation.target_facing_angle_weight_px_per_rad,
+        stickyTarget:previous,
+        stickyBonus:presentation.target_sticky_bonus_px,
+        switchMargin:presentation.target_switch_margin_px
       });
+      if(target)assistedTargetCache.set(key,target); else assistedTargetCache.delete(key);
+      return target;
     }
     if(mode==='nearest_enemy_facing'||mode==='nearest_enemy_horizontal_facing')return nearestPoint(origin,candidates);
     return null;
@@ -84,7 +110,7 @@
     const ability=action==='jutsu'?unitData?.abilities?.jutsu:unitData?.abilities?.basic;
     const presentation=ability?.presentation||{};
     const mode=presentation.range_rotation_mode;
-    const target=resolveActionTarget(unitData,action,origin,candidates);
+    const target=resolveActionTarget(unitData,action,origin,candidates,fallback);
     if(mode==='nearest_enemy_facing'||mode==='medium_enemy_assisted_facing')return target?rotationToward(origin,target,fallback):fallback;
     if(mode==='nearest_enemy_horizontal_facing'||mode==='medium_enemy_horizontal_facing')return horizontalRotationToward(origin,target,fallback);
     return Number.isFinite(fallback)?fallback:0;
