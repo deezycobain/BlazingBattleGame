@@ -5,7 +5,11 @@
   "abilities": {
     "explosive_bomb": {
       "slot": "basic",
-      "animation_id": "senku.animation.basic_attack",
+      "animation_id": "senku.animation.retreat_run",
+      "presentation_animations": {
+        "primary_retreat": "senku.animation.retreat_run",
+        "helper_melee": "senku.animation.melee_attack"
+      },
       "gameplay_actions": [
         {
           "event": "on_projectile_arrival",

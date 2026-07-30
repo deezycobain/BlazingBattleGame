@@ -113,13 +113,23 @@ html = html.replace(supportRx, `function isAllySupportJutsu(unit){
  }catch(_){return false;}
 }`);
 
-// Keep the exact approved planted body-cast behavior from the checkpoint.
-html = replaceOnce(
-  html,
-  "function unitAttackFrames(name,kind){\n  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];\n}",
-  "function unitAttackFrames(name,kind){\n  if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];\n  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];\n}",
-  'Ally Heal body cast frames'
-);
+// Keep the exact approved planted body-cast behavior from the checkpoint without
+// replacing Pass 4.1's semantic attack-frame resolver. This compatibility injection
+// is deliberately idempotent so an already-canonical shell passes unchanged.
+const attackFrameOpen = 'function unitAttackFrames(name,kind){\n';
+const attackFrameOpenAt = html.indexOf(attackFrameOpen);
+if (attackFrameOpenAt < 0) throw new Error('Ally Heal body-frame function missing');
+if (html.indexOf(attackFrameOpen, attackFrameOpenAt + attackFrameOpen.length) >= 0) {
+  throw new Error('Ally Heal body-frame function is not unique');
+}
+const attackFrameFnEnd = html.indexOf('\n}', attackFrameOpenAt + attackFrameOpen.length);
+if (attackFrameFnEnd < 0) throw new Error('Ally Heal body-frame function end missing');
+const attackFrameBody = html.slice(attackFrameOpenAt, attackFrameFnEnd);
+const allyHealFrameLine = "  if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];\n";
+if (!attackFrameBody.includes("kind==='allyHealCast'")) {
+  const insertAt = attackFrameOpenAt + attackFrameOpen.length;
+  html = html.slice(0, insertAt) + allyHealFrameLine + html.slice(insertAt);
+}
 
 const approvedHealAnimation = `function animateSenkuChemicalReaction(unitName,from,target,onImpact,onDone){
  const token=ACTIVE_ACTION_TOKEN;
@@ -236,10 +246,7 @@ for (const [fileName, buf] of seen) await fs.writeFile(path.join(embeddedDir, fi
 
 const finalBytes = Buffer.byteLength(html);
 await fs.writeFile(path.join(OUT, 'index.html'), html);
+await assertNoOversizedAssets(OUT);
 console.log(`Cloudflare build: index ${(originalBytes / 1048576).toFixed(1)} MiB -> ${(finalBytes / 1048576).toFixed(1)} MiB`);
 console.log(`Externalized ${extracted} embedded assets (${(extractedBytes / 1048576).toFixed(1)} MiB decoded)`);
-
-const MAX_SAFE = 24 * 1024 * 1024;
-if (finalBytes > MAX_SAFE) throw new Error(`Transformed index.html is still ${(finalBytes / 1048576).toFixed(1)} MiB; Cloudflare requires each asset under 25 MiB.`);
-await assertNoOversizedAssets(OUT);
 console.log('Cloudflare build validation: all dist assets are under 25 MiB.');

@@ -3,6 +3,16 @@
 
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 
+  function pearHalfWidth(shape,x){
+    const rear=Number(shape?.rear??48),reach=Number(shape?.reach??140),width=Number(shape?.width??102);
+    const curve=Number(shape?.curve??.72),stem=Number(shape?.stem??.52),bulge=Number(shape?.bulge??.72);
+    const span=rear+reach;
+    if(!(span>0)||!(width>0))return 0;
+    const t=(x+rear)/span;
+    if(t<=0||t>=1)return 0;
+    return width*Math.pow(Math.max(0,Math.sin(Math.PI*t)),curve)*(stem+bulge*t);
+  }
+
   function drawField(ctx,{image,W,H,mapZoom=1}){
     if(image?.complete&&image.naturalWidth>0){
       ctx.imageSmoothingEnabled=true;
@@ -78,6 +88,18 @@
     const path=()=>{
       ctx.beginPath();
       if(s.type==='circle')ctx.arc(0,0,s.r,0,Math.PI*2);
+      else if(s.type==='pear'){
+        const rear=Number(s.rear??48),reach=Number(s.reach??140),segments=40;
+        for(let i=0;i<=segments;i++){
+          const x=-rear+(rear+reach)*(i/segments),y=-pearHalfWidth(s,x);
+          if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+        }
+        for(let i=segments;i>=0;i--){
+          const x=-rear+(rear+reach)*(i/segments),y=pearHalfWidth(s,x);
+          ctx.lineTo(x,y);
+        }
+        ctx.closePath();
+      }
       else if(s.type==='rect')ctx.rect((s.offset_x||0)-s.w/2,(s.offset_y||0)-s.h/2,s.w,s.h);
       else if(s.type==='square')ctx.rect(-s.s/2,-s.s/2,s.s,s.s);
       else if(s.type==='cross'){

@@ -11,37 +11,11 @@
       }
     },
     "vfx": {
-      "heal_green_flash": {
-        "resource_id": "shared.vfx.heal.green_flash",
-        "type": "procedural",
-        "renderer": "radial_flash",
-        "duration_ms": 500,
-        "usage": "Reusable party-heal confirmation flash"
-      },
-      "impact_default": {
-        "resource_id": "shared.vfx.impact.default",
-        "type": "procedural",
-        "renderer": "addImpactFlash",
-        "usage": "Default player hit confirmation flash"
-      },
-      "impact_fire": {
-        "resource_id": "shared.vfx.impact.fire",
-        "type": "procedural",
-        "renderer": "addImpactFlash",
-        "usage": "Crimson fire-colored hit confirmation flash"
-      },
-      "impact_enemy": {
-        "resource_id": "shared.vfx.impact.enemy",
-        "type": "procedural",
-        "renderer": "addImpactFlash",
-        "usage": "Enemy hit confirmation flash"
-      },
-      "fullscreen_flash": {
-        "resource_id": "shared.vfx.fullscreen_flash",
-        "type": "procedural",
-        "renderer": "setMeteorFullscreenFlash",
-        "usage": "Full-screen flash transition used by Lebee Meteor Jutsu"
-      }
+      "heal_green_flash": {"resource_id":"shared.vfx.heal.green_flash","type":"procedural","renderer":"radial_flash","duration_ms":500,"usage":"Reusable party-heal confirmation flash"},
+      "impact_default": {"resource_id":"shared.vfx.impact.default","type":"procedural","renderer":"addImpactFlash","usage":"Default player hit confirmation flash"},
+      "impact_fire": {"resource_id":"shared.vfx.impact.fire","type":"procedural","renderer":"addImpactFlash","usage":"Crimson fire-colored hit confirmation flash"},
+      "impact_enemy": {"resource_id":"shared.vfx.impact.enemy","type":"procedural","renderer":"addImpactFlash","usage":"Enemy hit confirmation flash"},
+      "fullscreen_flash": {"resource_id":"shared.vfx.fullscreen_flash","type":"procedural","renderer":"setMeteorFullscreenFlash","usage":"Full-screen flash transition used by Lebee Meteor Jutsu"}
     }
   },
   "units": {
@@ -50,12 +24,9 @@
         "idle": {"resource_id":"senku.animation.idle","path":"assets/characters/senku/sprites/runtime/idle/"},
         "recoil": {"resource_id":"senku.animation.recoil","path":"assets/characters/senku/sprites/runtime/recoil/"},
         "basic_attack": {"resource_id":"senku.animation.basic_attack","path":"assets/characters/senku/sprites/runtime/attack/basic/"},
-        "ally_heal_cast": {
-          "resource_id":"senku.animation.jutsu.ally_heal.cast",
-          "path":"assets/characters/senku/sprites/runtime/jutsu/chemical_reaction/cast/",
-          "required_runtime_frames":2,
-          "migration_note":"Canonical resource ID; physical directory retains its historical name until normalized."
-        }
+        "melee_attack": {"resource_id":"senku.animation.melee_attack","path":"assets/characters/senku/sprites/runtime/attack/melee/","required_runtime_frames":6,"renderer":"BlazingFrameRuntime","usage":"Dedicated Asset Inbox body animation used when Senku executes a semantic melee/lunge presentation; kept separate from bomb throw and VFX art."},
+        "retreat_run": {"resource_id":"senku.animation.retreat_run","path":"assets/characters/senku/sprites/runtime/movement/retreat_run/","required_runtime_frames":6,"renderer":"BlazingFrameRuntime","usage":"Evasive run used while Senku throws Explosive Bomb and persistently repositions a bounded distance away from the resolved target."},
+        "ally_heal_cast": {"resource_id":"senku.animation.jutsu.ally_heal.cast","path":"assets/characters/senku/sprites/runtime/jutsu/chemical_reaction/cast/","required_runtime_frames":2,"migration_note":"Canonical resource ID; physical directory retains its historical name until normalized."}
       },
       "vfx": {
         "explosive_bomb_projectile": {"resource_id":"senku.vfx.basic.explosive_bomb.projectile","path":"assets/characters/senku/vfx/bomb/projectile_clean/"},
@@ -99,9 +70,7 @@
       }
     },
     "anubis": {
-      "animations": {
-        "idle": {"resource_id":"anubis.animation.idle","path":"assets/characters/anubis/sprites/runtime/idle/"}
-      },
+      "animations": {"idle": {"resource_id":"anubis.animation.idle","path":"assets/characters/anubis/sprites/runtime/idle/"}},
       "vfx": {}
     }
   }
