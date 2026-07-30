@@ -124,16 +124,20 @@ const tunedAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
       const pixels=cctx.getImageData(0,0,cell.width,cell.height),data=pixels.data;
       let minX=cell.width,minY=cell.height,maxX=-1,maxY=-1;
       for(let p=0;p<data.length;p+=4){
-       if(data[p+3]>1){
+       const r=data[p],g=data[p+1],b=data[p+2],hi=Math.max(r,g,b),lo=Math.min(r,g,b);
+       // The preserved source sheet has a baked near-white checkerboard. Remove that first,
+       // then calculate bounds from only the remaining visible Senku pixels.
+       if(lo>232&&hi-lo<18)data[p+3]=0;
+       if(data[p+3]>8){
         const px=(p/4)%cell.width,py=Math.floor((p/4)/cell.width);
         if(px<minX)minX=px;if(px>maxX)maxX=px;if(py<minY)minY=py;if(py>maxY)maxY=py;
        }
       }
+      cctx.putImageData(pixels,0,0);
       const out=document.createElement('canvas');out.width=cfg.canvasSize;out.height=cfg.canvasSize;
       const octx=out.getContext('2d');
       if(maxX>=minX&&maxY>=minY){
-       // Expand the detected source bounds before fitting. This restores outer hair/foot pixels
-       // that were lost when the earlier tracked runtime frames were tightly extracted.
+       // Expand the cleaned character bounds before fitting so hair and feet keep safety padding.
        const padX=Math.max(12,Math.round((maxX-minX+1)*.035));
        const padY=Math.max(16,Math.round((maxY-minY+1)*.045));
        const cropX=Math.max(0,minX-padX),cropY=Math.max(0,minY-padY);
@@ -145,7 +149,8 @@ const tunedAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
        const dy=cfg.canvasSize*.90-dh;
        octx.drawImage(cell,cropX,cropY,bw,bh,dx,dy,dw,dh);
       }else{
-       octx.drawImage(cell,0,0,cell.width,cell.height,0,0,cfg.canvasSize,cfg.canvasSize);
+       console.error('Senku retreat source frame became empty after background cleanup:',index);
+       continue;
       }
       finishFrame(out,index);
      }
@@ -165,7 +170,7 @@ const tunedAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
    return window.BlazingAttackPresentation.resolveFrames(unitData,kind,attackMap);
  }`;
 replaceRequired(attackFrameAnchor,tunedAttackRuntime,'character presentation-normalized runtime frames');
-console.log(`Sub-Zero Basic Attack v2 preserved; Senku retreat rebuilt from full preserved 3x2 source sheet with padded bounds: ${senkuRetreatSourcePath}`);
+console.log(`Sub-Zero Basic Attack v2 preserved; Senku retreat rebuilt from cleaned full source sheet with transparent background and padded bounds: ${senkuRetreatSourcePath}`);
 
 replaceRequired(
   "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Crimson','Lebee','Sub-Zero']);",
