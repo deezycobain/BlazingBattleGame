@@ -28,7 +28,7 @@
         "target_focus_mode": "preferred_distance_band",
         "target_focus_min_px": 100,"target_focus_max_px": 185,"target_focus_preferred_px": 145,"target_focus_fallback_max_px": 205,
         "target_lock_radius_pad_px": 8,
-        "target_facing_angle_weight_px_per_rad": 20,
+        "target_facing_angle_weight_px_per_rad": 8,
         "target_sticky_bonus_px": 12,
         "target_switch_margin_px": 8,
         "projectile_origin_mode": "forward_facing"
@@ -41,7 +41,7 @@
   },
   "readiness": {
     "collection": true,"battle": true,"idle": true,"basic_attack": true,"jutsu": true,"recoil": true,
-    "notes": "Stable baseline retained. Basic keeps the 92 px mechanical nearest-enemy close melee reach while its displayed range bubble is scaled to 65% (about 60 px). Freeze Blast uses assisted true-direction facing plus sticky target hysteresis and a modest facing-angle preference so the lock does not jump between similarly good enemies while moving. Damage/range/cost/freeze semantics are unchanged. Basic body presentation uses the approved six-pose source sheet.",
+    "notes": "Stable baseline retained. Basic keeps the 92 px mechanical nearest-enemy close melee reach while its displayed range bubble is scaled to 65% (about 60 px). Freeze Blast uses assisted true-direction facing plus sticky target hysteresis and a light facing-angle preference; range quality remains the primary lock criterion. Damage/range/cost/freeze semantics are unchanged. Basic body presentation uses the approved six-pose source sheet.",
     "animation_map": true
   },
   "balance": {"status": "provisional","pass": "v0.5.30","notes": "Initial archetype-based values. Tune freely during balance testing."},
