@@ -17,6 +17,7 @@ const show=(label,needle,radius=900)=>{
   if(!count)console.log(`\n--- DIAG ${label}: no matches for ${JSON.stringify(needle)} ---`);
 };
 
+console.log('Combat polish diagnostic pass v2');
 show('COMBO','combo',1300);
 show('LINKED','linked',1000);
 show('RESOLVE_PLAYER','function resolvePlayer',1800);
