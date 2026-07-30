@@ -37,7 +37,7 @@
     "chakra_start": 2
   },
   "render": {
-    "scale": 0.88
+    "scale": 0.98
   },
   "abilities": {
     "basic": {
@@ -50,7 +50,8 @@
       "single_target_selector": "nearest_in_shape",
       "presentation": {
         "runtime_driver": "animateLunge",
-        "animation_kind": "punch"
+        "animation_kind": "punch",
+        "range_visual_scale": 0.65
       }
     },
     "jutsu": {
@@ -94,7 +95,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "Pass 4.1 gameplay stabilization retained. Basic remains the 92 px nearest-enemy close melee punch and Freeze Blast retains medium-range horizontal focus. Basic body presentation now uses the approved six-pose source sheet; legacy two-frame files remain fallback until mobile preview validation passes.",
+    "notes": "Pass 4.1 gameplay stabilization retained. Basic keeps the 92 px mechanical nearest-enemy close melee reach while its displayed range bubble is scaled to 65% (about 60 px). Freeze Blast retains medium-range horizontal focus. Basic body presentation uses the approved six-pose source sheet.",
     "animation_map": true
   },
   "balance": {
