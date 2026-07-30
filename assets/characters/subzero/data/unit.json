@@ -12,7 +12,7 @@
   "combat": {
     "mark": "SZ","movement_range": 88,
     "basic_shape": {"type": "circle","r": 92},"basic_rotation_deg": 0,
-    "jutsu_shape": {"type": "cone","r": 205,"a": 0.52},"jutsu_rotation_deg": 0,
+    "jutsu_shape": {"type": "cone","r": 205,"a": 0.52,"visual_style": "subzero_ice"},"jutsu_rotation_deg": 0,
     "chakra_max": 8,"chakra_start": 2
   },
   "render": {"scale": 0.98},
@@ -31,7 +31,8 @@
         "target_facing_angle_weight_px_per_rad": 8,
         "target_sticky_bonus_px": 12,
         "target_switch_margin_px": 8,
-        "projectile_origin_mode": "forward_facing"
+        "projectile_origin_mode": "forward_facing",
+        "body_facing_mode": "jutsu_direction_locked"
       }
     }
   },
@@ -41,7 +42,7 @@
   },
   "readiness": {
     "collection": true,"battle": true,"idle": true,"basic_attack": true,"jutsu": true,"recoil": true,
-    "notes": "Stable baseline retained. Basic keeps the 92 px mechanical nearest-enemy close melee reach while its displayed range bubble is scaled to 65% (about 60 px). Freeze Blast uses assisted true-direction facing plus sticky target hysteresis and a light facing-angle preference; range quality remains the primary lock criterion. Damage/range/cost/freeze semantics are unchanged. Basic body presentation uses the approved six-pose source sheet.",
+    "notes": "Stable baseline retained. Basic keeps the 92 px mechanical nearest-enemy close melee reach while its displayed range bubble is scaled to 65% (about 60 px). Freeze Blast uses assisted true-direction facing plus sticky target hysteresis, locks Sub-Zero's body to the jutsu direction during the cast, and renders a dedicated frozen cone treatment. Damage/range/cost/freeze semantics are unchanged. Basic body presentation uses the approved six-pose source sheet.",
     "animation_map": true
   },
   "balance": {"status": "provisional","pass": "v0.5.30","notes": "Initial archetype-based values. Tune freely during balance testing."},
