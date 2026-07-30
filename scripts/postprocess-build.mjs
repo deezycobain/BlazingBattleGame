@@ -41,7 +41,7 @@ if(!subzeroSheet?.path||subzeroSheet.columns!==3||subzeroSheet.rows!==2||subzero
   throw new Error('Postprocess: Sub-Zero Basic Attack v2 sheet metadata is invalid');
 }
 const subzeroSheetPath=path.posix.join('assets/characters/subzero',subzeroSheet.path);
-const attackFrameAnchor="function unitAttackFrames(name,kind){\n  if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];\n  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];\n}";
+const attackFrameAnchor="function unitAttackFrames(name,kind){\n  if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];\n  const attackMap=CHARACTER_ANIMATION_MAPS[name]?.attack||{};\n  let unitData=null;\n  try{unitData=canonicalUnit(name)}catch(_){}\n  return window.BlazingAttackPresentation.resolveFrames(unitData,kind,attackMap);\n}";
 const subzeroAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
  const cfg=${JSON.stringify({
    path:subzeroSheetPath,
@@ -77,8 +77,11 @@ const subzeroAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
 })();
 function unitAttackFrames(name,kind){
   if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];
-  if(name==='Sub-Zero'&&(kind==='basic'||kind==='normal'||kind==='attack')&&SUBZERO_BASIC_ATTACK_RUNTIME.ready)return SUBZERO_BASIC_ATTACK_RUNTIME.frames;
-  return CHARACTER_ANIMATION_MAPS[name]?.attack?.[kind]||[];
+  if(name==='Sub-Zero'&&(kind==='basic'||kind==='normal'||kind==='attack'||kind==='punch')&&SUBZERO_BASIC_ATTACK_RUNTIME.ready)return SUBZERO_BASIC_ATTACK_RUNTIME.frames;
+  const attackMap=CHARACTER_ANIMATION_MAPS[name]?.attack||{};
+  let unitData=null;
+  try{unitData=canonicalUnit(name)}catch(_){}
+  return window.BlazingAttackPresentation.resolveFrames(unitData,kind,attackMap);
 }`;
 replaceRequired(attackFrameAnchor,subzeroAttackRuntime,'Sub-Zero Basic Attack v2 runtime frames');
 console.log(`Sub-Zero Basic Attack v2 sheet wired on Pass 4.1 baseline: ${subzeroSheetPath}`);
