@@ -43,37 +43,41 @@ if(!subzeroSheet?.path||subzeroSheet.columns!==3||subzeroSheet.rows!==2||subzero
 const subzeroSheetPath=path.posix.join('assets/characters/subzero',subzeroSheet.path);
 const attackFrameAnchor="function unitAttackFrames(name,kind){\n  if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];\n  const attackMap=CHARACTER_ANIMATION_MAPS[name]?.attack||{};\n  let unitData=null;\n  try{unitData=canonicalUnit(name)}catch(_){}\n  return window.BlazingAttackPresentation.resolveFrames(unitData,kind,attackMap);\n}";
 const subzeroAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
- const cfg=${JSON.stringify({
-   path:subzeroSheetPath,
-   columns:subzeroSheet.columns,
-   rows:subzeroSheet.rows,
-   frameWidth:subzeroSheet.frame_width,
-   frameHeight:subzeroSheet.frame_height,
-   frameCount:subzeroSheet.frame_count
- })};
- const frames=Array.from({length:cfg.frameCount},()=>{const c=document.createElement('canvas');c.width=cfg.frameWidth;c.height=cfg.frameHeight;return c;});
- const state={frames,ready:false};
- const sheet=new Image();
- sheet.addEventListener('load',()=>{
-  try{
-   for(let i=0;i<cfg.frameCount;i++){
-    const sx=(i%cfg.columns)*cfg.frameWidth,sy=Math.floor(i/cfg.columns)*cfg.frameHeight;
-    const canvas=frames[i],ctx=canvas.getContext('2d',{willReadFrequently:true});
-    ctx.clearRect(0,0,cfg.frameWidth,cfg.frameHeight);
-    ctx.drawImage(sheet,sx,sy,cfg.frameWidth,cfg.frameHeight,0,0,cfg.frameWidth,cfg.frameHeight);
-    const pixels=ctx.getImageData(0,0,cfg.frameWidth,cfg.frameHeight),data=pixels.data;
-    for(let p=0;p<data.length;p+=4){
-     const r=data[p],g=data[p+1],b=data[p+2],hi=Math.max(r,g,b),lo=Math.min(r,g,b);
-     if(lo>235&&hi-lo<12)data[p+3]=0;
+  const cfg=${JSON.stringify({
+    path:subzeroSheetPath,
+    columns:subzeroSheet.columns,
+    rows:subzeroSheet.rows,
+    frameWidth:subzeroSheet.frame_width,
+    frameHeight:subzeroSheet.frame_height,
+    frameCount:subzeroSheet.frame_count
+  })};
+  const frames=Array.from({length:cfg.frameCount},()=>new Image());
+  const state={frames,ready:false,loaded:0};
+  const sheet=new Image();
+  sheet.addEventListener('load',()=>{
+   try{
+    for(let i=0;i<cfg.frameCount;i++){
+     const sx=(i%cfg.columns)*cfg.frameWidth,sy=Math.floor(i/cfg.columns)*cfg.frameHeight;
+     const canvas=document.createElement('canvas');canvas.width=cfg.frameWidth;canvas.height=cfg.frameHeight;
+     const ctx=canvas.getContext('2d',{willReadFrequently:true});
+     ctx.clearRect(0,0,cfg.frameWidth,cfg.frameHeight);
+     ctx.drawImage(sheet,sx,sy,cfg.frameWidth,cfg.frameHeight,0,0,cfg.frameWidth,cfg.frameHeight);
+     const pixels=ctx.getImageData(0,0,cfg.frameWidth,cfg.frameHeight),data=pixels.data;
+     for(let p=0;p<data.length;p+=4){
+      const r=data[p],g=data[p+1],b=data[p+2],hi=Math.max(r,g,b),lo=Math.min(r,g,b);
+      if(lo>235&&hi-lo<12)data[p+3]=0;
+     }
+     ctx.putImageData(pixels,0,0);
+     const frame=frames[i];
+     frame.addEventListener('load',()=>{state.loaded++;if(state.loaded===cfg.frameCount)state.ready=true;},{once:true});
+     frame.addEventListener('error',()=>console.error('Sub-Zero derived Basic Attack frame failed to load:',i),{once:true});
+     frame.src=canvas.toDataURL('image/png');
     }
-    ctx.putImageData(pixels,0,0);
-   }
-   state.ready=true;
-  }catch(err){console.error('Sub-Zero Basic Attack sheet processing failed:',err);}
- });
- sheet.addEventListener('error',()=>console.error('Sub-Zero Basic Attack sheet failed to load:',cfg.path));
- sheet.src=cfg.path;
- return state;
+   }catch(err){console.error('Sub-Zero Basic Attack sheet processing failed:',err);}
+  });
+  sheet.addEventListener('error',()=>console.error('Sub-Zero Basic Attack sheet failed to load:',cfg.path));
+  sheet.src=cfg.path;
+  return state;
 })();
 function unitAttackFrames(name,kind){
   if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];
@@ -84,7 +88,7 @@ function unitAttackFrames(name,kind){
   return window.BlazingAttackPresentation.resolveFrames(unitData,kind,attackMap);
 }`;
 replaceRequired(attackFrameAnchor,subzeroAttackRuntime,'Sub-Zero Basic Attack v2 runtime frames');
-console.log(`Sub-Zero Basic Attack v2 sheet wired on Pass 4.1 baseline: ${subzeroSheetPath}`);
+console.log(`Sub-Zero Basic Attack v2 sheet wired as six Image frames on Pass 4.1 baseline: ${subzeroSheetPath}`);
 
 replaceRequired(
   "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Crimson','Lebee','Sub-Zero']);",
