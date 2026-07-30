@@ -10,7 +10,7 @@
   "collection": {"owned":true,"inventory_visible":true,"battle_ready":true},
   "stats": {"level":1,"hp":105,"attack":30,"defense":16,"speed":62},
   "combat": {"mark":"L","movement_range":90,"basic_shape":{"type":"rect","w":245,"h":54,"offset_x":111},"basic_rotation_deg":0,"jutsu_shape":{"type":"screen_rect","padding":18},"chakra_max":8,"chakra_start":2},
-  "render": {"scale":1.0},
+  "render": {"scale":1.1},
   "abilities": {
     "basic": {"id":"star_blast","name":"Star Blast","damage_multiplier":1.0,"chakra_gain":1,"delivery":"ranged_projectile","range_presentation":"horizontal_lane","target_mode":"multi"},
     "jutsu": {"id":"meteor_jutsu","name":"Meteor Jutsu","cost":4,"damage_multiplier":2.25,"delivery":"battlefield_aoe","area":"battlefield_rectangle","aoe":true,"presentation":{"cast_duration_ms":900,"meteor_fall_duration_ms":700,"meteor_count":7,"screen_dim_alpha":0.34,"meteor_scale_start":2.65,"meteor_scale_end":0.9,"meteor_stagger_ms":72,"impact_scatter_x":54,"impact_scatter_y":34,"cast_frame_count":6,"cast_sequence_path":"assets/characters/lebee/sprites/runtime/jutsu/meteor/sequence_v0532/","impact_hold_ms":680,"aftermath_hold_ms":420,"meteor_start_scale":132,"meteor_end_scale":42,"post_damage_fade_ms":150,"impact_art_enabled":false,"final_flash":true,"final_flash_yellow_ms":240,"final_flash_white_ms":105,"final_flash_fade_ms":120,"final_flash_mode":"fullscreen_overlay","final_flash_white_hold_ms":220,"final_flash_white_fade_ms":780,"flash_yellow_trigger":"second_to_last_meteor","flash_white_trigger":"final_meteor","meteor_entry_side":"opposite_caster","meteor_entry_top_margin":128,"meteor_entry_horizontal_spread":92},"category":"ultimate","ultimate":true}
