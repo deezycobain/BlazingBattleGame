@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+// Recovery guard: this test must run on top of the validated Pass 4.1 gameplay baseline.
 const ROOT=process.cwd();
 const fail=message=>{throw new Error(`Sub-Zero Basic Attack validation failed: ${message}`)};
 const exists=async rel=>{try{await fs.access(path.join(ROOT,rel));return true}catch{return false}};
