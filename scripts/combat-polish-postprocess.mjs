@@ -32,8 +32,23 @@ replaceOnce(
 'Sub-Zero visual range scale'
 );
 
-// 2) Enemy target highlight: retain the existing target-selection circle, but strengthen
-// its stroke/glow so the selected enemy is clearly readable again on mobile.
+// 2) Enemy target highlight: keep the visual lock radius tied to the same small body
+// tolerance used by assisted aiming, then retain a strong readable mobile stroke/glow.
+replaceRegexOnce(
+ /\s*\/\/ Bubble feedback is isolated so it can never mask the enemy sprite\./,
+ `\n      const targetPad=jutsu?(canonicalUnit(activePlayer.name)?.abilities?.jutsu?.presentation?.target_lock_radius_pad_px??8):8;\n      // Bubble feedback is isolated so it can never mask the enemy sprite.`,
+ 'enemy target lock radius setup'
+);
+replaceRegexOnce(
+ /ctx\.arc\(pos\.x,pos\.y,\(e\.r\|\|19\)\+14,0,Math\.PI\*2\);/,
+ `ctx.arc(pos.x,pos.y,(e.r||19)+targetPad+4,0,Math.PI*2);`,
+ 'enemy target fill radius'
+);
+replaceRegexOnce(
+ /ctx\.arc\(pos\.x,pos\.y,\(e\.r\|\|19\)\+10\+1\.5\*Math\.sin\(performance\.now\(\)\/145\),0,Math\.PI\*2\);/,
+ `ctx.arc(pos.x,pos.y,(e.r||19)+targetPad+1.25*Math.sin(performance.now()/145),0,Math.PI*2);`,
+ 'enemy target stroke radius'
+);
 replaceRegexOnce(
  /ctx\.shadowBlur\s*=\s*jutsu\?10:\(comboLinked\?8:6\);\s*ctx\.lineWidth\s*=\s*jutsu\?1\.8:1\.45;/,
  `ctx.shadowBlur=jutsu?14:(comboLinked?12:10);\n      ctx.lineWidth=jutsu?2.35:2.05;`,
@@ -63,4 +78,4 @@ replaceRegexOnce(
 );
 
 await fs.writeFile(file,html);
-console.log('Combat polish applied: Sub-Zero visual range -35%, target ring restored, Senku feet-centered impact, full committed combo sequence.');
+console.log('Combat polish applied: Sub-Zero visual range -35%, target ring aligned to assisted aim radius, Senku feet-centered impact, full committed combo sequence.');
