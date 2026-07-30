@@ -4,21 +4,18 @@ import path from 'node:path';
 const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
 
-const oldBlock=`       const pixels=cctx.getImageData(0,0,cell.width,cell.height),data=pixels.data;
-       let minX=cell.width,minY=cell.height,maxX=-1,maxY=-1;
-       for(let p=0;p<data.length;p+=4){
-        const r=data[p],g=data[p+1],b=data[p+2],hi=Math.max(r,g,b),lo=Math.min(r,g,b);
-        // The preserved source sheet has a baked near-white checkerboard. Remove that first,
-        // then calculate bounds from only the remaining visible Senku pixels.
-        if(lo>232&&hi-lo<18)data[p+3]=0;
-        if(data[p+3]>8){
-         const px=(p/4)%cell.width,py=Math.floor((p/4)/cell.width);
-         if(px<minX)minX=px;if(px>maxX)maxX=px;if(py<minY)minY=py;if(py>maxY)maxY=py;
-        }
-       }
-       cctx.putImageData(pixels,0,0);`;
+const senkuMarker='const SENKU_RETREAT_TUNED_RUNTIME=(()=>{';
+const sectionStart=html.indexOf(senkuMarker);
+if(sectionStart<0)throw new Error('Senku retreat runtime marker missing');
 
-const newBlock=`       const pixels=cctx.getImageData(0,0,cell.width,cell.height),data=pixels.data;
+const pixelStartToken='const pixels=cctx.getImageData(0,0,cell.width,cell.height),data=pixels.data;';
+const pixelEndToken='cctx.putImageData(pixels,0,0);';
+const pixelStart=html.indexOf(pixelStartToken,sectionStart);
+const pixelEndStart=html.indexOf(pixelEndToken,pixelStart);
+if(pixelStart<0||pixelEndStart<0)throw new Error('Senku retreat pixel-processing region missing');
+const pixelEnd=pixelEndStart+pixelEndToken.length;
+
+const newBlock=`const pixels=cctx.getImageData(0,0,cell.width,cell.height),data=pixels.data;
        // Remove the baked near-white/checkerboard background before classifying components.
        // A firmer alpha floor prevents faint antialias bridges from joining export junk.
        for(let p=0;p<data.length;p+=4){
@@ -69,7 +66,6 @@ const newBlock=`       const pixels=cctx.getImageData(0,0,cell.width,cell.height
        }
        cctx.putImageData(pixels,0,0);`;
 
-if(!html.includes(oldBlock))throw new Error('Senku retreat strict-cleanup anchor missing');
-html=html.replace(oldBlock,newBlock);
+html=html.slice(0,pixelStart)+newBlock+html.slice(pixelEnd);
 await fs.writeFile(file,html);
-console.log('Senku retreat cleanup: detached glyph/foot/sliver artifacts removed from fresh-build source frames');
+console.log('Senku retreat cleanup: robust marker-based artifact filtering applied');
