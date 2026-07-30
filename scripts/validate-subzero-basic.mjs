@@ -14,6 +14,7 @@ if(!sheet?.path)fail('source_sheet.path is missing');
 if(sheet.columns!==3||sheet.rows!==2)fail('source sheet must remain a 3x2 grid');
 if(sheet.frame_width!==512||sheet.frame_height!==512)fail('source sheet cells must remain 512x512');
 if(sheet.frame_count!==6)fail('source sheet must expose exactly six attack poses');
+if(sheet.background_cleanup!=='light_checkerboard_to_alpha')fail('approved checkerboard cleanup mode changed');
 if(basic.frame_ms!==95)fail('approved attack frame timing changed');
 if(!Array.isArray(basic.events)||basic.events[0]?.frame!==4)fail('melee impact event must remain on frame 4');
 
@@ -23,9 +24,9 @@ if(!(await exists(sheetPath)))fail(`missing source sheet ${sheetPath}`);
 const postprocess=await fs.readFile(path.join(ROOT,'scripts/postprocess-build.mjs'),'utf8');
 for(const marker of [
   'SUBZERO_BASIC_ATTACK_RUNTIME',
-  'light_checkerboard_to_alpha',
   "name==='Sub-Zero'",
-  'state.ready=true'
+  'state.ready=true',
+  'lo>235&&hi-lo<12'
 ]){
   if(!postprocess.includes(marker))fail(`postprocess runtime marker missing: ${marker}`);
 }
