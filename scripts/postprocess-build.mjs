@@ -124,10 +124,12 @@ const tunedAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
      const octx=out.getContext('2d');
      if(maxX>=minX&&maxY>=minY){
       const bw=maxX-minX+1,bh=maxY-minY+1;
-      const scale=Math.min((w*.90)/bw,(h*.78)/bh);
+      // Senku's battlefield render scale is 1.30x. Keep the retreat artwork well inside
+      // its source canvas so the final rendered body retains head/feet safety margins.
+      const scale=Math.min((w*.82)/bw,(h*.68)/bh);
       const dw=bw*scale,dh=bh*scale;
       const dx=(w-dw)/2;
-      const dy=h*.94-dh;
+      const dy=h*.90-dh;
       octx.drawImage(canvas,minX,minY,bw,bh,dx,dy,dw,dh);
      }else{octx.drawImage(canvas,0,0);}
      state.processed++;finishFrame(out,index);
@@ -149,7 +151,7 @@ const tunedAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
    return window.BlazingAttackPresentation.resolveFrames(unitData,kind,attackMap);
  }`;
 replaceRequired(attackFrameAnchor,tunedAttackRuntime,'character presentation-normalized runtime frames');
-console.log(`Sub-Zero Basic Attack v2 preserved; Senku retreat frames normalized with 78% visible-height target and 94% feet baseline: ${subzeroSheetPath}`);
+console.log(`Sub-Zero Basic Attack v2 preserved; Senku retreat frames normalized to 68% visible height / 82% width with 90% feet baseline: ${subzeroSheetPath}`);
 
 replaceRequired(
   "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Crimson','Lebee','Sub-Zero']);",
