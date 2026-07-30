@@ -5,15 +5,13 @@ const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
 
 // Authored fallback rotation remains separate from target-relative rotation requested by
-// canonical ability presentation metadata. Pass 4.1 uses target-relative modes for
-// directional abilities such as Sub-Zero Freeze Blast and Senku's pear-shaped basic.
+// canonical ability presentation metadata. Direction-locked body modes additionally make
+// the visible combat sprite follow the same resolved action angle used by the range shape.
 // IMPORTANT: battle pairs also contain empty reserve placeholders and some stages
 // contain non-canonical enemies. Never let a presentation lookup throw during render.
 const facingRx=/function updateFacing\(\)\{[\s\S]*?\n\}\n\nfunction battleSpriteFor/;
 if(!facingRx.test(html))throw new Error('Static hitbox pass: updateFacing() block not found');
 const facingReplacement=`function updateFacing(){
-  // Moving a unit resets only the authored fallback rotation. attackProxy() may then
-  // apply canonical target-relative rotation for abilities that explicitly request it.
   function authoredAttackRotation(actor,basicFallbackDeg,jutsuFallbackDeg=basicFallbackDeg){
     let deg=S.action==='jutsu'?jutsuFallbackDeg:basicFallbackDeg;
     try{
@@ -27,8 +25,23 @@ const facingReplacement=`function updateFacing(){
     }
     return deg*Math.PI/180;
   }
+  function bodyFacingRotation(actor,origin,basicFallbackDeg,jutsuFallbackDeg=basicFallbackDeg){
+    const authored=authoredAttackRotation(actor,basicFallbackDeg,jutsuFallbackDeg);
+    try{
+      if(S.action==='jutsu'&&actor?.name){
+        const unit=canonicalUnit(actor.name);
+        const presentation=unit?.abilities?.jutsu?.presentation||{};
+        if(presentation.body_facing_mode==='jutsu_direction_locked'){
+          return window.BlazingAttackPresentation.resolveActionRotation(unit,'jutsu',origin,S.enemies||[],authored);
+        }
+      }
+    }catch(_){
+      // Non-canonical actors retain their authored fallback rotation.
+    }
+    return authored;
+  }
   S.pairs.forEach(pair=>{
-    (pair.units||[]).forEach(u=>{if(u)u.rotation=authoredAttackRotation(u,-90,-90);});
+    (pair.units||[]).forEach(u=>{if(u)u.rotation=bodyFacingRotation(u,pair,-90,-90);});
   });
   (S.enemies||[]).forEach(e=>{if(e)e.rotation=authoredAttackRotation(e,90,90);});
 }
@@ -36,9 +49,8 @@ const facingReplacement=`function updateFacing(){
 function battleSpriteFor`;
 html=html.replace(facingRx,facingReplacement);
 
-// Freeze Blast is a forward-only horizontal shot. Canonical rotation now chooses its
-// horizontal side from the action-aware medium-range focus resolver, and the same locked
-// rotation drives cast-body facing plus projectile origin.
+// Freeze Blast resolves one assisted true-direction angle from the action-aware medium-range
+// focus resolver. The cast lock, body preview and projectile origin all consume that angle.
 const freezeFacingOld="const facing=window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);";
 const freezeFacingLegacy="const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0);\n   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);";
 const freezeFacingNew=`const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0);
@@ -198,4 +210,4 @@ if(!explosionBlock.includes('impact_hold_ratio')||!explosionBlock.includes('impa
 html=html.slice(0,explosionStart)+explosionBlock+html.slice(explosionEnd);
 
 await fs.writeFile(file,html);
-console.log(`Gameplay presentation pass: authored/action-relative rotations + medium-range horizontal Freeze Blast focus/facing/origin + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku dedicated helper melee + Senku bomb size/impact metadata applied`);
+console.log(`Gameplay presentation pass: authored/action-relative rotations + direction-locked jutsu body facing + assisted true-direction Freeze Blast focus/facing/origin + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku dedicated helper melee + Senku bomb size/impact metadata applied`);
