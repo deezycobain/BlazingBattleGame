@@ -32,9 +32,8 @@ for(const entry of unitIndex.units||[]){
 html=html.replace(unitTag,(_,a,_json,c)=>a+JSON.stringify(embedded)+c);
 console.log(`Canonical unit sync applied: ${(unitIndex.units||[]).map(x=>x.id).join(', ')}`);
 
-// Pass 4.1 remains the gameplay/presentation baseline. This block changes only
-// Sub-Zero's Basic Attack body frames and leaves targeting, range, Senku, Lebee,
-// combat math, and the Pass 4.1 static presentation pass untouched.
+// Pass 4.1 remains the gameplay/presentation baseline. The following presentation-only
+// normalization keeps the working combat/animation routes intact while matching body scale.
 const subzeroBasic=embedded.subzero?.animation_standard?.animations?.basic_attack;
 const subzeroSheet=subzeroBasic?.source_sheet;
 if(!subzeroSheet?.path||subzeroSheet.columns!==3||subzeroSheet.rows!==2||subzeroSheet.frame_count!==6){
@@ -42,7 +41,7 @@ if(!subzeroSheet?.path||subzeroSheet.columns!==3||subzeroSheet.rows!==2||subzero
 }
 const subzeroSheetPath=path.posix.join('assets/characters/subzero',subzeroSheet.path);
 const attackFrameAnchor="function unitAttackFrames(name,kind){\n  if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];\n  const attackMap=CHARACTER_ANIMATION_MAPS[name]?.attack||{};\n  let unitData=null;\n  try{unitData=canonicalUnit(name)}catch(_){}\n  return window.BlazingAttackPresentation.resolveFrames(unitData,kind,attackMap);\n}";
-const subzeroAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
+const tunedAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
    const cfg=${JSON.stringify({
      path:subzeroSheetPath,
      columns:subzeroSheet.columns,
@@ -100,16 +99,57 @@ const subzeroAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
    sheet.src=cfg.path;
    return state;
  })();
+ const SENKU_RETREAT_TUNED_RUNTIME=(()=>{
+   const sources=SENKU_RETREAT_RUN_FRAMES||[];
+   const frames=sources.map(()=>new Image());
+   const state={frames,ready:false,loaded:0,processed:0};
+   const finishFrame=(out,index)=>{
+    const frame=frames[index];
+    frame.addEventListener('load',()=>{state.loaded++;if(state.loaded===sources.length)state.ready=true;},{once:true});
+    frame.addEventListener('error',()=>console.error('Senku tuned retreat frame failed to load:',index),{once:true});
+    frame.src=out.toDataURL('image/png');
+   };
+   const process=(src,index)=>{
+    try{
+     const w=src.naturalWidth||420,h=src.naturalHeight||420;
+     const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+     const ctx=canvas.getContext('2d',{willReadFrequently:true});
+     ctx.drawImage(src,0,0,w,h);
+     const pixels=ctx.getImageData(0,0,w,h),data=pixels.data;
+     let minX=w,minY=h,maxX=-1,maxY=-1;
+     for(let p=0;p<data.length;p+=4){
+      if(data[p+3]>8){const px=(p/4)%w,py=Math.floor((p/4)/w);if(px<minX)minX=px;if(px>maxX)maxX=px;if(py<minY)minY=py;if(py>maxY)maxY=py;}
+     }
+     const out=document.createElement('canvas');out.width=w;out.height=h;
+     const octx=out.getContext('2d');
+     if(maxX>=minX&&maxY>=minY){
+      const bw=maxX-minX+1,bh=maxY-minY+1;
+      const scale=Math.min((w*.90)/bw,(h*.78)/bh);
+      const dw=bw*scale,dh=bh*scale;
+      const dx=(w-dw)/2;
+      const dy=h*.94-dh;
+      octx.drawImage(canvas,minX,minY,bw,bh,dx,dy,dw,dh);
+     }else{octx.drawImage(canvas,0,0);}
+     state.processed++;finishFrame(out,index);
+    }catch(err){console.error('Senku retreat normalization failed:',index,err);}
+   };
+   sources.forEach((src,index)=>{
+    if(src.complete&&src.naturalWidth>0)process(src,index);
+    else src.addEventListener('load',()=>process(src,index),{once:true});
+   });
+   return state;
+ })();
  function unitAttackFrames(name,kind){
    if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];
+   if(name==='Senku'&&kind==='retreat_run'&&SENKU_RETREAT_TUNED_RUNTIME.ready)return SENKU_RETREAT_TUNED_RUNTIME.frames;
    if(name==='Sub-Zero'&&(kind==='basic'||kind==='normal'||kind==='attack'||kind==='punch')&&SUBZERO_BASIC_ATTACK_RUNTIME.ready)return SUBZERO_BASIC_ATTACK_RUNTIME.frames;
    const attackMap=CHARACTER_ANIMATION_MAPS[name]?.attack||{};
    let unitData=null;
    try{unitData=canonicalUnit(name)}catch(_){}
    return window.BlazingAttackPresentation.resolveFrames(unitData,kind,attackMap);
  }`;
-replaceRequired(attackFrameAnchor,subzeroAttackRuntime,'Sub-Zero Basic Attack v2 runtime frames');
-console.log(`Sub-Zero Basic Attack v2 sheet wired as six Image frames with idle-scale normalization on Pass 4.1 baseline: ${subzeroSheetPath}`);
+replaceRequired(attackFrameAnchor,tunedAttackRuntime,'character presentation-normalized runtime frames');
+console.log(`Sub-Zero Basic Attack v2 preserved; Senku retreat frames normalized with 78% visible-height target and 94% feet baseline: ${subzeroSheetPath}`);
 
 replaceRequired(
   "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Crimson','Lebee','Sub-Zero']);",
