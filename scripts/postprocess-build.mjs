@@ -40,6 +40,7 @@ if(!subzeroSheet?.path||subzeroSheet.columns!==3||subzeroSheet.rows!==2||subzero
   throw new Error('Postprocess: Sub-Zero Basic Attack v2 sheet metadata is invalid');
 }
 const subzeroSheetPath=path.posix.join('assets/characters/subzero',subzeroSheet.path);
+const senkuRetreatSourcePath='assets/characters/senku/sprites/source/retreat_run/source_sheet.webp';
 const attackFrameAnchor="function unitAttackFrames(name,kind){\n  if(name==='Senku'&&kind==='allyHealCast')return SENKU_CHEM_CAST_FRAMES||[];\n  const attackMap=CHARACTER_ANIMATION_MAPS[name]?.attack||{};\n  let unitData=null;\n  try{unitData=canonicalUnit(name)}catch(_){}\n  return window.BlazingAttackPresentation.resolveFrames(unitData,kind,attackMap);\n}";
 const tunedAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
    const cfg=${JSON.stringify({
@@ -100,45 +101,58 @@ const tunedAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
    return state;
  })();
  const SENKU_RETREAT_TUNED_RUNTIME=(()=>{
-   const sources=SENKU_RETREAT_RUN_FRAMES||[];
-   const frames=sources.map(()=>new Image());
-   const state={frames,ready:false,loaded:0,processed:0};
+   const cfg={path:${JSON.stringify(senkuRetreatSourcePath)},columns:3,rows:2,frameCount:6,canvasSize:420};
+   const frames=Array.from({length:cfg.frameCount},()=>new Image());
+   const state={frames,ready:false,loaded:0};
+   const sheet=new Image();
    const finishFrame=(out,index)=>{
     const frame=frames[index];
-    frame.addEventListener('load',()=>{state.loaded++;if(state.loaded===sources.length)state.ready=true;},{once:true});
-    frame.addEventListener('error',()=>console.error('Senku tuned retreat frame failed to load:',index),{once:true});
+    frame.addEventListener('load',()=>{state.loaded++;if(state.loaded===cfg.frameCount)state.ready=true;},{once:true});
+    frame.addEventListener('error',()=>console.error('Senku source-sheet retreat frame failed to load:',index),{once:true});
     frame.src=out.toDataURL('image/png');
    };
-   const process=(src,index)=>{
+   sheet.addEventListener('load',()=>{
     try{
-     const w=src.naturalWidth||420,h=src.naturalHeight||420;
-     const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
-     const ctx=canvas.getContext('2d',{willReadFrequently:true});
-     ctx.drawImage(src,0,0,w,h);
-     const pixels=ctx.getImageData(0,0,w,h),data=pixels.data;
-     let minX=w,minY=h,maxX=-1,maxY=-1;
-     for(let p=0;p<data.length;p+=4){
-      if(data[p+3]>8){const px=(p/4)%w,py=Math.floor((p/4)/w);if(px<minX)minX=px;if(px>maxX)maxX=px;if(py<minY)minY=py;if(py>maxY)maxY=py;}
+     const cellW=sheet.naturalWidth/cfg.columns,cellH=sheet.naturalHeight/cfg.rows;
+     if(!Number.isFinite(cellW)||!Number.isFinite(cellH)||cellW<=0||cellH<=0)throw new Error('invalid source-sheet dimensions');
+     for(let index=0;index<cfg.frameCount;index++){
+      const sx=(index%cfg.columns)*cellW,sy=Math.floor(index/cfg.columns)*cellH;
+      const cell=document.createElement('canvas');cell.width=Math.round(cellW);cell.height=Math.round(cellH);
+      const cctx=cell.getContext('2d',{willReadFrequently:true});
+      cctx.clearRect(0,0,cell.width,cell.height);
+      cctx.drawImage(sheet,sx,sy,cellW,cellH,0,0,cell.width,cell.height);
+      const pixels=cctx.getImageData(0,0,cell.width,cell.height),data=pixels.data;
+      let minX=cell.width,minY=cell.height,maxX=-1,maxY=-1;
+      for(let p=0;p<data.length;p+=4){
+       if(data[p+3]>1){
+        const px=(p/4)%cell.width,py=Math.floor((p/4)/cell.width);
+        if(px<minX)minX=px;if(px>maxX)maxX=px;if(py<minY)minY=py;if(py>maxY)maxY=py;
+       }
+      }
+      const out=document.createElement('canvas');out.width=cfg.canvasSize;out.height=cfg.canvasSize;
+      const octx=out.getContext('2d');
+      if(maxX>=minX&&maxY>=minY){
+       // Expand the detected source bounds before fitting. This restores outer hair/foot pixels
+       // that were lost when the earlier tracked runtime frames were tightly extracted.
+       const padX=Math.max(12,Math.round((maxX-minX+1)*.035));
+       const padY=Math.max(16,Math.round((maxY-minY+1)*.045));
+       const cropX=Math.max(0,minX-padX),cropY=Math.max(0,minY-padY);
+       const cropR=Math.min(cell.width,maxX+1+padX),cropB=Math.min(cell.height,maxY+1+padY);
+       const bw=cropR-cropX,bh=cropB-cropY;
+       const scale=Math.min((cfg.canvasSize*.82)/bw,(cfg.canvasSize*.68)/bh);
+       const dw=bw*scale,dh=bh*scale;
+       const dx=(cfg.canvasSize-dw)/2;
+       const dy=cfg.canvasSize*.90-dh;
+       octx.drawImage(cell,cropX,cropY,bw,bh,dx,dy,dw,dh);
+      }else{
+       octx.drawImage(cell,0,0,cell.width,cell.height,0,0,cfg.canvasSize,cfg.canvasSize);
+      }
+      finishFrame(out,index);
      }
-     const out=document.createElement('canvas');out.width=w;out.height=h;
-     const octx=out.getContext('2d');
-     if(maxX>=minX&&maxY>=minY){
-      const bw=maxX-minX+1,bh=maxY-minY+1;
-      // Senku's battlefield render scale is 1.30x. Keep the retreat artwork well inside
-      // its source canvas so the final rendered body retains head/feet safety margins.
-      const scale=Math.min((w*.82)/bw,(h*.68)/bh);
-      const dw=bw*scale,dh=bh*scale;
-      const dx=(w-dw)/2;
-      const dy=h*.90-dh;
-      octx.drawImage(canvas,minX,minY,bw,bh,dx,dy,dw,dh);
-     }else{octx.drawImage(canvas,0,0);}
-     state.processed++;finishFrame(out,index);
-    }catch(err){console.error('Senku retreat normalization failed:',index,err);}
-   };
-   sources.forEach((src,index)=>{
-    if(src.complete&&src.naturalWidth>0)process(src,index);
-    else src.addEventListener('load',()=>process(src,index),{once:true});
+    }catch(err){console.error('Senku full-source retreat rebuild failed:',err);}
    });
+   sheet.addEventListener('error',()=>console.error('Senku full retreat source sheet failed to load:',cfg.path));
+   sheet.src=cfg.path;
    return state;
  })();
  function unitAttackFrames(name,kind){
@@ -151,7 +165,7 @@ const tunedAttackRuntime=`const SUBZERO_BASIC_ATTACK_RUNTIME=(()=>{
    return window.BlazingAttackPresentation.resolveFrames(unitData,kind,attackMap);
  }`;
 replaceRequired(attackFrameAnchor,tunedAttackRuntime,'character presentation-normalized runtime frames');
-console.log(`Sub-Zero Basic Attack v2 preserved; Senku retreat frames normalized to 68% visible height / 82% width with 90% feet baseline: ${subzeroSheetPath}`);
+console.log(`Sub-Zero Basic Attack v2 preserved; Senku retreat rebuilt from full preserved 3x2 source sheet with padded bounds: ${senkuRetreatSourcePath}`);
 
 replaceRequired(
   "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Crimson','Lebee','Sub-Zero']);",
