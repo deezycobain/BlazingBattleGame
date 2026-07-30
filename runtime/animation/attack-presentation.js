@@ -57,7 +57,9 @@
     pool.sort((a,b)=>{
       const da=Math.abs(a.distance-safePreferred),db=Math.abs(b.distance-safePreferred);
       if(Math.abs(da-db)>1e-9)return da-db;
-      return b.distance-a.distance;
+      // Equal-quality targets should bias toward the nearer body. This makes lock-on
+      // selection feel predictable instead of unexpectedly choosing the farther enemy.
+      return a.distance-b.distance;
     });
     return pool[0]?.candidate||null;
   }
@@ -66,7 +68,7 @@
     const ability=action==='jutsu'?unitData?.abilities?.jutsu:unitData?.abilities?.basic;
     const presentation=ability?.presentation||{};
     const mode=presentation.range_rotation_mode;
-    if(mode==='medium_enemy_horizontal_facing'){
+    if(mode==='medium_enemy_horizontal_facing'||mode==='medium_enemy_assisted_facing'){
       return preferredRangePoint(origin,candidates,{
         min:presentation.target_focus_min_px,
         max:presentation.target_focus_max_px,
@@ -80,9 +82,10 @@
 
   function resolveActionRotation(unitData,action,origin,candidates,fallback=0){
     const ability=action==='jutsu'?unitData?.abilities?.jutsu:unitData?.abilities?.basic;
-    const mode=ability?.presentation?.range_rotation_mode;
+    const presentation=ability?.presentation||{};
+    const mode=presentation.range_rotation_mode;
     const target=resolveActionTarget(unitData,action,origin,candidates);
-    if(mode==='nearest_enemy_facing')return target?rotationToward(origin,target,fallback):fallback;
+    if(mode==='nearest_enemy_facing'||mode==='medium_enemy_assisted_facing')return target?rotationToward(origin,target,fallback):fallback;
     if(mode==='nearest_enemy_horizontal_facing'||mode==='medium_enemy_horizontal_facing')return horizontalRotationToward(origin,target,fallback);
     return Number.isFinite(fallback)?fallback:0;
   }
