@@ -24,7 +24,7 @@
     "movement_range": 88,
     "basic_shape": {
       "type": "circle",
-      "r": 60
+      "r": 92
     },
     "basic_rotation_deg": 0,
     "jutsu_shape": {
@@ -50,7 +50,8 @@
       "single_target_selector": "nearest_in_shape",
       "presentation": {
         "runtime_driver": "animateLunge",
-        "animation_kind": "punch"
+        "animation_kind": "punch",
+        "range_visual_scale": 0.65
       }
     },
     "jutsu": {
@@ -94,7 +95,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "Pass 4.1 gameplay stabilization retained. Basic close-range circle is now 60 px (35% smaller than the former 92 px bubble), nearest-enemy selection is preserved, Freeze Blast retains medium-range horizontal focus, and Basic body presentation uses the approved six-pose source sheet.",
+    "notes": "Pass 4.1 gameplay stabilization retained. Basic keeps the 92 px mechanical nearest-enemy close melee reach while its displayed range bubble is scaled to 65% (about 60 px). Freeze Blast retains medium-range horizontal focus. Basic body presentation uses the approved six-pose source sheet.",
     "animation_map": true
   },
   "balance": {
