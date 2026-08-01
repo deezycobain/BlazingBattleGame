@@ -53,8 +53,8 @@
       "idle": {"frames": ["sprites/runtime/idle/frame_01.png"],"frame_ms": 180,"loop": true,"events": []},
       "basic_attack": {
         "source_sheet": {"path": "sprites/runtime/attack/basic/43297C1D-6DB2-4EE0-88FA-29F9452906C2.png","columns": 3,"rows": 2,"frame_width": 512,"frame_height": 512,"frame_count": 6,"background_cleanup": "light_checkerboard_to_alpha"},
-        "frames": ["sprites/runtime/attack/basic/frame_01.png","sprites/runtime/attack/basic/frame_01_alt.png"],"frame_ms": 95,"loop": false,
-        "events": [{"frame": 4,"event": "release_projectile_or_apply_melee"}]
+        "frames": ["sprites/runtime/attack/basic/frame_01.png","sprites/runtime/attack/basic/frame_01_alt.png"],"frame_ms": 110,"loop": false,
+        "events": [{"frame": 4,"event":"release_projectile_or_apply_melee"}]
       }
     },
     "vfx": {"jutsu/freeze_blast/projectile": {"frames": ["vfx/jutsu/freeze_blast/projectile/frame_01.png","vfx/jutsu/freeze_blast/projectile/frame_02.png","vfx/jutsu/freeze_blast/projectile/frame_03.png"],"frame_ms": 90,"loop": false,"body_asset": false}}
