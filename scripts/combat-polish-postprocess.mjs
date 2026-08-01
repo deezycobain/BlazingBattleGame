@@ -15,8 +15,8 @@ const replaceRegexOnce=(rx,newText,label)=>{
 };
 
 // Sub-Zero Basic keeps its 92 px mechanical range but displays a 35% smaller circle.
-// Freeze Blast keeps its canonical cone hit geometry while replacing the plain range fill
-// with the uploaded transparent ice-cone artwork.
+// Freeze Blast keeps its canonical cone hit geometry, but the preview is now drawn only
+// from the authored ice artwork. The old procedural wireframe cone is intentionally skipped.
 replaceOnce(
 `function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
  return window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:u.shape,rotation:u.rotation||0,color,glow,visualOffsetY,bounds:BATTLE_BOUNDS});
@@ -31,19 +31,27 @@ function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
   visualShape={...visualShape,r:visualShape.r*visualScale};
  }
  const isFreezeCone=S.action==='jutsu'&&u?.name==='Sub-Zero'&&visualShape?.type==='cone';
- const result=window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:visualShape,rotation:u.rotation||0,color,glow:!isFreezeCone&&glow,visualOffsetY,bounds:BATTLE_BOUNDS});
- if(isFreezeCone&&SUBZERO_FREEZE_CONE_VFX.complete&&SUBZERO_FREEZE_CONE_VFX.naturalWidth){
-  const r=visualShape.r||205;
-  const coneHeight=Math.max(72,2*r*Math.tan(visualShape.a||.52));
+ if(!isFreezeCone){
+  return window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:visualShape,rotation:u.rotation||0,color,glow,visualOffsetY,bounds:BATTLE_BOUNDS});
+ }
+ if(SUBZERO_FREEZE_CONE_VFX.complete&&SUBZERO_FREEZE_CONE_VFX.naturalWidth){
+  const r=(visualShape.r||205)*1.08;
+  const coneHeight=Math.max(92,2*r*Math.tan((visualShape.a||.52)*.62));
   ctx.save();
   ctx.translate(p.x,p.y+(visualOffsetY||0));
   ctx.rotate(u.rotation||0);
-  ctx.globalAlpha=.68;
+  ctx.imageSmoothingEnabled=true;
+  ctx.shadowColor='rgba(76,210,255,.95)';
+  ctx.shadowBlur=16;
+  ctx.globalAlpha=.94;
+  ctx.globalCompositeOperation='source-over';
+  ctx.drawImage(SUBZERO_FREEZE_CONE_VFX,-6,-coneHeight/2,r+12,coneHeight);
+  ctx.globalAlpha=.38;
   ctx.globalCompositeOperation='screen';
-  ctx.drawImage(SUBZERO_FREEZE_CONE_VFX,0,-coneHeight/2,r,coneHeight);
+  ctx.drawImage(SUBZERO_FREEZE_CONE_VFX,-10,-coneHeight*.57,r+20,coneHeight*1.14);
   ctx.restore();
  }
- return result;
+ return true;
 }`,
 'Sub-Zero range presentation'
 );
@@ -70,4 +78,4 @@ replaceRegexOnce(
 );
 
 await fs.writeFile(file,html);
-console.log('Combat polish applied: uploaded Sub-Zero Freeze Blast cone VFX, assisted target ring, Senku feet impact, full combo sequence.');
+console.log('Combat polish applied: authored Sub-Zero Freeze Blast preview, assisted target ring, Senku feet impact, full combo sequence.');
