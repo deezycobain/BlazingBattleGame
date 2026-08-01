@@ -56,6 +56,20 @@ function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
 'Sub-Zero range presentation'
 );
 
+// During the Freeze Blast cast, mirror Sub-Zero's body from the exact locked jutsu angle.
+// The sprite stays upright; only its horizontal facing changes toward the chosen target.
+replaceOnce(
+ `ctx.scale((flipX||1)*scale*activePulse,scale*activePulse);`,
+ `const lockedJutsuFacing=(name==='Sub-Zero'&&S.action==='jutsu')
+   ? window.BlazingAttackPresentation.lockedFacing(S.anim,name)
+   : null;
+ const directionalFlip=Number.isFinite(lockedJutsuFacing)
+   ? (Math.cos(lockedJutsuFacing)<0?-1:1)
+   : (flipX||1);
+ ctx.scale(directionalFlip*scale*activePulse,scale*activePulse);`,
+ 'Sub-Zero locked jutsu sprite facing'
+);
+
 // Enemy target highlight remains tied to the assisted aim tolerance.
 replaceRegexOnce(
  /\s*\/\/ Bubble feedback is isolated so it can never mask the enemy sprite\./,
@@ -78,4 +92,4 @@ replaceRegexOnce(
 );
 
 await fs.writeFile(file,html);
-console.log('Combat polish applied: authored Sub-Zero Freeze Blast preview, assisted target ring, Senku feet impact, full combo sequence.');
+console.log('Combat polish applied: authored Sub-Zero Freeze Blast preview, locked cast-facing, assisted target ring, Senku feet impact, full combo sequence.');
