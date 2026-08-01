@@ -23,6 +23,11 @@ replaceOnce(
 }`,
 `const SUBZERO_FREEZE_CONE_VFX=new Image();
 SUBZERO_FREEZE_CONE_VFX.src='assets/characters/subzero/vfx/jutsu/freeze_blast/cone/ice_cone_composite.png';
+const SUBZERO_FREEZE_PROJECTILE_FRAMES=[
+ 'assets/characters/subzero/vfx/jutsu/freeze_blast/projectile/frame_01.png',
+ 'assets/characters/subzero/vfx/jutsu/freeze_blast/projectile/frame_02.png',
+ 'assets/characters/subzero/vfx/jutsu/freeze_blast/projectile/frame_03.png'
+].map(src=>{const img=new Image();img.src=src;return img;});
 function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
  let visualShape=u.shape;
  if(S.action!=='jutsu'&&u?.name==='Sub-Zero'&&visualShape?.type==='circle'){
@@ -55,6 +60,71 @@ function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
 }`,
 'Sub-Zero range presentation'
 );
+
+// Replace the legacy Freeze Blast floater renderer in-place. The animation lifecycle,
+// damage timing and callbacks stay untouched; only its visual treatment changes.
+const freezeLockNeedle="resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)";
+const freezeLockAt=html.indexOf(freezeLockNeedle);
+if(freezeLockAt<0)throw new Error('Freeze Blast projectile pass: locked-facing animation not found');
+const freezeFnStart=html.lastIndexOf('\nfunction ',freezeLockAt);
+const freezeFnEnd=html.indexOf('\nfunction ',freezeLockAt+freezeLockNeedle.length);
+if(freezeFnStart<0||freezeFnEnd<0)throw new Error('Freeze Blast projectile pass: animation function bounds not found');
+const freezeFn=html.slice(freezeFnStart,freezeFnEnd);
+const freezeKindMatches=[...freezeFn.matchAll(/kind:'([^']+)'/g)];
+const freezeKindEntry=freezeKindMatches.find(match=>{
+  const around=freezeFn.slice(Math.max(0,match.index-100),Math.min(freezeFn.length,match.index+260));
+  return /\bfrom\b/.test(around)&&/\bto\b/.test(around)&&/\bduration\b/.test(around);
+})||freezeKindMatches[0];
+if(!freezeKindEntry)throw new Error('Freeze Blast projectile pass: projectile floater kind not found');
+const legacyFreezeKind=freezeKindEntry[1];
+const freezeRendererMarker=`else if(f.kind==='${legacyFreezeKind}'){`;
+const freezeRendererStart=html.indexOf(freezeRendererMarker);
+const freezeRendererEnd=html.indexOf('}else if(',freezeRendererStart+freezeRendererMarker.length);
+if(freezeRendererStart<0||freezeRendererEnd<0)throw new Error(`Freeze Blast projectile pass: renderer block for ${legacyFreezeKind} not found`);
+const authoredFreezeRenderer=`else if(f.kind==='${legacyFreezeKind}'){
+     const t=clamp((performance.now()-f.start)/f.duration,0,1);
+     const ease=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+     const from=f.from||{x:f.x||0,y:f.y||0};
+     const to=f.to||{x:f.tx??f.x??0,y:f.ty??f.y??0};
+     const x=from.x+(to.x-from.x)*ease;
+     const y=from.y+(to.y-from.y)*ease;
+     const angle=Math.atan2(to.y-from.y,to.x-from.x);
+     const frameIndex=t<.30?0:(t<.68?1:2);
+     const img=SUBZERO_FREEZE_PROJECTILE_FRAMES[frameIndex];
+     ctx.translate(x,y);ctx.rotate(angle);
+     ctx.imageSmoothingEnabled=true;
+     const arrival=Math.max(0,(t-.72)/.28);
+     const bodyH=frameIndex===2?92:(frameIndex===1?66:80);
+     const bodyW=frameIndex===2?178:(frameIndex===1?164:190);
+     if(img?.complete&&img.naturalWidth>0){
+      ctx.shadowColor='rgba(83,220,255,.98)';ctx.shadowBlur=18+12*arrival;
+      ctx.globalAlpha=.98;
+      ctx.globalCompositeOperation='source-over';
+      ctx.drawImage(img,-bodyW*.22,-bodyH/2,bodyW,bodyH);
+      ctx.globalAlpha=.42+.22*arrival;
+      ctx.globalCompositeOperation='screen';
+      ctx.drawImage(img,-bodyW*.28,-bodyH*.60,bodyW*1.10,bodyH*1.20);
+     }
+     if(arrival>0){
+      const burst=Math.sin(Math.PI*Math.min(1,arrival));
+      ctx.globalCompositeOperation='screen';
+      ctx.globalAlpha=.82*(1-arrival*.55);
+      const g=ctx.createRadialGradient(bodyW*.62,0,0,bodyW*.62,0,34+54*burst);
+      g.addColorStop(0,'rgba(255,255,255,.98)');
+      g.addColorStop(.24,'rgba(191,246,255,.90)');
+      g.addColorStop(.62,'rgba(74,202,255,.44)');
+      g.addColorStop(1,'rgba(40,170,255,0)');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(bodyW*.62,0,34+54*burst,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(220,251,255,.92)';ctx.lineWidth=2.2;
+      for(let i=0;i<10;i++){
+       const a=(Math.PI*2*i/10)+i*.19;
+       const inner=20+12*burst,outer=48+44*burst;
+       ctx.beginPath();ctx.moveTo(bodyW*.62+Math.cos(a)*inner,Math.sin(a)*inner);
+       ctx.lineTo(bodyW*.62+Math.cos(a)*outer,Math.sin(a)*outer);ctx.stroke();
+      }
+     }
+   `;
+html=html.slice(0,freezeRendererStart)+authoredFreezeRenderer+html.slice(freezeRendererEnd);
 
 // During the Freeze Blast cast, mirror Sub-Zero's body from the exact locked jutsu angle.
 // The sprite stays upright; only its horizontal facing changes toward the chosen target.
@@ -92,4 +162,4 @@ replaceRegexOnce(
 );
 
 await fs.writeFile(file,html);
-console.log('Combat polish applied: authored Sub-Zero Freeze Blast preview, locked cast-facing, assisted target ring, Senku feet impact, full combo sequence.');
+console.log(`Combat polish applied: authored Sub-Zero preview + three-frame Freeze Blast projectile/impact (${legacyFreezeKind}), locked cast-facing, assisted target ring, Senku feet impact, full combo sequence.`);
