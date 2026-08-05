@@ -123,22 +123,25 @@ if(subzeroBasic.runtimeDriver!=='animateLunge'||subzeroBasic.animationKind!=='pu
 
 if(subzero.combat?.jutsu_shape?.type!=='cone'||subzero.combat.jutsu_shape.r!==205||subzero.combat.jutsu_shape.a!==0.52)fail('Sub-Zero Freeze Blast cone geometry changed unexpectedly');
 const sj=subzero.abilities?.jutsu?.presentation||{};
-if(sj.range_rotation_mode!=='medium_enemy_horizontal_facing')fail('Freeze Blast must use medium-range horizontal facing');
-if(sj.target_focus_mode!=='preferred_distance_band'||sj.target_focus_min_px!==110||sj.target_focus_max_px!==180||sj.target_focus_preferred_px!==150||sj.target_focus_fallback_max_px!==205)fail('Freeze Blast medium-range focus band changed unexpectedly');
+if(sj.range_rotation_mode!=='medium_enemy_assisted_facing')fail('Freeze Blast must use assisted true-direction enemy facing');
+if(sj.target_focus_mode!=='preferred_distance_band'||sj.target_focus_min_px!==100||sj.target_focus_max_px!==185||sj.target_focus_preferred_px!==145||sj.target_focus_fallback_max_px!==205)fail('Freeze Blast assisted medium-range focus band changed unexpectedly');
+if(sj.target_lock_radius_pad_px!==8)fail('Freeze Blast target lock radius padding changed unexpectedly');
 if(sj.projectile_origin_mode!=='forward_facing')fail('Freeze Blast projectile must originate from Sub-Zero forward facing');
 const focusCandidates=[
   {id:'close-right',x:50,y:0,hp:10},
-  {id:'medium-right',x:130,y:0,hp:10},
-  {id:'medium-left',x:-170,y:0,hp:10},
+  {id:'medium-right',x:125,y:0,hp:10},
+  {id:'medium-left',x:-165,y:0,hp:10},
   {id:'edge-right',x:200,y:0,hp:10}
 ];
 const focus=P.resolveActionTarget(subzero,'jutsu',{x:0,y:0},focusCandidates);
-if(focus?.id!=='medium-left')fail('Freeze Blast should prefer the best medium-range target instead of the nearest enemy');
+if(focus?.id!=='medium-right')fail('Freeze Blast should prefer the nearer equally-good medium-range target');
 const mediumRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},focusCandidates,0);
-if(!approx(mediumRotation,Math.PI))fail('Freeze Blast horizontal facing must follow the selected medium-range enemy side');
+if(!approx(mediumRotation,0))fail('Freeze Blast assisted facing must follow the selected medium-range enemy');
+const diagonalTarget={id:'diag',x:120,y:-90,hp:10};
+const diagonalRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[diagonalTarget],0);
+if(!approx(diagonalRotation,Math.atan2(-90,120)))fail('Freeze Blast must preserve diagonal target direction instead of snapping horizontal');
 const upRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:0,y:-150,hp:10}],0);
-const downLeftFallback=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:0,y:150,hp:10}],Math.PI);
-if(!approx(upRotation,0)||!approx(downLeftFallback,Math.PI))fail('Freeze Blast must stay horizontal even when the preferred medium enemy is vertically aligned');
+if(!approx(upRotation,-Math.PI/2))fail('Freeze Blast must aim vertically when the selected target is vertically aligned');
 const fallbackFocus=P.resolveActionTarget(subzero,'jutsu',{x:0,y:0},[{id:'close',x:45,y:0,hp:10},{id:'fallback',x:-195,y:0,hp:10}]);
 if(fallbackFocus?.id!=='fallback')fail('Freeze Blast fallback should remain range-aware instead of snapping to the closest enemy');
 if(subzero.abilities?.jutsu?.cost!==4||subzero.abilities?.jutsu?.damage_multiplier!==2.1)fail('Freeze Blast cost/damage changed unexpectedly');
@@ -182,4 +185,4 @@ for(const marker of [
   'lockRotation(state,unitName,facing)'
 ])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: Senku short/thin directional pear range, evasive retreat and dedicated melee; Sub-Zero close nearest-enemy punch plus medium-range-biased horizontal Freeze Blast focus/facing; unchanged bomb/freeze combat semantics verified.');
+console.log('Gameplay presentation smoke PASS: Senku directional/evasive presentation retained; Sub-Zero close Basic retained plus assisted true-direction Freeze Blast targeting with unchanged combat semantics.');

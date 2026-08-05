@@ -32,11 +32,79 @@
     return false;
   }
 
+  function conePath(ctx,s){
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,s.r,-s.a/2,s.a/2);
+    ctx.closePath();
+  }
+
+  function drawSubzeroIceCone(ctx,s,breathe,now){
+    const slow=.5+.5*Math.sin(now/420);
+    const shimmer=.5+.5*Math.sin(now/135);
+    const radius=Math.max(1,Number(s.r)||1);
+    const gradient=ctx.createRadialGradient(0,0,8,0,0,radius);
+    gradient.addColorStop(0,`rgba(188,246,255,${.20+.05*slow})`);
+    gradient.addColorStop(.32,`rgba(112,224,255,${.13+.04*slow})`);
+    gradient.addColorStop(.76,`rgba(72,190,255,${.085+.03*slow})`);
+    gradient.addColorStop(1,'rgba(185,244,255,.025)');
+
+    ctx.save();
+    ctx.shadowColor='rgba(126,228,255,.95)';
+    ctx.shadowBlur=14+10*slow;
+    ctx.fillStyle=gradient;
+    conePath(ctx,s);ctx.fill();
+
+    ctx.globalAlpha=.72+.16*slow;
+    ctx.strokeStyle=`rgba(195,247,255,${.50+.18*slow})`;
+    ctx.lineWidth=1.35;
+    conePath(ctx,s);ctx.stroke();
+
+    ctx.shadowBlur=6+4*slow;
+    ctx.globalAlpha=.42+.20*slow;
+    ctx.strokeStyle='rgba(232,252,255,.88)';
+    ctx.lineWidth=.8;
+    conePath(ctx,s);ctx.stroke();
+
+    const outerStart=-s.a/2,outerEnd=s.a/2,segments=13;
+    ctx.shadowBlur=4+3*slow;
+    ctx.strokeStyle=`rgba(221,251,255,${.34+.22*shimmer})`;
+    ctx.lineWidth=.8;
+    for(let i=1;i<segments;i++){
+      const t=i/segments;
+      const ang=outerStart+(outerEnd-outerStart)*t;
+      const rr=radius*(.84+.13*Math.abs(Math.sin(i*2.17+now/290)));
+      const tooth=4+5*Math.abs(Math.sin(i*1.73+now/210));
+      const x=Math.cos(ang)*rr,y=Math.sin(ang)*rr;
+      const tangent=ang+Math.PI/2;
+      ctx.beginPath();
+      ctx.moveTo(x-Math.cos(tangent)*tooth*.55,y-Math.sin(tangent)*tooth*.55);
+      ctx.lineTo(x+Math.cos(ang)*tooth,y+Math.sin(ang)*tooth);
+      ctx.lineTo(x+Math.cos(tangent)*tooth*.55,y+Math.sin(tangent)*tooth*.55);
+      ctx.stroke();
+    }
+
+    ctx.globalAlpha=.22+.12*slow;
+    ctx.strokeStyle='rgba(235,254,255,.95)';
+    ctx.lineWidth=.6;
+    for(let i=0;i<6;i++){
+      const ang=-s.a*.38+(s.a*.76)*(i/5);
+      const inner=radius*(.18+.07*(i%2));
+      const outer=radius*(.54+.05*Math.sin(i*1.8));
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(ang)*inner,Math.sin(ang)*inner);
+      ctx.lineTo(Math.cos(ang+.012*Math.sin(now/260+i))*outer,Math.sin(ang+.012*Math.sin(now/260+i))*outer);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   function drawShape(ctx,{origin,shape,rotation=0,color,glow=false,visualOffsetY=0,bounds,now=performance.now()}){
     const s=shape;
     if(!s)return;
-    const pulse=1+Math.sin(now/180)*0.014;
-    const breathe=.5+.5*Math.sin(now/230);
+    const icyCone=s.type==='cone'&&s.visual_style==='subzero_ice';
+    const pulse=1+Math.sin(now/(icyCone?420:180))*(icyCone ? .028 : .014);
+    const breathe=.5+.5*Math.sin(now/(icyCone?420:230));
 
     if(s.type==='screen_rect'){
       const pad=s.padding??18;
@@ -64,6 +132,12 @@
     ctx.translate(origin.x,origin.y+visualOffsetY);
     ctx.rotate(rotation||0);
     ctx.scale(pulse,pulse);
+
+    if(icyCone){
+      drawSubzeroIceCone(ctx,s,breathe,now);
+      ctx.restore();
+      return;
+    }
 
     if(glow){
       const ultimateRed=color==='#ff3548'||color==='#ff3348';

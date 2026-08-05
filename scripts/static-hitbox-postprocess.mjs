@@ -5,15 +5,13 @@ const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
 
 // Authored fallback rotation remains separate from target-relative rotation requested by
-// canonical ability presentation metadata. Pass 4.1 uses target-relative modes for
-// directional abilities such as Sub-Zero Freeze Blast and Senku's pear-shaped basic.
+// canonical ability presentation metadata. Direction-locked body modes additionally make
+// the visible combat sprite follow the same resolved action angle used by the range shape.
 // IMPORTANT: battle pairs also contain empty reserve placeholders and some stages
 // contain non-canonical enemies. Never let a presentation lookup throw during render.
 const facingRx=/function updateFacing\(\)\{[\s\S]*?\n\}\n\nfunction battleSpriteFor/;
 if(!facingRx.test(html))throw new Error('Static hitbox pass: updateFacing() block not found');
 const facingReplacement=`function updateFacing(){
-  // Moving a unit resets only the authored fallback rotation. attackProxy() may then
-  // apply canonical target-relative rotation for abilities that explicitly request it.
   function authoredAttackRotation(actor,basicFallbackDeg,jutsuFallbackDeg=basicFallbackDeg){
     let deg=S.action==='jutsu'?jutsuFallbackDeg:basicFallbackDeg;
     try{
@@ -27,8 +25,23 @@ const facingReplacement=`function updateFacing(){
     }
     return deg*Math.PI/180;
   }
+  function bodyFacingRotation(actor,origin,basicFallbackDeg,jutsuFallbackDeg=basicFallbackDeg){
+    const authored=authoredAttackRotation(actor,basicFallbackDeg,jutsuFallbackDeg);
+    try{
+      if(S.action==='jutsu'&&actor?.name){
+        const unit=canonicalUnit(actor.name);
+        const presentation=unit?.abilities?.jutsu?.presentation||{};
+        if(presentation.body_facing_mode==='jutsu_direction_locked'){
+          return window.BlazingAttackPresentation.resolveActionRotation(unit,'jutsu',origin,S.enemies||[],authored);
+        }
+      }
+    }catch(_){
+      // Non-canonical actors retain their authored fallback rotation.
+    }
+    return authored;
+  }
   S.pairs.forEach(pair=>{
-    (pair.units||[]).forEach(u=>{if(u)u.rotation=authoredAttackRotation(u,-90,-90);});
+    (pair.units||[]).forEach(u=>{if(u)u.rotation=bodyFacingRotation(u,pair,-90,-90);});
   });
   (S.enemies||[]).forEach(e=>{if(e)e.rotation=authoredAttackRotation(e,90,90);});
 }
@@ -36,9 +49,8 @@ const facingReplacement=`function updateFacing(){
 function battleSpriteFor`;
 html=html.replace(facingRx,facingReplacement);
 
-// Freeze Blast is a forward-only horizontal shot. Canonical rotation now chooses its
-// horizontal side from the action-aware medium-range focus resolver, and the same locked
-// rotation drives cast-body facing plus projectile origin.
+// Freeze Blast uses the assisted medium-range focus resolver to produce one true-direction
+// angle. The cast lock, body preview and projectile origin all consume that angle.
 const freezeFacingOld="const facing=window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);";
 const freezeFacingLegacy="const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0);\n   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);";
 const freezeFacingNew=`const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0);
@@ -90,8 +102,6 @@ const facingAt=html.indexOf(facingAnchor);
 if(facingAt<0)throw new Error('Highlight pass: updateFacing insertion anchor not found');
 html=html.slice(0,facingAt)+previewHelper+html.slice(facingAt);
 
-// Swap hits() -> previewHits() only inside renderer functions that both draw to ctx
-// and inspect S.enemies. Gameplay resolution and the geometry engine stay untouched.
 const hitCallRx=/\bhits\(/g;
 const visualHitIndices=[];
 let hitMatch;
@@ -111,9 +121,6 @@ for(let i=visualHitIndices.length-1;i>=0;i--){
   html=html.slice(0,idx)+'previewHits('+html.slice(idx+'hits('.length);
 }
 
-// A basic attack may own a static multi-unit RANGE SHAPE while still resolving
-// only one actual target. This is driven by canonical ability data so future
-// single-target units can reuse the same behavior WITHOUT modifying global hits().
 const targetRx=/(\n\s*)if\(!targets\.length\)\{\s*\n\s*S\.log=`\$\{u\.name\} committed the move but caught no target\.`;return finishAction\(\)\s*\n\s*\}/;
 if(!targetRx.test(html))throw new Error('Single-target pass: player target-resolution anchor not found');
 html=html.replace(targetRx,(_match,indent)=>`${indent}if(!useJutsu){
@@ -127,9 +134,6 @@ html=html.replace(targetRx,(_match,indent)=>`${indent}if(!useJutsu){
  ${indent} S.log=\`${'${u.name}'} committed the move but caught no target.\`;return finishAction()
  ${indent}}`);
 
-// Senku's primary attacker keeps the bomb-retreat driver. A linked/helper Senku must
-// instead use the dedicated Asset Inbox melee body animation through the shared lunge
-// driver. This prevents old bomb-holding body frames from appearing in melee/combo play.
 const helperKindRx=/const effectiveAnimationKind=\(basicPresentation\.runtimeDriver==='animateSenkuRetreatBomb'&&!wantsRetreat\)\s*\?\s*\(basicMeta\.far_animation_kind\|\|requestedBasicKind\)\s*:\s*basicPresentation\.animationKind;/;
 const helperKindReplacement=`const effectiveAnimationKind=(basicPresentation.runtimeDriver==='animateSenkuRetreatBomb'&&!wantsRetreat)
       ? (basicMeta.melee_animation_kind||'melee_attack')
@@ -147,7 +151,6 @@ const helperDriverReplacement=`}else if(au.name==='Senku'){
 if(helperDriverRx.test(html))html=html.replace(helperDriverRx,helperDriverReplacement);
 else if(!html.includes('basicTarget=wantsRetreat?enemy:to;'))throw new Error('Senku helper melee pass: driver anchor not found');
 
-// Preserve the approved Senku bomb visual size curve.
 const bombStart=html.indexOf("else if(f.kind==='senkuBombProjectile'){");
 if(bombStart<0)throw new Error('Presentation pass: Senku bomb projectile section not found');
 const oldSize='const h=30,ratio=img.naturalWidth/img.naturalHeight,w=h*ratio;';
@@ -164,7 +167,6 @@ if(sizeAt>=0 && sizeAt-bombStart<5000){
   throw new Error('Presentation pass: Senku bomb size anchor not found or already changed unexpectedly');
 }
 
-// Keep the impact floater alive for the same canonical duration used to finish the attack.
 const animateBombStart=html.indexOf('function animateSenkuBomb(');
 if(animateBombStart<0)throw new Error('Presentation pass: animateSenkuBomb() not found');
 const hardcodedBlast='duration:360,';
@@ -175,8 +177,6 @@ if(hardcodedBlastAt>=0 && hardcodedBlastAt-animateBombStart<5000){
   throw new Error('Presentation pass: Senku impact duration anchor not found');
 }
 
-// The production static impact remains a normal asset, but its timing/size/anchor now
-// comes from canonical Senku presentation metadata instead of hardcoded renderer values.
 const explosionStart=html.indexOf("else if(f.kind==='senkuExplosion'){");
 if(explosionStart<0)throw new Error('Presentation pass: Senku explosion renderer not found');
 const explosionEnd=html.indexOf("}else if(f.kind==='lebeeMeteor'){",explosionStart);
@@ -198,4 +198,4 @@ if(!explosionBlock.includes('impact_hold_ratio')||!explosionBlock.includes('impa
 html=html.slice(0,explosionStart)+explosionBlock+html.slice(explosionEnd);
 
 await fs.writeFile(file,html);
-console.log(`Gameplay presentation pass: authored/action-relative rotations + medium-range horizontal Freeze Blast focus/facing/origin + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku dedicated helper melee + Senku bomb size/impact metadata applied`);
+console.log(`Gameplay presentation pass: authored/action-relative rotations + direction-locked jutsu body facing + assisted true-direction Freeze Blast focus/facing/origin + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku dedicated helper melee + Senku bomb size/impact metadata applied`);

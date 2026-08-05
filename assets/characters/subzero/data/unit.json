@@ -7,154 +7,56 @@
   "archetype": "ranged_controller",
   "element": "Ice",
   "rarity": "Legendary",
-  "collection": {
-    "owned": true,
-    "inventory_visible": true,
-    "battle_ready": true
-  },
-  "stats": {
-    "level": 1,
-    "hp": 126,
-    "attack": 31,
-    "defense": 24,
-    "speed": 60
-  },
+  "collection": {"owned": true,"inventory_visible": true,"battle_ready": true},
+  "stats": {"level": 1,"hp": 126,"attack": 31,"defense": 24,"speed": 60},
   "combat": {
-    "mark": "SZ",
-    "movement_range": 88,
-    "basic_shape": {
-      "type": "circle",
-      "r": 92
-    },
-    "basic_rotation_deg": 0,
-    "jutsu_shape": {
-      "type": "cone",
-      "r": 205,
-      "a": 0.52
-    },
-    "jutsu_rotation_deg": 0,
-    "chakra_max": 8,
-    "chakra_start": 2
+    "mark": "SZ","movement_range": 88,
+    "basic_shape": {"type": "circle","r": 92},"basic_rotation_deg": 0,
+    "jutsu_shape": {"type": "cone","r": 205,"a": 0.52,"visual_style": "subzero_ice"},"jutsu_rotation_deg": 0,
+    "chakra_max": 8,"chakra_start": 2
   },
-  "render": {
-    "scale": 0.98
-  },
+  "render": {"scale": 0.98},
   "abilities": {
     "basic": {
-      "id": "basic_attack",
-      "name": "Basic Attack",
-      "damage_multiplier": 1.0,
-      "chakra_gain": 1,
-      "delivery": "melee",
-      "target_mode": "single",
-      "single_target_selector": "nearest_in_shape",
-      "presentation": {
-        "runtime_driver": "animateLunge",
-        "animation_kind": "punch",
-        "range_visual_scale": 0.65
-      }
+      "id": "basic_attack","name": "Basic Attack","damage_multiplier": 1.0,"chakra_gain": 1,"delivery": "melee","target_mode": "single","single_target_selector": "nearest_in_shape",
+      "presentation": {"runtime_driver": "animateLunge","animation_kind": "punch","range_visual_scale": 1.0}
     },
     "jutsu": {
-      "id": "freeze_blast",
-      "name": "Freeze Blast",
-      "cost": 4,
-      "damage_multiplier": 2.1,
-      "delivery": "projectile",
-      "status_effect": "freeze",
-      "status_chance": 1.0,
-      "category": "jutsu",
-      "ultimate": false,
+      "id": "freeze_blast","name": "Freeze Blast","cost": 4,"damage_multiplier": 2.1,"delivery": "projectile","status_effect": "freeze","status_chance": 1.0,"category": "jutsu","ultimate": false,
       "presentation": {
-        "range_rotation_mode": "medium_enemy_horizontal_facing",
+        "range_rotation_mode": "medium_enemy_assisted_facing",
         "target_focus_mode": "preferred_distance_band",
-        "target_focus_min_px": 110,
-        "target_focus_max_px": 180,
-        "target_focus_preferred_px": 150,
-        "target_focus_fallback_max_px": 205,
-        "projectile_origin_mode": "forward_facing"
+        "target_focus_min_px": 100,"target_focus_max_px": 185,"target_focus_preferred_px": 145,"target_focus_fallback_max_px": 205,
+        "target_lock_radius_pad_px": 8,
+        "target_facing_angle_weight_px_per_rad": 8,
+        "target_sticky_bonus_px": 12,
+        "target_switch_margin_px": 8,
+        "projectile_origin_mode": "forward_facing",
+        "body_facing_mode": "jutsu_direction_locked"
       }
     }
   },
   "assets": {
-    "art": "art/full_art_absolute_zero_v2.jpeg",
-    "card": "cards/unit_details_absolute_zero_v2.jpeg",
-    "portrait": "portraits/",
-    "icon": "icons/",
-    "sprites": {
-      "idle": "sprites/runtime/idle/",
-      "attack_basic": "sprites/runtime/attack/basic/",
-      "recoil": "sprites/runtime/recoil/",
-      "jutsu": "sprites/runtime/jutsu/"
-    },
-    "vfx": "vfx/"
+    "art": "art/full_art_absolute_zero_v2.jpeg","card": "cards/unit_details_absolute_zero_v2.jpeg","portrait": "portraits/","icon": "icons/",
+    "sprites": {"idle": "sprites/runtime/idle/","attack_basic": "sprites/runtime/attack/basic/","recoil": "sprites/runtime/recoil/","jutsu": "sprites/runtime/jutsu/"},"vfx": "vfx/"
   },
   "readiness": {
-    "collection": true,
-    "battle": true,
-    "idle": true,
-    "basic_attack": true,
-    "jutsu": true,
-    "recoil": true,
-    "notes": "Pass 4.1 gameplay stabilization retained. Basic keeps the 92 px mechanical nearest-enemy close melee reach while its displayed range bubble is scaled to 65% (about 60 px). Freeze Blast retains medium-range horizontal focus. Basic body presentation uses the approved six-pose source sheet.",
+    "collection": true,"battle": true,"idle": true,"basic_attack": true,"jutsu": true,"recoil": true,
+    "notes": "Stable baseline retained. Basic keeps the 92 px mechanical nearest-enemy close melee reach and now displays the same 92 px range bubble so the visible attack bubble matches the actual hit box. Freeze Blast uses assisted true-direction facing plus sticky target hysteresis, locks Sub-Zero's body to the jutsu direction during the cast, and renders a dedicated frozen cone treatment. Damage/range/cost/freeze semantics are unchanged. Basic body presentation uses the approved six-pose source sheet.",
     "animation_map": true
   },
-  "balance": {
-    "status": "provisional",
-    "pass": "v0.5.30",
-    "notes": "Initial archetype-based values. Tune freely during balance testing."
-  },
+  "balance": {"status": "provisional","pass": "v0.5.30","notes": "Initial archetype-based values. Tune freely during balance testing."},
   "animation_standard": {
     "version": "v0.7.1-pass41-subzero-basic-v2",
-    "canvas": {
-      "width": 420,
-      "height": 420,
-      "anchor_x": 210,
-      "anchor_y": 392
-    },
+    "canvas": {"width": 420,"height": 420,"anchor_x": 210,"anchor_y": 392},
     "animations": {
-      "idle": {
-        "frames": [
-          "sprites/runtime/idle/frame_01.png"
-        ],
-        "frame_ms": 180,
-        "loop": true,
-        "events": []
-      },
+      "idle": {"frames": ["sprites/runtime/idle/frame_01.png"],"frame_ms": 180,"loop": true,"events": []},
       "basic_attack": {
-        "source_sheet": {
-          "path": "sprites/runtime/attack/basic/43297C1D-6DB2-4EE0-88FA-29F9452906C2.png",
-          "columns": 3,
-          "rows": 2,
-          "frame_width": 512,
-          "frame_height": 512,
-          "frame_count": 6,
-          "background_cleanup": "light_checkerboard_to_alpha"
-        },
-        "frames": [
-          "sprites/runtime/attack/basic/frame_01.png",
-          "sprites/runtime/attack/basic/frame_01_alt.png"
-        ],
-        "frame_ms": 95,
-        "loop": false,
-        "events": [
-          {
-            "frame": 4,
-            "event": "release_projectile_or_apply_melee"
-          }
-        ]
+        "source_sheet": {"path": "sprites/runtime/attack/basic/43297C1D-6DB2-4EE0-88FA-29F9452906C2.png","columns": 3,"rows": 2,"frame_width": 512,"frame_height": 512,"frame_count": 6,"background_cleanup": "light_checkerboard_to_alpha"},
+        "frames": ["sprites/runtime/attack/basic/frame_01.png","sprites/runtime/attack/basic/frame_01_alt.png"],"frame_ms": 110,"loop": false,
+        "events": [{"frame": 4,"event":"release_projectile_or_apply_melee"}]
       }
     },
-    "vfx": {
-      "jutsu/freeze_blast/projectile": {
-        "frames": [
-          "vfx/jutsu/freeze_blast/projectile/frame_01.png",
-          "vfx/jutsu/freeze_blast/projectile/frame_02.png",
-          "vfx/jutsu/freeze_blast/projectile/frame_03.png"
-        ],
-        "frame_ms": 90,
-        "loop": false,
-        "body_asset": false
-      }
-    }
+    "vfx": {"jutsu/freeze_blast/projectile": {"frames": ["vfx/jutsu/freeze_blast/projectile/frame_01.png","vfx/jutsu/freeze_blast/projectile/frame_02.png","vfx/jutsu/freeze_blast/projectile/frame_03.png"],"frame_ms": 90,"loop": false,"body_asset": false}}
   }
 }

@@ -14,13 +14,13 @@ if(unit.id!=='subzero')fail('canonical unit id changed');
 if(unit.combat?.basic_shape?.r!==92)fail('Pass 4.1 close Basic range changed');
 if(unit.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Pass 4.1 Basic target selector changed');
 if(unit.abilities?.basic?.presentation?.animation_kind!=='punch')fail('Pass 4.1 punch presentation changed');
-if(unit.abilities?.jutsu?.presentation?.range_rotation_mode!=='medium_enemy_horizontal_facing')fail('Pass 4.1 Freeze Blast facing changed');
+if(unit.abilities?.jutsu?.presentation?.range_rotation_mode!=='medium_enemy_assisted_facing')fail('Freeze Blast assisted facing contract changed');
 if(!sheet?.path)fail('source_sheet.path is missing');
 if(sheet.columns!==3||sheet.rows!==2)fail('source sheet must remain a 3x2 grid');
 if(sheet.frame_width!==512||sheet.frame_height!==512)fail('source sheet cells must remain 512x512');
 if(sheet.frame_count!==6)fail('source sheet must expose exactly six attack poses');
 if(sheet.background_cleanup!=='light_checkerboard_to_alpha')fail('approved checkerboard cleanup mode changed');
-if(basic.frame_ms!==95)fail('approved attack frame timing changed');
+if(basic.frame_ms!==110)fail('approved attack frame timing changed');
 if(!Array.isArray(basic.events)||basic.events[0]?.frame!==4)fail('melee impact event must remain on frame 4');
 
 const sheetPath=path.posix.join('assets/characters/subzero',sheet.path);
@@ -37,4 +37,4 @@ for(const marker of [
   if(!postprocess.includes(marker))fail(`postprocess runtime marker missing: ${marker}`);
 }
 
-console.log(`Sub-Zero Basic Attack validation PASS: Pass 4.1 targeting/facing retained, 6 poses from ${sheetPath}, frame 4 impact, runtime checkerboard cleanup wired.`);
+console.log(`Sub-Zero Basic Attack validation PASS: stable Basic targeting retained, assisted Freeze Blast facing enabled, 6 poses from ${sheetPath}, 110 ms frames, frame 4 impact, runtime checkerboard cleanup wired.`);
