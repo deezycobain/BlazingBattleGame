@@ -14,7 +14,7 @@ const replaceRegexOnce=(rx,newText,label)=>{
   html=html.replace(rx,newText);
 };
 
-// Sub-Zero Basic keeps its 92 px mechanical range but displays a 35% smaller circle.
+// Sub-Zero Basic keeps its 92 px mechanical range and now displays that exact radius.
 // Freeze Blast keeps its canonical cone hit geometry, but the preview is now drawn only
 // from the authored ice artwork. The old procedural wireframe cone is intentionally skipped.
 replaceOnce(
@@ -94,33 +94,34 @@ const authoredFreezeRenderer=`else if(f.kind==='${legacyFreezeKind}'){
      ctx.translate(x,y);ctx.rotate(angle);
      ctx.imageSmoothingEnabled=true;
      const arrival=Math.max(0,(t-.72)/.28);
-     const bodyH=frameIndex===2?92:(frameIndex===1?66:80);
-     const bodyW=frameIndex===2?178:(frameIndex===1?164:190);
+     const bodyH=frameIndex===2?62:(frameIndex===1?45:54);
+     const bodyW=frameIndex===2?121:(frameIndex===1?112:129);
      if(img?.complete&&img.naturalWidth>0){
-      ctx.shadowColor='rgba(83,220,255,.98)';ctx.shadowBlur=18+12*arrival;
+      ctx.shadowColor='rgba(83,220,255,.95)';ctx.shadowBlur=10+7*arrival;
       ctx.globalAlpha=.98;
       ctx.globalCompositeOperation='source-over';
       ctx.drawImage(img,-bodyW*.22,-bodyH/2,bodyW,bodyH);
-      ctx.globalAlpha=.42+.22*arrival;
+      ctx.globalAlpha=.30+.14*arrival;
       ctx.globalCompositeOperation='screen';
-      ctx.drawImage(img,-bodyW*.28,-bodyH*.60,bodyW*1.10,bodyH*1.20);
+      ctx.drawImage(img,-bodyW*.26,-bodyH*.57,bodyW*1.06,bodyH*1.14);
      }
      if(arrival>0){
       const burst=Math.sin(Math.PI*Math.min(1,arrival));
       ctx.globalCompositeOperation='screen';
-      ctx.globalAlpha=.82*(1-arrival*.55);
-      const g=ctx.createRadialGradient(bodyW*.62,0,0,bodyW*.62,0,34+54*burst);
-      g.addColorStop(0,'rgba(255,255,255,.98)');
-      g.addColorStop(.24,'rgba(191,246,255,.90)');
-      g.addColorStop(.62,'rgba(74,202,255,.44)');
+      ctx.globalAlpha=.68*(1-arrival*.60);
+      const impactR=20+30*burst;
+      const g=ctx.createRadialGradient(bodyW*.58,0,0,bodyW*.58,0,impactR);
+      g.addColorStop(0,'rgba(255,255,255,.96)');
+      g.addColorStop(.24,'rgba(191,246,255,.84)');
+      g.addColorStop(.62,'rgba(74,202,255,.36)');
       g.addColorStop(1,'rgba(40,170,255,0)');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(bodyW*.62,0,34+54*burst,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='rgba(220,251,255,.92)';ctx.lineWidth=2.2;
-      for(let i=0;i<10;i++){
-       const a=(Math.PI*2*i/10)+i*.19;
-       const inner=20+12*burst,outer=48+44*burst;
-       ctx.beginPath();ctx.moveTo(bodyW*.62+Math.cos(a)*inner,Math.sin(a)*inner);
-       ctx.lineTo(bodyW*.62+Math.cos(a)*outer,Math.sin(a)*outer);ctx.stroke();
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(bodyW*.58,0,impactR,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(220,251,255,.88)';ctx.lineWidth=1.6;
+      for(let i=0;i<8;i++){
+       const a=(Math.PI*2*i/8)+i*.19;
+       const inner=12+7*burst,outer=28+24*burst;
+       ctx.beginPath();ctx.moveTo(bodyW*.58+Math.cos(a)*inner,Math.sin(a)*inner);
+       ctx.lineTo(bodyW*.58+Math.cos(a)*outer,Math.sin(a)*outer);ctx.stroke();
       }
      }
    `;
@@ -162,4 +163,4 @@ replaceRegexOnce(
 );
 
 await fs.writeFile(file,html);
-console.log(`Combat polish applied: authored Sub-Zero preview + three-frame Freeze Blast projectile/impact (${legacyFreezeKind}), locked cast-facing, assisted target ring, Senku feet impact, full combo sequence.`);
+console.log(`Combat polish applied: matched Sub-Zero Basic bubble/hit box + compact three-frame Freeze Blast projectile/impact (${legacyFreezeKind}), locked cast-facing, assisted target ring, Senku feet impact, full combo sequence.`);
