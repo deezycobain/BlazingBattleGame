@@ -19,7 +19,7 @@
   "abilities": {
     "basic": {
       "id": "basic_attack","name": "Basic Attack","damage_multiplier": 1.0,"chakra_gain": 1,"delivery": "melee","target_mode": "single","single_target_selector": "nearest_in_shape",
-      "presentation": {"runtime_driver": "animateLunge","animation_kind": "punch","range_visual_scale": 0.65}
+      "presentation": {"runtime_driver": "animateLunge","animation_kind": "punch","range_visual_scale": 1.0}
     },
     "jutsu": {
       "id": "freeze_blast","name": "Freeze Blast","cost": 4,"damage_multiplier": 2.1,"delivery": "projectile","status_effect": "freeze","status_chance": 1.0,"category": "jutsu","ultimate": false,
@@ -42,7 +42,7 @@
   },
   "readiness": {
     "collection": true,"battle": true,"idle": true,"basic_attack": true,"jutsu": true,"recoil": true,
-    "notes": "Stable baseline retained. Basic keeps the 92 px mechanical nearest-enemy close melee reach while its displayed range bubble is scaled to 65% (about 60 px). Freeze Blast uses assisted true-direction facing plus sticky target hysteresis, locks Sub-Zero's body to the jutsu direction during the cast, and renders a dedicated frozen cone treatment. Damage/range/cost/freeze semantics are unchanged. Basic body presentation uses the approved six-pose source sheet.",
+    "notes": "Stable baseline retained. Basic keeps the 92 px mechanical nearest-enemy close melee reach and now displays the same 92 px range bubble so the visible attack bubble matches the actual hit box. Freeze Blast uses assisted true-direction facing plus sticky target hysteresis, locks Sub-Zero's body to the jutsu direction during the cast, and renders a dedicated frozen cone treatment. Damage/range/cost/freeze semantics are unchanged. Basic body presentation uses the approved six-pose source sheet.",
     "animation_map": true
   },
   "balance": {"status": "provisional","pass": "v0.5.30","notes": "Initial archetype-based values. Tune freely during balance testing."},
