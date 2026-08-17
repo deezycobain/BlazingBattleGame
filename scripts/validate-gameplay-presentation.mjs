@@ -61,9 +61,7 @@ if(sm.range_rotation_mode!=='nearest_enemy_facing')fail('Senku pear range must p
 const near=P.selectBasicPresentation(senku,{x:0,y:0},{x:55,y:0},'kick');
 const far=P.selectBasicPresentation(senku,{x:0,y:0},{x:125,y:0},'kick');
 for(const [label,presentation] of [['near',near],['far',far]]){
-  if(presentation.mode!=='default'||presentation.runtimeDriver!=='animateSenkuRetreatBomb'||presentation.animationKind!=='retreat_run'||presentation.repositionScope!=='primary_attacker'){
-    fail(`Senku ${label} basic must use the evasive bomb retreat presentation`);
-  }
+  if(presentation.mode!=='default'||presentation.runtimeDriver!=='animateSenkuRetreatBomb'||presentation.animationKind!=='retreat_run'||presentation.repositionScope!=='primary_attacker')fail(`Senku ${label} basic must use the evasive bomb retreat presentation`);
 }
 const upPear=P.resolveActionRotation(senku,'normal',{x:0,y:0},[{x:0,y:-50,hp:10}],0);
 const leftPear=P.resolveActionRotation(senku,'normal',{x:0,y:0},[{x:-50,y:0,hp:10}],0);
@@ -71,10 +69,7 @@ if(!approx(upPear,-Math.PI/2)||!approx(leftPear,Math.PI))fail('Senku pear range 
 if(sm.close_retreat_min_px!==64||sm.close_retreat_max_px!==144||sm.close_retreat_duration_ms!==540||sm.close_retreat_frame_ms!==90||!approx(sm.close_bomb_release_ratio,.68))fail('Senku retreat distance/timing/release contract changed');
 if(senku.abilities?.basic?.damage_multiplier!==1||senku.abilities?.basic?.target_mode!=='single'||senku.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Senku retreat change must retain basic damage/targeting semantics');
 
-for(const source of [
-  'assets/characters/senku/sprites/source/retreat_run/source_sheet.webp',
-  'assets/characters/senku/sprites/source/attack/melee/source_sheet.webp'
-])if(!await exists(source))fail(`missing Senku source artwork: ${source}`);
+for(const source of ['assets/characters/senku/sprites/source/retreat_run/source_sheet.webp','assets/characters/senku/sprites/source/attack/melee/source_sheet.webp'])if(!await exists(source))fail(`missing Senku source artwork: ${source}`);
 if(await exists('assets/characters/senku/sprites/source/retreat_run/retreat_run_assets.tar.gz'))fail('legacy Senku retreat archive must not return');
 if(await exists('scripts/materialize-senku-retreat-assets.mjs'))fail('legacy Senku asset materializer must not return');
 
@@ -82,17 +77,13 @@ const retreatSpec=senku.animation_standard?.animations?.retreat_run;
 const retreatFrames=retreatSpec?.frames||[];
 if(retreatFrames.length!==6||retreatSpec.frame_ms!==90)fail('Senku retreat animation must remain six frames at 90 ms');
 if(retreatSpec.events?.[0]?.frame!==5)fail('Senku bomb release must remain late enough for the retreat animation to read');
-for(const rel of retreatFrames){
-  if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing tracked Senku retreat frame: ${rel}`);
-}
+for(const rel of retreatFrames)if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing tracked Senku retreat frame: ${rel}`);
 
 const meleeSpec=senku.animation_standard?.animations?.melee_attack;
 const meleeFrames=meleeSpec?.frames||[];
 if(meleeFrames.length!==6||meleeSpec.frame_ms!==100)fail('Senku melee animation must remain six dedicated frames at 100 ms');
 if(meleeSpec.events?.[0]?.frame!==6)fail('Senku melee contact frame must remain frame 6');
-for(const rel of meleeFrames){
-  if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing tracked Senku melee frame: ${rel}`);
-}
+for(const rel of meleeFrames)if(!await exists(path.posix.join('assets/characters/senku',rel)))fail(`missing tracked Senku melee frame: ${rel}`);
 if(sm.melee_animation_kind!=='melee_attack')fail('Senku semantic melee kind must remain dedicated melee_attack art');
 window.BlazingFrameRuntime={loadFrames:paths=>paths.map(src=>({src}))};
 for(const requested of ['punch','kick','melee_attack']){
@@ -121,18 +112,14 @@ if(subzero.abilities?.basic?.presentation?.runtime_driver!=='animateLunge'||subz
 const subzeroBasic=P.selectBasicPresentation(subzero,{x:0,y:0},{x:50,y:0},'kick');
 if(subzeroBasic.runtimeDriver!=='animateLunge'||subzeroBasic.animationKind!=='punch')fail('Sub-Zero close Basic selection must not alternate into missing kick art');
 
-if(subzero.combat?.jutsu_shape?.type!=='circle'||subzero.combat.jutsu_shape.r!==175)fail('Sub-Zero Freeze Blast must use the temporary generic 175 px medium-range circle');
+const freezeShape=subzero.combat?.jutsu_shape||{};
+if(freezeShape.type!=='rect'||freezeShape.w!==175||freezeShape.h!==64||freezeShape.offset_x!==87.5)fail('Sub-Zero Freeze Blast must use the restored 175 x 64 forward horizontal medium-range rectangle');
 const sj=subzero.abilities?.jutsu?.presentation||{};
 if(sj.range_rotation_mode!=='medium_enemy_horizontal_facing')fail('Freeze Blast must use medium-range horizontal-only facing');
 if(sj.target_focus_mode!=='preferred_distance_band'||sj.target_focus_min_px!==95||sj.target_focus_max_px!==175||sj.target_focus_preferred_px!==140||sj.target_focus_fallback_max_px!==175)fail('Freeze Blast medium-range focus band changed unexpectedly');
 if(sj.target_lock_radius_pad_px!==8)fail('Freeze Blast target lock radius padding changed unexpectedly');
 if(sj.projectile_origin_mode!=='forward_facing')fail('Freeze Blast projectile must originate from Sub-Zero forward facing');
-const focusCandidates=[
-  {id:'close-right',x:50,y:0,hp:10},
-  {id:'medium-right',x:125,y:0,hp:10},
-  {id:'medium-left',x:-160,y:0,hp:10},
-  {id:'edge-right',x:190,y:0,hp:10}
-];
+const focusCandidates=[{id:'close-right',x:50,y:0,hp:10},{id:'medium-right',x:125,y:0,hp:10},{id:'medium-left',x:-160,y:0,hp:10},{id:'edge-right',x:190,y:0,hp:10}];
 const focus=P.resolveActionTarget(subzero,'jutsu',{x:0,y:0},focusCandidates);
 if(focus?.id!=='medium-right')fail('Freeze Blast should prefer the best medium-range target');
 const mediumRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},focusCandidates,0);
@@ -152,38 +139,12 @@ const gaugeAction=(freeze.gameplay_actions||[]).find(a=>a.action_id==='reduce_ta
 if(gaugeAction?.parameters?.amount!==35)fail('Freeze Blast gauge reduction must remain 35');
 
 const shell=await read('index.html');
-for(const marker of [
-  'runtime/animation/attack-presentation.js',
-  'runtime/movement/retreat-runtime.js',
-  'const SENKU_RETREAT_RUN_FRAMES=',
-  'function animateSenkuRetreatBomb(',
-  'window.BlazingRetreatRuntime.computeRetreatPlan({',
-  'pair.x=plan.destination.x;',
-  "const wantsRetreat=basicPresentation.runtimeDriver==='animateSenkuRetreatBomb'",
-  'const isPrimaryAttacker=attackIndex===1;',
-  'basicPresentation.repositionScope',
-  'releaseOrigin:()=>ensureAnimState().positions?.[unitName]||from',
-  'window.BlazingAttackPresentation.resolveActionRotation(',
-  'function bodyFacingRotation(',
-  "mode==='forward_facing'",
-  'function authoredAttackRotation('
-])if(!shell.includes(marker))fail(`index.html missing Pass 4.1 marker: ${marker}`);
+for(const marker of ['runtime/animation/attack-presentation.js','runtime/movement/retreat-runtime.js','const SENKU_RETREAT_RUN_FRAMES=','function animateSenkuRetreatBomb(','window.BlazingRetreatRuntime.computeRetreatPlan({','pair.x=plan.destination.x;',"const wantsRetreat=basicPresentation.runtimeDriver==='animateSenkuRetreatBomb'",'const isPrimaryAttacker=attackIndex===1;','basicPresentation.repositionScope','releaseOrigin:()=>ensureAnimState().positions?.[unitName]||from','window.BlazingAttackPresentation.resolveActionRotation(','function bodyFacingRotation(',"mode==='forward_facing'",'function authoredAttackRotation('])if(!shell.includes(marker))fail(`index.html missing Pass 4.1 marker: ${marker}`);
 if(shell.includes("const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlast:(au.name==='Senku'?animateSenkuBomb:animateLunge);"))fail('legacy forced-Senku-bomb dispatcher returned');
 
 const renderer=await read('runtime/rendering/battlefield-renderer.js');
 for(const marker of ['function pearHalfWidth(',"s.type==='pear'",'ctx.lineTo(x,y)'])if(!renderer.includes(marker))fail(`battlefield renderer missing pear marker: ${marker}`);
 const staticPass=await read('scripts/static-hitbox-postprocess.mjs');
-for(const marker of [
-  'combat.jutsu_rotation_deg',
-  'combat.basic_rotation_deg',
-  "if(s.type==='pear')",
-  'Senku pear hit geometry',
-  "basicMeta.melee_animation_kind||'melee_attack'",
-  ': animateLunge;',
-  'basicTarget=wantsRetreat?enemy:to;',
-  'medium-range focus resolver',
-  "resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)",
-  'lockRotation(state,unitName,facing)'
-])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
+for(const marker of ['combat.jutsu_rotation_deg','combat.basic_rotation_deg',"if(s.type==='pear')",'Senku pear hit geometry',"basicMeta.melee_animation_kind||'melee_attack'",': animateLunge;','basicTarget=wantsRetreat?enemy:to;','medium-range focus resolver',"resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)",'lockRotation(state,unitName,facing)'])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: Senku directional/evasive presentation retained; Sub-Zero close Basic retained plus generic medium Freeze Blast range with horizontal-only body/projectile facing and unchanged combat semantics.');
+console.log('Gameplay presentation smoke PASS: Senku directional/evasive presentation retained; Sub-Zero close Basic retained plus restored horizontal rectangular medium Freeze Blast range with horizontal-only body/projectile facing and unchanged combat semantics.');
