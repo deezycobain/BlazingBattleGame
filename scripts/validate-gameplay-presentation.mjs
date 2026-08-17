@@ -121,29 +121,30 @@ if(subzero.abilities?.basic?.presentation?.runtime_driver!=='animateLunge'||subz
 const subzeroBasic=P.selectBasicPresentation(subzero,{x:0,y:0},{x:50,y:0},'kick');
 if(subzeroBasic.runtimeDriver!=='animateLunge'||subzeroBasic.animationKind!=='punch')fail('Sub-Zero close Basic selection must not alternate into missing kick art');
 
-if(subzero.combat?.jutsu_shape?.type!=='cone'||subzero.combat.jutsu_shape.r!==205||subzero.combat.jutsu_shape.a!==0.52)fail('Sub-Zero Freeze Blast cone geometry changed unexpectedly');
+if(subzero.combat?.jutsu_shape?.type!=='circle'||subzero.combat.jutsu_shape.r!==175)fail('Sub-Zero Freeze Blast must use the temporary generic 175 px medium-range circle');
 const sj=subzero.abilities?.jutsu?.presentation||{};
-if(sj.range_rotation_mode!=='medium_enemy_assisted_facing')fail('Freeze Blast must use assisted true-direction enemy facing');
-if(sj.target_focus_mode!=='preferred_distance_band'||sj.target_focus_min_px!==100||sj.target_focus_max_px!==185||sj.target_focus_preferred_px!==145||sj.target_focus_fallback_max_px!==205)fail('Freeze Blast assisted medium-range focus band changed unexpectedly');
+if(sj.range_rotation_mode!=='medium_enemy_horizontal_facing')fail('Freeze Blast must use medium-range horizontal-only facing');
+if(sj.target_focus_mode!=='preferred_distance_band'||sj.target_focus_min_px!==95||sj.target_focus_max_px!==175||sj.target_focus_preferred_px!==140||sj.target_focus_fallback_max_px!==175)fail('Freeze Blast medium-range focus band changed unexpectedly');
 if(sj.target_lock_radius_pad_px!==8)fail('Freeze Blast target lock radius padding changed unexpectedly');
 if(sj.projectile_origin_mode!=='forward_facing')fail('Freeze Blast projectile must originate from Sub-Zero forward facing');
 const focusCandidates=[
   {id:'close-right',x:50,y:0,hp:10},
   {id:'medium-right',x:125,y:0,hp:10},
-  {id:'medium-left',x:-165,y:0,hp:10},
-  {id:'edge-right',x:200,y:0,hp:10}
+  {id:'medium-left',x:-160,y:0,hp:10},
+  {id:'edge-right',x:190,y:0,hp:10}
 ];
 const focus=P.resolveActionTarget(subzero,'jutsu',{x:0,y:0},focusCandidates);
-if(focus?.id!=='medium-right')fail('Freeze Blast should prefer the nearer equally-good medium-range target');
+if(focus?.id!=='medium-right')fail('Freeze Blast should prefer the best medium-range target');
 const mediumRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},focusCandidates,0);
-if(!approx(mediumRotation,0))fail('Freeze Blast assisted facing must follow the selected medium-range enemy');
-const diagonalTarget={id:'diag',x:120,y:-90,hp:10};
-const diagonalRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[diagonalTarget],0);
-if(!approx(diagonalRotation,Math.atan2(-90,120)))fail('Freeze Blast must preserve diagonal target direction instead of snapping horizontal');
-const upRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{x:0,y:-150,hp:10}],0);
-if(!approx(upRotation,-Math.PI/2))fail('Freeze Blast must aim vertically when the selected target is vertically aligned');
-const fallbackFocus=P.resolveActionTarget(subzero,'jutsu',{x:0,y:0},[{id:'close',x:45,y:0,hp:10},{id:'fallback',x:-195,y:0,hp:10}]);
-if(fallbackFocus?.id!=='fallback')fail('Freeze Blast fallback should remain range-aware instead of snapping to the closest enemy');
+if(!approx(mediumRotation,0))fail('Freeze Blast must face right for a selected right-side target');
+const diagonalRight=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{id:'diag-right',x:120,y:-90,hp:10}],Math.PI);
+if(!approx(diagonalRight,0))fail('Freeze Blast must stay horizontal when the selected target is diagonally right');
+const diagonalLeft=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{id:'diag-left',x:-120,y:60,hp:10}],0);
+if(!approx(diagonalLeft,Math.PI))fail('Freeze Blast must stay horizontal when the selected target is diagonally left');
+const verticalFallback=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{id:'vertical',x:0,y:-140,hp:10}],0);
+if(!approx(verticalFallback,0))fail('Freeze Blast must never rotate vertically');
+const fallbackFocus=P.resolveActionTarget(subzero,'jutsu',{x:0,y:0},[{id:'close',x:45,y:0,hp:10},{id:'fallback',x:-170,y:0,hp:10}]);
+if(fallbackFocus?.id!=='fallback')fail('Freeze Blast fallback should remain medium-range aware instead of snapping to the closest enemy');
 if(subzero.abilities?.jutsu?.cost!==4||subzero.abilities?.jutsu?.damage_multiplier!==2.1)fail('Freeze Blast cost/damage changed unexpectedly');
 const freeze=subzeroMap.abilities?.freeze_blast;
 if(freeze?.projectile_presentation?.cast_duration_ms!==340||freeze?.projectile_presentation?.flight_duration_ms!==420||freeze?.projectile_presentation?.freeze_hold_ms!==520)fail('Freeze Blast timing changed unexpectedly');
@@ -185,4 +186,4 @@ for(const marker of [
   'lockRotation(state,unitName,facing)'
 ])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: Senku directional/evasive presentation retained; Sub-Zero close Basic retained plus assisted true-direction Freeze Blast targeting with unchanged combat semantics.');
+console.log('Gameplay presentation smoke PASS: Senku directional/evasive presentation retained; Sub-Zero close Basic retained plus generic medium Freeze Blast range with horizontal-only body/projectile facing and unchanged combat semantics.');
