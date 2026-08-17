@@ -12,7 +12,7 @@
   "combat": {
     "mark": "SZ","movement_range": 88,
     "basic_shape": {"type": "circle","r": 92},"basic_rotation_deg": 0,
-    "jutsu_shape": {"type": "circle","r": 175},"jutsu_rotation_deg": 0,
+    "jutsu_shape": {"type": "rect","w": 175,"h": 64,"offset_x": 87.5},"jutsu_rotation_deg": 0,
     "chakra_max": 8,"chakra_start": 2
   },
   "render": {"scale": 0.98},
@@ -42,7 +42,7 @@
   },
   "readiness": {
     "collection": true,"battle": true,"idle": true,"basic_attack": true,"jutsu": true,"recoil": true,
-    "notes": "Stable baseline retained. Basic keeps its 92 px close melee bubble. Freeze Blast temporarily uses a generic 175 px medium-range circular hit box, selects a medium-range target, and locks Sub-Zero plus the projectile to horizontal left/right facing only. Damage, cost, freeze chance, gauge reduction and projectile timing are unchanged.",
+    "notes": "Stable baseline retained. Basic keeps its 92 px close melee bubble. Freeze Blast restores the original-style horizontal rectangular medium-range lane: 175 px forward reach by 64 px tall, anchored from Sub-Zero outward. Targeting, body facing and projectile travel are horizontal left/right only. Damage, cost, freeze chance, gauge reduction and projectile timing are unchanged.",
     "animation_map": true
   },
   "balance": {"status": "provisional","pass": "v0.5.30","notes": "Initial archetype-based values. Tune freely during balance testing."},
