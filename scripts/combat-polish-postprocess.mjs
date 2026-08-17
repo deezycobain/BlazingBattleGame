@@ -14,16 +14,13 @@ const replaceRegexOnce=(rx,newText,label)=>{
   html=html.replace(rx,newText);
 };
 
-// Sub-Zero Basic keeps its 92 px mechanical range and now displays that exact radius.
-// Freeze Blast keeps its canonical cone hit geometry, but the preview is now drawn only
-// from the authored ice artwork. The old procedural wireframe cone is intentionally skipped.
+// Sub-Zero Basic keeps its exact 92 px circle. Freeze Blast now deliberately falls back
+// to the normal battlefield circle renderer while we iterate on a cleaner directional preview.
 replaceOnce(
 `function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
  return window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:u.shape,rotation:u.rotation||0,color,glow,visualOffsetY,bounds:BATTLE_BOUNDS});
 }`,
-`const SUBZERO_FREEZE_CONE_VFX=new Image();
-SUBZERO_FREEZE_CONE_VFX.src='assets/characters/subzero/vfx/jutsu/freeze_blast/cone/ice_cone_composite.png';
-const SUBZERO_FREEZE_PROJECTILE_FRAMES=[
+`const SUBZERO_FREEZE_PROJECTILE_FRAMES=[
  'assets/characters/subzero/vfx/jutsu/freeze_blast/projectile/frame_01.png',
  'assets/characters/subzero/vfx/jutsu/freeze_blast/projectile/frame_02.png',
  'assets/characters/subzero/vfx/jutsu/freeze_blast/projectile/frame_03.png'
@@ -35,34 +32,13 @@ function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
   try{visualScale=canonicalUnit(u.name)?.abilities?.basic?.presentation?.range_visual_scale??1}catch(_){}
   visualShape={...visualShape,r:visualShape.r*visualScale};
  }
- const isFreezeCone=S.action==='jutsu'&&u?.name==='Sub-Zero'&&visualShape?.type==='cone';
- if(!isFreezeCone){
-  return window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:visualShape,rotation:u.rotation||0,color,glow,visualOffsetY,bounds:BATTLE_BOUNDS});
- }
- if(SUBZERO_FREEZE_CONE_VFX.complete&&SUBZERO_FREEZE_CONE_VFX.naturalWidth){
-  const r=(visualShape.r||205)*1.08;
-  const coneHeight=Math.max(92,2*r*Math.tan((visualShape.a||.52)*.62));
-  ctx.save();
-  ctx.translate(p.x,p.y+(visualOffsetY||0));
-  ctx.rotate(u.rotation||0);
-  ctx.imageSmoothingEnabled=true;
-  ctx.shadowColor='rgba(76,210,255,.95)';
-  ctx.shadowBlur=16;
-  ctx.globalAlpha=.94;
-  ctx.globalCompositeOperation='source-over';
-  ctx.drawImage(SUBZERO_FREEZE_CONE_VFX,-6,-coneHeight/2,r+12,coneHeight);
-  ctx.globalAlpha=.38;
-  ctx.globalCompositeOperation='screen';
-  ctx.drawImage(SUBZERO_FREEZE_CONE_VFX,-10,-coneHeight*.57,r+20,coneHeight*1.14);
-  ctx.restore();
- }
- return true;
+ return window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:visualShape,rotation:u.rotation||0,color,glow,visualOffsetY,bounds:BATTLE_BOUNDS});
 }`,
 'Sub-Zero range presentation'
 );
 
-// Replace the legacy Freeze Blast floater renderer in-place. The animation lifecycle,
-// damage timing and callbacks stay untouched; only its visual treatment changes.
+// Replace the legacy Freeze Blast floater renderer in-place. The attack remains strictly
+// horizontal: it chooses left/right from the locked facing and never rotates vertically.
 const freezeLockNeedle="resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)";
 const freezeLockAt=html.indexOf(freezeLockNeedle);
 if(freezeLockAt<0)throw new Error('Freeze Blast projectile pass: locked-facing animation not found');
@@ -85,10 +61,14 @@ const authoredFreezeRenderer=`else if(f.kind==='${legacyFreezeKind}'){
      const t=clamp((performance.now()-f.start)/f.duration,0,1);
      const ease=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
      const from=f.from||{x:f.x||0,y:f.y||0};
-     const to=f.to||{x:f.tx??f.x??0,y:f.ty??f.y??0};
+     const rawTo=f.to||{x:f.tx??f.x??0,y:f.ty??f.y??0};
+     const locked=window.BlazingAttackPresentation.lockedFacing(S.anim,'Sub-Zero');
+     const dir=Number.isFinite(locked)?(Math.cos(locked)<0?-1:1):(rawTo.x<from.x?-1:1);
+     const travel=Math.max(36,Math.abs(rawTo.x-from.x));
+     const to={x:from.x+dir*travel,y:from.y};
      const x=from.x+(to.x-from.x)*ease;
-     const y=from.y+(to.y-from.y)*ease;
-     const angle=Math.atan2(to.y-from.y,to.x-from.x);
+     const y=from.y;
+     const angle=dir<0?Math.PI:0;
      const frameIndex=t<.30?0:(t<.68?1:2);
      const img=SUBZERO_FREEZE_PROJECTILE_FRAMES[frameIndex];
      ctx.translate(x,y);ctx.rotate(angle);
@@ -127,8 +107,8 @@ const authoredFreezeRenderer=`else if(f.kind==='${legacyFreezeKind}'){
    `;
 html=html.slice(0,freezeRendererStart)+authoredFreezeRenderer+html.slice(freezeRendererEnd);
 
-// During the Freeze Blast cast, mirror Sub-Zero's body from the exact locked jutsu angle.
-// The sprite stays upright; only its horizontal facing changes toward the chosen target.
+// During Freeze Blast, mirror Sub-Zero from the same locked horizontal direction used by
+// the projectile. The body stays upright and never tracks vertical target angle.
 replaceOnce(
  `ctx.scale((flipX||1)*scale*activePulse,scale*activePulse);`,
  `const lockedJutsuFacing=(name==='Sub-Zero'&&S.action==='jutsu')
@@ -141,7 +121,7 @@ replaceOnce(
  'Sub-Zero locked jutsu sprite facing'
 );
 
-// Enemy target highlight remains tied to the assisted aim tolerance.
+// Enemy target highlight remains tied to the targeting tolerance.
 replaceRegexOnce(
  /\s*\/\/ Bubble feedback is isolated so it can never mask the enemy sprite\./,
  `\n      const targetPad=jutsu?(canonicalUnit(activePlayer.name)?.abilities?.jutsu?.presentation?.target_lock_radius_pad_px??8):8;\n      // Bubble feedback is isolated so it can never mask the enemy sprite.`,
@@ -163,4 +143,4 @@ replaceRegexOnce(
 );
 
 await fs.writeFile(file,html);
-console.log(`Combat polish applied: matched Sub-Zero Basic bubble/hit box + compact three-frame Freeze Blast projectile/impact (${legacyFreezeKind}), locked cast-facing, assisted target ring, Senku feet impact, full combo sequence.`);
+console.log(`Combat polish applied: generic medium Freeze Blast bubble + horizontal-only compact projectile (${legacyFreezeKind}), matching Sub-Zero body facing, target ring, Senku feet impact, full combo sequence.`);
