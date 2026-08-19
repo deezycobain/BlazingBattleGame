@@ -36,7 +36,7 @@ function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
 'Sub-Zero range presentation'
 );
 
-// Replace the legacy Freeze Blast floater renderer. Travel is horizontal only.
+// Freeze Blast floater: horizontal travel only, rendered at half the prior size.
 const freezeLockNeedle="resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)";
 const freezeLockAt=html.indexOf(freezeLockNeedle);
 if(freezeLockAt<0)throw new Error('Freeze Blast projectile pass: locked-facing animation not found');
@@ -72,7 +72,6 @@ const authoredFreezeRenderer=`else if(f.kind==='${legacyFreezeKind}'){
      ctx.translate(x,y);ctx.rotate(angle);
      ctx.imageSmoothingEnabled=true;
      const arrival=Math.max(0,(t-.72)/.28);
-     // 50% reduction from the previous authored VFX render size.
      const bodyH=frameIndex===2?31:(frameIndex===1?22.5:27);
      const bodyW=frameIndex===2?60.5:(frameIndex===1?56:64.5);
      if(img?.complete&&img.naturalWidth>0){
@@ -106,7 +105,42 @@ const authoredFreezeRenderer=`else if(f.kind==='${legacyFreezeKind}'){
    `;
 html=html.slice(0,freezeRendererStart)+authoredFreezeRenderer+html.slice(freezeRendererEnd);
 
-// Sub-Zero's visible body follows the exact locked horizontal Freeze Blast direction while casting.
+// Never let ally proximity steer Sub-Zero. Outside a cast he faces the nearest living enemy
+// horizontally; during Freeze Blast the exact locked blast direction wins.
+replaceRegexOnce(
+ /function bodyFacingRotation\(actor,origin,basicFallbackDeg,jutsuFallbackDeg=basicFallbackDeg\)\{[\s\S]*?\n  \}\n  S\.pairs/,
+ `function bodyFacingRotation(actor,origin,basicFallbackDeg,jutsuFallbackDeg=basicFallbackDeg){
+    const authored=authoredAttackRotation(actor,basicFallbackDeg,jutsuFallbackDeg);
+    try{
+      if(actor?.name==='Sub-Zero'){
+        if(S.action==='jutsu'){
+          const unit=canonicalUnit(actor.name);
+          const presentation=unit?.abilities?.jutsu?.presentation||{};
+          if(presentation.body_facing_mode==='jutsu_direction_locked'){
+            return window.BlazingAttackPresentation.resolveActionRotation(unit,'jutsu',origin,S.enemies||[],authored);
+          }
+        }
+        const enemies=(S.enemies||[]).filter(e=>e&&e.hp>0);
+        if(enemies.length){
+          const nearest=[...enemies].sort((a,b)=>d(origin,a)-d(origin,b))[0];
+          return nearest.x<origin.x?Math.PI:0;
+        }
+      }
+      if(S.action==='jutsu'&&actor?.name){
+        const unit=canonicalUnit(actor.name);
+        const presentation=unit?.abilities?.jutsu?.presentation||{};
+        if(presentation.body_facing_mode==='jutsu_direction_locked'){
+          return window.BlazingAttackPresentation.resolveActionRotation(unit,'jutsu',origin,S.enemies||[],authored);
+        }
+      }
+    }catch(_){}
+    return authored;
+  }
+  S.pairs`,
+ 'Sub-Zero enemy-only facing'
+);
+
+// Visible cast sprite follows the same locked direction as the projectile.
 replaceOnce(
  `ctx.scale((flipX||1)*scale*activePulse,scale*activePulse);`,
  `const lockedJutsuFacing=(name==='Sub-Zero'&&S.action==='jutsu')
@@ -119,7 +153,6 @@ replaceOnce(
  'Sub-Zero locked jutsu sprite facing'
 );
 
-// Enemy target highlight remains tied to the targeting tolerance.
 replaceRegexOnce(
  /\s*\/\/ Bubble feedback is isolated so it can never mask the enemy sprite\./,
  `\n      const targetPad=jutsu?(canonicalUnit(activePlayer.name)?.abilities?.jutsu?.presentation?.target_lock_radius_pad_px??8):8;\n      // Bubble feedback is isolated so it can never mask the enemy sprite.`,
@@ -129,10 +162,7 @@ replaceRegexOnce(/ctx\.arc\(pos\.x,pos\.y,\(e\.r\|\|19\)\+14,0,Math\.PI\*2\);/,`
 replaceRegexOnce(/ctx\.arc\(pos\.x,pos\.y,\(e\.r\|\|19\)\+10\+1\.5\*Math\.sin\(performance\.now\(\)\/145\),0,Math\.PI\*2\);/,`ctx.arc(pos.x,pos.y,(e.r||19)+targetPad+1.25*Math.sin(performance.now()/145),0,Math.PI*2);`,'enemy target stroke radius');
 replaceRegexOnce(/ctx\.shadowBlur\s*=\s*jutsu\?10:\(comboLinked\?8:6\);\s*ctx\.lineWidth\s*=\s*jutsu\?1\.8:1\.45;/,`ctx.shadowBlur=jutsu?14:(comboLinked?12:10);\n      ctx.lineWidth=jutsu?2.35:2.05;`,'enemy target ring strength');
 
-// Senku explosion uses the target's feet baseline.
 replaceRegexOnce(/const\s+targetGroundY\s*=\s*\(enemy\.feetY\?\?enemy\.groundY\?\?enemy\.y\);/,`const targetGroundY=(enemy.feetY??enemy.groundY??(enemy.y+(enemy.r||19)));`,'Senku target feet baseline');
-
-// Every committed combo member completes their animation after an earlier KO.
 replaceRegexOnce(/function\s+runAttacker\(\)\{\s*if\(enemy\.hp<=0\|\|attackIndex>=attackers\.length\)return setTimeout\(runTarget,110\);/,`function runAttacker(){\n    if(attackIndex>=attackers.length)return setTimeout(runTarget,110);`,'combo attacker completion guard');
 replaceRegexOnce(
  /runBasicAttack\(au\.name,from,basicTarget,\(\)=>\{\s*let result=buffedNormalDamage\(ap\),dmg=result\.damage;\s*window\.BlazingCombatRuntime\.execute\('damage_target',\{target:enemy,damage:dmg\}\);\s*addImpactFlash\(enemy\.x,enemy\.y-8,au\.name==='Crimson'\?'#ff405c':attackIndex>1\?'#ffbd4a':'#ffffff'\);\s*addFloat\(enemy\.x,enemy\.y-34,'-'\+dmg,result\.buff\.bonus>0\?'#65ff9e':attackIndex>1\?'#ffbd4a':'#fff'\);\s*let nDir=Math\.sign\(enemy\.x-ap\.x\)\|\|1;\s*if\(enemy\.hp<=0\)handleEnemyKO\(enemy,nDir\); else recoil\(enemy,\(\)=>\{\},nDir,attackIndex>1\);\s*checkVictoryKillshot\(\);\s*\},\(\)=>setTimeout\(runAttacker,85\),effectiveAnimationKind\)/,
@@ -141,4 +171,4 @@ replaceRegexOnce(
 );
 
 await fs.writeFile(file,html);
-console.log(`Combat polish applied: horizontal medium Freeze Blast + 50% VFX scale + locked cast facing (${legacyFreezeKind}), target ring, Senku feet impact, full combo sequence.`);
+console.log(`Combat polish applied: enemy-only Sub-Zero facing + horizontal medium Freeze Blast + 50% VFX scale + locked cast facing (${legacyFreezeKind}), target ring, Senku feet impact, full combo sequence.`);
