@@ -14,8 +14,7 @@ const replaceRegexOnce=(rx,newText,label)=>{
   html=html.replace(rx,newText);
 };
 
-// Sub-Zero Basic keeps its exact 92 px circle. Freeze Blast now deliberately falls back
-// to the normal battlefield circle renderer while we iterate on a cleaner directional preview.
+// Sub-Zero Basic keeps its exact 92 px circle. Freeze Blast uses its canonical rectangle.
 replaceOnce(
 `function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
  return window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:u.shape,rotation:u.rotation||0,color,glow,visualOffsetY,bounds:BATTLE_BOUNDS});
@@ -37,8 +36,7 @@ function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
 'Sub-Zero range presentation'
 );
 
-// Replace the legacy Freeze Blast floater renderer in-place. The attack remains strictly
-// horizontal: it chooses left/right from the locked facing and never rotates vertically.
+// Replace the legacy Freeze Blast floater renderer. Travel is horizontal only.
 const freezeLockNeedle="resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)";
 const freezeLockAt=html.indexOf(freezeLockNeedle);
 if(freezeLockAt<0)throw new Error('Freeze Blast projectile pass: locked-facing animation not found');
@@ -74,10 +72,11 @@ const authoredFreezeRenderer=`else if(f.kind==='${legacyFreezeKind}'){
      ctx.translate(x,y);ctx.rotate(angle);
      ctx.imageSmoothingEnabled=true;
      const arrival=Math.max(0,(t-.72)/.28);
-     const bodyH=frameIndex===2?62:(frameIndex===1?45:54);
-     const bodyW=frameIndex===2?121:(frameIndex===1?112:129);
+     // 50% reduction from the previous authored VFX render size.
+     const bodyH=frameIndex===2?31:(frameIndex===1?22.5:27);
+     const bodyW=frameIndex===2?60.5:(frameIndex===1?56:64.5);
      if(img?.complete&&img.naturalWidth>0){
-      ctx.shadowColor='rgba(83,220,255,.95)';ctx.shadowBlur=10+7*arrival;
+      ctx.shadowColor='rgba(83,220,255,.95)';ctx.shadowBlur=5+3.5*arrival;
       ctx.globalAlpha=.98;
       ctx.globalCompositeOperation='source-over';
       ctx.drawImage(img,-bodyW*.22,-bodyH/2,bodyW,bodyH);
@@ -89,17 +88,17 @@ const authoredFreezeRenderer=`else if(f.kind==='${legacyFreezeKind}'){
       const burst=Math.sin(Math.PI*Math.min(1,arrival));
       ctx.globalCompositeOperation='screen';
       ctx.globalAlpha=.68*(1-arrival*.60);
-      const impactR=20+30*burst;
+      const impactR=10+15*burst;
       const g=ctx.createRadialGradient(bodyW*.58,0,0,bodyW*.58,0,impactR);
       g.addColorStop(0,'rgba(255,255,255,.96)');
       g.addColorStop(.24,'rgba(191,246,255,.84)');
       g.addColorStop(.62,'rgba(74,202,255,.36)');
       g.addColorStop(1,'rgba(40,170,255,0)');
       ctx.fillStyle=g;ctx.beginPath();ctx.arc(bodyW*.58,0,impactR,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='rgba(220,251,255,.88)';ctx.lineWidth=1.6;
+      ctx.strokeStyle='rgba(220,251,255,.88)';ctx.lineWidth=.8;
       for(let i=0;i<8;i++){
        const a=(Math.PI*2*i/8)+i*.19;
-       const inner=12+7*burst,outer=28+24*burst;
+       const inner=6+3.5*burst,outer=14+12*burst;
        ctx.beginPath();ctx.moveTo(bodyW*.58+Math.cos(a)*inner,Math.sin(a)*inner);
        ctx.lineTo(bodyW*.58+Math.cos(a)*outer,Math.sin(a)*outer);ctx.stroke();
       }
@@ -107,8 +106,7 @@ const authoredFreezeRenderer=`else if(f.kind==='${legacyFreezeKind}'){
    `;
 html=html.slice(0,freezeRendererStart)+authoredFreezeRenderer+html.slice(freezeRendererEnd);
 
-// During Freeze Blast, mirror Sub-Zero from the same locked horizontal direction used by
-// the projectile. The body stays upright and never tracks vertical target angle.
+// Sub-Zero's visible body follows the exact locked horizontal Freeze Blast direction while casting.
 replaceOnce(
  `ctx.scale((flipX||1)*scale*activePulse,scale*activePulse);`,
  `const lockedJutsuFacing=(name==='Sub-Zero'&&S.action==='jutsu')
@@ -143,4 +141,4 @@ replaceRegexOnce(
 );
 
 await fs.writeFile(file,html);
-console.log(`Combat polish applied: generic medium Freeze Blast bubble + horizontal-only compact projectile (${legacyFreezeKind}), matching Sub-Zero body facing, target ring, Senku feet impact, full combo sequence.`);
+console.log(`Combat polish applied: horizontal medium Freeze Blast + 50% VFX scale + locked cast facing (${legacyFreezeKind}), target ring, Senku feet impact, full combo sequence.`);
