@@ -23,15 +23,17 @@ const read=async rel=>fs.readFile(path.join(ROOT,rel),'utf8');
 const fontCss=await read('runtime/ui/theme/animeace-font.css');
 let inventoryCss=await read('runtime/ui/inventory/inventory.css');
 const cardsCss=await read('runtime/ui/inventory/cards.css');
+const backdropCss=await read('runtime/ui/unit-details/theme/backdrop.css');
 const inventorySkin=await read('runtime/ui/inventory/inventory-skin.js');
+const legacyDetailsSuppress=await read('runtime/ui/unit-details/legacy-suppress.js');
 const reservedTab=await read('runtime/ui/unit-details/reserved-tab.js');
 
 // The inventory stylesheet normally imports the shared font theme. In the built single-file
 // preview we inject the bundled Anime Ace font explicitly first, so strip the import.
 inventoryCss=inventoryCss.replace(/^@import[^;]+;\s*/,'');
 
-const style=`<style id="bb-ui-polish-style">${fontCss}\n${inventoryCss}\n${cardsCss}</style>`;
-const scripts=`<script id="bb-inventory-skin">${inventorySkin}</script><script id="bb-reserved-details-tab">${reservedTab}</script>`;
+const style=`<style id="bb-ui-polish-style">${fontCss}\n${backdropCss}\n${inventoryCss}\n${cardsCss}</style>`;
+const scripts=`<script id="bb-inventory-skin">${inventorySkin}</script><script id="bb-legacy-details-suppress">${legacyDetailsSuppress}</script><script id="bb-reserved-details-tab">${reservedTab}</script>`;
 
 if(!html.includes('id="bb-ui-polish-style"'))html=html.replace(/<\/head>/i,`${style}</head>`);
 if(!html.includes('id="bb-inventory-skin"'))html=html.replace(/<\/body>/i,`${scripts}</body>`);
@@ -44,6 +46,9 @@ charsetAt=html.search(/<meta\b[^>]*charset/i);
 if(headOpens!==1||headCloses!==1||headOpen<0||firstHeadClose<0||bodyAt<0||firstHeadClose>bodyAt||charsetAt<0||charsetAt>firstHeadClose){
  throw new Error(`UI polish: malformed document head after repair (open=${headOpens}, close=${headCloses}, charset=${charsetAt}, body=${bodyAt})`);
 }
+if(!html.includes('id="bb-legacy-details-suppress"')||!html.includes('id="bb-inventory-skin"'))throw new Error('UI polish: replacement inventory/detail suppress runtime missing');
+if(!html.includes('grid-template-columns:repeat(4,minmax(0,1fr))'))throw new Error('UI polish: four-column replacement inventory CSS missing');
+if(!html.includes('data:image/svg+xml'))throw new Error('UI polish: embedded Japanese cloud backdrop missing');
 
 await fs.writeFile(file,html);
-console.log('UI polish injected: repaired UTF-8 head, Anime Ace font, four-column inventory skin, rarity frames, reserved details tab');
+console.log('UI polish injected: standalone four-column inventory, rarity frames, embedded cloud backdrop, Anime Ace font, legacy details suppression');
