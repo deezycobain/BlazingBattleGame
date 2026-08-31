@@ -9,6 +9,15 @@ const assetPath=(unit,asset)=>{if(!asset)return'';if(/^https?:|^data:|^assets\//
 const rarityStars=rarity=>/legend/i.test(rarity)?6:/myth/i.test(rarity)?6:/epic/i.test(rarity)?5:/rare/i.test(rarity)?4:3;
 let legacyInventory=null,suppressScanUntil=0;
 
+function suppressLegacy(el){
+ if(!el)return;
+ el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.add('bb-legacy-inventory-suppressed');
+ el.style.setProperty('display','none','important');
+}
+function revealLegacy(el){
+ if(!el)return;
+ el.classList.remove('bb-legacy-inventory-suppressed');el.removeAttribute('aria-hidden');el.hidden=false;el.style.removeProperty('display');
+}
 function findLegacyInventory(){
  const selectors='#inventoryScreen,.inventoryScreen,#collectionScreen,.collectionScreen,[data-screen="inventory"],[data-screen="collection"],.screen,main,section';
  const candidates=[...new Set(document.querySelectorAll(selectors))].filter(el=>el.id!=='bbInventory'&&el.id!=='bbUnitDetails'&&isVisible(el));
@@ -47,8 +56,8 @@ function render(){
 function activate(screen){
  const root=ensure();legacyInventory=screen||legacyInventory;if(!legacyInventory)return false;
  render();
- legacyInventory.hidden=true;legacyInventory.setAttribute('aria-hidden','true');legacyInventory.classList.add('bb-legacy-inventory-suppressed');
- root.hidden=false;root.removeAttribute('aria-hidden');document.body.classList.add('bb-inventory-open');return true;
+ suppressLegacy(legacyInventory);
+ root.hidden=false;root.removeAttribute('aria-hidden');root.style.removeProperty('display');document.body.classList.add('bb-inventory-open');return true;
 }
 function openUnit(id){
  const root=ensure();
@@ -57,16 +66,17 @@ function openUnit(id){
 }
 function forwardLegacy(rx,kind){
  const root=ensure();if(!legacyInventory)return false;
- suppressScanUntil=performance.now()+420;root.hidden=true;document.body.classList.remove('bb-inventory-open');
- legacyInventory.hidden=false;legacyInventory.removeAttribute('aria-hidden');
+ suppressScanUntil=performance.now()+520;root.hidden=true;document.body.classList.remove('bb-inventory-open');
+ revealLegacy(legacyInventory);
  const control=legacyControl(rx)||((kind==='back')?[...legacyInventory.querySelectorAll('button,[role="button"]')].find(el=>/back/i.test(el.getAttribute('aria-label')||'')):null);
  if(control){control.click();return true;}
- if(kind==='back'){legacyInventory.hidden=true;root.hidden=true;return true;}
+ if(kind==='back'){suppressLegacy(legacyInventory);root.hidden=true;return true;}
  setTimeout(()=>activate(legacyInventory),0);return false;
 }
 function sync(){
  if(performance.now()<suppressScanUntil)return false;
  const visibleLegacy=findLegacyInventory();if(visibleLegacy)return activate(visibleLegacy);
+ if(legacyInventory&&document.getElementById('bbInventory')&&!document.getElementById('bbInventory').hidden)suppressLegacy(legacyInventory);
  return false;
 }
 let queued=false;function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;sync();});}
