@@ -27,19 +27,13 @@ function normalizeDocumentHead(){
   const after=html.slice(bodyAt);
   html=before+headBody+'</head>'+after;
 }
+const safeScript=source=>source.replace(/<\/script/gi,'<\\/script');
 
-// Remove every earlier UI copy, then write one authoritative replacement bundle at the
-// actual end of head/body. This keeps legacy inventory/details from sitting under the new UI.
+// Finalizer owns these surfaces. Older decorators are removed rather than layered underneath.
 for(const id of ['bb-unit-details-style','bb-ui-polish-style','bb-home-wallpaper-style'])removeTagById('style',id);
-for(const id of [
-  'bb-unit-details-model','bb-unit-details-screen','bb-inventory-skin','bb-inventory-screen',
-  'bb-legacy-details-suppress','bb-reserved-details-tab','bb-home-wallpaper-runtime'
-])removeTagById('script',id);
+for(const id of ['bb-unit-details-model','bb-unit-details-screen','bb-inventory-skin','bb-inventory-screen','bb-legacy-details-suppress','bb-reserved-details-tab','bb-home-wallpaper-runtime'])removeTagById('script',id);
 normalizeDocumentHead();
-
-if(!/<meta\b[^>]*charset/i.test(html)){
-  html=html.replace(/<head\b([^>]*)>/i,'<head$1><meta charset="utf-8">');
-}
+if(!/<meta\b[^>]*charset/i.test(html))html=html.replace(/<head\b([^>]*)>/i,'<head$1><meta charset="utf-8">');
 
 const fontCss=await read('runtime/ui/theme/animeace-font.css');
 const themeCss=await read('runtime/ui/unit-details/theme.css');
@@ -56,28 +50,32 @@ const cardsCss=await read('runtime/ui/inventory/cards.css');
 detailShellCss=detailShellCss.replace(/^@import[^;]+;\s*/gm,'');
 inventoryCss=inventoryCss.replace(/^@import[^;]+;\s*/gm,'');
 
+const cloudParts=['runtime/ui/shared/cloud-bg-00.txt','runtime/ui/shared/cloud-bg-01.txt','runtime/ui/shared/cloud-bg-02.txt'];
+const cloudBase64=(await Promise.all(cloudParts.map(read))).join('').replace(/\s+/g,'');
+if(cloudBase64.length<20000||!cloudBase64.startsWith('UklGR'))throw new Error('UI finalize: cloud wallpaper payload is invalid');
+const cloudCss=`:root{--bb-cloud-backdrop:url("data:image/webp;base64,${cloudBase64}");}`;
+
 const homeParts=['runtime/ui/home/home-bg-00.txt','runtime/ui/home/home-bg-01.txt','runtime/ui/home/home-bg-02.txt','runtime/ui/home/home-bg-03.txt'];
 const homeBase64=(await Promise.all(homeParts.map(read))).join('').replace(/\s+/g,'');
 if(homeBase64.length<20000||!homeBase64.startsWith('/9j/'))throw new Error('UI finalize: home wallpaper payload is invalid');
 const homeCss=`
 .bb-home-theme{position:relative!important;isolation:isolate!important;background:#10131a!important;background-image:none!important;}
-.bb-home-theme:before{content:""!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-image:linear-gradient(rgba(6,8,13,.06),rgba(6,8,13,.16)),url("data:image/jpeg;base64,${homeBase64}")!important;background-repeat:no-repeat!important;background-position:center center!important;background-size:cover!important;opacity:1!important;mix-blend-mode:normal!important;}
+.bb-home-theme:before{content:""!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-image:url("data:image/jpeg;base64,${homeBase64}")!important;background-repeat:no-repeat!important;background-position:center center!important;background-size:cover!important;opacity:1!important;mix-blend-mode:normal!important;}
 .bb-home-theme>*{position:relative;z-index:1;}
 .bb-home-theme .bb-home-old-wallpaper{display:none!important;visibility:hidden!important;opacity:0!important;}
 .bb-legacy-inventory-suppressed,.bb-legacy-details-suppressed{display:none!important;visibility:hidden!important;pointer-events:none!important;}
 `;
 
-const css=[fontCss,themeCss,detailFonts,backdropCss,buttonsCss,framesCss,scrollsCss,artViewerCss,detailShellCss,inventoryCss,cardsCss,homeCss].join('\n');
+const css=[cloudCss,fontCss,themeCss,detailFonts,backdropCss,buttonsCss,framesCss,scrollsCss,artViewerCss,detailShellCss,inventoryCss,cardsCss,homeCss].join('\n');
 insertBeforeLast('</head>',`<style id="bb-ui-polish-style">${css}</style>`,'closing head');
 
-const detailsVm=await read('runtime/ui/unit-details.js');
-const detailsScreen=await read('runtime/ui/unit-details-screen.js');
-const inventoryScreen=await read('runtime/ui/inventory/inventory-screen.js');
-const legacySuppress=await read('runtime/ui/unit-details/legacy-suppress.js');
-const homeRuntime=await read('runtime/ui/home/home-skin.js');
+const detailsVm=safeScript(await read('runtime/ui/unit-details.js'));
+const detailsScreen=safeScript(await read('runtime/ui/unit-details-screen.js'));
+const inventoryScreen=safeScript(await read('runtime/ui/inventory/inventory-screen.js'));
+const legacySuppress=safeScript(await read('runtime/ui/unit-details/legacy-suppress.js'));
+const homeRuntime=safeScript(await read('runtime/ui/home/home-skin.js'));
 const scripts=`<script id="bb-unit-details-model">${detailsVm}</script><script id="bb-unit-details-screen">${detailsScreen}</script><script id="bb-inventory-screen">${inventoryScreen}</script><script id="bb-legacy-details-suppress">${legacySuppress}</script><script id="bb-home-wallpaper-runtime">${homeRuntime}</script>`;
 insertBeforeLast('</body>',scripts,'closing body');
-
 normalizeDocumentHead();
 
 const headOpen=html.search(/<head\b/i),headClose=html.search(/<\/head>/i),bodyOpen=html.search(/<body\b/i),bodyClose=html.toLowerCase().lastIndexOf('</body>');
@@ -90,7 +88,8 @@ if(/id=["']bb-inventory-skin["']/.test(html))throw new Error('UI finalize: legac
 if(!html.includes('grid-template-columns:repeat(4,minmax(0,1fr))'))throw new Error('UI finalize: four-column inventory contract missing');
 if(!html.includes('assets/characters/${unit.id}/${asset}'))throw new Error('UI finalize: canonical clean-art path resolver missing');
 if(!html.includes("img.src=assetAvailable(vm.art.full)?vm.art.full:''"))throw new Error('UI finalize: details clean-art-only contract missing');
+if(!html.includes('--bb-cloud-backdrop:url("data:image/webp;base64,UklGR'))throw new Error('UI finalize: shared cloud backdrop missing');
 if(!html.includes('bb-home-theme')||!html.includes('data:image/jpeg;base64,/9j/'))throw new Error('UI finalize: home replacement wallpaper missing');
 
 await fs.writeFile(file,html);
-console.log('UI finalizer PASS: replacement Inventory/Details are authoritative, clean art only, legacy surfaces suppressed, new home wallpaper embedded.');
+console.log('UI finalizer PASS: authoritative Inventory/Details/Home replacements embedded; shared cloud wallpaper embedded; scripts safely contained.');
