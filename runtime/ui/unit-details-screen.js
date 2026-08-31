@@ -11,7 +11,7 @@ let current=null,returnScreen=null,legacyScreen=null;
 function ensure(){
  let root=document.getElementById('bbUnitDetails');if(root)return root;
  root=document.createElement('section');root.id='bbUnitDetails';root.className='bbud';root.hidden=true;root.tabIndex=-1;root.setAttribute('aria-label','Character details');
- root.innerHTML='<div class="bbud-shell"><header class="bbud-head"><button class="bbud-back" type="button" data-action="back" aria-label="Back">‹</button><div><span class="bbud-eyebrow">CHARACTER DETAILS</span><h2 class="bbud-name"></h2><p class="bbud-title"></p></div></header><div class="bbud-hero"><div class="bbud-art"><img alt=""></div><button class="bbud-card-art-btn" type="button" data-action="view-card-art">VIEW CARD ART</button><div class="bbud-badges"></div></div><nav class="bbud-tabs" aria-label="Character details sections"><button type="button" data-tab="overview" class="is-active">OVERVIEW</button><button type="button" data-tab="stats">STATS</button><button type="button" data-tab="abilities">JUTSU</button></nav><div class="bbud-panels"></div></div><div class="bbud-art-viewer" data-card-art-viewer hidden><div class="bbud-art-viewer-head"><span class="bbud-art-viewer-title">CARD ART</span><button class="bbud-art-close" type="button" data-action="close-card-art" aria-label="Close card art">×</button></div><div class="bbud-art-viewer-stage" data-action="close-card-art"><img alt=""></div></div>';
+ root.innerHTML='<div class="bbud-shell"><header class="bbud-head"><button class="bbud-back" type="button" data-action="back" aria-label="Back">‹</button><div><span class="bbud-eyebrow">CHARACTER DETAILS</span><h2 class="bbud-name"></h2><p class="bbud-title"></p></div></header><div class="bbud-hero"><div class="bbud-art"><img alt=""></div><button class="bbud-card-art-btn" type="button" data-action="view-card-art">VIEW ART</button><div class="bbud-badges"></div></div><nav class="bbud-tabs" aria-label="Character details sections"><button type="button" data-tab="overview" class="is-active">OVERVIEW</button><button type="button" data-tab="stats">STATS</button><button type="button" data-tab="reserved" aria-label="Reserved tab"></button></nav><div class="bbud-panels"></div></div><div class="bbud-art-viewer" data-card-art-viewer hidden><div class="bbud-art-viewer-head"><span class="bbud-art-viewer-title">FULL ART</span><button class="bbud-art-close" type="button" data-action="close-card-art" aria-label="Close art">×</button></div><div class="bbud-art-viewer-stage" data-action="close-card-art"><img alt=""></div></div>';
  document.body.appendChild(root);
  root.addEventListener('click',event=>{
   const tab=event.target.closest('[data-tab]');if(tab&&root.contains(tab)){event.preventDefault();event.stopPropagation();selectTab(tab.dataset.tab);return;}
@@ -35,15 +35,15 @@ function render(vm){
  root.querySelector('.bbud-name').textContent=vm.name;root.querySelector('.bbud-title').textContent=vm.title;
  root.querySelector('.bbud-badges').innerHTML=[vm.rarity,vm.element,window.BlazingUnitDetails.titleCase(vm.archetype||vm.role)].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('');
  const img=root.querySelector('.bbud-art img');img.alt=vm.name;img.src=assetAvailable(vm.art.full)?vm.art.full:(assetAvailable(vm.art.card)?vm.art.card:'');
- const cardButton=root.querySelector('.bbud-card-art-btn');cardButton.hidden=!assetAvailable(vm.art.card);cardButton.setAttribute('aria-label',`View ${vm.name} card art`);
- root.querySelector('.bbud-panels').innerHTML=`<section data-panel="overview"><div class="bbud-statgrid">${stat('LEVEL',vm.stats.level)}${stat('HP',vm.stats.hp)}${stat('ATK',vm.stats.attack)}${stat('DEF',vm.stats.defense)}</div>${ability(vm.abilities.basic)}${ability(vm.abilities.jutsu)}</section><section data-panel="stats" hidden><div class="bbud-section-title">CHARACTER STATS</div><div class="bbud-statgrid bbud-statgrid-full">${stat('LEVEL',vm.stats.level)}${stat('HP',vm.stats.hp)}${stat('ATTACK',vm.stats.attack)}${stat('DEFENSE',vm.stats.defense)}${stat('SPEED',vm.stats.speed)}${stat('MAX CHAKRA',vm.resources.chakraMax)}</div></section><section data-panel="abilities" hidden><div class="bbud-section-title">ABILITIES & JUTSU</div>${ability(vm.abilities.basic)}${ability(vm.abilities.jutsu)}</section>`;
+ const artButton=root.querySelector('.bbud-card-art-btn');artButton.hidden=!assetAvailable(vm.art.full);artButton.setAttribute('aria-label',`View ${vm.name} full art`);
+ root.querySelector('.bbud-panels').innerHTML=`<section data-panel="overview"><div class="bbud-statgrid">${stat('LEVEL',vm.stats.level)}${stat('HP',vm.stats.hp)}${stat('ATK',vm.stats.attack)}${stat('DEF',vm.stats.defense)}</div>${ability(vm.abilities.basic)}${ability(vm.abilities.jutsu)}</section><section data-panel="stats" hidden><div class="bbud-section-title">CHARACTER STATS</div><div class="bbud-statgrid bbud-statgrid-full">${stat('LEVEL',vm.stats.level)}${stat('HP',vm.stats.hp)}${stat('ATTACK',vm.stats.attack)}${stat('DEFENSE',vm.stats.defense)}${stat('SPEED',vm.stats.speed)}${stat('MAX CHAKRA',vm.resources.chakraMax)}</div></section><section data-panel="reserved" hidden></section>`;
  selectTab('overview');closeCardArt();
 }
 
 function openCardArt(){
- if(!current||!assetAvailable(current.art.card))return false;
+ if(!current||!assetAvailable(current.art.full))return false;
  const root=ensure(),viewer=root.querySelector('[data-card-art-viewer]'),img=viewer.querySelector('img');
- img.alt=`${current.name} card art`;img.src=current.art.card;viewer.hidden=false;viewer.querySelector('.bbud-art-viewer-stage').scrollTop=0;return true;
+ img.alt=`${current.name} full art`;img.src=current.art.full;viewer.hidden=false;viewer.querySelector('.bbud-art-viewer-stage').scrollTop=0;return true;
 }
 function closeCardArt(){const viewer=document.querySelector('#bbUnitDetails [data-card-art-viewer]');if(viewer)viewer.hidden=true;}
 
@@ -127,6 +127,11 @@ function bindLegacyTakeover(){
  document.addEventListener('click',()=>setTimeout(scan,0),true);document.addEventListener('pointerup',()=>setTimeout(scan,0),true);setTimeout(scan,0);
 }
 
-bindRosterNavigation();bindLegacyTakeover();
+function loadInventorySkin(){
+ if(window.BlazingInventorySkin||document.querySelector('script[data-bb-inventory-skin]'))return;
+ const script=document.createElement('script');script.src='runtime/ui/inventory/inventory-skin.js';script.async=false;script.dataset.bbInventorySkin='1';document.body.appendChild(script);
+}
+
+bindRosterNavigation();bindLegacyTakeover();loadInventorySkin();
 window.BlazingUnitDetailsScreen=Object.freeze({open,close,render,selectTab,resolveUnit,openCardArt,closeCardArt,bindRosterNavigation,takeoverLegacyDetails,get current(){return current;}});
 })();
