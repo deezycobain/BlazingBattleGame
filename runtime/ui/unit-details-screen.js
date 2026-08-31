@@ -34,7 +34,7 @@ function render(vm){
  const root=ensure();current=vm;root.dataset.element=String(vm.element||'neutral').toLowerCase();
  root.querySelector('.bbud-name').textContent=vm.name;root.querySelector('.bbud-title').textContent=vm.title;
  root.querySelector('.bbud-badges').innerHTML=[vm.rarity,vm.element,window.BlazingUnitDetails.titleCase(vm.archetype||vm.role)].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('');
- const img=root.querySelector('.bbud-art img');img.alt=vm.name;img.src=assetAvailable(vm.art.full)?vm.art.full:(assetAvailable(vm.art.card)?vm.art.card:'');
+ const img=root.querySelector('.bbud-art img');img.alt=vm.name;img.src=assetAvailable(vm.art.full)?vm.art.full:'';
  const artButton=root.querySelector('.bbud-card-art-btn');artButton.hidden=!assetAvailable(vm.art.full);artButton.setAttribute('aria-label',`View ${vm.name} full art`);
  root.querySelector('.bbud-panels').innerHTML=`<section data-panel="overview"><div class="bbud-statgrid">${stat('LEVEL',vm.stats.level)}${stat('HP',vm.stats.hp)}${stat('ATK',vm.stats.attack)}${stat('DEF',vm.stats.defense)}</div>${ability(vm.abilities.basic)}${ability(vm.abilities.jutsu)}</section><section data-panel="stats" hidden><div class="bbud-section-title">CHARACTER STATS</div><div class="bbud-statgrid bbud-statgrid-full">${stat('LEVEL',vm.stats.level)}${stat('HP',vm.stats.hp)}${stat('ATTACK',vm.stats.attack)}${stat('DEFENSE',vm.stats.defense)}${stat('SPEED',vm.stats.speed)}${stat('MAX CHAKRA',vm.resources.chakraMax)}</div></section><section data-panel="reserved" hidden></section>`;
  selectTab('overview');closeCardArt();
@@ -108,6 +108,7 @@ function bindRosterNavigation(){
 
 function visible(el){if(!el||el===ensure()||el.hidden)return false;const s=getComputedStyle(el);return s.display!=='none'&&s.visibility!=='hidden'&&s.opacity!=='0';}
 function findInventoryReturn(exclude){
+ const replacement=document.getElementById('bbInventory');if(replacement&&replacement!==exclude)return replacement;
  const candidates=[...document.querySelectorAll('#inventoryScreen,.inventoryScreen,#collectionScreen,.collectionScreen,[data-screen="inventory"],[data-screen="collection"],.screen')];
  return candidates.find(el=>el!==exclude&&!el.hidden&&/inventory|collection|roster/i.test(`${el.id} ${el.className} ${el.getAttribute?.('data-screen')||''}`))||candidates.find(el=>el!==exclude&&/inventory|collection|roster/i.test(`${el.id} ${el.className} ${el.getAttribute?.('data-screen')||''}`))||null;
 }
@@ -127,11 +128,6 @@ function bindLegacyTakeover(){
  document.addEventListener('click',()=>setTimeout(scan,0),true);document.addEventListener('pointerup',()=>setTimeout(scan,0),true);setTimeout(scan,0);
 }
 
-function loadInventorySkin(){
- if(window.BlazingInventorySkin||document.querySelector('script[data-bb-inventory-skin]'))return;
- const script=document.createElement('script');script.src='runtime/ui/inventory/inventory-skin.js';script.async=false;script.dataset.bbInventorySkin='1';document.body.appendChild(script);
-}
-
-bindRosterNavigation();bindLegacyTakeover();loadInventorySkin();
+bindRosterNavigation();bindLegacyTakeover();
 window.BlazingUnitDetailsScreen=Object.freeze({open,close,render,selectTab,resolveUnit,openCardArt,closeCardArt,bindRosterNavigation,takeoverLegacyDetails,get current(){return current;}});
 })();
