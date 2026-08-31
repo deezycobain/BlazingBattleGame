@@ -50,15 +50,15 @@ function ensure(){
  root.addEventListener('click',event=>{
   const action=event.target.closest('[data-inventory-action]')?.dataset.inventoryAction;
   if(action){event.preventDefault();handleAction(action);return;}
-  const card=event.target.closest('.bb-inventory-card');
+  const card=event.target.closest('.bb-fighter-card');
   if(!card)return;
   const unit=(window.BLAZING_UNIT_DATA||{})[card.dataset.unitId];
   if(!unit||!window.BlazingUnitDetailsScreen)return;
-  event.preventDefault();
+  event.preventDefault();event.stopPropagation();
   window.BlazingUnitDetailsScreen.open(unit,{returnScreen:root});
  });
  root.addEventListener('keydown',event=>{
-  if((event.key!=='Enter'&&event.key!==' ')||!event.target.matches('.bb-inventory-card'))return;
+  if((event.key!=='Enter'&&event.key!==' ')||!event.target.matches('.bb-fighter-card'))return;
   event.preventDefault();event.target.click();
  });
  return root;
@@ -68,11 +68,12 @@ function render(){
  const root=ensure(),roster=units();
  root.querySelector('.bb-inventory-count').textContent=`FIGHTERS ${roster.length} / ${roster.length}`;
  root.querySelector('.bb-inventory-grid').innerHTML=roster.map(unit=>{
-  const art=cleanArt(unit),rarity=unit.rarity||'Unknown';
-  return `<article class="bb-inventory-card" data-unit-id="${esc(unit.id)}" data-rarity="${esc(rarityKey(unit))}" role="listitem" tabindex="0" aria-label="${esc(unit.display_name||unit.id)}">
-   <div class="bb-inventory-card-stars" aria-hidden="true">★★★★★★</div>
-   <div class="bb-inventory-card-art">${art?`<img src="${esc(art)}" alt="${esc(unit.display_name||unit.id)}">`:''}</div>
-   <div class="bb-inventory-card-copy"><strong>${esc(unit.display_name||unit.id)}</strong><span>${esc(rarity)}</span><b>LV ${esc(unit.stats?.level??1)}</b></div>
+  const art=cleanArt(unit),rarity=unit.rarity||'Unknown',element=unit.element||'Unknown';
+  return `<article class="bb-fighter-card" data-unit-id="${esc(unit.id)}" data-rarity="${esc(rarityKey(unit))}" role="listitem" tabindex="0" aria-label="${esc(unit.display_name||unit.id)}">
+   <div class="bb-card-stars" aria-hidden="true">★★★★★★</div>
+   <div class="bb-card-element">${esc(element)}</div>
+   <div class="bb-card-art">${art?`<img src="${esc(art)}" alt="${esc(unit.display_name||unit.id)}">`:''}</div>
+   <div class="bb-card-foot"><strong class="bb-card-name">${esc(unit.display_name||unit.id)}</strong><div class="bb-card-meta"><span>${esc(rarity)}</span><b>LV ${esc(unit.stats?.level??1)}</b></div></div>
   </article>`;
  }).join('');
 }
@@ -109,7 +110,7 @@ function proxyLegacyControl(kind){
  closeRoot();
  if(!legacy)return false;
  suppressUntil=Date.now()+900;
- legacy.hidden=false;legacy.removeAttribute('aria-hidden');
+ legacy.hidden=false;legacy.removeAttribute('aria-hidden');legacy.classList.remove('bb-legacy-inventory-suppressed');
  const buttons=[...legacy.querySelectorAll('button,[role="button"]')];
  const rx=kind==='edit'?/EDIT\s+TEAM/i:kind==='home'?/HOME/i:/BACK/i;
  let target=buttons.find(btn=>rx.test(`${btn.getAttribute('aria-label')||''} ${btn.getAttribute('title')||''} ${btn.textContent||''}`));
@@ -139,8 +140,7 @@ document.addEventListener('pointerup',()=>setTimeout(schedule,0),true);
 window.addEventListener('pageshow',schedule);
 window.addEventListener('resize',schedule,{passive:true});
 
-// Compatibility sentinel: prevents the older details runtime from dynamically loading
-// the legacy inventory decorator. The replacement inventory owns this surface now.
+// Compatibility sentinel: prevents the details runtime from loading the removed legacy decorator.
 window.BlazingInventorySkin=Object.freeze({decorate:scan,findInventoryScreen:findLegacyInventory,replacement:true});
 window.BlazingInventoryScreen=Object.freeze({show,scan,render,get legacy(){return legacyScreen;}});
 Promise.resolve(window.BLAZING_UNIT_DATA_READY).catch(()=>null).finally(()=>{render();setTimeout(scan,0);});
