@@ -1,11 +1,12 @@
+@import url('../../shared/cloud-backdrop-v2.css');
 .bbud{
-  --bbud-cloud:#756b5d;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='190' viewBox='0 0 260 190'%3E%3Cg stroke='%23756d61' stroke-width='2.2' stroke-linejoin='round'%3E%3Cpath fill='%23e9dfc6' fill-opacity='.64' d='M-20 71c12-20 34-29 54-19 6-25 37-37 59-21 14-22 49-24 68-3 22-13 53-3 64 22 20-5 39 8 46 26H-15c-8-7-10-15-5-25Z'/%3E%3Cpath fill='none' d='M28 55c0-14 14-25 27-20 13 4 18 20 10 31-8 11-25 10-32 0-5-8-1-17 7-22M88 41c4-14 21-21 33-13 13 8 14 26 3 36-10 9-26 7-32-4-5-9 0-19 9-23M157 50c5-13 21-18 32-10 11 8 11 24 1 33-9 8-24 6-29-5-4-8 0-17 8-20M219 61c4-11 17-16 27-10 9 6 10 20 2 28'/%3E%3Cpath fill='none' d='M-7 91h259M34 91l-15 13h31l15-13M184 91l-13 11h28l14-11'/%3E%3C/g%3E%3Cg transform='translate(76 103) scale(.72)' stroke='%23756d61' stroke-width='2.2' stroke-linejoin='round'%3E%3Cpath fill='%238b898d' fill-opacity='.25' d='M0 55c11-19 31-26 49-15 7-22 35-33 55-17 13-20 45-20 61-1 20-10 45 2 51 25H3c-6-4-8-9-3-12Z'/%3E%3Cpath fill='none' d='M32 43c0-12 12-21 23-17 11 4 16 18 9 27-7 9-21 8-27 0-4-7 0-15 7-19M93 34c3-12 18-18 29-11 11 7 12 22 3 30-9 8-23 6-28-4-4-7 0-15 8-19M4 67h203'/%3E%3C/g%3E%3C/svg%3E") 0 0/260px 190px repeat,
-    radial-gradient(circle at 76% 9%,rgba(111,171,226,.18),transparent 29%),
-    radial-gradient(circle at 13% 37%,rgba(166,201,116,.14),transparent 31%),
-    linear-gradient(145deg,#eee5d1,#d5e0df 49%,#e2d5bb)!important;
+  background-color:#e8dfca!important;
+  background-image:linear-gradient(rgba(238,227,200,.18),rgba(238,227,200,.18)),var(--bb-cloud-backdrop)!important;
+  background-size:cover!important;
+  background-position:center top!important;
+  background-repeat:no-repeat!important;
+  background-attachment:fixed!important;
 }
 .bbud:before{content:none!important}
-.bbud:after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.08;background:repeating-linear-gradient(12deg,transparent 0 27px,rgba(255,255,255,.10) 28px 29px)}
+.bbud:after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;background:repeating-linear-gradient(12deg,transparent 0 27px,rgba(255,255,255,.10) 28px 29px)}
 .bbud-shell{position:relative;z-index:1}
