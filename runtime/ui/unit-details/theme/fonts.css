@@ -1,18 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@500;700&family=Noto+Sans:wght@500;700;800;900&family=Reggae+One&family=Yuji+Boku&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@500;700&family=Noto+Sans:wght@500;700;800;900&display=swap');
 
 :root{
-  --bbud-font-brush:'Yuji Boku','Reggae One','Permanent Marker',cursive;
+  --bbud-font-brush:var(--bb-font-animeace,'AnimeAce2','Trebuchet MS','Arial Rounded MT Bold',sans-serif);
   --bbud-font-name:var(--bbud-font-brush);
   --bbud-font-display:'Kaisei Decol','Palatino Linotype','Book Antiqua',Georgia,serif;
   --bbud-font-ui:'Noto Sans','Avenir Next','Segoe UI',Arial,sans-serif;
 }
 .bbud{font-family:var(--bbud-font-ui)}
 .bbud-name{
-  font-family:var(--bbud-font-brush);
+  font-family:var(--bbud-font-name);
   font-weight:400;
-  letter-spacing:.025em;
+  letter-spacing:.02em;
   text-transform:uppercase;
-  transform:skewX(-2deg);
+  transform:none;
 }
 .bbud-section-title,.bbud-tabs button,.bbud-card-art-btn,.bbud-art-viewer-title{font-family:var(--bbud-font-display)}
 .bbud-title{font-family:var(--bbud-font-display);font-weight:500}
