@@ -46,6 +46,13 @@
   background:repeating-linear-gradient(12deg,transparent 0 27px,rgba(255,255,255,.12) 28px 29px);
 }
 .bb-inventory-theme>*{position:relative;z-index:1}
+.bb-inventory-theme .bb-inventory-header{
+  padding:10px 12px 9px!important;
+  border-bottom:1px solid rgba(110,83,51,.42)!important;
+  background:linear-gradient(180deg,rgba(247,236,208,.97),rgba(226,207,170,.95))!important;
+  color:#3c2d22!important;
+  box-shadow:0 3px 9px rgba(71,50,30,.12)!important;
+}
 .bb-inventory-theme .bb-inventory-title{
   margin:.15em 0 0!important;
   color:#3c2d22!important;
