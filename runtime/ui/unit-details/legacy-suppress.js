@@ -6,6 +6,11 @@ function resolveFromText(value){
  const hay=normalized(value);if(!hay)return null;
  return Object.values(window.BLAZING_UNIT_DATA||{}).find(unit=>{if(unit?.collection?.inventory_visible===false)return false;return[unit.id,unit.display_name].filter(Boolean).map(normalized).some(key=>key&&hay.includes(key));})||null;
 }
+function hideLegacy(el){
+ if(!el)return;
+ el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.add('bb-legacy-details-suppressed');
+ el.style.setProperty('display','none','important');
+}
 function suppress(){
  if(!window.BlazingUnitDetailsScreen)return false;
  const candidates=[...document.querySelectorAll('.screen,section,main,[role="main"]')].filter(el=>el.id!=='bbUnitDetails'&&el.id!=='bbInventory'&&visible(el));
@@ -13,7 +18,7 @@ function suppress(){
   const copy=(el.innerText||el.textContent||'').slice(0,9000);
   if(!/FIGHTER\s+DETAILS/i.test(copy)||!/STATS/i.test(copy))continue;
   const unit=resolveFromText(copy);
-  el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.add('bb-legacy-details-suppressed');
+  hideLegacy(el);
   if(unit){
    const inventory=document.getElementById('bbInventory');
    window.BlazingUnitDetailsScreen.open(unit,{returnScreen:inventory||undefined,legacyScreen:el});
