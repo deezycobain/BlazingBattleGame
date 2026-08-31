@@ -28,11 +28,11 @@ function normalizeDocumentHead(){
   html=before+headBody+'</head>'+after;
 }
 
-// Earlier postprocessors used first-match closing tags. Remove their UI copies and reinsert
-// one authoritative replacement bundle at the real end of <head> / <body>.
+// Remove every earlier UI copy, then write one authoritative replacement bundle at the
+// actual end of head/body. This keeps legacy inventory/details from sitting under the new UI.
 for(const id of ['bb-unit-details-style','bb-ui-polish-style','bb-home-wallpaper-style'])removeTagById('style',id);
 for(const id of [
-  'bb-unit-details-model','bb-unit-details-screen','bb-inventory-skin',
+  'bb-unit-details-model','bb-unit-details-screen','bb-inventory-skin','bb-inventory-screen',
   'bb-legacy-details-suppress','bb-reserved-details-tab','bb-home-wallpaper-runtime'
 ])removeTagById('script',id);
 normalizeDocumentHead();
@@ -58,12 +58,12 @@ inventoryCss=inventoryCss.replace(/^@import[^;]+;\s*/gm,'');
 
 const homeParts=['runtime/ui/home/home-bg-00.txt','runtime/ui/home/home-bg-01.txt','runtime/ui/home/home-bg-02.txt','runtime/ui/home/home-bg-03.txt'];
 const homeBase64=(await Promise.all(homeParts.map(read))).join('').replace(/\s+/g,'');
-if(homeBase64.length<100000)throw new Error('UI finalize: home wallpaper payload is unexpectedly small');
+if(homeBase64.length<20000||!homeBase64.startsWith('/9j/'))throw new Error('UI finalize: home wallpaper payload is invalid');
 const homeCss=`
-.bb-home-theme{position:relative!important;isolation:isolate!important;background:#10131a!important;}
-.bb-home-theme:before{content:""!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-image:linear-gradient(rgba(6,8,13,.08),rgba(6,8,13,.18)),url("data:image/jpeg;base64,${homeBase64}")!important;background-repeat:no-repeat!important;background-position:center center!important;background-size:cover!important;opacity:1!important;mix-blend-mode:normal!important;}
+.bb-home-theme{position:relative!important;isolation:isolate!important;background:#10131a!important;background-image:none!important;}
+.bb-home-theme:before{content:""!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-image:linear-gradient(rgba(6,8,13,.06),rgba(6,8,13,.16)),url("data:image/jpeg;base64,${homeBase64}")!important;background-repeat:no-repeat!important;background-position:center center!important;background-size:cover!important;opacity:1!important;mix-blend-mode:normal!important;}
 .bb-home-theme>*{position:relative;z-index:1;}
-.bb-home-theme .bb-home-old-wallpaper{display:none!important;visibility:hidden!important;}
+.bb-home-theme .bb-home-old-wallpaper{display:none!important;visibility:hidden!important;opacity:0!important;}
 .bb-legacy-inventory-suppressed,.bb-legacy-details-suppressed{display:none!important;visibility:hidden!important;pointer-events:none!important;}
 `;
 
@@ -72,24 +72,25 @@ insertBeforeLast('</head>',`<style id="bb-ui-polish-style">${css}</style>`,'clos
 
 const detailsVm=await read('runtime/ui/unit-details.js');
 const detailsScreen=await read('runtime/ui/unit-details-screen.js');
-const inventorySkin=await read('runtime/ui/inventory/inventory-skin.js');
+const inventoryScreen=await read('runtime/ui/inventory/inventory-screen.js');
 const legacySuppress=await read('runtime/ui/unit-details/legacy-suppress.js');
-const reservedTab=await read('runtime/ui/unit-details/reserved-tab.js');
 const homeRuntime=await read('runtime/ui/home/home-skin.js');
-const scripts=`<script id="bb-unit-details-model">${detailsVm}</script><script id="bb-unit-details-screen">${detailsScreen}</script><script id="bb-inventory-skin">${inventorySkin}</script><script id="bb-legacy-details-suppress">${legacySuppress}</script><script id="bb-reserved-details-tab">${reservedTab}</script><script id="bb-home-wallpaper-runtime">${homeRuntime}</script>`;
+const scripts=`<script id="bb-unit-details-model">${detailsVm}</script><script id="bb-unit-details-screen">${detailsScreen}</script><script id="bb-inventory-screen">${inventoryScreen}</script><script id="bb-legacy-details-suppress">${legacySuppress}</script><script id="bb-home-wallpaper-runtime">${homeRuntime}</script>`;
 insertBeforeLast('</body>',scripts,'closing body');
 
 normalizeDocumentHead();
 
 const headOpen=html.search(/<head\b/i),headClose=html.search(/<\/head>/i),bodyOpen=html.search(/<body\b/i),bodyClose=html.toLowerCase().lastIndexOf('</body>');
 if(headOpen<0||headClose<0||bodyOpen<0||bodyClose<0||!(headOpen<headClose&&headClose<bodyOpen&&bodyOpen<bodyClose))throw new Error('UI finalize: invalid final document boundaries');
-for(const id of ['bb-ui-polish-style','bb-unit-details-model','bb-unit-details-screen','bb-inventory-skin','bb-legacy-details-suppress','bb-home-wallpaper-runtime']){
+for(const id of ['bb-ui-polish-style','bb-unit-details-model','bb-unit-details-screen','bb-inventory-screen','bb-legacy-details-suppress','bb-home-wallpaper-runtime']){
   const count=(html.match(new RegExp(`id=["']${id}["']`,'g'))||[]).length;
   if(count!==1)throw new Error(`UI finalize: expected one ${id}, found ${count}`);
 }
+if(/id=["']bb-inventory-skin["']/.test(html))throw new Error('UI finalize: legacy inventory decorator survived finalization');
 if(!html.includes('grid-template-columns:repeat(4,minmax(0,1fr))'))throw new Error('UI finalize: four-column inventory contract missing');
 if(!html.includes('assets/characters/${unit.id}/${asset}'))throw new Error('UI finalize: canonical clean-art path resolver missing');
-if(!html.includes('bb-home-theme'))throw new Error('UI finalize: home replacement wallpaper missing');
+if(!html.includes("img.src=assetAvailable(vm.art.full)?vm.art.full:''"))throw new Error('UI finalize: details clean-art-only contract missing');
+if(!html.includes('bb-home-theme')||!html.includes('data:image/jpeg;base64,/9j/'))throw new Error('UI finalize: home replacement wallpaper missing');
 
 await fs.writeFile(file,html);
-console.log('UI finalizer PASS: authoritative replacement Inventory/Details bundle injected at true document boundaries; legacy surfaces suppressed; home wallpaper replaced.');
+console.log('UI finalizer PASS: replacement Inventory/Details are authoritative, clean art only, legacy surfaces suppressed, new home wallpaper embedded.');
