@@ -1,0 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@500;700&family=Noto+Sans:wght@500;700;800;900&display=swap');
+
+.bbud{
+  --bbud-font-display:'Kaisei Decol','Palatino Linotype','Book Antiqua',Georgia,serif;
+  --bbud-font-ui:'Noto Sans','Avenir Next','Segoe UI',Arial,sans-serif;
+  font-family:var(--bbud-font-ui);
+}
+.bbud-name,.bbud-section-title,.bbud-tabs button,.bbud-card-art-btn,.bbud-art-viewer-title{
+  font-family:var(--bbud-font-display);
+}
+.bbud-name{font-weight:700;letter-spacing:.015em}
+.bbud-title{font-family:var(--bbud-font-display);font-weight:500}
+.bbud-eyebrow,.bbud-kicker,.bbud-stat span,.bbud-ability-meta span{font-family:var(--bbud-font-ui)}
