@@ -1,8 +1,8 @@
 .bbud{
   --bbud-cloud:#756b5d;
   background:
-    radial-gradient(circle at 76% 9%,rgba(111,171,226,.23),transparent 29%),
-    radial-gradient(circle at 13% 37%,rgba(166,201,116,.18),transparent 31%),
+    radial-gradient(circle at 76% 9%,rgba(111,171,226,.20),transparent 29%),
+    radial-gradient(circle at 13% 37%,rgba(166,201,116,.16),transparent 31%),
     linear-gradient(145deg,#eee5d1,#d5e0df 49%,#e2d5bb);
 }
 .bbud:before{
@@ -11,10 +11,10 @@
   inset:0;
   z-index:0;
   pointer-events:none;
-  opacity:.14;
+  opacity:.23;
   background-image:url('runtime/ui/unit-details/theme/backdrop-pattern.svg');
-  background-size:340px 243px;
-  background-position:-38px 12px;
+  background-size:240px 180px;
+  background-position:-18px 8px;
   background-repeat:repeat;
   mix-blend-mode:multiply;
 }
@@ -24,9 +24,9 @@
   inset:0;
   z-index:0;
   pointer-events:none;
-  opacity:.18;
+  opacity:.16;
   background:
-    repeating-linear-gradient(12deg,transparent 0 27px,rgba(255,255,255,.12) 28px 29px),
-    radial-gradient(circle at 50% 50%,transparent 0 42%,rgba(92,69,44,.08) 43% 44%,transparent 45%);
+    repeating-linear-gradient(12deg,transparent 0 27px,rgba(255,255,255,.11) 28px 29px),
+    radial-gradient(circle at 50% 50%,transparent 0 42%,rgba(92,69,44,.07) 43% 44%,transparent 45%);
 }
 .bbud-shell{position:relative;z-index:1}
