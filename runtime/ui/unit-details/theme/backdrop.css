@@ -1,4 +1,3 @@
-@import url('../../shared/cloud-backdrop-v2.css');
 .bbud{
   background-color:#e8dfca!important;
   background-image:linear-gradient(rgba(238,227,200,.18),rgba(238,227,200,.18)),var(--bb-cloud-backdrop)!important;
