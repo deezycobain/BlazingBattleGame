@@ -11,10 +11,10 @@
   inset:0;
   z-index:0;
   pointer-events:none;
-  opacity:.16;
-  background-image:url('runtime/ui/unit-details/theme/japanese-cloud-pattern.svg');
-  background-size:310px 232px;
-  background-position:-42px 16px;
+  opacity:.14;
+  background-image:url('runtime/ui/unit-details/theme/backdrop-pattern.svg');
+  background-size:340px 243px;
+  background-position:-38px 12px;
   background-repeat:repeat;
   mix-blend-mode:multiply;
 }
@@ -24,9 +24,9 @@
   inset:0;
   z-index:0;
   pointer-events:none;
-  opacity:.22;
+  opacity:.18;
   background:
-    repeating-linear-gradient(12deg,transparent 0 27px,rgba(255,255,255,.14) 28px 29px),
-    radial-gradient(circle at 50% 50%,transparent 0 42%,rgba(92,69,44,.09) 43% 44%,transparent 45%);
+    repeating-linear-gradient(12deg,transparent 0 27px,rgba(255,255,255,.12) 28px 29px),
+    radial-gradient(circle at 50% 50%,transparent 0 42%,rgba(92,69,44,.08) 43% 44%,transparent 45%);
 }
 .bbud-shell{position:relative;z-index:1}
