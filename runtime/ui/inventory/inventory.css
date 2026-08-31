@@ -7,7 +7,7 @@
   --bb-inv-paper-2:#dec7a0;
   --bb-inv-edge:#7b6044;
   --bb-inv-shadow:rgba(72,51,31,.2);
-  --bb-inv-font-name:var(--bbud-font-name,'Anime Ace',sans-serif);
+  --bb-inv-font-name:var(--bb-font-animeace,'AnimeAce2','Trebuchet MS','Arial Rounded MT Bold',sans-serif);
   --bb-inv-font-display:var(--bbud-font-display,'Kaisei Decol',serif);
   --bb-inv-font-ui:var(--bbud-font-ui,'Noto Sans',sans-serif);
   position:relative!important;
@@ -17,8 +17,8 @@
   overflow-x:hidden!important;
   -webkit-overflow-scrolling:touch;
   background:
-    radial-gradient(circle at 78% 8%,rgba(111,171,226,.16),transparent 29%),
-    radial-gradient(circle at 14% 38%,rgba(166,201,116,.13),transparent 31%),
+    radial-gradient(circle at 78% 8%,rgba(111,171,226,.15),transparent 29%),
+    radial-gradient(circle at 14% 38%,rgba(166,201,116,.12),transparent 31%),
     linear-gradient(145deg,#eee5d1,#d7e1df 49%,#e2d5bb)!important;
   color:var(--bb-inv-ink)!important;
   font-family:var(--bb-inv-font-ui)!important;
@@ -27,30 +27,31 @@
   content:"";
   position:absolute;
   inset:0;
-  z-index:-2;
+  z-index:0;
   pointer-events:none;
-  background-image:url('runtime/ui/unit-details/theme/japanese-cloud-pattern.svg');
-  background-size:238px 178px;
-  background-position:-24px 6px;
+  background-image:url('runtime/ui/unit-details/theme/backdrop-pattern.svg');
+  background-size:225px 188px;
+  background-position:-8px 0;
   background-repeat:repeat;
-  opacity:.24;
+  opacity:.28;
   mix-blend-mode:multiply;
 }
 .bb-inventory-theme:after{
   content:"";
   position:absolute;
   inset:0;
-  z-index:-1;
+  z-index:0;
   pointer-events:none;
-  opacity:.18;
-  background:repeating-linear-gradient(12deg,transparent 0 27px,rgba(255,255,255,.13) 28px 29px);
+  opacity:.13;
+  background:repeating-linear-gradient(12deg,transparent 0 27px,rgba(255,255,255,.12) 28px 29px);
 }
+.bb-inventory-theme>*{position:relative;z-index:1}
 .bb-inventory-theme .bb-inventory-title{
   margin:.15em 0 0!important;
   color:#3c2d22!important;
-  font-family:var(--bb-inv-font-name)!important;
-  font-weight:400!important;
-  letter-spacing:.015em!important;
+  font-family:var(--bb-inv-font-display)!important;
+  font-weight:700!important;
+  letter-spacing:.025em!important;
   text-transform:uppercase!important;
   text-shadow:0 1px rgba(255,255,255,.8)!important;
   transform:none!important;
@@ -69,6 +70,7 @@
   color:#4a3829!important;
   box-shadow:inset 0 1px rgba(255,255,255,.65),0 4px 10px rgba(76,54,32,.13)!important;
 }
+.bb-inventory-theme .bb-inventory-toolbar{width:min(560px,calc(100% - 20px))!important;margin:10px auto!important;box-sizing:border-box!important}
 .bb-inventory-theme .bb-inventory-count{
   border-radius:8px!important;
   font-family:var(--bb-inv-font-display)!important;
@@ -76,14 +78,14 @@
   letter-spacing:.04em!important;
 }
 .bb-inventory-theme .bb-inventory-control{
-  min-height:34px!important;
-  padding:0 12px!important;
+  min-height:32px!important;
+  padding:0 10px!important;
   border:1px solid #745637!important;
   border-radius:8px 3px 8px 3px!important;
   background:linear-gradient(180deg,#f7e3bb,#ddb978 58%,#c89a5d)!important;
   color:#4a3523!important;
   font-family:var(--bb-inv-font-display)!important;
-  font-size:10px!important;
+  font-size:9px!important;
   font-weight:700!important;
   letter-spacing:.055em!important;
   text-shadow:0 1px rgba(255,255,255,.72)!important;
@@ -91,7 +93,7 @@
 }
 .bb-inventory-theme .bb-inventory-control:active{transform:translateY(2px)!important;box-shadow:inset 0 0 0 1px rgba(88,61,35,.24),0 1px 0 #6e5031!important}
 .bb-inventory-theme .bb-inventory-grid{
-  width:100%!important;
+  width:min(560px,100%)!important;
   display:grid!important;
   grid-template-columns:repeat(4,minmax(0,1fr))!important;
   align-items:start!important;
@@ -101,4 +103,4 @@
   box-sizing:border-box!important;
 }
 .bb-inventory-theme .bb-inventory-grid>*{min-width:0!important;width:auto!important;max-width:none!important;margin:0!important}
-@media(min-width:700px){.bb-inventory-theme .bb-inventory-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;max-width:680px!important;gap:8px!important}}
+@media(max-width:360px){.bb-inventory-theme .bb-inventory-grid{gap:5px!important;padding-left:5px!important;padding-right:5px!important}}
