@@ -2,130 +2,76 @@
 'use strict';
 const norm=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');
 const text=el=>String(el?.innerText||el?.textContent||'').replace(/\s+/g,' ').trim();
+const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const inventoryUnits=()=>Object.values(window.BLAZING_UNIT_DATA||{}).filter(unit=>unit?.collection?.inventory_visible!==false&&unit?.display_name);
 const isVisible=el=>{if(!el||el.hidden)return false;const s=getComputedStyle(el);return s.display!=='none'&&s.visibility!=='hidden'&&s.opacity!=='0';};
-const unitNames=()=>inventoryUnits().map(unit=>({unit,key:norm(unit.display_name),id:norm(unit.id)}));
+const assetPath=(unit,asset)=>{if(!asset)return'';if(/^https?:|^data:|^assets\//.test(asset))return asset;return`assets/characters/${unit.id}/${asset}`;};
+const rarityStars=rarity=>/legend/i.test(rarity)?6:/myth/i.test(rarity)?6:/epic/i.test(rarity)?5:/rare/i.test(rarity)?4:3;
+let legacyInventory=null,suppressScanUntil=0;
 
-function findInventoryScreen(){
+function findLegacyInventory(){
  const selectors='#inventoryScreen,.inventoryScreen,#collectionScreen,.collectionScreen,[data-screen="inventory"],[data-screen="collection"],.screen,main,section';
- const candidates=[...new Set(document.querySelectorAll(selectors))].filter(el=>el.id!=='bbUnitDetails'&&isVisible(el));
+ const candidates=[...new Set(document.querySelectorAll(selectors))].filter(el=>el.id!=='bbInventory'&&el.id!=='bbUnitDetails'&&isVisible(el));
  const exact=candidates.filter(el=>/\bINVENTORY\b/i.test(text(el))&&/OWNED\s+FIGHTERS/i.test(text(el)));
  if(exact.length)return exact.sort((a,b)=>a.querySelectorAll('*').length-b.querySelectorAll('*').length)[0];
  return candidates.find(el=>/\bINVENTORY\b/i.test(text(el))&&/EDIT\s+TEAM/i.test(text(el)))||null;
 }
-function exactTextElement(root,rx){
- const nodes=[...root.querySelectorAll('h1,h2,h3,h4,h5,p,span,strong,b,button,div')].filter(el=>rx.test(text(el)));
- if(!nodes.length)return null;
- return nodes.sort((a,b)=>text(a).length-text(b).length||a.querySelectorAll('*').length-b.querySelectorAll('*').length)[0];
+function legacyControl(rx){
+ if(!legacyInventory)return null;
+ return [...legacyInventory.querySelectorAll('button,[role="button"],a')].find(el=>rx.test(text(el))||rx.test(el.getAttribute('aria-label')||''))||null;
 }
-function commonAncestor(nodes,stop){
- if(!nodes.length)return null;
- let cur=nodes[0];
- while(cur&&cur!==stop){if(nodes.every(node=>cur.contains(node)))return cur;cur=cur.parentElement;}
- return stop&&nodes.every(node=>stop.contains(node))?stop:null;
+function ensure(){
+ let root=document.getElementById('bbInventory');if(root)return root;
+ root=document.createElement('section');root.id='bbInventory';root.className='bb-inventory-theme';root.hidden=true;root.setAttribute('aria-label','Inventory');
+ root.innerHTML='<div class="bb-inventory-shell"><header class="bb-inventory-header"><button type="button" class="bb-inventory-back" data-action="back" aria-label="Back">‹</button><div class="bb-inventory-heading"><h1>INVENTORY</h1><p>OWNED FIGHTERS</p></div></header><div class="bb-inventory-toolbar"><strong class="bb-inventory-count"></strong><div class="bb-inventory-actions"><button type="button" class="bb-inventory-control" data-action="edit-team">EDIT TEAM</button><button type="button" class="bb-inventory-control" data-action="filter">ALL ▾</button></div></div><div class="bb-inventory-grid" role="list"></div></div>';
+ document.body.appendChild(root);
+ root.addEventListener('click',event=>{
+  const card=event.target.closest('[data-unit-id]');
+  if(card&&root.contains(card)){event.preventDefault();event.stopPropagation();openUnit(card.dataset.unitId);return;}
+  const action=event.target.closest('[data-action]')?.dataset.action;
+  if(action==='back'){event.preventDefault();forwardLegacy(/^(BACK|‹|←)$/i,'back');}
+  if(action==='edit-team'){event.preventDefault();forwardLegacy(/^EDIT\s+TEAM$/i,'edit');}
+  if(action==='filter'){event.preventDefault();forwardLegacy(/^ALL/i,'filter');}
+ });
+ return root;
 }
-function matchingUnits(value){
- const hay=norm(value);if(!hay)return [];
- return unitNames().filter(({key,id})=>(key&&hay.includes(key))||(id&&hay.includes(id)));
+function render(){
+ const root=ensure(),units=inventoryUnits();
+ root.querySelector('.bb-inventory-count').innerHTML=`FIGHTERS <em>${units.length}</em> / ${units.length}`;
+ root.querySelector('.bb-inventory-grid').innerHTML=units.map(unit=>{
+  const art=assetPath(unit,unit.assets?.art)||assetPath(unit,unit.assets?.portrait);
+  const stars='★'.repeat(rarityStars(unit.rarity));
+  return `<button type="button" class="bb-fighter-card" role="listitem" data-unit-id="${esc(unit.id)}" data-rarity="${esc(unit.rarity||'')}" data-element="${esc(unit.element||'neutral')}" aria-label="Open ${esc(unit.display_name)} details"><span class="bb-card-stars" aria-hidden="true">${stars}</span><span class="bb-card-element">${esc(unit.element||'')}</span><span class="bb-card-art">${art?`<img src="${esc(art)}" alt="${esc(unit.display_name)}">`:''}</span><span class="bb-card-foot"><strong class="bb-card-name">${esc(unit.display_name)}</strong><span class="bb-card-meta"><span>${esc(unit.rarity||'')}</span><span>LV ${esc(unit.stats?.level||1)}</span></span></span></button>`;
+ }).join('');
 }
-function unitFromNode(el){
- if(!el)return null;
- const direct=el.dataset?.unitId||el.dataset?.characterId||el.dataset?.fighterId||el.dataset?.unit||el.dataset?.character||el.dataset?.fighter;
- if(direct){const key=norm(direct),hit=inventoryUnits().find(unit=>norm(unit.id)===key||norm(unit.display_name)===key);if(hit)return hit;}
- const hits=matchingUnits(text(el));return hits.length===1?hits[0].unit:null;
+function activate(screen){
+ const root=ensure();legacyInventory=screen||legacyInventory;if(!legacyInventory)return false;
+ render();
+ legacyInventory.hidden=true;legacyInventory.setAttribute('aria-hidden','true');legacyInventory.classList.add('bb-legacy-inventory-suppressed');
+ root.hidden=false;root.removeAttribute('aria-hidden');document.body.classList.add('bb-inventory-open');return true;
 }
-function hasVisual(el){return !!el?.querySelector?.('img,picture,canvas');}
-function cardFromLabel(label,screen,unit){
- let node=label;
- for(let depth=0;node&&node!==screen&&depth<8;depth++,node=node.parentElement){
-  if(!hasVisual(node))continue;
-  const hits=matchingUnits(text(node));
-  if(hits.length===1&&hits[0].unit.id===unit.id)return node;
- }
- return null;
+function openUnit(id){
+ const root=ensure();
+ if(window.BlazingUnitDetailsScreen?.open){window.BlazingUnitDetailsScreen.open(id,{returnScreen:root});return true;}
+ return false;
 }
-function discoverCards(screen){
- const found=[];
- for(const unit of inventoryUnits()){
-  const key=norm(unit.display_name);
-  const labels=[...screen.querySelectorAll('[data-unit-name],[data-character-name],[data-fighter-name],h1,h2,h3,h4,h5,p,span,strong,b,div')]
-   .filter(el=>norm(text(el))===key);
-  let card=null;
-  for(const label of labels){card=cardFromLabel(label,screen,unit);if(card)break;}
-  if(!card){
-   const direct=[...screen.querySelectorAll('[data-unit-id],[data-character-id],[data-fighter-id],[data-unit],[data-character],[data-fighter]')]
-    .find(el=>unitFromNode(el)?.id===unit.id);
-   card=direct&&(hasVisual(direct)?direct:cardFromLabel(direct,screen,unit));
-  }
-  if(!card){
-   card=[...screen.querySelectorAll('button,article,li,div')].find(el=>hasVisual(el)&&unitFromNode(el)?.id===unit.id&&matchingUnits(text(el)).length===1)||null;
-  }
-  if(card)found.push({unit,card});
- }
- return found;
+function forwardLegacy(rx,kind){
+ const root=ensure();if(!legacyInventory)return false;
+ suppressScanUntil=performance.now()+420;root.hidden=true;document.body.classList.remove('bb-inventory-open');
+ legacyInventory.hidden=false;legacyInventory.removeAttribute('aria-hidden');
+ const control=legacyControl(rx)||((kind==='back')?[...legacyInventory.querySelectorAll('button,[role="button"]')].find(el=>/back/i.test(el.getAttribute('aria-label')||'')):null);
+ if(control){control.click();return true;}
+ if(kind==='back'){legacyInventory.hidden=true;root.hidden=true;return true;}
+ setTimeout(()=>activate(legacyInventory),0);return false;
 }
-function findGrid(screen,entries){
- if(entries.length<2)return entries[0]?.card?.parentElement||null;
- const cards=entries.map(entry=>entry.card);
- const candidates=[];
- for(const card of cards){
-  let node=card.parentElement;
-  for(let depth=0;node&&node!==screen&&depth<7;depth++,node=node.parentElement){
-   const count=cards.filter(item=>node.contains(item)).length;
-   if(count>=2)candidates.push(node);
-  }
- }
- if(!candidates.length)return commonAncestor(cards,screen);
- return [...new Set(candidates)].sort((a,b)=>{
-  const ac=cards.filter(item=>a.contains(item)).length,bc=cards.filter(item=>b.contains(item)).length;
-  if(ac!==bc)return bc-ac;
-  return a.querySelectorAll('*').length-b.querySelectorAll('*').length;
- })[0];
+function sync(){
+ if(performance.now()<suppressScanUntil)return false;
+ const visibleLegacy=findLegacyInventory();if(visibleLegacy)return activate(visibleLegacy);
+ return false;
 }
-function directChildUnder(node,ancestor){
- let cur=node;if(!ancestor)return node;
- while(cur?.parentElement&&cur.parentElement!==ancestor&&cur.parentElement!==document.body)cur=cur.parentElement;
- return cur?.parentElement===ancestor?cur:node;
-}
-function decorateCard(card,unit){
- card.classList.add('bb-fighter-card');card.dataset.unitId=unit.id;card.dataset.element=String(unit.element||'neutral').toLowerCase();card.dataset.rarity=String(unit.rarity||'');
- const nameKey=norm(unit.display_name);
- const name=[...card.querySelectorAll('[data-unit-name],[data-character-name],[data-fighter-name],h1,h2,h3,h4,h5,p,span,strong,b,div')].find(el=>norm(text(el))===nameKey);
- if(name)name.classList.add('bb-card-name');
- const meta=[...card.querySelectorAll('span,p,small,strong,div')].filter(el=>{const t=text(el);return norm(t)===norm(unit.rarity)||/^LV\s*\d+/i.test(t)||/^LEVEL\s*\d+/i.test(t);});
- meta.forEach(el=>el.classList.add('bb-card-meta'));
-}
-function decorateToolbar(screen){
- const title=exactTextElement(screen,/^INVENTORY$/i);if(title)title.classList.add('bb-inventory-title');
- const subtitle=exactTextElement(screen,/^OWNED\s+FIGHTERS$/i);if(subtitle)subtitle.classList.add('bb-inventory-subtitle');
- if(title&&subtitle){const head=commonAncestor([title,subtitle],screen);if(head&&head!==screen)head.classList.add('bb-inventory-header');}
- const count=exactTextElement(screen,/^FIGHTERS\s+\d+\s*\/\s*\d+$/i);if(count)count.classList.add('bb-inventory-count');
- const edit=exactTextElement(screen,/^EDIT\s+TEAM$/i),filter=exactTextElement(screen,/^ALL(?:\s*[⌄▾▼])?$/i);
- [edit,filter].filter(Boolean).forEach(el=>el.classList.add('bb-inventory-control'));
- const parts=[count,edit,filter].filter(Boolean);if(parts.length>=2){const toolbar=commonAncestor(parts,screen);if(toolbar&&toolbar!==screen)toolbar.classList.add('bb-inventory-toolbar');}
-}
-function decorateGrid(screen){
- const entries=discoverCards(screen);if(!entries.length)return;
- const grid=findGrid(screen,entries);if(!grid||grid===screen)return;
- grid.classList.add('bb-inventory-grid');
- for(const entry of entries){const wrapper=directChildUnder(entry.card,grid);decorateCard(wrapper,entry.unit);if(wrapper!==entry.card)entry.card.classList.remove('bb-fighter-card');}
- for(const child of [...grid.children]){
-  if(child.classList.contains('bb-fighter-card'))continue;
-  const t=text(child);const visual=hasVisual(child);
-  if((/^\+?$/.test(t)||!t)&&!visual)child.classList.add('bb-slot-empty');
- }
-}
-function decorate(){
- const screen=findInventoryScreen();if(!screen)return false;
- document.querySelectorAll('.bb-inventory-theme').forEach(el=>{if(el!==screen)el.classList.remove('bb-inventory-theme');});
- screen.classList.add('bb-inventory-theme');decorateToolbar(screen);decorateGrid(screen);return true;
-}
-let queued=false;
-function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;decorate();});}
+let queued=false;function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;sync();});}
 new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class','style']});
-document.addEventListener('click',()=>setTimeout(schedule,0),true);
-document.addEventListener('pointerup',()=>setTimeout(schedule,0),true);
-window.addEventListener('resize',schedule,{passive:true});
+document.addEventListener('click',()=>setTimeout(schedule,0),true);document.addEventListener('pointerup',()=>setTimeout(schedule,0),true);
 setTimeout(schedule,0);
-window.BlazingInventorySkin=Object.freeze({decorate,findInventoryScreen,discoverCards});
+window.BlazingInventorySkin=Object.freeze({sync,activate,render,findInventoryScreen:findLegacyInventory,get legacyInventory(){return legacyInventory;}});
 })();
