@@ -43,7 +43,7 @@ function fromUnit(unit){
   stats:Object.freeze({level:number(stats.level),hp:number(stats.hp),attack:number(stats.attack),defense:number(stats.defense),speed:number(stats.speed)}),
   resources:Object.freeze({chakraMax:number(combat.chakra_max),chakraStart:number(combat.chakra_start)}),
   abilities:Object.freeze({basic:abilitySummary(abilities.basic,'basic'),jutsu:abilitySummary(abilities.jutsu,'jutsu')}),
-  art:Object.freeze({full:fullArt,card:fullArt||mockupArt,mockup:mockupArt,portrait:assetPath(unit,assets.portrait),icon:assetPath(unit,assets.icon)}),
+  art:Object.freeze({full:fullArt,card:mockupArt,mockup:mockupArt,portrait:assetPath(unit,assets.portrait),icon:assetPath(unit,assets.icon)}),
   readiness:Object.freeze({...unit.readiness}),
   extensions:Object.freeze({progression:unit.progression||null,traits:unit.traits||null,equipment:unit.equipment||null,awakening:unit.awakening||null,skins:unit.skins||null,lore:unit.lore||null})
  });
