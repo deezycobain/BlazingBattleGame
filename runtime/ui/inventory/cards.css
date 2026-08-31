@@ -1,0 +1,86 @@
+.bb-inventory-theme .bb-fighter-card{
+  --bb-card-accent:#98763e;
+  position:relative!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  height:auto!important;
+  aspect-ratio:4/5!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  padding:3px!important;
+  border:1px solid color-mix(in srgb,var(--bb-card-accent) 72%,#5f4932)!important;
+  border-radius:7px 3px 7px 3px!important;
+  background:linear-gradient(180deg,rgba(255,247,224,.96),rgba(227,207,171,.97))!important;
+  color:#352a22!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.58),0 2px 5px rgba(68,47,29,.15)!important;
+  font-family:var(--bb-inv-font-ui)!important;
+  cursor:pointer;
+  transform:none!important;
+}
+.bb-inventory-theme .bb-fighter-card:before{
+  content:"";
+  position:absolute;
+  z-index:4;
+  left:3px;right:3px;top:3px;
+  height:3px;
+  border-radius:4px 2px 0 0;
+  background:linear-gradient(90deg,transparent,var(--bb-card-accent),transparent);
+  opacity:.78;
+  pointer-events:none;
+}
+.bb-inventory-theme .bb-fighter-card:hover{filter:brightness(1.025)}
+.bb-inventory-theme .bb-fighter-card:active{transform:scale(.975)!important}
+.bb-inventory-theme .bb-fighter-card img,
+.bb-inventory-theme .bb-fighter-card picture,
+.bb-inventory-theme .bb-fighter-card canvas{
+  max-width:100%!important;
+  width:100%!important;
+  height:auto!important;
+  max-height:calc(100% - 25px)!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+}
+.bb-inventory-theme .bb-fighter-card *{box-sizing:border-box}
+.bb-inventory-theme .bb-fighter-card .bb-card-name,
+.bb-inventory-theme .bb-fighter-card [data-unit-name],
+.bb-inventory-theme .bb-fighter-card [data-character-name],
+.bb-inventory-theme .bb-fighter-card [data-fighter-name]{
+  color:#362920!important;
+  font-family:var(--bb-inv-font-name)!important;
+  font-size:clamp(8px,2.1vw,11px)!important;
+  font-weight:400!important;
+  line-height:1.05!important;
+  letter-spacing:.01em!important;
+  text-transform:uppercase!important;
+  text-shadow:0 1px rgba(255,255,255,.75)!important;
+}
+.bb-inventory-theme .bb-fighter-card .bb-card-meta{
+  color:#6c5a47!important;
+  font-size:7px!important;
+  font-weight:800!important;
+  line-height:1.05!important;
+  letter-spacing:.035em!important;
+  text-transform:uppercase!important;
+}
+.bb-inventory-theme .bb-fighter-card [class*="star" i],
+.bb-inventory-theme .bb-fighter-card [class*="rarity" i]{font-size:8px!important;line-height:1!important}
+.bb-inventory-theme .bb-fighter-card[data-element*="fire" i]{--bb-card-accent:#b45c3f}
+.bb-inventory-theme .bb-fighter-card[data-element*="ice" i],.bb-inventory-theme .bb-fighter-card[data-element*="water" i]{--bb-card-accent:#4c91ae}
+.bb-inventory-theme .bb-fighter-card[data-element*="nature" i],.bb-inventory-theme .bb-fighter-card[data-element*="earth" i]{--bb-card-accent:#628b50}
+.bb-inventory-theme .bb-fighter-card[data-element*="cosmic" i],.bb-inventory-theme .bb-fighter-card[data-element*="dark" i],.bb-inventory-theme .bb-fighter-card[data-element*="shadow" i]{--bb-card-accent:#81588f}
+.bb-inventory-theme .bb-fighter-card[data-element*="lightning" i],.bb-inventory-theme .bb-fighter-card[data-element*="electric" i]{--bb-card-accent:#aa873a}
+.bb-inventory-theme .bb-slot-empty{
+  display:grid!important;
+  place-items:center!important;
+  aspect-ratio:4/5!important;
+  min-height:0!important;
+  border:1px dashed rgba(102,78,52,.42)!important;
+  border-radius:7px 3px 7px 3px!important;
+  background:rgba(244,232,203,.42)!important;
+  color:rgba(84,66,48,.48)!important;
+  box-shadow:none!important;
+}
+.bb-inventory-theme .bb-slot-empty:before{content:"+";font-family:var(--bb-inv-font-display);font-size:20px;color:rgba(84,66,48,.45)}
+.bb-inventory-theme .bb-slot-empty>*{opacity:.42!important}
+@media(max-width:380px){.bb-inventory-theme .bb-fighter-card{aspect-ratio:3/4!important}.bb-inventory-theme .bb-slot-empty{aspect-ratio:3/4!important}}
