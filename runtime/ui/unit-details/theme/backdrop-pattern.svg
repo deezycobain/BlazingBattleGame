@@ -1,18 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="420" height="300" viewBox="0 0 420 300">
-  <g fill="none" stroke="#776b58" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
-    <path d="M-18 92c16-24 44-31 68-14 8-31 50-46 76-20 18-31 69-27 84 12 31-17 69 3 76 39 23-3 46 12 57 34H-16c-12-17-12-34-2-51Z" fill="#e6dcc3"/>
-    <path d="M39 77c2-22 31-35 48-17 10 11 5 31-8 35-12 4-25-4-24-16 1-8 7-14 15-15"/>
-    <path d="M118 62c7-18 30-27 47-17 17 10 19 34 5 47-12 12-34 10-42-5-6-11-1-25 10-30"/>
-    <path d="M211 91c8-16 29-22 44-12 15 9 16 31 3 42-11 10-29 8-36-4-6-10-2-22 8-27"/>
-    <path d="M286 109c15-12 38-11 51 4"/>
-    <path d="M-8 143h351"/>
-    <path d="M52 143c-12 9-19 18-22 28h35l17-28"/>
-  </g>
-  <g fill="none" stroke="#817466" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" opacity=".78" transform="translate(105 150) scale(.78)">
-    <path d="M-18 92c16-24 44-31 68-14 8-31 50-46 76-20 18-31 69-27 84 12 31-17 69 3 76 39 23-3 46 12 57 34H-16c-12-17-12-34-2-51Z" fill="#8c898c"/>
-    <path d="M39 77c2-22 31-35 48-17 10 11 5 31-8 35-12 4-25-4-24-16 1-8 7-14 15-15"/>
-    <path d="M118 62c7-18 30-27 47-17 17 10 19 34 5 47-12 12-34 10-42-5-6-11-1-25 10-30"/>
-    <path d="M211 91c8-16 29-22 44-12 15 9 16 31 3 42-11 10-29 8-36-4-6-10-2-22 8-27"/>
-    <path d="M-8 143h351"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="270" viewBox="0 0 360 270">
+  <defs>
+    <g id="cloud">
+      <path fill="#e9dfc6" stroke="#756d61" stroke-width="2.2" stroke-linejoin="round" d="M0 72c10-18 30-26 49-19 8-23 35-34 57-22 16-20 50-18 62 7 21-10 49 2 56 27 17-1 34 9 42 24H5c-8-6-9-11-5-17Z"/>
+      <path fill="none" stroke="#756d61" stroke-width="2.2" stroke-linecap="round" d="M39 55c0-13 12-23 24-21 12 2 19 15 13 26-5 10-19 13-27 5-6-6-5-16 1-21M101 40c1-14 15-23 28-18 13 5 17 21 8 31-8 9-23 8-29-2-5-8-1-18 7-22M168 57c1-13 14-22 26-17 12 5 15 21 6 30-8 8-21 7-27-2-4-7-1-16 6-20"/>
+      <path fill="none" stroke="#756d61" stroke-width="2.2" stroke-linecap="round" d="M5 89h258M46 89l-16 15h34l16-15M192 89l-14 12h30l15-12"/>
+    </g>
+  </defs>
+  <g opacity=".9">
+    <use href="#cloud" x="-28" y="-8"/>
+    <use href="#cloud" x="172" y="24" transform="scale(.72)"/>
+    <g transform="translate(104 120) scale(.83)">
+      <path fill="#8b898d" stroke="#756d61" stroke-width="2.2" stroke-linejoin="round" d="M0 72c10-18 30-26 49-19 8-23 35-34 57-22 16-20 50-18 62 7 21-10 49 2 56 27 17-1 34 9 42 24H5c-8-6-9-11-5-17Z"/>
+      <path fill="none" stroke="#6b645a" stroke-width="2.2" stroke-linecap="round" d="M39 55c0-13 12-23 24-21 12 2 19 15 13 26-5 10-19 13-27 5-6-6-5-16 1-21M101 40c1-14 15-23 28-18 13 5 17 21 8 31-8 9-23 8-29-2-5-8-1-18 7-22M168 57c1-13 14-22 26-17 12 5 15 21 6 30-8 8-21 7-27-2-4-7-1-16 6-20M5 89h258M46 89l-16 15h34l16-15"/>
+    </g>
+    <use href="#cloud" x="-72" y="176" transform="scale(.7)"/>
+    <use href="#cloud" x="216" y="190" transform="scale(.62)"/>
   </g>
 </svg>
