@@ -1,6 +1,25 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 const html=await fs.readFile(path.join(process.cwd(),'dist','index.html'),'utf8'),fail=msg=>{throw new Error(`Final Tyler/browser validation failed: ${msg}`)};
-for(const marker of ["['crimson','subzero','lebee','senku','tyler','anubis']","const ACTIVE_PLAYABLE_UNITS=Object.freeze(['Crimson','Sub-Zero','Lebee','Senku','Tyler']);","const DEFAULT_ACTIVE_TEAM=Object.freeze(['Tyler','Lebee','Sub-Zero']);","const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v4';",'assets/characters/tyler/sprites/source/idle_sheet.png','assets/characters/tyler/sprites/source/basic_attack_sheet.png',"idle:buildSheet('assets/characters/tyler/sprites/source/idle_sheet.png',5,1,5,100)","basic:buildSheet('assets/characters/tyler/sprites/source/basic_attack_sheet.png',4,2,8,100)",'edgeBackground',"function protectedControl(target){return !!target.closest?.('button,[role=\"button\"],input,select,textarea,a[href],[data-inventory-action]",'id="bb-desktop-battle-input"',"cvs.addEventListener('pointerdown'","ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,96):UNIT_TOUCH_RADIUS"]){if(!html.includes(marker))fail(`built shell missing ${marker}`);}
-for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'"]){if(html.includes(obsolete))fail(`obsolete desktop-input code survived: ${obsolete}`);}
-console.log('Final Tyler/browser PASS: corrected Tyler sprite roles/background cleanup, Edit Team control routing, and desktop PointerEvents all survived final build.');
+for(const marker of [
+ "['crimson','subzero','lebee','senku','tyler','anubis']",
+ "const ACTIVE_PLAYABLE_UNITS=Object.freeze(['Crimson','Sub-Zero','Lebee','Senku','Tyler']);",
+ "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Tyler','Lebee','Sub-Zero']);",
+ "const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v4';",
+ 'assets/characters/tyler/sprites/source/idle_sheet.png',
+ 'assets/characters/tyler/sprites/source/basic_attack_sheet.png',
+ "[0,0,1,2,3,4,4]",
+ "[0,0,1,2,3,4,5,6,7,7]",
+ 'pruneTinyComponents',
+ 'bgDistance(i)<8200',
+ 'candidates=[u?.assets?.art,u?.assets?.portrait,u?.assets?.card]',
+ 'id="bb-team-scroll-theme"',
+ 'id="bb-team-theme-runtime"',
+ 'linear-gradient(180deg,rgba(255,248,226,.95)',
+ "function protectedControl(target){return !!target.closest?.('button,[role=\"button\"],input,select,textarea,a[href],[data-inventory-action]",
+ 'id="bb-desktop-battle-input"',
+ "cvs.addEventListener('pointerdown'",
+ "ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,96):UNIT_TOUCH_RADIUS"
+])if(!html.includes(marker))fail(`built shell missing ${marker}`);
+for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait"])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
+console.log('Final Tyler/browser PASS: team page uses full-art-first portraits plus parchment/cloud theme; Tyler held-frame pacing and sheet-artifact cleanup survived final build; desktop PointerEvents remain intact.');
