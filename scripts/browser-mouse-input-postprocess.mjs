@@ -7,11 +7,28 @@ const id='bb-desktop-battle-input';
 const existing=new RegExp(`<script\\b[^>]*id=["']${id}["'][^>]*>[\\s\\S]*?<\\/script>`,'i');
 html=html.replace(existing,'');
 
+for(const marker of [
+  "cvs.addEventListener('pointerdown'",
+  "cvs.addEventListener('pointermove'",
+  "cvs.addEventListener('pointerup'",
+  "cvs.addEventListener('pointercancel'"
+])if(!html.includes(marker))throw new Error(`Browser mouse input: native battle pointer listener missing: ${marker}`);
+
+// Keep the phone/tablet pickup radius exactly as-is. Desktop mouse gets a larger pickup
+// radius around the active fighter so clicking the visible sprite (not just its foot anchor)
+// reliably begins the same native PointerEvent drag path.
+const original=" if(!p||!pairAlive(p)||d(pt,p)>UNIT_TOUCH_RADIUS)return;";
+const patched=" const inputRadius=ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,96):UNIT_TOUCH_RADIUS;\n if(!p||!pairAlive(p)||d(pt,p)>inputRadius)return;";
+const sourceCount=html.split(original).length-1,targetCount=html.split(patched).length-1;
+if(sourceCount===1)html=html.replace(original,patched);
+else if(sourceCount===0&&targetCount===1){}
+else throw new Error(`Browser mouse input: expected one pointerdown hit-test, found source=${sourceCount}, target=${targetCount}`);
+
+// Some desktop layouts place non-interactive DOM presentation layers above #game. When a
+// mouse PointerEvent lands on one of those layers, retarget it to the visible battle canvas.
+// Buttons/links/form controls are never bridged. Touch and pen are never bridged.
 const runtime=`<script id="${id}">(()=>{
 'use strict';
-// Pointer-native desktop compatibility. The battle itself listens for PointerEvents;
-// this bridge only retargets mouse pointers when a visible DOM layer sits above #game.
-// Native canvas mouse input, touch, and pen input remain untouched.
 let activeCanvas=null;
 let bridgedPointerId=4242;
 const interactive=target=>!!target?.closest?.('button,a,input,select,textarea,[role="button"]');
@@ -101,9 +118,10 @@ document.addEventListener('pointercancel',event=>{
 const at=html.toLowerCase().lastIndexOf('</body>');
 if(at<0)throw new Error('Browser mouse input: closing body not found');
 html=html.slice(0,at)+runtime+html.slice(at);
-if((html.match(new RegExp(`id=["']${id}["']`,'g'))||[]).length!==1)throw new Error('Browser mouse input: adapter injection was not unique');
-for(const marker of ["cvs.addEventListener('pointerdown'","cvs.addEventListener('pointermove'","cvs.addEventListener('pointerup'"]){
- if(!html.includes(marker))throw new Error(`Browser mouse input: native battle pointer listener missing: ${marker}`);
-}
+
+if((html.match(new RegExp(`id=["']${id}["']`,'g'))||[]).length!==1)throw new Error('Browser mouse input: desktop pointer bridge injection was not unique');
+if(!html.includes("ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,96):UNIT_TOUCH_RADIUS"))throw new Error('Browser mouse input: desktop pickup-radius patch missing');
+if(html.includes('new TouchEvent(')||html.includes("dispatchTouch('touchstart'"))throw new Error('Browser mouse input: obsolete mouse-to-touch adapter survived');
+
 await fs.writeFile(file,html);
-console.log('Desktop browser input applied: mouse PointerEvents route to the battle canvas; native canvas mouse, touch, and pen remain unchanged.');
+console.log('Desktop browser input applied: native battle PointerEvents retained, mouse pickup radius widened, and overlay pointer events safely retarget to #game; touch/pen unchanged.');

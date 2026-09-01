@@ -60,11 +60,11 @@
   "assets": {
     "art": "art/current_collection_art.png",
     "card": "cards/current_collection_card.png",
-    "portrait": null,
+    "portrait": "art/current_collection_art.png",
     "icon": null,
     "sprites": {
-      "idle": "sprites/runtime/idle/",
-      "attack_basic": "sprites/runtime/attack/basic/"
+      "idle": "sprites/source/idle_sheet.png",
+      "attack_basic": "sprites/source/basic_attack_sheet.png"
     },
     "vfx": "vfx/"
   },
@@ -75,16 +75,16 @@
     "basic_attack": true,
     "jutsu": false,
     "recoil": false,
-    "notes": "Tyler is playable with Basic Attack. The uploaded portrait is the canonical collection/card artwork; the mismatched legacy summon card is archived. Uploaded sprite sheets are retained under sprites/source/imported while the existing six-frame idle and base Basic Attack runtime frames remain active. Jutsu remains intentionally locked until authored.",
+    "notes": "Tyler uses the newly supplied collection artwork plus an 8-pose idle sheet and 5-pose Basic Attack sheet. The browser runtime slices, removes the connected light sheet background, and normalizes those poses into battlefield frames. Jutsu remains intentionally locked until authored.",
     "animation_map": true
   },
   "balance": {
     "status": "provisional",
-    "pass": "v0.7.0-tyler-integration",
-    "notes": "Initial playable values for runtime integration; tune after Tyler gameplay review."
+    "pass": "v0.7.0-tyler-integration-fix",
+    "notes": "Initial playable values retained while Tyler asset and browser-input integration is stabilized."
   },
   "animation_standard": {
-    "version": "v0.6.16",
+    "version": "v0.7.0-tyler-authored-sheets",
     "canvas": {
       "width": 420,
       "height": 420,
@@ -93,27 +93,34 @@
     },
     "animations": {
       "idle": {
-        "frames": [
-          "sprites/runtime/idle/frame_01.png",
-          "sprites/runtime/idle/frame_02.png",
-          "sprites/runtime/idle/frame_03.png",
-          "sprites/runtime/idle/frame_04.png",
-          "sprites/runtime/idle/frame_05.png",
-          "sprites/runtime/idle/frame_06.png"
-        ],
-        "frame_ms": 150,
+        "source_sheet": {
+          "path": "sprites/source/idle_sheet.png",
+          "columns": 4,
+          "rows": 2,
+          "frame_count": 8,
+          "content_top_px": 100,
+          "background_cleanup": "connected_light_sheet_to_alpha"
+        },
+        "frames": [],
+        "frame_ms": 185,
         "loop": true,
         "events": []
       },
       "basic_attack": {
-        "frames": [
-          "sprites/runtime/attack/basic/frame_01.png"
-        ],
-        "frame_ms": 120,
+        "source_sheet": {
+          "path": "sprites/source/basic_attack_sheet.png",
+          "columns": 5,
+          "rows": 1,
+          "frame_count": 5,
+          "content_top_px": 100,
+          "background_cleanup": "connected_light_sheet_to_alpha"
+        },
+        "frames": [],
+        "frame_ms": 115,
         "loop": false,
         "events": [
           {
-            "frame": 1,
+            "frame": 4,
             "event": "release_projectile_or_apply_melee"
           }
         ]
