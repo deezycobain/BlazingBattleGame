@@ -8,10 +8,12 @@ const read=rel=>fs.readFile(path.join(ROOT,rel),'utf8');
 function removeTagById(tag,id){const rx=new RegExp(`<${tag}\\b[^>]*\\bid=["']${id}["'][^>]*>[\\s\\S]*?<\\/${tag}>`,'gi');html=html.replace(rx,'');}
 function insertBeforeLast(tag,text,label){const at=html.toLowerCase().lastIndexOf(tag.toLowerCase());if(at<0)throw new Error(`UI finalize: missing ${label}`);html=html.slice(0,at)+text+html.slice(at);}
 function normalizeDocumentHead(){const hm=html.match(/<head\b[^>]*>/i),bodyAt=html.search(/<body\b/i);if(!hm||bodyAt<0)throw new Error('UI finalize: document head/body missing');const ho=hm.index??-1,hc=ho+hm[0].length;if(ho<0||hc>=bodyAt)throw new Error('UI finalize: invalid document head boundary');html=html.slice(0,hc)+html.slice(hc,bodyAt).replace(/<\/head\s*>/gi,'')+'</head>'+html.slice(bodyAt);}
+function stripLeakedDetailsRuntime(){let removed=0;const anchorNeedle='window.BlazingUnitDetailsScreen=Object.freeze';let anchor=html.indexOf(anchorNeedle);while(anchor>=0){const priorClose=html.lastIndexOf('</script>',anchor),nextOpen=html.lastIndexOf('<script',anchor);if(priorClose>nextOpen&&anchor-priorClose<24000){const end=html.indexOf('})();',anchor);if(end>anchor){const segment=html.slice(priorClose+9,end+5);if(/bindLegacyTakeover|findInventoryReturn|takeoverLegacyDetails/.test(segment)){html=html.slice(0,priorClose+9)+html.slice(end+5);removed++;anchor=html.indexOf(anchorNeedle);continue;}}}anchor=html.indexOf(anchorNeedle,anchor+anchorNeedle.length);}return removed;}
 const safeScript=source=>source.replace(/<\/script/gi,'<\\/script');
 for(const id of ['bb-unit-details-style','bb-ui-polish-style','bb-home-wallpaper-style'])removeTagById('style',id);
 for(const id of ['bb-unit-details-model','bb-unit-details-screen','bb-inventory-skin','bb-inventory-screen','bb-legacy-details-suppress','bb-reserved-details-tab','bb-home-wallpaper-runtime'])removeTagById('script',id);
 normalizeDocumentHead();
+stripLeakedDetailsRuntime();
 if(!/<meta\b[^>]*charset/i.test(html))html=html.replace(/<head\b([^>]*)>/i,'<head$1><meta charset="utf-8">');
 const fontCss=await read('runtime/ui/theme/animeace-font.css');
 const themeCss=await read('runtime/ui/unit-details/theme.css');
@@ -25,10 +27,10 @@ let detailShellCss=await read('runtime/ui/unit-details.css');
 let inventoryCss=await read('runtime/ui/inventory/inventory.css');
 const cardsCss=await read('runtime/ui/inventory/cards.css');
 detailShellCss=detailShellCss.replace(/^@import[^;]+;\s*/gm,'');inventoryCss=inventoryCss.replace(/^@import[^;]+;\s*/gm,'');backdropCss=backdropCss.replace(/^@import[^;]+;\s*/gm,'');
-const cloudParts=['runtime/ui/shared/cloud-bg-00.txt','runtime/ui/shared/cloud-bg-01.txt','runtime/ui/shared/cloud-bg-02.txt'];
-const cloudBase64=(await Promise.all(cloudParts.map(read))).join('').replace(/\s+/g,'');
-if(cloudBase64.length<20000||!cloudBase64.startsWith('UklGR'))throw new Error('UI finalize: cloud wallpaper payload is invalid');
-const cloudUrl=`url("data:image/webp;base64,${cloudBase64}")`;
+const cloudImage=await fs.readFile(path.join(ROOT,'runtime/ui/shared/cloud-backdrop-hq.png'));
+const cloudBase64=cloudImage.toString('base64');
+if(cloudImage.length<500000||!cloudBase64.startsWith('iVBOR'))throw new Error('UI finalize: HQ PNG cloud backdrop is invalid');
+const cloudUrl=`url("data:image/png;base64,${cloudBase64}")`;
 inventoryCss=inventoryCss.replace(/var\(--bb-cloud-backdrop\)/g,cloudUrl);
 backdropCss=backdropCss.replace(/var\(--bb-cloud-backdrop\)/g,cloudUrl);
 const homeImage=await fs.readFile(path.join(ROOT,'runtime/ui/home/home-wallpaper-hq.png'));
@@ -46,6 +48,7 @@ if(/id=["']bb-inventory-skin["']/.test(html))throw new Error('UI finalize: legac
 if(!html.includes('grid-template-columns:repeat(4,minmax(0,1fr))'))throw new Error('UI finalize: four-column inventory contract missing');
 if(!html.includes('assets/characters/${unit.id}/${asset}'))throw new Error('UI finalize: canonical clean-art path resolver missing');
 if(!html.includes("img.src=assetAvailable(vm.art.full)?vm.art.full:''"))throw new Error('UI finalize: details clean-art-only contract missing');
-if((html.match(/data:image\/webp;base64,UklGR/g)||[]).length<2)throw new Error('UI finalize: direct cloud backdrops missing');
-if(!html.includes('bb-home-theme')||!html.includes('data:image/png;base64,iVBOR'))throw new Error('UI finalize: HQ PNG home wallpaper missing');
-await fs.writeFile(file,html);console.log('UI finalizer PASS: direct Inventory/Details cloud images, HQ PNG Home wallpaper, safe scripts.');
+if((html.match(/data:image\/png;base64,iVBOR/g)||[]).length<3)throw new Error('UI finalize: HQ PNG backdrops missing');
+if(!html.includes('bb-home-theme'))throw new Error('UI finalize: HQ PNG home wallpaper missing');
+const bodyTextTail=html.slice(bodyOpen,bodyClose);if(/findInventoryReturn[\s\S]{0,12000}BlazingUnitDetailsScreen=Object\.freeze/.test(bodyTextTail.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')))throw new Error('UI finalize: leaked details runtime text survived');
+await fs.writeFile(file,html);console.log('UI finalizer PASS: HQ PNG Inventory/Details cloud backdrop, HQ Home wallpaper, leaked source removed.');
