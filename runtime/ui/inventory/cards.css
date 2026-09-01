@@ -1,34 +1,10 @@
-#bbInventory .bb-fighter-card{
-  --bb-rarity-edge:#8b744d;
-  --bb-rarity-inner:#c8b68e;
-  --bb-rarity-glow:rgba(116,86,48,.18);
-  position:relative;
-  width:100%;
-  min-width:0;
-  aspect-ratio:3/4;
-  overflow:hidden;
-  padding:0;
-  border:2px solid var(--bb-rarity-edge);
-  border-radius:7px 3px 7px 3px;
-  background:#171b21;
-  color:#fff;
-  box-shadow:inset 0 0 0 1px var(--bb-rarity-inner),0 3px 8px var(--bb-rarity-glow);
-  font-family:var(--bb-inv-font-ui);
-  text-align:left;
-  cursor:pointer;
-}
+#bbInventory .bb-fighter-item{display:block;min-width:0;color:inherit;cursor:pointer;outline:none}.bb-fighter-item:focus-visible .bb-fighter-card{outline:2px solid rgba(73,52,37,.72);outline-offset:2px}
+#bbInventory .bb-fighter-card{--bb-rarity-edge:#8b744d;--bb-rarity-inner:#c8b68e;--bb-rarity-glow:rgba(116,86,48,.18);position:relative;width:100%;min-width:0;aspect-ratio:3/4;overflow:hidden;padding:0;border:2px solid var(--bb-rarity-edge);border-radius:7px 3px 7px 3px;background:#171b21;color:#fff;box-shadow:inset 0 0 0 1px var(--bb-rarity-inner),0 3px 8px var(--bb-rarity-glow);font-family:var(--bb-inv-font-ui);text-align:left}
 #bbInventory .bb-fighter-card:before{content:"";position:absolute;z-index:6;inset:3px;border:1px solid color-mix(in srgb,var(--bb-rarity-edge) 58%,#fff 8%);border-radius:4px 2px 4px 2px;pointer-events:none}
-#bbInventory .bb-fighter-card[data-rarity*="legend" i]{--bb-rarity-edge:#d2a92d;--bb-rarity-inner:#f0da73;--bb-rarity-glow:rgba(201,155,32,.30)}
-#bbInventory .bb-fighter-card[data-rarity*="myth" i]{--bb-rarity-edge:#d16b42;--bb-rarity-inner:#f0a878;--bb-rarity-glow:rgba(209,107,66,.28)}
-#bbInventory .bb-fighter-card[data-rarity*="epic" i]{--bb-rarity-edge:#8d5bc4;--bb-rarity-inner:#c39bea;--bb-rarity-glow:rgba(141,91,196,.25)}
-#bbInventory .bb-fighter-card[data-rarity*="rare" i]{--bb-rarity-edge:#4b8abf;--bb-rarity-inner:#8ec0e6;--bb-rarity-glow:rgba(75,138,191,.24)}
-#bbInventory .bb-fighter-card:hover{filter:brightness(1.035)}
-#bbInventory .bb-fighter-card:active{transform:scale(.975)}
-#bbInventory .bb-card-stars{position:absolute;z-index:5;left:6px;top:5px;color:#ffd952;font-size:clamp(7px,1.7vw,10px);line-height:1;letter-spacing:-1px;text-shadow:0 1px 2px #000}
-#bbInventory .bb-card-element{position:absolute;z-index:5;right:5px;top:5px;max-width:42%;overflow:hidden;padding:3px 5px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(10,15,21,.78);color:#efe9d7;font-size:6px;font-weight:800;letter-spacing:.04em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
-#bbInventory .bb-card-art{position:absolute;inset:0 0 25%;display:block;overflow:hidden;background:linear-gradient(180deg,#202731 0%,#12171d 100%)}
-#bbInventory .bb-card-art img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 35%;transform:scale(1.02)}
-#bbInventory .bb-card-foot{position:absolute;z-index:4;left:0;right:0;bottom:0;display:flex;height:27%;flex-direction:column;justify-content:flex-end;padding:15px 7px 7px;background:linear-gradient(180deg,transparent,rgba(8,11,15,.88) 34%,#0b0e12 70%)}
-#bbInventory .bb-card-name{display:block;overflow:hidden;color:#fff;font-family:var(--bb-inv-font-name);font-size:clamp(8px,2vw,11px);font-weight:400;line-height:1.03;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap;text-shadow:0 1px 2px #000}
-#bbInventory .bb-card-meta{display:flex;justify-content:space-between;gap:4px;margin-top:4px;color:#ded9ce;font-size:6.5px;font-weight:800;line-height:1;letter-spacing:.025em;text-transform:uppercase}
-@media(max-width:360px){#bbInventory .bb-card-element{font-size:5.5px;padding:2px 4px}#bbInventory .bb-card-meta{font-size:5.8px}#bbInventory .bb-card-foot{padding-left:5px;padding-right:5px}}
+#bbInventory .bb-fighter-card[data-rarity*="legend" i]{--bb-rarity-edge:#d2a92d;--bb-rarity-inner:#f0da73;--bb-rarity-glow:rgba(201,155,32,.30)}#bbInventory .bb-fighter-card[data-rarity*="myth" i]{--bb-rarity-edge:#d16b42;--bb-rarity-inner:#f0a878;--bb-rarity-glow:rgba(209,107,66,.28)}#bbInventory .bb-fighter-card[data-rarity*="epic" i]{--bb-rarity-edge:#8d5bc4;--bb-rarity-inner:#c39bea;--bb-rarity-glow:rgba(141,91,196,.25)}#bbInventory .bb-fighter-card[data-rarity*="rare" i]{--bb-rarity-edge:#4b8abf;--bb-rarity-inner:#8ec0e6;--bb-rarity-glow:rgba(75,138,191,.24)}
+#bbInventory .bb-fighter-item:hover .bb-fighter-card{filter:brightness(1.035)}#bbInventory .bb-fighter-item:active .bb-fighter-card{transform:scale(.975)}
+#bbInventory .bb-card-stars{display:none!important}#bbInventory .bb-card-element{position:absolute;z-index:5;right:5px;top:5px;max-width:48%;overflow:hidden;padding:3px 5px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(10,15,21,.78);color:#efe9d7;font-size:6px;font-weight:800;letter-spacing:.04em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+#bbInventory .bb-card-art{position:absolute;inset:0 0 17%;display:block;overflow:hidden;background:linear-gradient(180deg,#202731 0%,#12171d 100%)}#bbInventory .bb-card-art img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 35%;transform:scale(1.02)}
+#bbInventory .bb-card-foot{position:absolute;z-index:4;left:0;right:0;bottom:0;display:flex;height:19%;align-items:flex-end;padding:6px 6px;background:linear-gradient(180deg,transparent,rgba(8,11,15,.9) 34%,#0b0e12 72%)}#bbInventory .bb-card-meta{display:flex;width:100%;justify-content:space-between;gap:3px;color:#ded9ce;font-size:6.3px;font-weight:800;line-height:1;letter-spacing:.02em;text-transform:uppercase}
+#bbInventory .bb-card-name{display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:0 2px;overflow:hidden;color:#3e3025;font-family:var(--bb-inv-font-name);font-size:clamp(7px,1.9vw,10px);font-weight:400;line-height:1.12;text-align:center;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap;text-shadow:0 1px rgba(255,255,255,.7)}
+@media(max-width:360px){#bbInventory .bb-card-element{font-size:5.5px;padding:2px 4px}#bbInventory .bb-card-meta{font-size:5.7px}#bbInventory .bb-card-name{font-size:7px}}
