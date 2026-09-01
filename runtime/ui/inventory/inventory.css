@@ -5,6 +5,7 @@
  --bb-inv-edge:#765c40;
  position:fixed;
  inset:0;
+ min-height:100dvh;
  z-index:1180;
  overflow-y:auto;
  overflow-x:hidden;
@@ -13,15 +14,15 @@
  font-family:var(--bbud-font-ui,'Noto Sans','Segoe UI',sans-serif);
  background-color:#e8dfca;
  background-image:linear-gradient(rgba(238,227,200,.16),rgba(238,227,200,.16)),var(--bb-cloud-backdrop);
- background-size:auto 92%;
- background-position:center 58%;
+ background-size:cover;
+ background-position:center top;
  background-repeat:no-repeat;
- background-attachment:fixed;
+ background-attachment:scroll;
 }
 #bbInventory[hidden]{display:none!important}
 body.bb-inventory-open{overflow:hidden}
 .bb-legacy-inventory-suppressed{display:none!important}
-#bbInventory .bb-inventory-shell{width:min(680px,100%);min-height:100%;margin:0 auto;padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
+#bbInventory .bb-inventory-shell{width:min(680px,100%);min-height:100dvh;margin:0 auto;padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
 #bbInventory .bb-inventory-head{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;gap:8px;padding:max(10px,env(safe-area-inset-top)) 12px 10px;border-bottom:1px solid rgba(102,76,48,.46);background:linear-gradient(180deg,rgba(246,235,208,.92),rgba(226,205,167,.88));box-shadow:0 3px 10px rgba(65,47,29,.14);backdrop-filter:blur(7px)}
 #bbInventory .bb-inventory-heading{text-align:center;min-width:0}
 #bbInventory .bb-inventory-heading h1{margin:0;color:#3e3025;font-family:var(--bb-font-animeace,'AnimeAce2',sans-serif);font-size:clamp(24px,7vw,34px);font-weight:400;line-height:1;letter-spacing:.01em;text-transform:uppercase;text-shadow:0 1px rgba(255,255,255,.75)}
