@@ -69,6 +69,13 @@
         "meteor_aftermath": {"resource_id":"lebee.vfx.jutsu.meteor.aftermath","path":"assets/characters/lebee/vfx/jutsu/meteor/aftermath/","required_runtime_frames":1,"renderer":"BlazingVfxRenderer.drawLebeeMeteor"}
       }
     },
+    "tyler": {
+      "animations": {
+        "idle": {"resource_id":"tyler.animation.idle","path":"assets/characters/tyler/sprites/runtime/idle/","required_runtime_frames":6,"renderer":"BlazingFrameRuntime"},
+        "basic_attack": {"resource_id":"tyler.animation.basic_attack","path":"assets/characters/tyler/sprites/runtime/attack/basic/","required_runtime_frames":1,"renderer":"BlazingFrameRuntime","usage":"Existing Tyler base sprite reused as the authored Basic Attack body pose for initial playable integration."}
+      },
+      "vfx": {}
+    },
     "anubis": {
       "animations": {"idle": {"resource_id":"anubis.animation.idle","path":"assets/characters/anubis/sprites/runtime/idle/"}},
       "vfx": {}
