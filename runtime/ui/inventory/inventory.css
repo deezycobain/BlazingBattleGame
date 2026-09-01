@@ -12,9 +12,9 @@
  color:var(--bb-inv-ink);
  font-family:var(--bbud-font-ui,'Noto Sans','Segoe UI',sans-serif);
  background-color:#e8dfca;
- background-image:linear-gradient(rgba(238,227,200,.20),rgba(238,227,200,.20)),var(--bb-cloud-backdrop);
- background-size:cover;
- background-position:center top;
+ background-image:linear-gradient(rgba(238,227,200,.16),rgba(238,227,200,.16)),var(--bb-cloud-backdrop);
+ background-size:auto 92%;
+ background-position:center 58%;
  background-repeat:no-repeat;
  background-attachment:fixed;
 }
