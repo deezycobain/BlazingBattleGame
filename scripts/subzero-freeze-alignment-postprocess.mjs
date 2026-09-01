@@ -21,9 +21,10 @@ const targetFacingCount=html.split(targetFacing).length-1;
 if(rosterFacingCount===1)html=html.replace(rosterFacing,targetFacing);
 else if(targetFacingCount!==1)throw new Error(`Sub-Zero freeze alignment: expected one cast-facing anchor, found roster=${rosterFacingCount}, target=${targetFacingCount}`);
 
-// Preview facing is ephemeral and follows the exact authored aim used by the visible lane.
-// It must not write the committed attack lock: the player can still change direction before
-// release. The renderer reads this preview channel only until the real cast lock is written.
+// Preview facing is ephemeral and follows the same live actor rotation that drives the
+// visible attack lane/shape. Do not independently resolve another enemy or fall back to a
+// stale authored direction while the player is aiming. The renderer reads this preview
+// channel only until the real cast lock is written.
 const previewLock=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
           const attackDirection=window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
           return window.BlazingAttackPresentation.lockRotation(S.anim,actor.name,attackDirection);
@@ -48,6 +49,15 @@ const aimedPreview=`if(presentation.body_facing_mode==='jutsu_direction_locked')
         }`;
 const previewState=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
           if(S.action==='jutsu'&&actor.name==='Sub-Zero'){
+            const liveAim=Number(actor?.rotation);
+            const previewSource=Number.isFinite(liveAim)?liveAim:authored;
+            const previewDirection=Math.cos(previewSource)<0?Math.PI:0;
+            return window.BlazingAttackPresentation.setPreviewRotation(S.anim,actor.name,previewDirection);
+          }
+          return window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
+        }`;
+const previousPreviewState=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
+          if(S.action==='jutsu'&&actor.name==='Sub-Zero'){
             const previewDirection=Math.cos(authored)<0?Math.PI:0;
             return window.BlazingAttackPresentation.setPreviewRotation(S.anim,actor.name,previewDirection);
           }
@@ -56,11 +66,13 @@ const previewState=`if(presentation.body_facing_mode==='jutsu_direction_locked')
 const previewLockCount=html.split(previewLock).length-1;
 const legacyPreviewCount=html.split(legacyPreviewUnlocked).length-1;
 const aimedPreviewCount=html.split(aimedPreview).length-1;
+const previousPreviewStateCount=html.split(previousPreviewState).length-1;
 const previewStateCount=html.split(previewState).length-1;
 if(previewLockCount===1)html=html.replace(previewLock,previewState);
 else if(legacyPreviewCount===1)html=html.replace(legacyPreviewUnlocked,previewState);
 else if(aimedPreviewCount===1)html=html.replace(aimedPreview,previewState);
-else if(previewStateCount!==1)throw new Error(`Sub-Zero freeze alignment: expected one preview-facing anchor, found locked=${previewLockCount}, legacy=${legacyPreviewCount}, aimed=${aimedPreviewCount}, preview=${previewStateCount}`);
+else if(previousPreviewStateCount===1)html=html.replace(previousPreviewState,previewState);
+else if(previewStateCount!==1)throw new Error(`Sub-Zero freeze alignment: expected one preview-facing anchor, found locked=${previewLockCount}, legacy=${legacyPreviewCount}, aimed=${aimedPreviewCount}, previous=${previousPreviewStateCount}, live=${previewStateCount}`);
 
 // Tune only the final authored Freeze Blast floater. Gameplay coordinates/timing stay
 // untouched; this is a visual hand-origin lift plus a modest size reduction.
@@ -89,4 +101,4 @@ else if(!renderer.includes('baseBodyW'))throw new Error('Sub-Zero freeze alignme
 html=html.slice(0,rendererStart)+renderer+html.slice(rendererEnd);
 
 await fs.writeFile(file,html);
-console.log(`Sub-Zero Freeze Blast alignment applied: live authored preview facing -> actual-target cast lock -> held projectile direction + hand lift ${handOffsetY}px + visual scale ${visualScale}.`);
+console.log(`Sub-Zero Freeze Blast alignment applied: live lane rotation preview facing -> actual-target cast lock -> held projectile direction + hand lift ${handOffsetY}px + visual scale ${visualScale}.`);
