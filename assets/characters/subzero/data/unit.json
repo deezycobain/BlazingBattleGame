@@ -32,6 +32,8 @@
         "target_sticky_bonus_px": 12,
         "target_switch_margin_px": 8,
         "projectile_origin_mode": "forward_facing",
+        "projectile_hand_offset_y_px": -22,
+        "projectile_visual_scale": 0.86,
         "body_facing_mode": "jutsu_direction_locked"
       }
     }
@@ -42,7 +44,7 @@
   },
   "readiness": {
     "collection": true,"battle": true,"idle": true,"basic_attack": true,"jutsu": true,"recoil": true,
-    "notes": "Stable baseline retained. Basic keeps its 92 px close melee bubble. Freeze Blast restores the original-style horizontal rectangular medium-range lane: 175 px forward reach by 64 px tall, anchored from Sub-Zero outward. Targeting, body facing and projectile travel are horizontal left/right only. Damage, cost, freeze chance, gauge reduction and projectile timing are unchanged.",
+    "notes": "Stable baseline retained. Basic keeps its 92 px close melee bubble. Freeze Blast restores the original-style horizontal rectangular medium-range lane: 175 px forward reach by 64 px tall, anchored from Sub-Zero outward. Targeting, body facing and projectile travel are horizontal left/right only. Cast facing locks to the enemy actually resolved by the attack; the projectile is visually lifted to hand height and reduced slightly without changing gameplay timing or hit resolution.",
     "animation_map": true
   },
   "balance": {"status": "provisional","pass": "v0.5.30","notes": "Initial archetype-based values. Tune freely during balance testing."},
