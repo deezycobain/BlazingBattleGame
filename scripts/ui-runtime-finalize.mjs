@@ -29,13 +29,12 @@ const cloudParts=['runtime/ui/shared/cloud-bg-00.txt','runtime/ui/shared/cloud-b
 const cloudBase64=(await Promise.all(cloudParts.map(read))).join('').replace(/\s+/g,'');
 if(cloudBase64.length<20000||!cloudBase64.startsWith('UklGR'))throw new Error('UI finalize: cloud wallpaper payload is invalid');
 const cloudUrl=`url("data:image/webp;base64,${cloudBase64}")`;
-// Replace the indirection completely: the authoritative surfaces receive the actual image URL.
 inventoryCss=inventoryCss.replace(/var\(--bb-cloud-backdrop\)/g,cloudUrl);
 backdropCss=backdropCss.replace(/var\(--bb-cloud-backdrop\)/g,cloudUrl);
-const homeParts=['runtime/ui/home/wallpaper-00.txt','runtime/ui/home/wallpaper-01.txt'];
-const homeBase64=(await Promise.all(homeParts.map(read))).join('').replace(/\s+/g,'');
-if(homeBase64.length<15000||!homeBase64.startsWith('/9j/'))throw new Error('UI finalize: replacement home wallpaper payload is invalid');
-const homeCss=`.bb-home-theme{position:relative!important;isolation:isolate!important;background:#10131a!important;background-image:none!important;overflow:hidden!important}.bb-home-theme:before{content:""!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-image:url("data:image/jpeg;base64,${homeBase64}")!important;background-repeat:no-repeat!important;background-position:center center!important;background-size:cover!important;opacity:1!important}.bb-home-theme>*{position:relative;z-index:1}.bb-home-theme .bb-home-old-wallpaper{display:none!important}.bb-legacy-inventory-suppressed,.bb-legacy-details-suppressed{display:none!important;visibility:hidden!important;pointer-events:none!important}`;
+const homeImage=await fs.readFile(path.join(ROOT,'runtime/ui/home/home-wallpaper-hq.png'));
+const homeBase64=homeImage.toString('base64');
+if(homeImage.length<500000||!homeBase64.startsWith('iVBOR'))throw new Error('UI finalize: HQ PNG home wallpaper is invalid');
+const homeCss=`.bb-home-theme{position:relative!important;isolation:isolate!important;background:#10131a!important;background-image:none!important;overflow:hidden!important}.bb-home-theme:before{content:""!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-image:url("data:image/png;base64,${homeBase64}")!important;background-repeat:no-repeat!important;background-position:center center!important;background-size:cover!important;opacity:1!important}.bb-home-theme>*{position:relative;z-index:1}.bb-home-theme .bb-home-old-wallpaper{display:none!important}.bb-legacy-inventory-suppressed,.bb-legacy-details-suppressed{display:none!important;visibility:hidden!important;pointer-events:none!important}`;
 const css=[fontCss,themeCss,detailFonts,backdropCss,buttonsCss,framesCss,scrollsCss,artViewerCss,detailShellCss,inventoryCss,cardsCss,homeCss].join('\n');
 insertBeforeLast('</head>',`<style id="bb-ui-polish-style">${css}</style>`,'closing head');
 const detailsVm=safeScript(await read('runtime/ui/unit-details.js')),detailsScreen=safeScript(await read('runtime/ui/unit-details-screen.js')),inventoryScreen=safeScript(await read('runtime/ui/inventory/inventory-screen.js')),legacySuppress=safeScript(await read('runtime/ui/unit-details/legacy-suppress.js')),homeRuntime=safeScript(await read('runtime/ui/home/home-skin.js'));
@@ -48,5 +47,5 @@ if(!html.includes('grid-template-columns:repeat(4,minmax(0,1fr))'))throw new Err
 if(!html.includes('assets/characters/${unit.id}/${asset}'))throw new Error('UI finalize: canonical clean-art path resolver missing');
 if(!html.includes("img.src=assetAvailable(vm.art.full)?vm.art.full:''"))throw new Error('UI finalize: details clean-art-only contract missing');
 if((html.match(/data:image\/webp;base64,UklGR/g)||[]).length<2)throw new Error('UI finalize: direct cloud backdrops missing');
-if(!html.includes('bb-home-theme')||!html.includes('data:image/jpeg;base64,/9j/'))throw new Error('UI finalize: replacement home wallpaper missing');
-await fs.writeFile(file,html);console.log('UI finalizer PASS: direct Inventory/Details cloud images, replacement Home wallpaper, safe scripts.');
+if(!html.includes('bb-home-theme')||!html.includes('data:image/png;base64,iVBOR'))throw new Error('UI finalize: HQ PNG home wallpaper missing');
+await fs.writeFile(file,html);console.log('UI finalizer PASS: direct Inventory/Details cloud images, HQ PNG Home wallpaper, safe scripts.');
