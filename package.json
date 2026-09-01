@@ -3,11 +3,9 @@
   "private": true,
   "scripts": {
     "validate": "node scripts/validate-runtime.mjs && node scripts/validate-combat-runtime.mjs && node scripts/validate-pass4-rendering.mjs && node scripts/validate-rendering-runtime.mjs && node scripts/validate-gameplay-presentation.mjs && node scripts/validate-subzero-basic.mjs && node scripts/validate-subzero-facing.mjs && node scripts/validate-tyler-browser.mjs",
-    "build": "npm run validate && node scripts/build-cloudflare.mjs && node scripts/postprocess-build.mjs && node scripts/tyler-playable-postprocess.mjs && node scripts/ui-polish-postprocess.mjs && node scripts/postprocess-senku-retreat-cleanup.mjs && node scripts/static-hitbox-postprocess.mjs && node scripts/combat-polish-postprocess.mjs && node scripts/strict-attack-facing-postprocess.mjs && node scripts/subzero-freeze-alignment-postprocess.mjs && node scripts/ui-runtime-finalize.mjs && node scripts/browser-mouse-input-postprocess.mjs && node scripts/validate-final-tyler-browser.mjs",
+    "build": "npm run validate && node scripts/build-cloudflare.mjs && node scripts/postprocess-build.mjs && node scripts/tyler-playable-postprocess.mjs && node scripts/ui-polish-postprocess.mjs && node scripts/postprocess-senku-retreat-cleanup.mjs && node scripts/static-hitbox-postprocess.mjs && node scripts/combat-polish-postprocess.mjs && node scripts/strict-attack-facing-postprocess.mjs && node scripts/subzero-freeze-alignment-postprocess.mjs && node scripts/ui-runtime-finalize.mjs && node scripts/team-editor-route-postprocess.mjs && node scripts/browser-mouse-input-postprocess.mjs && node scripts/validate-final-tyler-browser.mjs",
     "deploy": "wrangler deploy",
     "preview": "wrangler versions upload"
   },
-  "devDependencies": {
-    "wrangler": "4.114.0"
-  }
+  "devDependencies": {"wrangler": "4.114.0"}
 }

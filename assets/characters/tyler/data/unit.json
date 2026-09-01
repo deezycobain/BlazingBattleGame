@@ -7,124 +7,23 @@
   "archetype": "melee_fighter",
   "element": null,
   "rarity": null,
-  "collection": {
-    "owned": true,
-    "inventory_visible": true,
-    "battle_ready": true
-  },
-  "stats": {
-    "level": 1,
-    "hp": 110,
-    "attack": 30,
-    "defense": 20,
-    "speed": 58
-  },
-  "combat": {
-    "mark": "T",
-    "movement_range": 88,
-    "basic_shape": {
-      "type": "circle",
-      "r": 95
-    },
-    "jutsu_shape": {
-      "type": "circle",
-      "r": 0
-    },
-    "chakra_max": 8,
-    "chakra_start": 0
-  },
-  "render": {
-    "scale": 1.0
-  },
+  "collection": {"owned": true,"inventory_visible": true,"battle_ready": true},
+  "stats": {"level": 1,"hp": 110,"attack": 30,"defense": 20,"speed": 58},
+  "combat": {"mark": "T","movement_range": 88,"basic_shape": {"type": "circle","r": 95},"jutsu_shape": {"type": "circle","r": 0},"chakra_max": 8,"chakra_start": 0},
+  "render": {"scale": 1.0},
   "abilities": {
-    "basic": {
-      "id": "basic_strike",
-      "name": "Basic Attack",
-      "damage_multiplier": 1.0,
-      "chakra_gain": 1,
-      "delivery": "melee",
-      "presentation": {
-        "runtime_driver": "animateLunge",
-        "animation_kind": "basic_attack",
-        "melee_animation_kind": "basic_attack"
-      }
-    },
-    "jutsu": {
-      "id": "tyler_jutsu_placeholder",
-      "name": "Jutsu Locked",
-      "cost": 99,
-      "damage_multiplier": 0,
-      "delivery": "disabled"
-    }
+    "basic": {"id": "basic_strike","name": "Basic Attack","damage_multiplier": 1.0,"chakra_gain": 1,"delivery": "melee","presentation": {"runtime_driver": "animateLunge","animation_kind": "basic_attack","melee_animation_kind": "basic_attack"}},
+    "jutsu": {"id": "tyler_jutsu_placeholder","name": "Jutsu Locked","cost": 99,"damage_multiplier": 0,"delivery": "disabled"}
   },
-  "assets": {
-    "art": "art/current_collection_art.png",
-    "card": "cards/current_collection_card.png",
-    "portrait": "art/current_collection_art.png",
-    "icon": null,
-    "sprites": {
-      "idle": "sprites/source/idle_sheet.png",
-      "attack_basic": "sprites/source/basic_attack_sheet.png"
-    },
-    "vfx": "vfx/"
-  },
-  "readiness": {
-    "collection": true,
-    "battle": true,
-    "idle": true,
-    "basic_attack": true,
-    "jutsu": false,
-    "recoil": false,
-    "notes": "Tyler uses the newly supplied collection artwork plus an 8-pose idle sheet and 5-pose Basic Attack sheet. The browser runtime slices, removes the connected light sheet background, and normalizes those poses into battlefield frames. Jutsu remains intentionally locked until authored.",
-    "animation_map": true
-  },
-  "balance": {
-    "status": "provisional",
-    "pass": "v0.7.0-tyler-integration-fix",
-    "notes": "Initial playable values retained while Tyler asset and browser-input integration is stabilized."
-  },
+  "assets": {"art": "art/current_collection_art.png","card": "cards/current_collection_card.png","portrait": "art/current_collection_art.png","icon": null,"sprites": {"idle": "sprites/source/idle_sheet.png","attack_basic": "sprites/source/basic_attack_sheet.png"},"vfx": "vfx/"},
+  "readiness": {"collection": true,"battle": true,"idle": true,"basic_attack": true,"jutsu": false,"recoil": false,"notes": "Tyler uses the supplied collection artwork. The five-pose single-row source is the authored idle animation and the eight-pose 4x2 source is the authored Basic Attack animation. Browser preprocessing removes sheet/header background before battlefield rendering. Jutsu remains intentionally locked until authored.","animation_map": true},
+  "balance": {"status": "provisional","pass": "v0.7.0-tyler-integration-fix2","notes": "Initial playable values retained while Tyler presentation and browser-input integration is stabilized."},
   "animation_standard": {
-    "version": "v0.7.0-tyler-authored-sheets",
-    "canvas": {
-      "width": 420,
-      "height": 420,
-      "anchor_x": 210,
-      "anchor_y": 392
-    },
+    "version": "v0.7.0-tyler-authored-sheets-fix2",
+    "canvas": {"width": 420,"height": 420,"anchor_x": 210,"anchor_y": 392},
     "animations": {
-      "idle": {
-        "source_sheet": {
-          "path": "sprites/source/idle_sheet.png",
-          "columns": 4,
-          "rows": 2,
-          "frame_count": 8,
-          "content_top_px": 100,
-          "background_cleanup": "connected_light_sheet_to_alpha"
-        },
-        "frames": [],
-        "frame_ms": 185,
-        "loop": true,
-        "events": []
-      },
-      "basic_attack": {
-        "source_sheet": {
-          "path": "sprites/source/basic_attack_sheet.png",
-          "columns": 5,
-          "rows": 1,
-          "frame_count": 5,
-          "content_top_px": 100,
-          "background_cleanup": "connected_light_sheet_to_alpha"
-        },
-        "frames": [],
-        "frame_ms": 115,
-        "loop": false,
-        "events": [
-          {
-            "frame": 4,
-            "event": "release_projectile_or_apply_melee"
-          }
-        ]
-      }
+      "idle": {"source_sheet": {"path": "sprites/source/idle_sheet.png","columns": 5,"rows": 1,"frame_count": 5,"content_top_px": 100,"background_cleanup": "edge_flood_light_sheet_to_alpha"},"frames": [],"frame_ms": 175,"loop": true,"events": []},
+      "basic_attack": {"source_sheet": {"path": "sprites/source/basic_attack_sheet.png","columns": 4,"rows": 2,"frame_count": 8,"content_top_px": 100,"background_cleanup": "edge_flood_light_sheet_to_alpha"},"frames": [],"frame_ms": 90,"loop": false,"events": [{"frame": 7,"event": "release_projectile_or_apply_melee"}]}
     },
     "vfx": {}
   }
