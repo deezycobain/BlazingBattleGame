@@ -35,9 +35,12 @@ if(subzero?.abilities?.jutsu?.cost!==4||subzero?.abilities?.jutsu?.damage_multip
 
 const alignment=await read('scripts/subzero-freeze-alignment-postprocess.mjs');
 if(!alignment.includes('setPreviewRotation(S.anim,actor.name,previewDirection)'))fail('final Freeze Blast alignment pass does not publish live preview facing');
+if(!alignment.includes('const liveAim=Number(actor?.rotation)'))fail('Freeze Blast preview facing is not sourced from the live lane rotation');
+if(!alignment.includes('const previewSource=Number.isFinite(liveAim)?liveAim:authored'))fail('Freeze Blast preview facing does not safely fall back when live aim is unavailable');
+if(alignment.includes('const previewDirection=Math.cos(authored)<0?Math.PI:0;\n            return window.BlazingAttackPresentation.setPreviewRotation'))fail('Freeze Blast preview facing still uses stale authored rotation directly');
 if(!alignment.includes("resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0)"))fail('committed cast does not lock to the actual resolved enemy');
 const polish=await read('scripts/combat-polish-postprocess.mjs');
 if(!polish.includes('previewFacing(S.anim,name)'))fail('Sub-Zero sprite renderer does not consume preview facing');
 if(!polish.includes('Number.isFinite(lockedJutsuFacing)?lockedJutsuFacing:previewJutsuFacing'))fail('committed facing must remain higher priority than preview facing');
 
-console.log('Sub-Zero facing PASS: live preview stays non-sticky; committed resolved-target lock supersedes preview; gameplay and Freeze Blast visual tuning remain unchanged.');
+console.log('Sub-Zero facing PASS: preview follows live lane rotation without becoming sticky; committed resolved-target lock supersedes preview; gameplay and Freeze Blast visual tuning remain unchanged.');
