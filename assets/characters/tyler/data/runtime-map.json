@@ -1,0 +1,35 @@
+{
+  "schema_version": 3,
+  "unit_id": "tyler",
+  "source_unit_data": "assets/characters/tyler/data/unit.json",
+  "abilities": {
+    "basic_strike": {
+      "slot": "basic",
+      "animation_id": "tyler.animation.basic_attack",
+      "runtime_handler": "animateLunge",
+      "gameplay_actions": [
+        {
+          "event": "on_impact",
+          "action_id": "damage_target",
+          "parameters": {
+            "multiplier_source": "abilities.basic.damage_multiplier"
+          }
+        }
+      ],
+      "vfx": {
+        "impact": "shared.vfx.impact.default"
+      }
+    },
+    "tyler_jutsu_placeholder": {
+      "slot": "jutsu",
+      "animation_id": "tyler.animation.idle",
+      "runtime_handler": "disabled",
+      "execution_status": "declared_not_wired",
+      "migration_note": "Tyler is intentionally Basic-Attack-only in this integration pass; Jutsu is locked until authored.",
+      "gameplay_actions": []
+    }
+  },
+  "states": {
+    "idle": "tyler.animation.idle"
+  }
+}
