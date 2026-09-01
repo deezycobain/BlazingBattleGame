@@ -37,19 +37,24 @@ replaceOne(
 );
 
 replaceOne(
-  "function fighterDisplayName(name){return owned[name]?.name||name.toUpperCase()}\nfunction fighterTeamImage(name){return owned[name]?.card||''}",
+  "function fighterDisplayName(name){return owned[name]?.name||name.toUpperCase()}",
   `function fighterDisplayName(name){
  if(name==='Tyler')return UNIT_DATA?.tyler?.display_name||'Tyler';
  return owned[name]?.name||name.toUpperCase();
-}
-function fighterTeamImage(name){
+}`,
+  'Tyler team editor display name'
+);
+
+replaceOne(
+  "function fighterTeamImage(name){return owned[name]?.card||''}",
+  `function fighterTeamImage(name){
  if(name==='Tyler'){
   const rel=UNIT_DATA?.tyler?.assets?.card||UNIT_DATA?.tyler?.assets?.art||'cards/current_collection_card.png';
   return /^assets\\//.test(rel)?rel:'assets/characters/tyler/'+rel;
  }
  return owned[name]?.card||'';
 }`,
-  'Tyler team editor metadata'
+  'Tyler team editor image'
 );
 
 replaceOne(
