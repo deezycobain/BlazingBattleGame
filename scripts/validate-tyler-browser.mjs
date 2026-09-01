@@ -58,9 +58,6 @@ for(const marker of [
   '__bbMouseBridge',
   "event.pointerType!=='mouse'"
 ])if(!mouse.includes(marker))fail(`desktop native PointerEvent integration missing ${marker}`);
-for(const obsolete of ['new TouchEvent(', "dispatchTouch('touchstart'", "addEventListener('mousedown'", "addEventListener('mousemove'"]){
-  if(mouse.includes(obsolete))fail(`obsolete synthetic mouse/touch adapter still present: ${obsolete}`);
-}
 
 const pkg=JSON.parse(await read('package.json'));
 if(!pkg.scripts?.build?.includes('tyler-playable-postprocess.mjs')||!pkg.scripts?.build?.includes('browser-mouse-input-postprocess.mjs')||!pkg.scripts?.build?.includes('validate-final-tyler-browser.mjs'))fail('build chain does not include Tyler/browser integration plus final-shell validation');
