@@ -58,8 +58,8 @@
     }
   },
   "assets": {
-    "art": "cards/summon_card_legacy.jpg",
-    "card": "cards/summon_card_legacy.jpg",
+    "art": "art/current_collection_art.png",
+    "card": "cards/current_collection_card.png",
     "portrait": null,
     "icon": null,
     "sprites": {
@@ -75,7 +75,7 @@
     "basic_attack": true,
     "jutsu": false,
     "recoil": false,
-    "notes": "Initial live Tyler integration. Existing archived artwork is promoted without redrawing; Basic Attack uses the existing base body pose with the shared melee lunge runtime. Jutsu remains intentionally locked until authored.",
+    "notes": "Tyler is playable with Basic Attack. The uploaded portrait is the canonical collection/card artwork; the mismatched legacy summon card is archived. Uploaded sprite sheets are retained under sprites/source/imported while the existing six-frame idle and base Basic Attack runtime frames remain active. Jutsu remains intentionally locked until authored.",
     "animation_map": true
   },
   "balance": {
