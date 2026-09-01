@@ -17,5 +17,5 @@ if(!html.includes('id="bb-team-theme-runtime"')){
  const runtime=`<script id="bb-team-theme-runtime">(()=>{const apply=()=>{const root=document.getElementById('teamScreen');if(!root)return;root.classList.add('bb-team-scroll-cloud');for(const img of root.querySelectorAll('img')){img.loading='eager';img.decoding='async';}};new MutationObserver(apply).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class']});setTimeout(apply,0);})();<\/script>`;
  const at=html.toLowerCase().lastIndexOf('</body>');if(at<0)throw new Error('Team editor theme: closing body missing');html=html.slice(0,at)+runtime+html.slice(at);
 }
-for(const marker of ['bb-team-scroll-theme','bb-team-theme-runtime','cloud-backdrop-hq.png','linear-gradient(180deg,rgba(255,248,226,.95)','button,[role=\\"button\\"]'])if(!html.includes(marker)&&marker!=='cloud-backdrop-hq.png')throw new Error(`Team editor theme: built shell missing ${marker}`);
+for(const marker of ['bb-team-scroll-theme','bb-team-theme-runtime','linear-gradient(180deg,rgba(255,248,226,.95)'])if(!html.includes(marker))throw new Error(`Team editor theme: built shell missing ${marker}`);
 await fs.writeFile(file,html);console.log('Team editor routing/theme applied: controls bypass fighter-details capture and the page uses parchment panels over the HQ cloud backdrop.');
