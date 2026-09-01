@@ -140,17 +140,22 @@ replaceRegexOnce(
  'Sub-Zero enemy-only facing'
 );
 
-// Visible cast sprite follows the same locked direction as the projectile.
+// Sub-Zero's live preview and committed cast use separate facing channels. The committed
+// target lock always wins; otherwise the renderer consumes the current non-sticky preview.
 replaceOnce(
  `ctx.scale((flipX||1)*scale*activePulse,scale*activePulse);`,
  `const lockedJutsuFacing=(name==='Sub-Zero'&&S.action==='jutsu')
    ? window.BlazingAttackPresentation.lockedFacing(S.anim,name)
    : null;
- const directionalFlip=Number.isFinite(lockedJutsuFacing)
-   ? (Math.cos(lockedJutsuFacing)<0?-1:1)
+ const previewJutsuFacing=(name==='Sub-Zero'&&S.action==='jutsu')
+   ? window.BlazingAttackPresentation.previewFacing(S.anim,name)
+   : null;
+ const subzeroJutsuFacing=Number.isFinite(lockedJutsuFacing)?lockedJutsuFacing:previewJutsuFacing;
+ const directionalFlip=Number.isFinite(subzeroJutsuFacing)
+   ? (Math.cos(subzeroJutsuFacing)<0?-1:1)
    : (flipX||1);
  ctx.scale(directionalFlip*scale*activePulse,scale*activePulse);`,
- 'Sub-Zero locked jutsu sprite facing'
+ 'Sub-Zero preview/locked jutsu sprite facing'
 );
 
 replaceRegexOnce(
@@ -171,4 +176,4 @@ replaceRegexOnce(
 );
 
 await fs.writeFile(file,html);
-console.log(`Combat polish applied: enemy-only Sub-Zero facing + horizontal medium Freeze Blast + 50% VFX scale + locked cast facing (${legacyFreezeKind}), target ring, Senku feet impact, full combo sequence.`);
+console.log(`Combat polish applied: enemy-only Sub-Zero facing + horizontal medium Freeze Blast + 50% VFX scale + separate live-preview/committed cast facing (${legacyFreezeKind}), target ring, Senku feet impact, full combo sequence.`);

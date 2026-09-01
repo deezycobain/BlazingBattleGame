@@ -116,8 +116,26 @@
     return Number.isFinite(fallback)?fallback:0;
   }
 
+  function setPreviewRotation(animState,unitName,rotation=0){
+    const safe=Number.isFinite(rotation)?rotation:0;
+    if(!animState||!unitName)return safe;
+    if(!animState.attackPreviewFacing)animState.attackPreviewFacing={};
+    animState.attackPreviewFacing[unitName]=safe;
+    return safe;
+  }
+
+  function previewFacing(animState,unitName){
+    const rotation=animState?.attackPreviewFacing?.[unitName];
+    return Number.isFinite(rotation)?rotation:null;
+  }
+
+  function clearPreviewFacing(animState,unitName){
+    if(animState?.attackPreviewFacing&&unitName)delete animState.attackPreviewFacing[unitName];
+  }
+
   function lockFacing(animState,unitName,from,target,fallback=0){
     if(!animState||!unitName)return rotationToward(from,target,fallback);
+    clearPreviewFacing(animState,unitName);
     if(!animState.attackFacing)animState.attackFacing={};
     const rotation=rotationToward(from,target,fallback);
     animState.attackFacing[unitName]=rotation;
@@ -127,6 +145,7 @@
   function lockRotation(animState,unitName,rotation=0){
     const safe=Number.isFinite(rotation)?rotation:0;
     if(!animState||!unitName)return safe;
+    clearPreviewFacing(animState,unitName);
     if(!animState.attackFacing)animState.attackFacing={};
     animState.attackFacing[unitName]=safe;
     return safe;
@@ -144,6 +163,7 @@
 
   function clearFacing(animState,unitName){
     if(animState?.attackFacing&&unitName)delete animState.attackFacing[unitName];
+    clearPreviewFacing(animState,unitName);
   }
 
   function resolveFrameKind(requestedKind,attackMap){
@@ -214,6 +234,9 @@
     preferredRangePoint,
     resolveActionTarget,
     resolveActionRotation,
+    setPreviewRotation,
+    previewFacing,
+    clearPreviewFacing,
     lockFacing,
     lockRotation,
     lockedFacing,
