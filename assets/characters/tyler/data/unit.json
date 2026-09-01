@@ -42,7 +42,12 @@
       "name": "Basic Attack",
       "damage_multiplier": 1.0,
       "chakra_gain": 1,
-      "delivery": "melee"
+      "delivery": "melee",
+      "presentation": {
+        "runtime_driver": "animateLunge",
+        "animation_kind": "basic_attack",
+        "melee_animation_kind": "basic_attack"
+      }
     },
     "jutsu": {
       "id": "tyler_jutsu_placeholder",
