@@ -11,20 +11,18 @@ const visualScale=Number(presentation.projectile_visual_scale);
 if(!Number.isFinite(handOffsetY)||handOffsetY>0||handOffsetY<-60)throw new Error('Sub-Zero freeze alignment: projectile_hand_offset_y_px must be a sane upward offset');
 if(!Number.isFinite(visualScale)||visualScale<.65||visualScale>1)throw new Error('Sub-Zero freeze alignment: projectile_visual_scale must be between .65 and 1');
 
-// The cast must lock to the enemy that the attack actually resolved, never to a second
-// assisted-target pass over the whole enemy roster. That second pass is what could make
-// Sub-Zero face right while a committed Freeze Blast was traveling left (or vice versa).
+// Commit facing from the actual attack vector: attacker -> resolved target. This is the same
+// direction the attack travels, so no nearest-enemy/assisted-target pass can contradict it.
 const rosterFacing=`const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0);\n   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`;
 const targetFacing=`const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0);\n   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`;
-const rosterFacingCount=html.split(rosterFacing).length-1;
-const targetFacingCount=html.split(targetFacing).length-1;
-if(rosterFacingCount===1)html=html.replace(rosterFacing,targetFacing);
-else if(targetFacingCount!==1)throw new Error(`Sub-Zero freeze alignment: expected one cast-facing anchor, found roster=${rosterFacingCount}, target=${targetFacingCount}`);
+const vectorFacing=`const attackDx=Number(enemy?.x)-Number(from?.x);\n   const facing=Number.isFinite(attackDx)&&attackDx<0?Math.PI:0;\n   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`;
+const rosterFacingCount=html.split(rosterFacing).length-1,targetFacingCount=html.split(targetFacing).length-1,vectorFacingCount=html.split(vectorFacing).length-1;
+if(rosterFacingCount===1)html=html.replace(rosterFacing,vectorFacing);
+else if(targetFacingCount===1)html=html.replace(targetFacing,vectorFacing);
+else if(vectorFacingCount!==1)throw new Error(`Sub-Zero freeze alignment: expected one cast-facing anchor, found roster=${rosterFacingCount}, target=${targetFacingCount}, vector=${vectorFacingCount}`);
 
-// Preview facing is ephemeral and follows the same live actor rotation that drives the
-// visible attack lane/shape. Do not independently resolve another enemy or fall back to a
-// stale authored direction while the player is aiming. The renderer reads this preview
-// channel only until the real cast lock is written.
+// While aiming, face the same left/right direction as the live attack lane. On release the
+// committed target-vector lock above becomes authoritative for the entire attack animation.
 const previewLock=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
           const attackDirection=window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
           return window.BlazingAttackPresentation.lockRotation(S.anim,actor.name,attackDirection);
@@ -47,7 +45,14 @@ const aimedPreview=`if(presentation.body_facing_mode==='jutsu_direction_locked')
           }
           return window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
         }`;
-const previewState=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
+const previousPreviewState=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
+          if(S.action==='jutsu'&&actor.name==='Sub-Zero'){
+            const previewDirection=Math.cos(authored)<0?Math.PI:0;
+            return window.BlazingAttackPresentation.setPreviewRotation(S.anim,actor.name,previewDirection);
+          }
+          return window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
+        }`;
+const livePreviewState=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
           if(S.action==='jutsu'&&actor.name==='Sub-Zero'){
             const liveAim=Number(actor?.rotation);
             const previewSource=Number.isFinite(liveAim)?liveAim:authored;
@@ -56,23 +61,18 @@ const previewState=`if(presentation.body_facing_mode==='jutsu_direction_locked')
           }
           return window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
         }`;
-const previousPreviewState=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
+const directPreviewState=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
           if(S.action==='jutsu'&&actor.name==='Sub-Zero'){
-            const previewDirection=Math.cos(authored)<0?Math.PI:0;
-            return window.BlazingAttackPresentation.setPreviewRotation(S.anim,actor.name,previewDirection);
+            const attackRotation=Number(actor?.rotation);
+            const laneRotation=Number.isFinite(attackRotation)?attackRotation:authored;
+            return window.BlazingAttackPresentation.setPreviewRotation(S.anim,actor.name,Math.cos(laneRotation)<0?Math.PI:0);
           }
           return window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
         }`;
-const previewLockCount=html.split(previewLock).length-1;
-const legacyPreviewCount=html.split(legacyPreviewUnlocked).length-1;
-const aimedPreviewCount=html.split(aimedPreview).length-1;
-const previousPreviewStateCount=html.split(previousPreviewState).length-1;
-const previewStateCount=html.split(previewState).length-1;
-if(previewLockCount===1)html=html.replace(previewLock,previewState);
-else if(legacyPreviewCount===1)html=html.replace(legacyPreviewUnlocked,previewState);
-else if(aimedPreviewCount===1)html=html.replace(aimedPreview,previewState);
-else if(previousPreviewStateCount===1)html=html.replace(previousPreviewState,previewState);
-else if(previewStateCount!==1)throw new Error(`Sub-Zero freeze alignment: expected one preview-facing anchor, found locked=${previewLockCount}, legacy=${legacyPreviewCount}, aimed=${aimedPreviewCount}, previous=${previousPreviewStateCount}, live=${previewStateCount}`);
+const candidates=[previewLock,legacyPreviewUnlocked,aimedPreview,previousPreviewState,livePreviewState];
+let replaced=false;
+for(const candidate of candidates){if(html.includes(candidate)){html=html.replace(candidate,directPreviewState);replaced=true;break;}}
+if(!replaced&&!html.includes(directPreviewState))throw new Error('Sub-Zero freeze alignment: preview-facing anchor missing');
 
 // Tune only the final authored Freeze Blast floater. Gameplay coordinates/timing stay
 // untouched; this is a visual hand-origin lift plus a modest size reduction.
@@ -101,4 +101,4 @@ else if(!renderer.includes('baseBodyW'))throw new Error('Sub-Zero freeze alignme
 html=html.slice(0,rendererStart)+renderer+html.slice(rendererEnd);
 
 await fs.writeFile(file,html);
-console.log(`Sub-Zero Freeze Blast alignment applied: live lane rotation preview facing -> actual-target cast lock -> held projectile direction + hand lift ${handOffsetY}px + visual scale ${visualScale}.`);
+console.log(`Sub-Zero Freeze Blast alignment applied: live attack-lane preview -> actual target-vector cast lock -> held projectile direction + hand lift ${handOffsetY}px + visual scale ${visualScale}.`);
