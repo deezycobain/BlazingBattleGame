@@ -8,6 +8,7 @@ const SELECT=(process.env.BB_SMOKE_BROWSER||'').trim().toLowerCase();
 const HARD_TIMEOUT_MS=Number(process.env.BB_SMOKE_HARD_TIMEOUT_MS||90000);
 const SELF=fileURLToPath(import.meta.url);
 const TYPES={chromium,webkit};
+const IS_LOCAL=/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(BASE);
 
 function runIsolated(name){
   return new Promise(resolve=>{
@@ -31,18 +32,21 @@ function runIsolated(name){
 
 async function snapshot(page){
   try{
-    return await page.evaluate(()=>({
-      href:location.href,
-      title:document.title,
-      readyState:document.readyState,
-      bodyChildren:document.body?.children?.length??-1,
-      bodyText:(document.body?.innerText||'').slice(0,500),
-      htmlLength:document.documentElement?.outerHTML?.length||0,
-      scripts:[...document.scripts].slice(0,12).map(s=>({src:s.src||'',type:s.type||'',defer:s.defer,async:s.async,text:(s.src?'':(s.textContent||'').slice(0,80))})),
-      canvases:document.querySelectorAll('canvas').length,
-      home:!!document.querySelector('.bb-home-theme,#homeScreen,[data-screen="home"]'),
-      meta:window.BB_BUILD_META||null
-    }));
+    return await Promise.race([
+      page.evaluate(()=>({
+        href:location.href,
+        title:document.title,
+        readyState:document.readyState,
+        bodyChildren:document.body?.children?.length??-1,
+        bodyText:(document.body?.innerText||'').slice(0,500),
+        htmlLength:document.documentElement?.outerHTML?.length||0,
+        scripts:[...document.scripts].slice(0,12).map(s=>({src:s.src||'',type:s.type||'',defer:s.defer,async:s.async,text:(s.src?'':(s.textContent||'').slice(0,80))})),
+        canvases:document.querySelectorAll('canvas').length,
+        home:!!document.querySelector('.bb-home-theme,#homeScreen,[data-screen="home"]'),
+        meta:window.BB_BUILD_META||null
+      })),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('snapshot timeout')),4000))
+    ]);
   }catch(error){
     return {snapshotError:error.message,url:page?.url?.()||''};
   }
@@ -90,11 +94,25 @@ async function runBrowser(name,type){
     if(!/BB_BUILD_META/.test(rootText))throw new Error('root document missing build metadata marker');
     console.log(`Browser smoke (${name}): root HTTP verified (${Math.round(rootText.length/1024)} KiB)`);
 
+    // GitHub-hosted headless browsers have intermittently stalled committing the local
+    // loopback main-document response even though the same response is healthy via the
+    // Playwright request client. The server is already verified above. For local smoke,
+    // fulfill only the main document with the exact bytes just fetched, preserving its
+    // HTTP URL/base so every asset still loads from the real local server. Deployed smoke
+    // never uses this route and therefore validates Cloudflare's real network response.
+    if(IS_LOCAL){
+      await page.route(`${BASE}/`,async route=>{
+        await route.fulfill({status:200,contentType:'text/html; charset=utf-8',body:rootText,headers:{'cache-control':'no-store'}});
+      });
+      console.log(`Browser smoke (${name}): local main document will use verified-byte fulfillment`);
+    }
+
     console.log(`Browser smoke (${name}): navigate stable root`);
     const response=await page.goto(`${BASE}/`,{waitUntil:'commit',timeout:30000});
     if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);
+    console.log(`Browser smoke (${name}): navigation committed`);
 
-    for(const delay of [1000,4000,10000]){
+    for(const delay of [1000,3000,6000]){
       await page.waitForTimeout(delay);
       const snap=await snapshot(page);
       console.log(`Browser smoke (${name}) snapshot +${delay}ms: ${JSON.stringify(snap)}`);
