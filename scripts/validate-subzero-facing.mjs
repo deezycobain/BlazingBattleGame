@@ -41,9 +41,18 @@ const directPreviewBlock=alignment.slice(directPreviewStart,directPreviewEnd);
 if(!directPreviewBlock.includes('const attackRotation=Number(actor?.rotation)'))fail('Freeze Blast preview is not sourced from the live attack-lane rotation');
 if(!directPreviewBlock.includes('Math.cos(laneRotation)<0?Math.PI:0'))fail('Freeze Blast preview does not convert the live lane to left/right facing');
 if(!directPreviewBlock.includes('setPreviewRotation(S.anim,actor.name'))fail('Freeze Blast preview direction is not published');
-if(!alignment.includes('const attackDx=Number(enemy?.x)-Number(from?.x)'))fail('committed cast is not derived from attacker-to-resolved-target vector');
-if(!alignment.includes('const facing=Number.isFinite(attackDx)&&attackDx<0?Math.PI:0'))fail('committed target vector is not converted directly to left/right facing');
-if(alignment.includes("resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0)"))fail('legacy assisted target-facing resolution is still active');
+
+const vectorFacingStart=alignment.indexOf('const vectorFacing=`');
+const vectorFacingEnd=alignment.indexOf('const rosterFacingCount=',vectorFacingStart);
+if(vectorFacingStart<0||vectorFacingEnd<=vectorFacingStart)fail('direct committed-facing block is not identifiable');
+const vectorFacingBlock=alignment.slice(vectorFacingStart,vectorFacingEnd);
+if(!vectorFacingBlock.includes('const attackDx=Number(enemy?.x)-Number(from?.x)'))fail('committed cast is not derived from attacker-to-resolved-target vector');
+if(!vectorFacingBlock.includes('const facing=Number.isFinite(attackDx)&&attackDx<0?Math.PI:0'))fail('committed target vector is not converted directly to left/right facing');
+if(vectorFacingBlock.includes('resolveActionRotation('))fail('active committed-facing block still uses assisted target-facing resolution');
+
+// The migration script intentionally retains legacy source strings as replacement anchors so it
+// can upgrade older dist outputs idempotently. Validate the generated replacement blocks, not the
+// mere presence of those inert migration anchors in this build-time source file.
 const polish=await read('scripts/combat-polish-postprocess.mjs');
 if(!polish.includes('previewFacing(S.anim,name)'))fail('Sub-Zero sprite renderer does not consume preview facing');
 if(!polish.includes('Number.isFinite(lockedJutsuFacing)?lockedJutsuFacing:previewJutsuFacing'))fail('committed facing must remain higher priority than preview facing');
