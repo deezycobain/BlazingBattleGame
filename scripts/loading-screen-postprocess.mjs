@@ -12,6 +12,14 @@ const nativeCount=html.split(tylerNative).length-1,boundedCount=html.split(tyler
 if(nativeCount===1)html=html.replace(tylerNative,tylerBounded);
 else if(!(nativeCount===0&&boundedCount===1))throw new Error(`Tyler startup preprocessing: expected one native canvas anchor, found source=${nativeCount}, target=${boundedCount}`);
 
+// Source sheets contain editor frame-number badges in the upper-left corner of each cell.
+// They are not character art, so erase that fixed corner before background/component cleanup.
+const tylerPixels="const pixels=c.getImageData(0,0,cell.width,cell.height);edgeBackground(pixels);c.putImageData(pixels,0,0);";
+const tylerPixelsClean="const pixels=c.getImageData(0,0,cell.width,cell.height);const badgeW=Math.max(12,Math.round(cell.width*.12)),badgeH=Math.max(12,Math.round(cell.height*.12));for(let by=0;by<badgeH;by++)for(let bx=0;bx<badgeW;bx++)pixels.data[(by*cell.width+bx)*4+3]=0;edgeBackground(pixels);c.putImageData(pixels,0,0);";
+const pixelsCount=html.split(tylerPixels).length-1,pixelsCleanCount=html.split(tylerPixelsClean).length-1;
+if(pixelsCount===1)html=html.replace(tylerPixels,tylerPixelsClean);
+else if(!(pixelsCount===0&&pixelsCleanCount===1))throw new Error(`Tyler frame badge cleanup: expected one pixel anchor, found source=${pixelsCount}, target=${pixelsCleanCount}`);
+
 const eagerStart="sheet.src=src;return state;";
 const lazyStart="state.started=false;state.start=()=>{if(state.started)return;state.started=true;sheet.src=src};return state;";
 const eagerStartCount=html.split(eagerStart).length-1,lazyStartCount=html.split(lazyStart).length-1;
@@ -37,5 +45,5 @@ const runtime=`<script id="bb-loading-runtime">(()=>{const root=document.getElem
 const head=html.toLowerCase().lastIndexOf('</head>');if(head<0)throw new Error('Loading screen: closing head missing');html=html.slice(0,head)+`<style id="bb-loading-style">${css}</style>`+html.slice(head);
 const body=html.search(/<body\b[^>]*>/i);if(body<0)throw new Error('Loading screen: body missing');const end=html.indexOf('>',body);html=html.slice(0,end+1)+shell+html.slice(end+1);
 const close=html.toLowerCase().lastIndexOf('</body>');if(close<0)throw new Error('Loading screen: closing body missing');html=html.slice(0,close)+runtime+html.slice(close);
-for(const marker of ['bb-loading-screen','bb-loading-runtime','Preparing the battlefield','Gathering chakra','Retry loading','const prepScale=Math.min(1,256/sw,256/sh)','state.start=()=>{if(state.started)return','TYLER_BODY_RUNTIME.idle.start?.()','TYLER_BODY_RUNTIME.basic.start?.()'])if(!html.includes(marker))throw new Error(`Loading screen missing ${marker}`);
-await fs.writeFile(file,html);console.log('Startup loading screen applied; Tyler sprite preprocessing is lazy and bounded to 256px per source-frame axis.');
+for(const marker of ['bb-loading-screen','bb-loading-runtime','Preparing the battlefield','Gathering chakra','Retry loading','const prepScale=Math.min(1,256/sw,256/sh)','const badgeW=Math.max(12,Math.round(cell.width*.12))','state.start=()=>{if(state.started)return','TYLER_BODY_RUNTIME.idle.start?.()','TYLER_BODY_RUNTIME.basic.start?.()'])if(!html.includes(marker))throw new Error(`Loading screen missing ${marker}`);
+await fs.writeFile(file,html);console.log('Startup loading screen applied; Tyler sprite preprocessing is lazy, bounded to 256px, and strips source-sheet frame badges.');
