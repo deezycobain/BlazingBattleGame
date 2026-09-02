@@ -1,7 +1,7 @@
 name: Runtime build check
 on:
   push:
-    branches: [main, dev-v2]
+    branches: [main, dev-v2, dev-next-2026-09-01]
   pull_request:
     branches: [main]
 permissions:
@@ -9,10 +9,25 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
       - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run build
+      - name: Start built game
+        run: |
+          npm run serve:dist > /tmp/bb-server.log 2>&1 &
+          echo $! > /tmp/bb-server.pid
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 0.5
+          done
+          cat /tmp/bb-server.log
+          exit 1
+      - name: Chromium + WebKit boot smoke
+        run: npm run smoke:browser
