@@ -1,6 +1,7 @@
 import { chromium, webkit } from 'playwright';
 
 const BASE=process.env.BB_SMOKE_URL||'http://127.0.0.1:4173';
+const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
 const browsers=[['chromium',chromium],['webkit',webkit]];
 let failed=false;
 for(const [name,type] of browsers){
@@ -18,13 +19,15 @@ for(const [name,type] of browsers){
     await page.waitForFunction(()=>Array.isArray(window.__BB_DIAGNOSTICS__)&&window.__BB_DIAGNOSTICS__.some(e=>e.name==='GAME_FETCH_COMPLETE'),null,{timeout:30000});
     await page.waitForFunction(()=>window.BBTelemetry&&Array.isArray(window.__BB_DIAGNOSTICS__)&&window.__BB_DIAGNOSTICS__.some(e=>e.name==='RUNTIME_STARTED'),null,{timeout:10000});
     await page.waitForFunction(()=>Array.isArray(window.__BB_DIAGNOSTICS__)&&window.__BB_DIAGNOSTICS__.some(e=>e.name==='HOME_READY'),null,{timeout:25000});
+    const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
+    if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`deployed commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
     if(errors.length)throw new Error(errors.join(' | '));
-    console.log(`Browser smoke PASS (${name}): BOOT_SHELL -> GAME_FETCH_COMPLETE -> RUNTIME_STARTED -> HOME_READY`);
+    console.log(`Browser smoke PASS (${name}): BOOT_SHELL -> GAME_FETCH_COMPLETE -> RUNTIME_STARTED -> HOME_READY${EXPECT?` @ ${String(meta?.commit).slice(0,12)}`:''}`);
   }catch(err){
     failed=true;
-    const diag=await page.evaluate(()=>window.__BB_DIAGNOSTICS__||[]).catch(()=>[]);
+    const state=await page.evaluate(()=>({diagnostics:window.__BB_DIAGNOSTICS__||[],meta:window.BB_BUILD_META||null})).catch(()=>({diagnostics:[],meta:null}));
     console.error(`Browser smoke FAIL (${name}): ${err.message}`);
-    console.error(`Diagnostics (${name}): ${JSON.stringify(diag.slice(-20))}`);
+    console.error(`State (${name}): ${JSON.stringify({meta:state.meta,diagnostics:state.diagnostics.slice(-20)})}`);
   }finally{await browser.close();}
 }
 if(failed)process.exit(1);
