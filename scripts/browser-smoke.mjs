@@ -12,10 +12,7 @@ const TYPES={chromium,webkit};
 function runIsolated(name){
   return new Promise(resolve=>{
     console.log(`Browser smoke isolate START (${name})`);
-    const child=spawn(process.execPath,[SELF],{
-      env:{...process.env,BB_SMOKE_BROWSER:name},
-      stdio:'inherit'
-    });
+    const child=spawn(process.execPath,[SELF],{env:{...process.env,BB_SMOKE_BROWSER:name},stdio:'inherit'});
     let timedOut=false;
     const timer=setTimeout(()=>{
       timedOut=true;
@@ -25,34 +22,33 @@ function runIsolated(name){
     child.on('exit',(code,signal)=>{
       clearTimeout(timer);
       if(timedOut)return resolve(false);
-      if(code===0){
-        console.log(`Browser smoke isolate PASS (${name})`);
-        return resolve(true);
-      }
-      console.error(`Browser smoke isolate FAIL (${name}): exit=${code} signal=${signal||'none'}`);
-      resolve(false);
+      if(code===0){console.log(`Browser smoke isolate PASS (${name})`);return resolve(true)}
+      console.error(`Browser smoke isolate FAIL (${name}): exit=${code} signal=${signal||'none'}`);resolve(false);
     });
-    child.on('error',err=>{
-      clearTimeout(timer);
-      console.error(`Browser smoke isolate FAIL (${name}): ${err.message}`);
-      resolve(false);
-    });
+    child.on('error',err=>{clearTimeout(timer);console.error(`Browser smoke isolate FAIL (${name}): ${err.message}`);resolve(false)});
+  });
+}
+
+function waitForGameUrl(page,timeout=35000){
+  if(page.url().includes('/game.html'))return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>{cleanup();reject(new Error(`game.html navigation timeout; current URL ${page.url()}`))},timeout);
+    const onFrame=frame=>{
+      if(frame===page.mainFrame()&&frame.url().includes('/game.html')){cleanup();resolve()}
+    };
+    function cleanup(){clearTimeout(timer);page.off('framenavigated',onFrame)}
+    page.on('framenavigated',onFrame);
   });
 }
 
 async function runBrowser(name,type){
-  let browser;
-  let page;
+  let browser,page;
   const pageErrors=[];
   const consoleErrors=[];
   try{
     console.log(`Browser smoke START (${name}) -> ${BASE}`);
     browser=await type.launch({headless:true,timeout:15000});
-    const context=await browser.newContext({
-      viewport:{width:390,height:844},
-      isMobile:name==='webkit',
-      hasTouch:name==='webkit'
-    });
+    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:name==='webkit'});
     page=await context.newPage();
     page.setDefaultTimeout(12000);
     page.setDefaultNavigationTimeout(30000);
@@ -69,64 +65,46 @@ async function runBrowser(name,type){
     console.log(`Browser smoke (${name}): BOOT_SHELL HTTP verified`);
 
     console.log(`Browser smoke (${name}): navigate root`);
-    const response=await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded',timeout:30000});
+    const gameUrlPromise=waitForGameUrl(page,35000);
+    const response=await page.goto(`${BASE}/`,{waitUntil:'commit',timeout:30000});
     if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);
 
-    console.log(`Browser smoke (${name}): wait for boot handoff -> game.html`);
-    await page.waitForFunction(()=>location.pathname.endsWith('/game.html'),null,{timeout:35000});
-    console.log(`Browser smoke (${name}): GAME_DOCUMENT URL reached`);
+    console.log(`Browser smoke (${name}): wait for external navigation event -> game.html`);
+    await gameUrlPromise;
+    console.log(`Browser smoke (${name}): GAME_DOCUMENT URL reached (${page.url()})`);
+
+    // Do not execute page JS until the replacement game document has emitted DOMContentLoaded.
+    await page.waitForLoadState('domcontentloaded',{timeout:30000});
+    console.log(`Browser smoke (${name}): GAME_DOCUMENT DOMContentLoaded`);
 
     await page.waitForFunction(()=>window.BBTelemetry&&Array.isArray(window.__BB_DIAGNOSTICS__)&&window.__BB_DIAGNOSTICS__.some(e=>e.name==='RUNTIME_STARTED'),null,{timeout:20000});
     console.log(`Browser smoke (${name}): RUNTIME_STARTED`);
-
     await page.waitForFunction(()=>Array.isArray(window.__BB_DIAGNOSTICS__)&&window.__BB_DIAGNOSTICS__.some(e=>e.name==='HOME_READY'),null,{timeout:35000});
     console.log(`Browser smoke (${name}): HOME_READY`);
 
-    const state=await page.evaluate(()=>({
-      diagnostics:window.__BB_DIAGNOSTICS__||[],
-      meta:window.BB_BUILD_META||null
-    }));
+    const state=await page.evaluate(()=>({diagnostics:window.__BB_DIAGNOSTICS__||[],meta:window.BB_BUILD_META||null}));
     const names=state.diagnostics.map(e=>e?.name);
     if(!names.includes('BOOT_SHELL'))throw new Error('boot diagnostics were not preserved across navigation');
     if(!names.includes('GAME_FETCH_COMPLETE'))throw new Error('GAME_FETCH_COMPLETE was not preserved across navigation');
-    if(EXPECT&&(!state.meta?.commit||!String(state.meta.commit).startsWith(EXPECT.slice(0,12)))){
-      throw new Error(`deployed commit mismatch: expected ${EXPECT.slice(0,12)}, got ${state.meta?.commit||'missing'}`);
-    }
+    if(EXPECT&&(!state.meta?.commit||!String(state.meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`deployed commit mismatch: expected ${EXPECT.slice(0,12)}, got ${state.meta?.commit||'missing'}`);
     if(pageErrors.length)throw new Error(`pageerror: ${pageErrors.join(' | ')}`);
     if(consoleErrors.length)console.log(`Browser smoke (${name}) console errors observed (non-fatal): ${consoleErrors.slice(0,8).join(' | ')}`);
     console.log(`Browser smoke PASS (${name}): BOOT_SHELL -> GAME_FETCH_COMPLETE -> RUNTIME_STARTED -> HOME_READY${EXPECT?` @ ${String(state.meta?.commit).slice(0,12)}`:''}`);
   }catch(err){
-    let state={url:page?.url?.()||'',diagnostics:[],meta:null};
-    if(page){
-      try{
-        const snapshot=await Promise.race([
-          page.evaluate(()=>({url:location.href,diagnostics:window.__BB_DIAGNOSTICS__||[],meta:window.BB_BUILD_META||null})),
-          new Promise(resolve=>setTimeout(()=>resolve(null),2500))
-        ]);
-        if(snapshot)state=snapshot;
-      }catch{}
-    }
     console.error(`Browser smoke FAIL (${name}): ${err.message}`);
-    console.error(`State (${name}): ${JSON.stringify({url:state.url,meta:state.meta,diagnostics:(state.diagnostics||[]).slice(-25),pageErrors:pageErrors.slice(-8),consoleErrors:consoleErrors.slice(-8)})}`);
+    console.error(`State (${name}): ${JSON.stringify({url:page?.url?.()||'',pageErrors:pageErrors.slice(-8),consoleErrors:consoleErrors.slice(-8)})}`);
     process.exitCode=1;
   }finally{
-    if(browser){
-      try{await Promise.race([browser.close(),new Promise(resolve=>setTimeout(resolve,2500))])}catch{}
-    }
+    if(browser){try{await Promise.race([browser.close(),new Promise(resolve=>setTimeout(resolve,2500))])}catch{}}
   }
 }
 
 if(!SELECT){
   let ok=true;
-  for(const name of ['chromium','webkit']){
-    if(!await runIsolated(name))ok=false;
-  }
+  for(const name of ['chromium','webkit'])if(!await runIsolated(name))ok=false;
   if(!ok)process.exit(1);
 }else{
   const type=TYPES[SELECT];
-  if(!type){
-    console.error(`Unknown BB_SMOKE_BROWSER=${SELECT}`);
-    process.exit(2);
-  }
+  if(!type){console.error(`Unknown BB_SMOKE_BROWSER=${SELECT}`);process.exit(2)}
   await runBrowser(SELECT,type);
 }
