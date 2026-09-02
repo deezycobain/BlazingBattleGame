@@ -73,8 +73,8 @@ async function runBrowser(name,type){
     if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);
 
     console.log(`Browser smoke (${name}): wait for boot handoff -> game.html`);
-    await page.waitForURL(url=>url.pathname.endsWith('/game.html'),{timeout:35000,waitUntil:'domcontentloaded'});
-    console.log(`Browser smoke (${name}): GAME_DOCUMENT navigation complete`);
+    await page.waitForFunction(()=>location.pathname.endsWith('/game.html'),null,{timeout:35000});
+    console.log(`Browser smoke (${name}): GAME_DOCUMENT URL reached`);
 
     await page.waitForFunction(()=>window.BBTelemetry&&Array.isArray(window.__BB_DIAGNOSTICS__)&&window.__BB_DIAGNOSTICS__.some(e=>e.name==='RUNTIME_STARTED'),null,{timeout:20000});
     console.log(`Browser smoke (${name}): RUNTIME_STARTED`);
