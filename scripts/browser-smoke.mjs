@@ -29,10 +29,31 @@ function runIsolated(name){
   });
 }
 
+async function snapshot(page){
+  try{
+    return await page.evaluate(()=>({
+      href:location.href,
+      title:document.title,
+      readyState:document.readyState,
+      bodyChildren:document.body?.children?.length??-1,
+      bodyText:(document.body?.innerText||'').slice(0,500),
+      htmlLength:document.documentElement?.outerHTML?.length||0,
+      scripts:[...document.scripts].slice(0,12).map(s=>({src:s.src||'',type:s.type||'',defer:s.defer,async:s.async,text:(s.src?'':(s.textContent||'').slice(0,80))})),
+      canvases:document.querySelectorAll('canvas').length,
+      home:!!document.querySelector('.bb-home-theme,#homeScreen,[data-screen="home"]'),
+      meta:window.BB_BUILD_META||null
+    }));
+  }catch(error){
+    return {snapshotError:error.message,url:page?.url?.()||''};
+  }
+}
+
 async function runBrowser(name,type){
   let browser,page;
   const pageErrors=[];
-  const consoleErrors=[];
+  const consoleMessages=[];
+  const failedRequests=[];
+  const responses=[];
   try{
     console.log(`Browser smoke START (${name}) -> ${BASE}`);
     browser=await type.launch({headless:true,timeout:15000});
@@ -40,9 +61,25 @@ async function runBrowser(name,type){
     page=await context.newPage();
     page.setDefaultTimeout(12000);
     page.setDefaultNavigationTimeout(30000);
-    page.on('pageerror',e=>pageErrors.push(e.message));
-    page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});
-    page.on('requestfailed',r=>console.log(`Browser smoke (${name}) request failed: ${r.method()} ${r.url()} :: ${r.failure()?.errorText||'unknown'}`));
+    page.on('pageerror',e=>{pageErrors.push(e.message);console.log(`Browser smoke (${name}) pageerror: ${e.message}`)});
+    page.on('console',m=>{
+      const text=m.text();
+      consoleMessages.push(`${m.type()}: ${text}`);
+      if(consoleMessages.length>60)consoleMessages.shift();
+      if(m.type()==='error'||m.type()==='warning')console.log(`Browser smoke (${name}) console ${m.type()}: ${text}`);
+    });
+    page.on('requestfailed',r=>{
+      const msg=`${r.method()} ${r.url()} :: ${r.failure()?.errorText||'unknown'}`;
+      failedRequests.push(msg);
+      console.log(`Browser smoke (${name}) request failed: ${msg}`);
+    });
+    page.on('response',r=>{
+      const url=r.url();
+      if(url.startsWith(BASE)){
+        responses.push(`${r.status()} ${r.request().resourceType()} ${url}`);
+        if(responses.length>80)responses.shift();
+      }
+    });
 
     console.log(`Browser smoke (${name}): verify stable direct-root document`);
     const rootRes=await context.request.get(`${BASE}/`,{timeout:20000,failOnStatusCode:false});
@@ -57,9 +94,16 @@ async function runBrowser(name,type){
     const response=await page.goto(`${BASE}/`,{waitUntil:'commit',timeout:30000});
     if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);
 
+    for(const delay of [1000,4000,10000]){
+      await page.waitForTimeout(delay);
+      const snap=await snapshot(page);
+      console.log(`Browser smoke (${name}) snapshot +${delay}ms: ${JSON.stringify(snap)}`);
+      if(snap.canvases||snap.home)break;
+    }
+
     const readySelector='canvas,.bb-home-theme,#homeScreen,[data-screen="home"]';
     console.log(`Browser smoke (${name}): wait for rendered game/home surface`);
-    await page.locator(readySelector).first().waitFor({state:'attached',timeout:45000});
+    await page.locator(readySelector).first().waitFor({state:'attached',timeout:30000});
 
     const state=await page.evaluate(()=>({
       meta:window.BB_BUILD_META||null,
@@ -71,11 +115,11 @@ async function runBrowser(name,type){
     if(!state.hasCanvas&&!state.hasHome)throw new Error('game/home surface missing after readiness signal');
     if(EXPECT&&(!state.meta?.commit||!String(state.meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`deployed commit mismatch: expected ${EXPECT.slice(0,12)}, got ${state.meta?.commit||'missing'}`);
     if(pageErrors.length)throw new Error(`pageerror: ${pageErrors.join(' | ')}`);
-    if(consoleErrors.length)console.log(`Browser smoke (${name}) console errors observed (non-fatal): ${consoleErrors.slice(0,8).join(' | ')}`);
     console.log(`Browser smoke PASS (${name}): direct root rendered ${state.hasHome?'home':'canvas'} surface; readyState=${state.readyState}${EXPECT?` @ ${String(state.meta?.commit).slice(0,12)}`:''}`);
   }catch(err){
+    const snap=page?await snapshot(page):null;
     console.error(`Browser smoke FAIL (${name}): ${err.message}`);
-    console.error(`State (${name}): ${JSON.stringify({url:page?.url?.()||'',pageErrors:pageErrors.slice(-8),consoleErrors:consoleErrors.slice(-8)})}`);
+    console.error(`State (${name}): ${JSON.stringify({url:page?.url?.()||'',snapshot:snap,pageErrors:pageErrors.slice(-8),failedRequests:failedRequests.slice(-12),responses:responses.slice(-20),consoleMessages:consoleMessages.slice(-20)})}`);
     process.exitCode=1;
   }finally{
     if(browser){try{await Promise.race([browser.close(),new Promise(resolve=>setTimeout(resolve,2500))])}catch{}}
