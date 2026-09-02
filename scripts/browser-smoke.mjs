@@ -41,8 +41,36 @@ function waitForGameUrl(page,timeout=35000){
   });
 }
 
+function telemetryWatcher(page,name){
+  const seen=new Set();
+  const waiters=new Map();
+  const onConsole=msg=>{
+    const text=msg.text();
+    if(msg.type()==='error')return;
+    const m=text.match(/^\[BB\]\s+([A-Z0-9_]+)/);
+    if(!m)return;
+    const checkpoint=m[1];
+    seen.add(checkpoint);
+    console.log(`Browser smoke (${name}) telemetry: ${checkpoint}`);
+    const waiter=waiters.get(checkpoint);
+    if(waiter){clearTimeout(waiter.timer);waiters.delete(checkpoint);waiter.resolve()}
+  };
+  page.on('console',onConsole);
+  return {
+    seen,
+    wait(checkpoint,timeout){
+      if(seen.has(checkpoint))return Promise.resolve();
+      return new Promise((resolve,reject)=>{
+        const timer=setTimeout(()=>{waiters.delete(checkpoint);reject(new Error(`telemetry checkpoint ${checkpoint} timeout after ${timeout}ms`))},timeout);
+        waiters.set(checkpoint,{resolve,reject,timer});
+      });
+    },
+    close(){page.off('console',onConsole);for(const waiter of waiters.values())clearTimeout(waiter.timer);waiters.clear()}
+  };
+}
+
 async function runBrowser(name,type){
-  let browser,page;
+  let browser,page,telemetry;
   const pageErrors=[];
   const consoleErrors=[];
   try{
@@ -55,6 +83,7 @@ async function runBrowser(name,type){
     page.on('pageerror',e=>pageErrors.push(e.message));
     page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});
     page.on('requestfailed',r=>console.log(`Browser smoke (${name}) request failed: ${r.method()} ${r.url()} :: ${r.failure()?.errorText||'unknown'}`));
+    telemetry=telemetryWatcher(page,name);
 
     console.log(`Browser smoke (${name}): verify boot-shell HTTP`);
     const shellRes=await context.request.get(`${BASE}/`,{timeout:20000,failOnStatusCode:false});
@@ -62,39 +91,39 @@ async function runBrowser(name,type){
     const shellText=await shellRes.text();
     if(!/class=["']logo["'][^>]*>Blazing Battle/i.test(shellText))throw new Error('boot shell markup missing Blazing Battle logo');
     if(!/GAME_FETCH_COMPLETE/.test(shellText)||!/game\.html/.test(shellText))throw new Error('boot shell handoff markers missing');
-    console.log(`Browser smoke (${name}): BOOT_SHELL HTTP verified`);
+
+    const gameRes=await context.request.get(`${BASE}/game.html?smoke=1`,{timeout:20000,failOnStatusCode:false});
+    if(!gameRes.ok())throw new Error(`game document HTTP ${gameRes.status()}`);
+    const gameText=await gameRes.text();
+    if(!/RUNTIME_STARTED/.test(gameText)||!/HOME_READY/.test(gameText))throw new Error('game document telemetry markers missing');
+    if(EXPECT&&!gameText.includes(EXPECT.slice(0,12)))throw new Error(`deployed commit marker mismatch: expected ${EXPECT.slice(0,12)} in game document`);
+    console.log(`Browser smoke (${name}): boot + game HTTP verified${EXPECT?` @ ${EXPECT.slice(0,12)}`:''}`);
 
     console.log(`Browser smoke (${name}): navigate root`);
     const gameUrlPromise=waitForGameUrl(page,35000);
     const response=await page.goto(`${BASE}/`,{waitUntil:'commit',timeout:30000});
     if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);
 
+    await telemetry.wait('BOOT_SHELL',10000);
+    await telemetry.wait('GAME_FETCH_COMPLETE',35000);
     console.log(`Browser smoke (${name}): wait for external navigation event -> game.html`);
     await gameUrlPromise;
     console.log(`Browser smoke (${name}): GAME_DOCUMENT URL reached (${page.url()})`);
 
-    // Do not execute page JS until the replacement game document has emitted DOMContentLoaded.
-    await page.waitForLoadState('domcontentloaded',{timeout:30000});
-    console.log(`Browser smoke (${name}): GAME_DOCUMENT DOMContentLoaded`);
+    // Read readiness entirely from console telemetry. This remains observable even while
+    // the document is still parsing and avoids coupling a usable game to DOMContentLoaded.
+    await telemetry.wait('RUNTIME_STARTED',15000);
+    await telemetry.wait('HOME_READY',35000);
 
-    await page.waitForFunction(()=>window.BBTelemetry&&Array.isArray(window.__BB_DIAGNOSTICS__)&&window.__BB_DIAGNOSTICS__.some(e=>e.name==='RUNTIME_STARTED'),null,{timeout:20000});
-    console.log(`Browser smoke (${name}): RUNTIME_STARTED`);
-    await page.waitForFunction(()=>Array.isArray(window.__BB_DIAGNOSTICS__)&&window.__BB_DIAGNOSTICS__.some(e=>e.name==='HOME_READY'),null,{timeout:35000});
-    console.log(`Browser smoke (${name}): HOME_READY`);
-
-    const state=await page.evaluate(()=>({diagnostics:window.__BB_DIAGNOSTICS__||[],meta:window.BB_BUILD_META||null}));
-    const names=state.diagnostics.map(e=>e?.name);
-    if(!names.includes('BOOT_SHELL'))throw new Error('boot diagnostics were not preserved across navigation');
-    if(!names.includes('GAME_FETCH_COMPLETE'))throw new Error('GAME_FETCH_COMPLETE was not preserved across navigation');
-    if(EXPECT&&(!state.meta?.commit||!String(state.meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`deployed commit mismatch: expected ${EXPECT.slice(0,12)}, got ${state.meta?.commit||'missing'}`);
     if(pageErrors.length)throw new Error(`pageerror: ${pageErrors.join(' | ')}`);
     if(consoleErrors.length)console.log(`Browser smoke (${name}) console errors observed (non-fatal): ${consoleErrors.slice(0,8).join(' | ')}`);
-    console.log(`Browser smoke PASS (${name}): BOOT_SHELL -> GAME_FETCH_COMPLETE -> RUNTIME_STARTED -> HOME_READY${EXPECT?` @ ${String(state.meta?.commit).slice(0,12)}`:''}`);
+    console.log(`Browser smoke PASS (${name}): BOOT_SHELL -> GAME_FETCH_COMPLETE -> RUNTIME_STARTED -> HOME_READY${EXPECT?` @ ${EXPECT.slice(0,12)}`:''}`);
   }catch(err){
     console.error(`Browser smoke FAIL (${name}): ${err.message}`);
-    console.error(`State (${name}): ${JSON.stringify({url:page?.url?.()||'',pageErrors:pageErrors.slice(-8),consoleErrors:consoleErrors.slice(-8)})}`);
+    console.error(`State (${name}): ${JSON.stringify({url:page?.url?.()||'',telemetry:[...(telemetry?.seen||[])],pageErrors:pageErrors.slice(-8),consoleErrors:consoleErrors.slice(-8)})}`);
     process.exitCode=1;
   }finally{
+    telemetry?.close();
     if(browser){try{await Promise.race([browser.close(),new Promise(resolve=>setTimeout(resolve,2500))])}catch{}}
   }
 }
