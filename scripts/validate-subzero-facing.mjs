@@ -28,7 +28,7 @@ P.clearFacing(anim,'Sub-Zero');
 if(P.lockedFacing(anim,'Sub-Zero')!==null||P.previewFacing(anim,'Sub-Zero')!==null)fail('all facing state must clear after the action');
 
 const subzero=JSON.parse(await read('assets/characters/subzero/data/unit.json'));
-if(subzero?.abilities?.jutsu?.presentation?.projectile_hand_offset_y_px!==-38)fail('Freeze Blast hand offset changed');
+if(subzero?.abilities?.jutsu?.presentation?.projectile_hand_offset_y_px!==-24)fail('Freeze Blast hand offset must stay aligned with the visible hands');
 if(subzero?.abilities?.jutsu?.presentation?.projectile_visual_scale!==0.78)fail('Freeze Blast visual scale changed');
 if(subzero?.abilities?.jutsu?.presentation?.range_rotation_mode!=='nearest_enemy_horizontal_facing')fail('Freeze Blast is not configured for nearest-lane-enemy horizontal aiming');
 if(subzero?.combat?.jutsu_shape?.w!==175||subzero?.combat?.jutsu_shape?.h!==64)fail('Freeze Blast gameplay range changed');

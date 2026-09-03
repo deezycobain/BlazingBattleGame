@@ -99,11 +99,11 @@ const lebeeShape=lebee.combat?.basic_shape||{};
 const lebeeBasic=lebee.abilities?.basic||{};
 if(lebeeShape.type!=='rect'||lebeeShape.w!==245||lebeeShape.h!==54||lebeeShape.offset_x!==111)fail('Lebee Star Blast lane geometry changed unexpectedly');
 if(lebeeBasic.target_mode!=='multi')fail('Lebee Star Blast must retain its multi-target lane semantics');
-if(lebeeBasic.presentation?.range_rotation_mode!=='nearest_enemy_facing')fail('Lebee Star Blast must auto-aim its lane at the nearest living enemy');
+if(lebeeBasic.presentation?.range_rotation_mode!=='nearest_enemy_horizontal_facing')fail('Lebee Star Blast must use strict horizontal nearest-lane-enemy aiming');
 const lebeeCandidates=[{id:'dead-near',x:8,y:0,hp:0},{id:'far-right',x:150,y:0,hp:10},{id:'near-up',x:0,y:-70,hp:10}];
-if(P.resolveActionTarget(lebee,'normal',{x:0,y:0},lebeeCandidates)?.id!=='near-up')fail('Lebee Star Blast aim must ignore defeated enemies and choose the nearest living enemy');
-const lebeeUp=P.resolveActionRotation(lebee,'normal',{x:0,y:0},lebeeCandidates,0);
-if(!approx(lebeeUp,-Math.PI/2))fail('Lebee Star Blast lane must rotate to its selected target');
+if(P.resolveActionTarget(lebee,'normal',{x:0,y:0},lebeeCandidates)?.id!=='far-right')fail('Lebee Star Blast must ignore defeated enemies and prefer a living enemy aligned with its horizontal lane');
+const lebeeRight=P.resolveActionRotation(lebee,'normal',{x:0,y:0},lebeeCandidates,Math.PI);
+if(!approx(lebeeRight,0))fail('Lebee Star Blast lane must collapse its selected target to straight right');
 
 const explosiveMap=senkuMap.abilities?.explosive_bomb||{};
 const primaryAnim=explosiveMap.presentation_animations?.primary_retreat;
@@ -158,6 +158,6 @@ if(shell.includes("const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlas
 const renderer=await read('runtime/rendering/battlefield-renderer.js');
 for(const marker of ['function pearHalfWidth(',"s.type==='pear'",'ctx.lineTo(x,y)'])if(!renderer.includes(marker))fail(`battlefield renderer missing pear marker: ${marker}`);
 const staticPass=await read('scripts/static-hitbox-postprocess.mjs');
-for(const marker of ['combat.jutsu_rotation_deg','combat.basic_rotation_deg',"if(s.type==='pear')",'Senku pear hit geometry',"basicMeta.melee_animation_kind||'melee_attack'",': animateLunge;','basicTarget=wantsRetreat?enemy:to;','horizontal-lane focus resolver','Lebee target-facing projectile pass','lockFacing(state,unitName,from,enemy)',"resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)",'lockRotation(state,unitName,facing)'])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
+for(const marker of ['combat.jutsu_rotation_deg','combat.basic_rotation_deg',"if(s.type==='pear')",'Senku pear hit geometry',"basicMeta.melee_animation_kind||'melee_attack'",': animateLunge;','basicTarget=wantsRetreat?enemy:to;','horizontal-lane focus resolver','Lebee target-facing projectile pass',"resolveActionRotation(canonicalUnit(unitName),'basic',from,S.enemies||[],0)","resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)",'lockRotation(state,unitName,facing)','to:{x:enemy.x,y:from.y-20}'])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: Senku and Lebee directional presentation retained; Sub-Zero Freeze Blast selects the nearest lane-aligned living enemy while range preview, hit geometry, cast facing, and projectile travel remain strictly horizontal left/right without changing combat values.');
+console.log('Gameplay presentation smoke PASS: Lebee Star Blast and Sub-Zero Freeze Blast select a nearest lane-aligned living enemy while range preview, hit geometry, cast facing, and projectile travel remain strictly horizontal left/right without changing combat values.');

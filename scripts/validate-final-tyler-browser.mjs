@@ -29,7 +29,9 @@ for(const marker of [
  "function protectedControl(target){return !!target.closest?.('button,[role=\"button\"],input,select,textarea,a[href],[data-inventory-action]",
  'id="bb-desktop-battle-input"',
  "cvs.addEventListener('pointerdown'",
- "ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,96):UNIT_TOUCH_RADIUS"
+ "ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,96):UNIT_TOUCH_RADIUS",
+ 'event.stopImmediatePropagation();',
+ "dispatchPointer('pointermove',event,activeCanvas)"
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);
 for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait"])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
 console.log('Final Tyler/browser PASS: team page uses full-art-first portraits plus parchment/cloud theme; Tyler ping-pong idle pacing and sheet-artifact cleanup survived final build; desktop PointerEvents remain intact.');

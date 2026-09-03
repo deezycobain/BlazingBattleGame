@@ -83,9 +83,9 @@ document.addEventListener('pointerdown',event=>{
  const rect=canvas.getBoundingClientRect();
  if(!inside(rect,event.clientX,event.clientY))return;
  activeCanvas=canvas;
- if(event.target===canvas)return;
  bridgedPointerId++;
  event.preventDefault();
+ event.stopImmediatePropagation();
  dispatchPointer('pointerdown',event,canvas);
 },true);
 document.addEventListener('pointermove',event=>{
@@ -95,22 +95,23 @@ document.addEventListener('pointermove',event=>{
   activeCanvas=null;
   return;
  }
- if(event.target===activeCanvas)return;
  event.preventDefault();
+ event.stopImmediatePropagation();
  dispatchPointer('pointermove',event,activeCanvas);
 },true);
 document.addEventListener('pointerup',event=>{
  if(event.__bbMouseBridge||event.pointerType!=='mouse'||event.button!==0||!activeCanvas)return;
  const canvas=activeCanvas;
  activeCanvas=null;
- if(event.target===canvas)return;
  event.preventDefault();
+ event.stopImmediatePropagation();
  dispatchPointer('pointerup',event,canvas);
 },true);
 document.addEventListener('pointercancel',event=>{
  if(event.__bbMouseBridge||event.pointerType!=='mouse'||!activeCanvas)return;
  const canvas=activeCanvas;
  activeCanvas=null;
+ event.stopImmediatePropagation();
  dispatchPointer('pointercancel',event,canvas);
 },true);
 })();</script>`;
