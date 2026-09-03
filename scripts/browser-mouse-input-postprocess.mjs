@@ -19,7 +19,7 @@ for(const marker of [
 // mouse users a body-shaped pickup box extending upward from the feet, plus a small anchor
 // circle, so clicking anywhere on the active fighter starts the same native drag path.
 const original=" if(!p||!pairAlive(p)||d(pt,p)>UNIT_TOUCH_RADIUS)return;";
-const patched=" const mouseBodyHit=ev.pointerType==='mouse'&&Math.abs(pt.x-p.x)<=86&&pt.y>=p.y-205&&pt.y<=p.y+48;\n const inputRadius=ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,112):UNIT_TOUCH_RADIUS;\n if(!p||!pairAlive(p)||(!mouseBodyHit&&d(pt,p)>inputRadius))return;";
+const patched=" const desktopPointer=ev.pointerType==='mouse'||(!ev.pointerType&&ev instanceof MouseEvent);\n const mouseBodyHit=desktopPointer&&p&&Math.abs(pt.x-p.x)<=96&&pt.y>=p.y-220&&pt.y<=p.y+52;\n const inputRadius=desktopPointer?Math.max(UNIT_TOUCH_RADIUS,118):UNIT_TOUCH_RADIUS;\n if(!p||!pairAlive(p)||(!mouseBodyHit&&d(pt,p)>inputRadius))return;";
 const sourceCount=html.split(original).length-1,targetCount=html.split(patched).length-1;
 if(sourceCount===1)html=html.replace(original,patched);
 else if(sourceCount===0&&targetCount===1){}
@@ -122,8 +122,32 @@ if(at<0)throw new Error('Browser mouse input: closing body not found');
 html=html.slice(0,at)+runtime+html.slice(at);
 
 if((html.match(new RegExp(`id=["']${id}["']`,'g'))||[]).length!==1)throw new Error('Browser mouse input: desktop pointer bridge injection was not unique');
-if(!html.includes("Math.abs(pt.x-p.x)<=86&&pt.y>=p.y-205&&pt.y<=p.y+48"))throw new Error('Browser mouse input: desktop body pickup patch missing');
+if(!html.includes("Math.abs(pt.x-p.x)<=96&&pt.y>=p.y-220&&pt.y<=p.y+52"))throw new Error('Browser mouse input: desktop body pickup patch missing');
+
+// Preserve the exact point grabbed on the visible sprite. Without this offset, grabbing a
+// torso teleports the fighter's foot anchor to the cursor and makes desktop movement feel
+// delayed and inaccurate. Consume the newest coalesced mouse sample when the browser has one.
+const downAnchor=" S.dragOrigin={x:p.x,y:p.y};\n S.dragVisual={scale:1.0,rot:0,lift:0,lastX:pt.x,lastY:pt.y,targetScale:1.34,targetLift:17};";
+const downPatched=" S.dragOrigin={x:p.x,y:p.y};\n S.dragGrabOffset={x:p.x-pt.x,y:p.y-pt.y};\n S.dragVisual={scale:1.0,rot:0,lift:0,lastX:pt.x,lastY:pt.y,targetScale:1.34,targetLift:17};";
+if(html.includes(downAnchor))html=html.replace(downAnchor,downPatched);
+else if(!html.includes('S.dragGrabOffset={x:p.x-pt.x,y:p.y-pt.y};'))throw new Error('Browser mouse input: grab offset anchor missing');
+
+const moveAnchor=" let p=S.ready.ref,pt=inputPoint(ev),v=S.dragVisual;";
+const movePatched=" const samples=ev.getCoalescedEvents?.();\n const latest=samples?.length?samples[samples.length-1]:ev;\n let p=S.ready.ref,pt=inputPoint(latest),v=S.dragVisual;";
+if(html.includes(moveAnchor))html=html.replace(moveAnchor,movePatched);
+else if(!html.includes('const latest=samples?.length?samples[samples.length-1]:ev;'))throw new Error('Browser mouse input: latest pointer sample anchor missing');
+
+const legalAnchor=" let legal=clampToBattlefield(pt);";
+const legalPatched=" const grab=S.dragGrabOffset||{x:0,y:0};\n let legal=clampToBattlefield({x:pt.x+grab.x,y:pt.y+grab.y});";
+if(html.includes(legalAnchor))html=html.replace(legalAnchor,legalPatched);
+else if(!html.includes('x:pt.x+grab.x,y:pt.y+grab.y'))throw new Error('Browser mouse input: offset movement anchor missing');
+
+html=html.replaceAll('S.dragVisual=null;S.dragOrigin=null;','S.dragVisual=null;S.dragOrigin=null;S.dragGrabOffset=null;');
+const releaseAnchor=" S.drag=false;\n try{if(cvs.hasPointerCapture?.(ev.pointerId))cvs.releasePointerCapture(ev.pointerId)}catch(_e){}";
+const releasePatched=" S.drag=false;\n S.dragGrabOffset=null;\n try{if(cvs.hasPointerCapture?.(ev.pointerId))cvs.releasePointerCapture(ev.pointerId)}catch(_e){}";
+if(html.includes(releaseAnchor))html=html.replace(releaseAnchor,releasePatched);
+else if(!html.includes('S.drag=false;\n S.dragGrabOffset=null;'))throw new Error('Browser mouse input: release cleanup anchor missing');
 if(html.includes('new TouchEvent(')||html.includes("dispatchTouch('touchstart'"))throw new Error('Browser mouse input: obsolete mouse-to-touch adapter survived');
 
 await fs.writeFile(file,html);
-console.log('Desktop browser input applied: native battle PointerEvents retained, full visible fighter body is mouse-pickable, and overlay pointer events safely retarget to #game; touch/pen unchanged.');
+console.log('Desktop browser input applied: full visible fighter body is mouse-pickable, grab offset is preserved, latest pointer samples drive movement, and touch/pen remain unchanged.');

@@ -29,8 +29,11 @@ for(const marker of [
  "function protectedControl(target){return !!target.closest?.('button,[role=\"button\"],input,select,textarea,a[href],[data-inventory-action]",
  'id="bb-desktop-battle-input"',
  "cvs.addEventListener('pointerdown'",
- "Math.abs(pt.x-p.x)<=86&&pt.y>=p.y-205&&pt.y<=p.y+48",
- "Math.max(UNIT_TOUCH_RADIUS,112)",
+ "Math.abs(pt.x-p.x)<=96&&pt.y>=p.y-220&&pt.y<=p.y+52",
+ "Math.max(UNIT_TOUCH_RADIUS,118)",
+ 'S.dragGrabOffset={x:p.x-pt.x,y:p.y-pt.y};',
+ 'const latest=samples?.length?samples[samples.length-1]:ev;',
+ 'x:pt.x+grab.x,y:pt.y+grab.y',
  'event.stopImmediatePropagation();',
  "dispatchPointer('pointermove',event,activeCanvas)"
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);

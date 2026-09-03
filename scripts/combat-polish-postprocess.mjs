@@ -168,6 +168,15 @@ replaceRegexOnce(
 replaceRegexOnce(/ctx\.arc\(pos\.x,pos\.y,\(e\.r\|\|19\)\+14,0,Math\.PI\*2\);/,`ctx.arc(pos.x,pos.y,(e.r||19)+targetPad+4,0,Math.PI*2);`,'enemy target fill radius');
 replaceRegexOnce(/ctx\.arc\(pos\.x,pos\.y,\(e\.r\|\|19\)\+10\+1\.5\*Math\.sin\(performance\.now\(\)\/145\),0,Math\.PI\*2\);/,`ctx.arc(pos.x,pos.y,(e.r||19)+targetPad+1.25*Math.sin(performance.now()/145),0,Math.PI*2);`,'enemy target stroke radius');
 replaceRegexOnce(/ctx\.shadowBlur\s*=\s*jutsu\?10:\(comboLinked\?8:6\);\s*ctx\.lineWidth\s*=\s*jutsu\?1\.8:1\.45;/,`ctx.shadowBlur=jutsu?14:(comboLinked?12:10);\n      ctx.lineWidth=jutsu?2.35:2.05;`,'enemy target ring strength');
+replaceOnce(
+ `const targetColor=!jutsu
+       ? (comboLinked?'#39ff88':'#ffffff')
+       : (isUltimateAction(activePlayer)?'#ff3548':'#45d7ff');`,
+ `const targetColor=!jutsu
+       ? (comboLinked?'#39ff88':activePlayer?.name==='Tyler'?'#ffbd4a':'#ffffff')
+       : (isUltimateAction(activePlayer)?'#ff3548':'#45d7ff');`,
+ 'Tyler valid-target amber ring'
+);
 
 replaceRegexOnce(/const\s+targetGroundY\s*=\s*\(enemy\.feetY\?\?enemy\.groundY\?\?enemy\.y\);/,`const targetGroundY=(enemy.feetY??enemy.groundY??(enemy.y+(enemy.r||19)));`,'Senku target feet baseline');
 replaceRegexOnce(/function\s+runAttacker\(\)\{\s*if\(enemy\.hp<=0\|\|attackIndex>=attackers\.length\)return setTimeout\(runTarget,110\);/,`function runAttacker(){\n    if(attackIndex>=attackers.length)return setTimeout(runTarget,110);`,'combo attacker completion guard');
