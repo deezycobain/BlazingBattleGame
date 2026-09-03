@@ -203,3 +203,94 @@
  #summonPullScreen .summonShopHeader{grid-template-columns:1fr auto auto!important}.bb-skip-reveal{padding:7px 8px;font-size:8px}#summonPullScreen .pullCardWrap{height:min(455px,58dvh)!important;min-height:330px!important}
 }
 @media(prefers-reduced-motion:reduce){#summonPullScreen .pullCardWrap,#summonPullScreen .pullCard,#summonPullScreen .bb-shiny-awakening .pullCardWrap::after{animation:none!important;transition:none!important}}
+
+/* v0.7.1 responsive correction + premium Shiny presentation. */
+#summonScreen,#summonPullScreen{padding:0!important}
+
+/* A warm gold current lives behind the card only during an R5 awakening. */
+#summonPullScreen .bb-shiny-awakening .pullHeroArea::after{
+ content:'';display:block;position:absolute;z-index:1;pointer-events:none;
+ left:50%;top:4%;width:min(560px,118vw);height:72%;border-radius:50%;
+ background:
+  radial-gradient(circle at 18% 31%,rgba(255,246,184,.98) 0 2px,transparent 3px),
+  radial-gradient(circle at 81% 24%,rgba(255,235,139,.9) 0 1.5px,transparent 3px),
+  radial-gradient(circle at 87% 68%,rgba(255,250,207,.9) 0 2px,transparent 3.5px),
+  radial-gradient(circle at 14% 74%,rgba(255,222,101,.88) 0 1.5px,transparent 3px),
+  radial-gradient(ellipse at 50% 48%,rgba(255,211,82,.3),rgba(221,155,28,.12) 44%,transparent 70%),
+  conic-gradient(from 205deg at 50% 50%,transparent 0 16%,rgba(255,208,79,.13) 23%,transparent 31% 53%,rgba(255,240,167,.17) 61%,transparent 69%);
+ filter:drop-shadow(0 0 16px rgba(211,148,25,.32));
+ animation:bbGoldFlow 2.8s ease-in-out infinite alternate;
+}
+@keyframes bbGoldFlow{
+ from{opacity:.62;transform:translateX(-50%) scale(.94) rotate(-2deg)}
+ to{opacity:1;transform:translateX(-50%) scale(1.035) rotate(2deg)}
+}
+
+/* The Forge uses clean full art, then earns a prismatic collector foil at R5. */
+.forgeArtStage{position:relative;width:100%;height:min(48dvh,430px);overflow:hidden;border:1px solid rgba(160,126,182,.22);border-radius:12px;background:radial-gradient(circle,rgba(171,101,236,.24),transparent 70%);isolation:isolate}
+.forgePortrait{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;background:rgba(8,7,12,.58)}
+.forgeHoloTexture,.forgeShinyStamp{display:none}
+.forgeCard.shiny::after{display:none!important;content:none!important;animation:none!important}
+.forgeCard.shiny .forgeArtStage{border-color:#ffe08a;box-shadow:0 0 0 2px rgba(255,225,130,.18),0 0 24px rgba(225,168,48,.24);background:#08090f}
+.forgeCard.shiny .forgeHoloTexture{
+ --foil-x:50%;--foil-y:46%;display:block;position:absolute;z-index:2;inset:0;pointer-events:none;border-radius:inherit;
+ background:
+  linear-gradient(115deg,transparent 15%,rgba(255,80,190,.18) 30%,rgba(75,225,255,.28) 42%,rgba(255,243,128,.3) 52%,rgba(128,255,200,.2) 62%,rgba(137,105,255,.24) 73%,transparent 87%),
+  repeating-conic-gradient(from 42deg at var(--foil-x) var(--foil-y),rgba(255,255,255,.2) 0 7deg,rgba(84,221,255,.08) 7deg 14deg,rgba(255,99,210,.1) 14deg 21deg,transparent 21deg 28deg);
+ background-size:230% 100%,34px 34px;background-position:120% 0,0 0;
+ mix-blend-mode:screen;opacity:.48;filter:saturate(1.28) contrast(1.08);
+ animation:forgeHoloDrift 6.5s ease-in-out infinite alternate;
+}
+.forgeCard.shiny .forgeArtStage::before{
+ content:'';position:absolute;z-index:3;inset:0;pointer-events:none;border-radius:inherit;
+ background:
+  radial-gradient(circle at 17% 22%,rgba(255,255,255,.95) 0 1px,transparent 3px),
+  radial-gradient(circle at 76% 18%,rgba(255,244,178,.9) 0 1.5px,transparent 3.5px),
+  radial-gradient(circle at 86% 68%,rgba(190,246,255,.85) 0 1px,transparent 3px),
+  radial-gradient(circle at 24% 78%,rgba(255,214,247,.8) 0 1.5px,transparent 3.5px);
+ opacity:.72;animation:forgeGlintPulse 2.4s ease-in-out infinite alternate;
+}
+.forgeCard.shiny .forgeArtStage::after{
+ content:'';position:absolute;z-index:4;inset:-12%;pointer-events:none;
+ background:linear-gradient(112deg,transparent 37%,rgba(255,255,255,.04) 43%,rgba(255,255,255,.62) 49%,rgba(255,241,190,.15) 55%,transparent 61%);
+ transform:translateX(-72%);mix-blend-mode:screen;animation:forgeCollectorSweep 4.8s ease-in-out infinite;
+}
+.forgeCard.shiny .forgeShinyStamp{display:block;position:absolute;z-index:5;right:9px;bottom:9px;padding:5px 7px;border:1px solid rgba(255,240,178,.75);border-radius:4px;background:rgba(55,35,12,.72);color:#fff1ae;font-size:8px;font-weight:1000;letter-spacing:.13em;box-shadow:0 2px 10px rgba(0,0,0,.35);backdrop-filter:blur(4px)}
+@keyframes forgeHoloDrift{from{background-position:120% 0,0 0;opacity:.35}to{background-position:-115% 0,18px 11px;opacity:.56}}
+@keyframes forgeGlintPulse{from{opacity:.36;filter:drop-shadow(0 0 1px #fff)}to{opacity:.9;filter:drop-shadow(0 0 5px #fff1a8)}}
+@keyframes forgeCollectorSweep{0%,56%{transform:translateX(-78%);opacity:0}65%{opacity:.7}84%,100%{transform:translateX(78%);opacity:0}}
+
+/* Result mode gets its own clear header and always starts at the first card. */
+#summonPullScreen .resultsMode .summonShopHeader{grid-template-columns:1fr!important}
+#summonPullScreen .resultsMode .largePullCounter{grid-column:1!important;justify-self:center!important;font-size:16px!important;letter-spacing:.04em}
+#summonPullScreen .resultsMode .emberBox,#summonPullScreen .resultsMode .bb-skip-reveal{display:none!important}
+
+@media(max-width:700px){
+ #summonScreen,#summonPullScreen{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+ #summonScreen .summonShopShell,#summonPullScreen .summonShopShell{width:100%!important;height:auto!important;min-height:100dvh!important;max-height:none!important;overflow:visible!important;display:block!important;padding:0 0 max(20px,env(safe-area-inset-bottom))!important}
+ #summonScreen .summonShopHeader{height:58px!important;min-height:58px!important;padding:max(7px,env(safe-area-inset-top)) 9px 6px!important;grid-template-columns:44px minmax(0,1fr) auto!important}
+ #summonScreen .shopBackBtn{width:38px!important;height:38px!important}
+ #summonScreen .shopTitle{font-size:27px!important}
+ #summonScreen .emberBox{min-width:104px!important;height:40px!important}
+ .bb-summon-lobby{display:grid;grid-template-columns:1fr;gap:7px;padding:8px 8px 16px}
+ .bb-banner-copy{padding:12px 12px 11px;border-radius:11px 4px 11px 4px}
+ .bb-banner-kicker{margin-bottom:5px;font-size:8px;letter-spacing:.17em}
+ .bb-banner-copy h1{font-size:clamp(22px,6.5vw,29px);line-height:1.01;letter-spacing:-.035em}
+ .bb-banner-copy p{margin:8px 0 9px;font-size:10px;line-height:1.38}
+ .bb-banner-roster{gap:4px}.bb-banner-roster span{padding:4px 6px;font-size:7px}
+ .bb-featured-card{min-height:0;height:178px;padding:7px;display:grid;grid-template-columns:128px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:3px 9px;border-radius:4px 11px 4px 11px}
+ .bb-featured-card::before{inset:5px}
+ .bb-featured-label{grid-column:1/-1;grid-row:1;margin:1px;padding:4px 6px;font-size:7px}
+ .bb-featured-card img{grid-column:1;grid-row:2;width:128px;height:139px;align-self:center;background:transparent;filter:drop-shadow(0 4px 5px rgba(52,38,25,.2))}
+ .bb-featured-card>div:last-child{grid-column:2;grid-row:2;align-self:center;padding:4px;text-align:left}
+ .bb-featured-card strong{font-size:21px}.bb-featured-card span{font-size:7px;line-height:1.35}
+ .bb-resonance-path{padding:7px 5px;min-height:43px}.bb-resonance-path span{font-size:7px;line-height:1.2}.bb-resonance-path b{font-size:9px}.bb-resonance-path i{font-size:17px}
+ .bb-summon-actions{gap:6px;padding:7px}.bb-summon-actions .bigSummonBtn{min-height:57px!important;padding:7px 5px!important}.bb-summon-actions .bigSummonBtn b{font-size:12px!important}.bb-summon-actions .bigSummonBtn span{font-size:8px!important}.bb-summon-actions .bigSummonBtn em{font-size:6px!important}
+ .bb-summon-secondary{grid-template-columns:1fr 1fr;gap:6px;padding:7px}.bb-forge-launch,.bb-banner-details summary{min-height:38px;font-size:8px}
+ .forgeArtStage{height:32dvh;min-height:260px}.forgePortrait{height:100%}
+ #summonPullScreen .resultsMode .pullHeroArea{min-height:auto!important;padding-top:10px!important}
+}
+@media(max-width:370px){
+ .bb-featured-card{grid-template-columns:112px minmax(0,1fr);height:163px}.bb-featured-card img{width:112px;height:124px}.bb-banner-copy h1{font-size:21px}.bb-banner-copy p{font-size:9px}.bb-banner-roster span{font-size:6px}.bb-summon-secondary{grid-template-columns:1fr 1fr}
+}
+@media(prefers-reduced-motion:reduce){#summonPullScreen .bb-shiny-awakening .pullHeroArea::after,.forgeCard.shiny .forgeHoloTexture,.forgeCard.shiny .forgeArtStage::before,.forgeCard.shiny .forgeArtStage::after{animation:none!important}}
