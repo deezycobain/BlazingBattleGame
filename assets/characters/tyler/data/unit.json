@@ -10,7 +10,7 @@
   "collection": {"owned": true,"inventory_visible": true,"battle_ready": true},
   "stats": {"level": 1,"hp": 110,"attack": 30,"defense": 20,"speed": 58},
   "combat": {"mark": "T","movement_range": 88,"basic_shape": {"type": "circle","r": 95},"jutsu_shape": {"type": "circle","r": 0},"chakra_max": 8,"chakra_start": 0},
-  "render": {"scale": 1.0},
+  "render": {"scale": 1.18},
   "abilities": {
     "basic": {"id": "basic_strike","name": "Basic Attack","damage_multiplier": 1.0,"chakra_gain": 1,"delivery": "melee","presentation": {"runtime_driver": "animateLunge","animation_kind": "basic_attack","melee_animation_kind": "basic_attack"}},
     "jutsu": {"id": "tyler_jutsu_placeholder","name": "Jutsu Locked","cost": 99,"damage_multiplier": 0,"delivery": "disabled"}
@@ -23,7 +23,7 @@
     "canvas": {"width": 420,"height": 420,"anchor_x": 210,"anchor_y": 392},
     "animations": {
       "idle": {"source_sheet": {"path": "sprites/source/20AAB6CC-D064-4F8A-A155-BC2A55A831C5.png","columns": 5,"rows": 1,"frame_count": 5,"content_top_px": 0,"background_cleanup": "edge_flood_plus_enclosed_white_and_component_prune"},"frames": [],"frame_ms": 230,"loop": true,"runtime_playback_sequence": [0,1,2,3,4,3,2,1],"events": []},
-      "basic_attack": {"source_sheet": {"path": "sprites/source/basic_attack_sheet.png","columns": 4,"rows": 2,"frame_count": 8,"content_top_px": 100,"background_cleanup": "edge_flood_plus_enclosed_white_and_component_prune"},"frames": [],"frame_ms": 100,"loop": false,"runtime_playback_sequence": [0,0,1,2,3,4,5,6,7,7],"events": [{"frame": 7,"event": "release_projectile_or_apply_melee"}]}
+      "basic_attack": {"source_sheet": {"path": "sprites/source/basic_attack_sheet.png","columns": 4,"rows": 2,"frame_count": 8,"content_top_px": 100,"background_cleanup": "edge_flood_plus_enclosed_white_and_component_prune"},"frames": [],"frame_ms": 80,"loop": false,"runtime_playback_sequence": [0,0,1,2,3,4,5,6,7,7],"events": [{"frame": 4,"event": "apply_melee_impact"}]}
     },
     "vfx": {}
   }
