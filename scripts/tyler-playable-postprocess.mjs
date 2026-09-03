@@ -17,10 +17,10 @@ if(html.includes(legacyTeamImage))html=html.replace(legacyTeamImage,fullArtTeamI
 else if(html.includes(priorTeamImage))html=html.replace(priorTeamImage,fullArtTeamImage);
 else if(!html.includes(fullArtTeamImage))throw new Error('Tyler playable integration: team-editor image resolver anchor missing');
 
-const idlePath='assets/characters/tyler/sprites/source/idle_sheet.png';
+const idlePath='assets/characters/tyler/sprites/source/20AAB6CC-D064-4F8A-A155-BC2A55A831C5.png';
 const basicPath='assets/characters/tyler/sprites/source/basic_attack_sheet.png';
 const runtime=String.raw`const TYLER_BODY_RUNTIME=(()=>{
- const CANVAS=420,FOOT_Y=398;
+ const CANVAS=420,FOOT_Y=402;
  const lightNeutral=(r,g,b)=>{const hi=Math.max(r,g,b),lo=Math.min(r,g,b);return lo>205&&hi-lo<48;};
  function pruneTinyComponents(image){
   const w=image.width,h=image.height,d=image.data,seen=new Uint8Array(w*h),queue=new Int32Array(w*h),components=[];
@@ -56,17 +56,17 @@ const runtime=String.raw`const TYLER_BODY_RUNTIME=(()=>{
    const cell=document.createElement('canvas');cell.width=Math.round(sw);cell.height=Math.round(sh);const c=cell.getContext('2d',{willReadFrequently:true});c.drawImage(sheet,sx,sy,sw,sh,0,0,cell.width,cell.height);
    const pixels=c.getImageData(0,0,cell.width,cell.height);edgeBackground(pixels);c.putImageData(pixels,0,0);const d=pixels.data;let minX=cell.width,minY=cell.height,maxX=-1,maxY=-1;
    for(let p=0;p<d.length;p+=4){if(d[p+3]<=12)continue;const px=(p/4)%cell.width,py=Math.floor((p/4)/cell.width);if(px<minX)minX=px;if(px>maxX)maxX=px;if(py<minY)minY=py;if(py>maxY)maxY=py;}
-   const out=document.createElement('canvas');out.width=CANVAS;out.height=CANVAS;const o=out.getContext('2d');if(maxX>=minX&&maxY>=minY){const padX=Math.max(8,Math.round((maxX-minX+1)*.03)),padY=Math.max(10,Math.round((maxY-minY+1)*.035)),cx=Math.max(0,minX-padX),cy=Math.max(0,minY-padY),cr=Math.min(cell.width,maxX+1+padX),cb=Math.min(cell.height,maxY+1+padY),bw=cr-cx,bh=cb-cy,scale=Math.min((CANVAS*.78)/bw,(CANVAS*.86)/bh),dw=bw*scale,dh=bh*scale;o.drawImage(cell,cx,cy,bw,bh,(CANVAS-dw)/2,FOOT_Y-dh,dw,dh);}
+   const out=document.createElement('canvas');out.width=CANVAS;out.height=CANVAS;const o=out.getContext('2d');if(maxX>=minX&&maxY>=minY){const padX=Math.max(8,Math.round((maxX-minX+1)*.03)),padY=Math.max(10,Math.round((maxY-minY+1)*.035)),cx=Math.max(0,minX-padX),cy=Math.max(0,minY-padY),cr=Math.min(cell.width,maxX+1+padX),cb=Math.min(cell.height,maxY+1+padY),bw=cr-cx,bh=cb-cy,scale=Math.min((CANVAS*.86)/bw,(CANVAS*.92)/bh),dw=bw*scale,dh=bh*scale;o.drawImage(cell,cx,cy,bw,bh,(CANVAS-dw)/2,FOOT_Y-dh,dw,dh);}
    const frame=baseFrames[index];frame.addEventListener('load',()=>{state.loaded++;if(state.loaded===count){state.frames=sequence.map(i=>baseFrames[i]||baseFrames[0]);state.ready=true;}},{once:true});frame.src=out.toDataURL('image/png');
   }}catch(err){state.error=true;console.error('Tyler sheet processing failed:',err);}},{once:true});sheet.addEventListener('error',()=>{state.error=true;console.error('Tyler sheet failed to load:',src);},{once:true});sheet.src=src;return state;
  }
  return Object.freeze({
-  idle:buildSheet('${idlePath}',5,1,5,100,[0,0,1,2,3,4,4]),
+  idle:buildSheet('${idlePath}',5,1,5,100,[0,1,2,3,4,3,2,1]),
   basic:buildSheet('${basicPath}',4,2,8,100,[0,0,1,2,3,4,5,6,7,7])
  });
 })();`;
 if(!html.includes('const TYLER_BODY_RUNTIME=(()=>{')){const at=html.indexOf('function unitIdleFrames(name){');if(at<0)throw new Error('Tyler playable integration: idle anchor missing');html=html.slice(0,at)+runtime+'\n '+html.slice(at);}
 if(!html.includes("function unitIdleFrames(name){if(name==='Tyler'&&TYLER_BODY_RUNTIME.idle.ready)return TYLER_BODY_RUNTIME.idle.frames;"))replaceOne('function unitIdleFrames(name){',"function unitIdleFrames(name){if(name==='Tyler'&&TYLER_BODY_RUNTIME.idle.ready)return TYLER_BODY_RUNTIME.idle.frames;",'Tyler idle runtime hook');
 if(!html.includes("function unitAttackFrames(name,kind){if(name==='Tyler'&&TYLER_BODY_RUNTIME.basic.ready)return TYLER_BODY_RUNTIME.basic.frames;"))replaceOne('function unitAttackFrames(name,kind){',"function unitAttackFrames(name,kind){if(name==='Tyler'&&TYLER_BODY_RUNTIME.basic.ready)return TYLER_BODY_RUNTIME.basic.frames;",'Tyler Basic Attack runtime hook');
-for(const marker of ["['crimson','subzero','lebee','senku','tyler','anubis']","['Crimson','Sub-Zero','Lebee','Senku','Tyler']","['Tyler','Lebee','Sub-Zero']",'activeTeam.v4',idlePath,basicPath,"[0,0,1,2,3,4,4]","[0,0,1,2,3,4,5,6,7,7]",'pruneTinyComponents','bgDistance'])if(!html.includes(marker))throw new Error(`Tyler playable integration: final shell missing ${marker}`);
-await fs.writeFile(file,html);console.log('Tyler playable integration applied: full-art-first team portraits, calmer held-frame playback, enclosed-white cleanup, and tiny sheet-artifact pruning.');
+for(const marker of ["['crimson','subzero','lebee','senku','tyler','anubis']","['Crimson','Sub-Zero','Lebee','Senku','Tyler']","['Tyler','Lebee','Sub-Zero']",'activeTeam.v4',idlePath,basicPath,"[0,1,2,3,4,3,2,1]","[0,0,1,2,3,4,5,6,7,7]",'pruneTinyComponents','bgDistance','CANVAS*.86','CANVAS*.92'])if(!html.includes(marker))throw new Error(`Tyler playable integration: final shell missing ${marker}`);
+await fs.writeFile(file,html);console.log('Tyler playable integration applied: new ping-pong idle sheet, larger battle rendering, existing Basic Attack sheet, enclosed-white cleanup, and tiny sheet-artifact pruning.');
