@@ -14,11 +14,12 @@ for(const marker of [
   "cvs.addEventListener('pointercancel'"
 ])if(!html.includes(marker))throw new Error(`Browser mouse input: native battle pointer listener missing: ${marker}`);
 
-// Keep the phone/tablet pickup radius exactly as-is. Desktop mouse gets a larger pickup
-// radius around the active fighter so clicking the visible sprite (not just its foot anchor)
-// reliably begins the same native PointerEvent drag path.
+// Keep the phone/tablet pickup radius exactly as-is. Battle coordinates use the fighter's
+// feet as the anchor, so a desktop circle still misses much of a tall visible sprite. Give
+// mouse users a body-shaped pickup box extending upward from the feet, plus a small anchor
+// circle, so clicking anywhere on the active fighter starts the same native drag path.
 const original=" if(!p||!pairAlive(p)||d(pt,p)>UNIT_TOUCH_RADIUS)return;";
-const patched=" const inputRadius=ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,96):UNIT_TOUCH_RADIUS;\n if(!p||!pairAlive(p)||d(pt,p)>inputRadius)return;";
+const patched=" const mouseBodyHit=ev.pointerType==='mouse'&&Math.abs(pt.x-p.x)<=86&&pt.y>=p.y-205&&pt.y<=p.y+48;\n const inputRadius=ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,112):UNIT_TOUCH_RADIUS;\n if(!p||!pairAlive(p)||(!mouseBodyHit&&d(pt,p)>inputRadius))return;";
 const sourceCount=html.split(original).length-1,targetCount=html.split(patched).length-1;
 if(sourceCount===1)html=html.replace(original,patched);
 else if(sourceCount===0&&targetCount===1){}
@@ -121,8 +122,8 @@ if(at<0)throw new Error('Browser mouse input: closing body not found');
 html=html.slice(0,at)+runtime+html.slice(at);
 
 if((html.match(new RegExp(`id=["']${id}["']`,'g'))||[]).length!==1)throw new Error('Browser mouse input: desktop pointer bridge injection was not unique');
-if(!html.includes("ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,96):UNIT_TOUCH_RADIUS"))throw new Error('Browser mouse input: desktop pickup-radius patch missing');
+if(!html.includes("Math.abs(pt.x-p.x)<=86&&pt.y>=p.y-205&&pt.y<=p.y+48"))throw new Error('Browser mouse input: desktop body pickup patch missing');
 if(html.includes('new TouchEvent(')||html.includes("dispatchTouch('touchstart'"))throw new Error('Browser mouse input: obsolete mouse-to-touch adapter survived');
 
 await fs.writeFile(file,html);
-console.log('Desktop browser input applied: native battle PointerEvents retained, mouse pickup radius widened, and overlay pointer events safely retarget to #game; touch/pen unchanged.');
+console.log('Desktop browser input applied: native battle PointerEvents retained, full visible fighter body is mouse-pickable, and overlay pointer events safely retarget to #game; touch/pen unchanged.');

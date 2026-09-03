@@ -29,7 +29,8 @@ for(const marker of [
  "function protectedControl(target){return !!target.closest?.('button,[role=\"button\"],input,select,textarea,a[href],[data-inventory-action]",
  'id="bb-desktop-battle-input"',
  "cvs.addEventListener('pointerdown'",
- "ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,96):UNIT_TOUCH_RADIUS",
+ "Math.abs(pt.x-p.x)<=86&&pt.y>=p.y-205&&pt.y<=p.y+48",
+ "Math.max(UNIT_TOUCH_RADIUS,112)",
  'event.stopImmediatePropagation();',
  "dispatchPointer('pointermove',event,activeCanvas)"
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);
