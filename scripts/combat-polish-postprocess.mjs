@@ -14,7 +14,8 @@ const replaceRegexOnce=(rx,newText,label)=>{
   html=html.replace(rx,newText);
 };
 
-// Sub-Zero Basic keeps its exact 92 px circle. Freeze Blast uses its canonical rectangle.
+// Sub-Zero Basic keeps its exact 92 px circle. Freeze Blast uses its canonical
+// target-directed rectangle.
 replaceOnce(
 `function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
  return window.BlazingBattlefieldRenderer.drawShape(ctx,{origin:p,shape:u.shape,rotation:u.rotation||0,color,glow,visualOffsetY,bounds:BATTLE_BOUNDS});
@@ -36,7 +37,8 @@ function drawShape(p,u,color,alpha=.22,glow=false,visualOffsetY=0){
 'Sub-Zero range presentation'
 );
 
-// Freeze Blast floater: horizontal travel only, rendered at half the prior size.
+// Freeze Blast floater: travel along the resolved target vector while retaining the
+// authored compact projectile treatment.
 const freezeLockNeedle="resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)";
 const freezeLockAt=html.indexOf(freezeLockNeedle);
 if(freezeLockAt<0)throw new Error('Freeze Blast projectile pass: locked-facing animation not found');
@@ -61,12 +63,13 @@ const authoredFreezeRenderer=`else if(f.kind==='${legacyFreezeKind}'){
      const from=f.from||{x:f.x||0,y:f.y||0};
      const rawTo=f.to||{x:f.tx??f.x??0,y:f.ty??f.y??0};
      const locked=window.BlazingAttackPresentation.lockedFacing(S.anim,'Sub-Zero');
-     const dir=Number.isFinite(locked)?(Math.cos(locked)<0?-1:1):(rawTo.x<from.x?-1:1);
-     const travel=Math.max(36,Math.abs(rawTo.x-from.x));
-     const to={x:from.x+dir*travel,y:from.y};
+     const dx=rawTo.x-from.x,dy=rawTo.y-from.y;
+     const distance=Math.hypot(dx,dy);
+     const angle=distance>1e-6?Math.atan2(dy,dx):(Number.isFinite(locked)?locked:0);
+     const travel=Math.max(36,distance);
+     const to=distance>1e-6?rawTo:{x:from.x+Math.cos(angle)*travel,y:from.y+Math.sin(angle)*travel};
      const x=from.x+(to.x-from.x)*ease;
-     const y=from.y;
-     const angle=dir<0?Math.PI:0;
+     const y=from.y+(to.y-from.y)*ease;
      const frameIndex=t<.30?0:(t<.68?1:2);
      const img=SUBZERO_FREEZE_PROJECTILE_FRAMES[frameIndex];
      ctx.translate(x,y);ctx.rotate(angle);
@@ -176,4 +179,4 @@ replaceRegexOnce(
 );
 
 await fs.writeFile(file,html);
-console.log(`Combat polish applied: enemy-only Sub-Zero facing + horizontal medium Freeze Blast + 50% VFX scale + separate live-preview/committed cast facing (${legacyFreezeKind}), target ring, Senku feet impact, full combo sequence.`);
+console.log(`Combat polish applied: enemy-only Sub-Zero facing + target-directed medium Freeze Blast + compact VFX scale + separate live-preview/committed cast facing (${legacyFreezeKind}), target ring, Senku feet impact, full combo sequence.`);

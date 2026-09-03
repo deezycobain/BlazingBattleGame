@@ -49,15 +49,38 @@ const facingReplacement=`function updateFacing(){
 function battleSpriteFor`;
 html=html.replace(facingRx,facingReplacement);
 
-// Freeze Blast uses the assisted medium-range focus resolver to produce one true-direction
-// angle. The cast lock, body preview and projectile origin all consume that angle.
+// Freeze Blast uses the target-relative focus resolver to produce one true-direction angle.
+// The cast lock, body preview, hit lane and projectile origin all consume that angle.
 const freezeFacingOld="const facing=window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);";
 const freezeFacingLegacy="const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0);\n   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);";
 const freezeFacingNew=`const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0);
    window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`;
 if(html.includes(freezeFacingOld))html=html.replace(freezeFacingOld,freezeFacingNew);
 else if(html.includes(freezeFacingLegacy))html=html.replace(freezeFacingLegacy,freezeFacingNew);
-else if(!html.includes("resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)"))throw new Error('Freeze Blast medium-focus facing pass: animation anchor not found');
+else if(!html.includes("resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)"))throw new Error('Freeze Blast target-facing pass: animation anchor not found');
+
+// Lebee's range proxy now points the Star Blast lane at the nearest live enemy. Commit
+// each projectile to the enemy actually being resolved so the body, launch point and VFX
+// cannot disagree with the highlighted lane (including later targets in a multi-hit lane).
+const lebeeFnStart=html.indexOf('function animateLebeeStarBlast(');
+const lebeeFnEnd=html.indexOf('\nfunction ',lebeeFnStart+1);
+if(lebeeFnStart<0||lebeeFnEnd<0)throw new Error('Lebee target-facing projectile pass: animation function not found');
+let lebeeFn=html.slice(lebeeFnStart,lebeeFnEnd);
+const lebeePose=" state.attackPose[unitName]={kind:'punch',start:performance.now(),duration:castDuration+flightDuration};";
+if(!lebeeFn.includes('lockFacing(state,unitName,from,enemy)')){
+  if(!lebeeFn.includes(lebeePose))throw new Error('Lebee target-facing projectile pass: attack-pose anchor not found');
+  lebeeFn=lebeeFn.replace(lebeePose,`${lebeePose}\n const facing=window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);`);
+}
+const lebeeProjectile="   const projectile={kind:'lebeeStarProjectile',from:{x:from.x,y:from.y-20},to:{x:enemy.x,y:enemy.y-12},start:performance.now(),duration:flightDuration,life:1};";
+if(lebeeFn.includes(lebeeProjectile)){
+  lebeeFn=lebeeFn.replace(lebeeProjectile,`   const projectile={\n    kind:'lebeeStarProjectile',\n    from:{x:from.x+Math.cos(facing)*10,y:from.y-20+Math.sin(facing)*6},\n    to:{x:enemy.x,y:enemy.y-12},\n    start:performance.now(),duration:flightDuration,life:1\n   };`);
+}else if(!lebeeFn.includes("from:{x:from.x+Math.cos(facing)*10"))throw new Error('Lebee target-facing projectile pass: projectile-origin anchor not found');
+const lebeeCleanup='     const st=ensureAnimState();if(st.attackPose)delete st.attackPose[unitName];';
+if(!lebeeFn.includes('clearFacing(st,unitName)')){
+  if(!lebeeFn.includes(lebeeCleanup))throw new Error('Lebee target-facing projectile pass: cleanup anchor not found');
+  lebeeFn=lebeeFn.replace(lebeeCleanup,`${lebeeCleanup}\n     window.BlazingAttackPresentation.clearFacing(st,unitName);`);
+}
+html=html.slice(0,lebeeFnStart)+lebeeFn+html.slice(lebeeFnEnd);
 
 // Senku's basic range is a real directional pear shape, not a cosmetic overlay.
 // Keep the mechanical hit test mathematically aligned with BattlefieldRenderer.drawShape().
@@ -198,4 +221,4 @@ if(!explosionBlock.includes('impact_hold_ratio')||!explosionBlock.includes('impa
 html=html.slice(0,explosionStart)+explosionBlock+html.slice(explosionEnd);
 
 await fs.writeFile(file,html);
-console.log(`Gameplay presentation pass: authored/action-relative rotations + direction-locked jutsu body facing + assisted true-direction Freeze Blast focus/facing/origin + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku dedicated helper melee + Senku bomb size/impact metadata applied`);
+console.log(`Gameplay presentation pass: authored/action-relative rotations + direction-locked jutsu body facing + target-relative focus resolver for Freeze Blast facing/origin + Senku pear hit geometry + UI-only nearest-target highlight (${visualHitIndices.length} visual hits calls) + canonical single-target resolution + Senku dedicated helper melee + Senku bomb size/impact metadata applied`);

@@ -11,18 +11,23 @@ const visualScale=Number(presentation.projectile_visual_scale);
 if(!Number.isFinite(handOffsetY)||handOffsetY>0||handOffsetY<-60)throw new Error('Sub-Zero freeze alignment: projectile_hand_offset_y_px must be a sane upward offset');
 if(!Number.isFinite(visualScale)||visualScale<.65||visualScale>1)throw new Error('Sub-Zero freeze alignment: projectile_visual_scale must be between .65 and 1');
 
-// Commit facing from the actual attack vector: attacker -> resolved target. This is the same
-// direction the attack travels, so no nearest-enemy/assisted-target pass can contradict it.
+// Commit the exact attacker -> resolved-target vector. This is the same direction the
+// target-directed lane and projectile use, so target acquisition cannot contradict the cast.
 const rosterFacing=`const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0);\n   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`;
 const targetFacing=`const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'jutsu',from,[enemy],0);\n   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`;
-const vectorFacing=`const attackDx=Number(enemy?.x)-Number(from?.x);\n   const facing=Number.isFinite(attackDx)&&attackDx<0?Math.PI:0;\n   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`;
-const rosterFacingCount=html.split(rosterFacing).length-1,targetFacingCount=html.split(targetFacing).length-1,vectorFacingCount=html.split(vectorFacing).length-1;
-if(rosterFacingCount===1)html=html.replace(rosterFacing,vectorFacing);
-else if(targetFacingCount===1)html=html.replace(targetFacing,vectorFacing);
-else if(vectorFacingCount!==1)throw new Error(`Sub-Zero freeze alignment: expected one cast-facing anchor, found roster=${rosterFacingCount}, target=${targetFacingCount}, vector=${vectorFacingCount}`);
+const horizontalVectorFacing=`const attackDx=Number(enemy?.x)-Number(from?.x);\n   const facing=Number.isFinite(attackDx)&&attackDx<0?Math.PI:0;\n   window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`;
+const preciseFacing=`const facing=window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);`;
+const rosterFacingCount=html.split(rosterFacing).length-1;
+const targetFacingCount=html.split(targetFacing).length-1;
+const horizontalVectorFacingCount=html.split(horizontalVectorFacing).length-1;
+const preciseFacingCount=html.split(preciseFacing).length-1;
+if(rosterFacingCount===1)html=html.replace(rosterFacing,preciseFacing);
+else if(targetFacingCount===1)html=html.replace(targetFacing,preciseFacing);
+else if(horizontalVectorFacingCount===1)html=html.replace(horizontalVectorFacing,preciseFacing);
+else if(preciseFacingCount!==1)throw new Error(`Sub-Zero freeze alignment: expected one cast-facing anchor, found roster=${rosterFacingCount}, target=${targetFacingCount}, horizontal=${horizontalVectorFacingCount}, precise=${preciseFacingCount}`);
 
-// While aiming, face the same left/right direction as the live attack lane. On release the
-// committed target-vector lock above becomes authoritative for the entire attack animation.
+// While aiming, publish the exact live target direction without creating a committed lock.
+// On release the resolved-target lock above becomes authoritative for the full cast.
 const previewLock=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
           const attackDirection=window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
           return window.BlazingAttackPresentation.lockRotation(S.anim,actor.name,attackDirection);
@@ -61,7 +66,7 @@ const livePreviewState=`if(presentation.body_facing_mode==='jutsu_direction_lock
           }
           return window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
         }`;
-const directPreviewState=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
+const horizontalPreviewState=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
           if(S.action==='jutsu'&&actor.name==='Sub-Zero'){
             const attackRotation=Number(actor?.rotation);
             const laneRotation=Number.isFinite(attackRotation)?attackRotation:authored;
@@ -69,7 +74,14 @@ const directPreviewState=`if(presentation.body_facing_mode==='jutsu_direction_lo
           }
           return window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
         }`;
-const candidates=[previewLock,legacyPreviewUnlocked,aimedPreview,previousPreviewState,livePreviewState];
+const directPreviewState=`if(presentation.body_facing_mode==='jutsu_direction_locked'){
+          if(S.action==='jutsu'&&actor.name==='Sub-Zero'){
+            const attackDirection=window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
+            return window.BlazingAttackPresentation.setPreviewRotation(S.anim,actor.name,attackDirection);
+          }
+          return window.BlazingAttackPresentation.resolveActionRotation(unit,action,origin,S.enemies||[],authored);
+        }`;
+const candidates=[previewLock,legacyPreviewUnlocked,aimedPreview,previousPreviewState,livePreviewState,horizontalPreviewState];
 let replaced=false;
 for(const candidate of candidates){if(html.includes(candidate)){html=html.replace(candidate,directPreviewState);replaced=true;break;}}
 if(!replaced&&!html.includes(directPreviewState))throw new Error('Sub-Zero freeze alignment: preview-facing anchor missing');
@@ -87,7 +99,9 @@ const translateOld='ctx.translate(x,y);ctx.rotate(angle);';
 const translateNew=`const freezeMeta=canonicalUnit('subzero')?.abilities?.jutsu?.presentation||{};
      const projectileHandOffsetY=Number.isFinite(Number(freezeMeta.projectile_hand_offset_y_px))?Number(freezeMeta.projectile_hand_offset_y_px):${handOffsetY};
      const projectileVisualScale=Number.isFinite(Number(freezeMeta.projectile_visual_scale))?Number(freezeMeta.projectile_visual_scale):${visualScale};
-     ctx.translate(x,y+projectileHandOffsetY);ctx.rotate(angle);`;
+     const adjustedY=y+projectileHandOffsetY*(1-ease);
+     const visualAngle=Math.atan2(rawTo.y-(from.y+projectileHandOffsetY),rawTo.x-from.x);
+     ctx.translate(x,adjustedY);ctx.rotate(Number.isFinite(visualAngle)?visualAngle:angle);`;
 if(renderer.includes(translateOld))renderer=renderer.replace(translateOld,translateNew);
 else if(!renderer.includes('projectileHandOffsetY'))throw new Error('Sub-Zero freeze alignment: projectile translate anchor missing');
 const heightOld='const bodyH=frameIndex===2?31:(frameIndex===1?22.5:27);';
@@ -101,4 +115,4 @@ else if(!renderer.includes('baseBodyW'))throw new Error('Sub-Zero freeze alignme
 html=html.slice(0,rendererStart)+renderer+html.slice(rendererEnd);
 
 await fs.writeFile(file,html);
-console.log(`Sub-Zero Freeze Blast alignment applied: live attack-lane preview -> actual target-vector cast lock -> held projectile direction + hand lift ${handOffsetY}px + visual scale ${visualScale}.`);
+console.log(`Sub-Zero Freeze Blast alignment applied: nearest-enemy directional preview -> exact resolved-target cast lock -> target-reaching projectile path + hand lift ${handOffsetY}px + visual scale ${visualScale}.`);
