@@ -6,9 +6,9 @@ for(const marker of [
  "const ACTIVE_PLAYABLE_UNITS=Object.freeze(['Crimson','Sub-Zero','Lebee','Senku','Tyler']);",
  "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Tyler','Lebee','Sub-Zero']);",
  "const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v4';",
- 'assets/characters/tyler/sprites/source/idle_sheet.png',
+ 'assets/characters/tyler/sprites/source/20AAB6CC-D064-4F8A-A155-BC2A55A831C5.png',
  'assets/characters/tyler/sprites/source/basic_attack_sheet.png',
- "[0,0,1,2,3,4,4]",
+ "[0,1,2,3,4,3,2,1]",
  "[0,0,1,2,3,4,5,6,7,7]",
  'pruneTinyComponents',
  'bgDistance(i)<8200',
@@ -22,4 +22,4 @@ for(const marker of [
  "ev.pointerType==='mouse'?Math.max(UNIT_TOUCH_RADIUS,96):UNIT_TOUCH_RADIUS"
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);
 for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait"])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
-console.log('Final Tyler/browser PASS: team page uses full-art-first portraits plus parchment/cloud theme; Tyler held-frame pacing and sheet-artifact cleanup survived final build; desktop PointerEvents remain intact.');
+console.log('Final Tyler/browser PASS: team page uses full-art-first portraits plus parchment/cloud theme; Tyler ping-pong idle pacing and sheet-artifact cleanup survived final build; desktop PointerEvents remain intact.');
