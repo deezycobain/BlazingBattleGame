@@ -16,6 +16,7 @@ const P=window.BlazingAttackPresentation;
 const R=window.BlazingRetreatRuntime;
 if(!P)fail('BlazingAttackPresentation did not initialize');
 if(!R)fail('BlazingRetreatRuntime did not initialize');
+if(typeof P.nearestHorizontalLanePoint!=='function')fail('nearestHorizontalLanePoint did not initialize');
 
 if(!approx(P.rotationToward({x:0,y:0},{x:10,y:0}),0))fail('rotationToward must face right target at 0 radians');
 if(!approx(P.rotationToward({x:0,y:0},{x:0,y:-10}),-Math.PI/2))fail('rotationToward must preserve exact target direction');
@@ -126,22 +127,22 @@ if(subzeroBasic.runtimeDriver!=='animateLunge'||subzeroBasic.animationKind!=='pu
 const freezeShape=subzero.combat?.jutsu_shape||{};
 if(freezeShape.type!=='rect'||freezeShape.w!==175||freezeShape.h!==64||freezeShape.offset_x!==87.5)fail('Sub-Zero Freeze Blast must keep its 175 x 64 forward medium-range rectangle');
 const sj=subzero.abilities?.jutsu?.presentation||{};
-if(sj.range_rotation_mode!=='nearest_enemy_facing')fail('Freeze Blast must auto-aim at the nearest living enemy');
-if(sj.target_focus_mode!=='nearest_live_enemy')fail('Freeze Blast target-focus metadata must describe nearest-live-enemy aiming');
+if(sj.range_rotation_mode!=='nearest_enemy_horizontal_facing')fail('Freeze Blast must use nearest-enemy left/right aiming');
+if(sj.target_focus_mode!=='nearest_live_enemy_in_horizontal_lane')fail('Freeze Blast target-focus metadata must describe horizontal-lane aiming');
 for(const stale of ['target_focus_min_px','target_focus_max_px','target_focus_preferred_px','target_focus_fallback_max_px','target_facing_angle_weight_px_per_rad'])if(stale in sj)fail(`Freeze Blast retained stale horizontal focus metadata: ${stale}`);
 if(sj.target_lock_radius_pad_px!==8)fail('Freeze Blast target lock radius padding changed unexpectedly');
 if(sj.projectile_origin_mode!=='forward_facing')fail('Freeze Blast projectile must originate from Sub-Zero forward facing');
-const focusCandidates=[{id:'close-right',x:50,y:0,hp:10},{id:'medium-right',x:125,y:0,hp:10},{id:'medium-left',x:-160,y:0,hp:10},{id:'edge-right',x:190,y:0,hp:10}];
+const focusCandidates=[{id:'close-off-lane',x:50,y:-90,hp:10},{id:'aligned-right',x:125,y:8,hp:10},{id:'aligned-left',x:-160,y:0,hp:10},{id:'edge-right',x:190,y:0,hp:10}];
 const focus=P.resolveActionTarget(subzero,'jutsu',{x:0,y:0},focusCandidates);
-if(focus?.id!=='close-right')fail('Freeze Blast should select the nearest living enemy');
+if(focus?.id!=='aligned-right')fail('Freeze Blast should prefer the nearest living enemy actually aligned with its horizontal lane');
 const mediumRotation=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},focusCandidates,0);
 if(!approx(mediumRotation,0))fail('Freeze Blast must face right for a selected right-side target');
 const diagonalRight=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{id:'diag-right',x:120,y:-90,hp:10}],Math.PI);
-if(!approx(diagonalRight,Math.atan2(-90,120)))fail('Freeze Blast must preserve the exact direction to a diagonal-right target');
+if(!approx(diagonalRight,0))fail('Freeze Blast must collapse a diagonal-right fallback target to straight right');
 const diagonalLeft=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{id:'diag-left',x:-120,y:60,hp:10}],0);
-if(!approx(diagonalLeft,Math.atan2(60,-120)))fail('Freeze Blast must preserve the exact direction to a diagonal-left target');
+if(!approx(diagonalLeft,Math.PI))fail('Freeze Blast must collapse a diagonal-left fallback target to straight left');
 const verticalFallback=P.resolveActionRotation(subzero,'jutsu',{x:0,y:0},[{id:'vertical',x:0,y:-140,hp:10}],0);
-if(!approx(verticalFallback,-Math.PI/2))fail('Freeze Blast must aim vertically when the selected target is directly above');
+if(!approx(verticalFallback,0))fail('Freeze Blast must retain a horizontal fallback for a directly vertical target');
 const liveFocus=P.resolveActionTarget(subzero,'jutsu',{x:0,y:0},[{id:'dead',x:10,y:0,hp:0},{id:'live',x:-90,y:30,hp:10}]);
 if(liveFocus?.id!=='live')fail('Freeze Blast target selection must ignore defeated enemies');
 if(subzero.abilities?.jutsu?.cost!==4||subzero.abilities?.jutsu?.damage_multiplier!==2.1)fail('Freeze Blast cost/damage changed unexpectedly');
@@ -157,6 +158,6 @@ if(shell.includes("const runBasicAttack=(au.name==='Lebee')?animateLebeeStarBlas
 const renderer=await read('runtime/rendering/battlefield-renderer.js');
 for(const marker of ['function pearHalfWidth(',"s.type==='pear'",'ctx.lineTo(x,y)'])if(!renderer.includes(marker))fail(`battlefield renderer missing pear marker: ${marker}`);
 const staticPass=await read('scripts/static-hitbox-postprocess.mjs');
-for(const marker of ['combat.jutsu_rotation_deg','combat.basic_rotation_deg',"if(s.type==='pear')",'Senku pear hit geometry',"basicMeta.melee_animation_kind||'melee_attack'",': animateLunge;','basicTarget=wantsRetreat?enemy:to;','target-relative focus resolver','Lebee target-facing projectile pass','lockFacing(state,unitName,from,enemy)',"resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)",'lockRotation(state,unitName,facing)'])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
+for(const marker of ['combat.jutsu_rotation_deg','combat.basic_rotation_deg',"if(s.type==='pear')",'Senku pear hit geometry',"basicMeta.melee_animation_kind||'melee_attack'",': animateLunge;','basicTarget=wantsRetreat?enemy:to;','horizontal-lane focus resolver','Lebee target-facing projectile pass','lockFacing(state,unitName,from,enemy)',"resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)",'lockRotation(state,unitName,facing)'])if(!staticPass.includes(marker))fail(`static gameplay compatibility pass missing ${marker}`);
 
-console.log('Gameplay presentation smoke PASS: Senku directional/evasive presentation retained; Lebee Star Blast and Sub-Zero Freeze Blast now share nearest-live-enemy target acquisition across range preview, hit geometry, cast facing, and projectile travel without changing their combat geometry or damage semantics.');
+console.log('Gameplay presentation smoke PASS: Senku and Lebee directional presentation retained; Sub-Zero Freeze Blast selects the nearest lane-aligned living enemy while range preview, hit geometry, cast facing, and projectile travel remain strictly horizontal left/right without changing combat values.');

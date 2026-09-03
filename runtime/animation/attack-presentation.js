@@ -44,6 +44,23 @@
     return nearest;
   }
 
+  function nearestHorizontalLanePoint(unitData,action,origin,candidates=[]){
+    if(!finitePoint(origin))return null;
+    const shape=action==='jutsu'?unitData?.combat?.jutsu_shape:unitData?.combat?.basic_shape;
+    if(shape?.type!=='rect')return nearestPoint(origin,candidates);
+    const halfWidth=Math.max(0,Number(shape.w)||0)/2;
+    const halfHeight=Math.max(0,Number(shape.h)||0)/2;
+    const offsetX=Number(shape.offset_x)||0;
+    const offsetY=Number(shape.offset_y)||0;
+    const aligned=livePoints(candidates).filter(candidate=>{
+      const radius=Math.max(0,Number(candidate.r)||19);
+      const forward=Math.abs(candidate.x-origin.x)-offsetX;
+      const cross=(candidate.y-origin.y)-offsetY;
+      return Math.abs(forward)<=halfWidth+radius&&Math.abs(cross)<=halfHeight+radius;
+    });
+    return nearestPoint(origin,aligned)||nearestPoint(origin,candidates);
+  }
+
   function preferredRangePoint(origin,candidates=[],options={}){
     if(!finitePoint(origin))return null;
     const min=Number(options.min);
@@ -102,7 +119,8 @@
       if(target)assistedTargetCache.set(key,target); else assistedTargetCache.delete(key);
       return target;
     }
-    if(mode==='nearest_enemy_facing'||mode==='nearest_enemy_horizontal_facing')return nearestPoint(origin,candidates);
+    if(mode==='nearest_enemy_horizontal_facing')return nearestHorizontalLanePoint(unitData,action,origin,candidates);
+    if(mode==='nearest_enemy_facing')return nearestPoint(origin,candidates);
     return null;
   }
 
@@ -231,6 +249,7 @@
     horizontalRotationToward,
     pointDistance,
     nearestPoint,
+    nearestHorizontalLanePoint,
     preferredRangePoint,
     resolveActionTarget,
     resolveActionRotation,

@@ -24,8 +24,8 @@
     "jutsu": {
       "id": "freeze_blast","name": "Freeze Blast","cost": 4,"damage_multiplier": 2.1,"delivery": "projectile","status_effect": "freeze","status_chance": 1.0,"category": "jutsu","ultimate": false,
       "presentation": {
-        "range_rotation_mode": "nearest_enemy_facing",
-        "target_focus_mode": "nearest_live_enemy",
+        "range_rotation_mode": "nearest_enemy_horizontal_facing",
+        "target_focus_mode": "nearest_live_enemy_in_horizontal_lane",
         "target_lock_radius_pad_px": 8,
         "projectile_origin_mode": "forward_facing",
         "projectile_hand_offset_y_px": -38,
@@ -40,7 +40,7 @@
   },
   "readiness": {
     "collection": true,"battle": true,"idle": true,"basic_attack": true,"jutsu": true,"recoil": true,
-    "notes": "Stable baseline retained. Basic keeps its 92 px close melee bubble. Freeze Blast keeps the 175 px by 64 px medium-range lane, but that lane now auto-aims at the nearest living enemy in any direction. Preview, hit resolution, committed cast facing, and projectile travel share that target direction. The projectile remains lifted to Sub-Zero's hand line and reduced modestly without changing gameplay timing, cost, damage, or freeze behavior.",
+    "notes": "Stable baseline retained. Basic keeps its 92 px close melee bubble. Freeze Blast keeps the 175 px by 64 px medium-range lane and is strictly horizontal: it selects the nearest living enemy already aligned with the lane, then faces and fires only left or right. If no enemy is aligned, preview facing falls back to the nearest living enemy's side. The projectile remains lifted to Sub-Zero's hand line and reduced modestly without changing gameplay timing, cost, damage, or freeze behavior.",
     "animation_map": true
   },
   "balance": {"status": "provisional","pass": "v0.5.30","notes": "Initial archetype-based values. Tune freely during balance testing."},

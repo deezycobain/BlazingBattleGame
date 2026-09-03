@@ -13,7 +13,7 @@ if(unit.abilities?.basic?.single_target_selector!=='nearest_in_shape')fail('Pass
 if(unit.abilities?.basic?.presentation?.animation_kind!=='punch')fail('Pass 4.1 punch presentation changed');
 const freezeShape=unit.combat?.jutsu_shape||{};
 if(freezeShape.type!=='rect'||freezeShape.w!==175||freezeShape.h!==64||freezeShape.offset_x!==87.5)fail('Freeze Blast must keep its 175 x 64 forward medium-range rectangle');
-if(unit.abilities?.jutsu?.presentation?.range_rotation_mode!=='nearest_enemy_facing')fail('Freeze Blast must aim its lane at the nearest living enemy');
+if(unit.abilities?.jutsu?.presentation?.range_rotation_mode!=='nearest_enemy_horizontal_facing')fail('Freeze Blast must aim only left/right toward the nearest lane-aligned living enemy');
 if(!sheet?.path)fail('source_sheet.path is missing');
 if(sheet.columns!==3||sheet.rows!==2)fail('source sheet must remain a 3x2 grid');
 if(sheet.frame_width!==512||sheet.frame_height!==512)fail('source sheet cells must remain 512x512');
@@ -25,4 +25,4 @@ const sheetPath=path.posix.join('assets/characters/subzero',sheet.path);
 if(!(await exists(sheetPath)))fail(`missing source sheet ${sheetPath}`);
 const postprocess=await fs.readFile(path.join(ROOT,'scripts/postprocess-build.mjs'),'utf8');
 for(const marker of ['SUBZERO_BASIC_ATTACK_RUNTIME',"name==='Sub-Zero'",'state.ready=true','lo>235&&hi-lo<12','Preserve the approved character animation presentation work'])if(!postprocess.includes(marker))fail(`postprocess runtime marker missing: ${marker}`);
-console.log(`Sub-Zero Basic Attack validation PASS: stable Basic targeting retained, 175 x 64 target-directed Freeze Blast rectangle enabled, 6 poses from ${sheetPath}, 110 ms frames, frame 4 impact, runtime checkerboard cleanup wired.`);
+console.log(`Sub-Zero Basic Attack validation PASS: stable Basic targeting retained, 175 x 64 strictly horizontal Freeze Blast rectangle enabled, 6 poses from ${sheetPath}, 110 ms frames, frame 4 impact, runtime checkerboard cleanup wired.`);
