@@ -1,0 +1,15 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+const root=process.cwd(),file=path.join(root,'dist','index.html');
+let html=await fs.readFile(file,'utf8');
+const safe=s=>s.replace(/<\/script/gi,'<\\/script');
+const css=await fs.readFile(path.join(root,'runtime/ui/progression/progression.css'),'utf8');
+const js=safe(await fs.readFile(path.join(root,'runtime/ui/progression/progression.js'),'utf8'));
+html=html.replace(/<style\b[^>]*id=["']bb-progression-style["'][^>]*>[\s\S]*?<\/style>/gi,'').replace(/<script\b[^>]*id=["']bb-progression-runtime["'][^>]*>[\s\S]*?<\/script>/gi,'');
+const head=html.toLowerCase().lastIndexOf('</head>'),body=html.toLowerCase().lastIndexOf('</body>');
+if(head<0||body<0)throw new Error('Progression pass: document boundaries missing');
+html=html.slice(0,head)+`<style id="bb-progression-style">${css}</style>`+html.slice(head);
+const bodyAt=html.toLowerCase().lastIndexOf('</body>');html=html.slice(0,bodyAt)+`<script id="bb-progression-runtime">${js}<\/script>`+html.slice(bodyAt);
+for(const marker of ['RESONANCE FORGE','blazing.progression.v1','MAX_RESONANCE=5','STAT_BUDGET=12','summonEmbers=999999','spendEmbers=function()','SHINY AWAKENED','KEEP CURRENT','ACCEPT NEW'])if(!html.includes(marker))throw new Error(`Progression pass missing ${marker}`);
+await fs.writeFile(file,html);
+console.log('Progression pass applied: active unlimited dev summons, persistent duplicate resonance, R5 Shiny awakening, protected stat rerolls, locks, and Forge menu play.');

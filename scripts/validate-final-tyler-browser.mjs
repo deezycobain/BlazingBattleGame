@@ -35,7 +35,16 @@ for(const marker of [
  'const latest=samples?.length?samples[samples.length-1]:ev;',
  'x:pt.x+grab.x,y:pt.y+grab.y',
  'event.stopImmediatePropagation();',
- "dispatchPointer('pointermove',event,activeCanvas)"
+ "dispatchPointer('pointermove',event,activeCanvas)",
+ 'id="bb-progression-style"',
+ 'id="bb-progression-runtime"',
+ "KEY='blazing.progression.v1'",
+ 'RESONANCE FORGE',
+ 'summonEmbers=999999',
+ 'function applyCombatBonuses()',
+ 'KEEP CURRENT',
+ 'ACCEPT NEW',
+ 'RESET DEV PROGRESSION'
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);
 for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait"])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
 console.log('Final Tyler/browser PASS: team page uses full-art-first portraits plus parchment/cloud theme; Tyler ping-pong idle pacing and sheet-artifact cleanup survived final build; desktop PointerEvents remain intact.');
