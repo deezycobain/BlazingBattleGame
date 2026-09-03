@@ -44,7 +44,15 @@ for(const marker of [
  'function applyCombatBonuses()',
  'KEEP CURRENT',
  'ACCEPT NEW',
- 'RESET DEV PROGRESSION'
+ 'RESET DEV PROGRESSION',
+ 'CORE RESONANCE BANNER',
+ 'SKIP TO RESULTS',
+ 'bb-shiny-awakening',
+ 'showSummonResultsNow',
+ 'assets/characters/subzero/cards/unit_details_absolute_zero_v2.jpeg',
+ 'assets/characters/lebee/cards/unit_details_cosmic_wish.jpeg',
+ 'assets/characters/senku/cards/senku_card.jpeg',
+ 'assets/characters/tyler/cards/current_collection_card.png'
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);
 for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait"])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
-console.log('Final Tyler/browser PASS: team page uses full-art-first portraits plus parchment/cloud theme; Tyler ping-pong idle pacing and sheet-artifact cleanup survived final build; desktop PointerEvents remain intact.');
+console.log('Final Tyler/browser PASS: team and summon pages use canonical full art plus parchment/cloud theming; skippable Shiny-to-Forge reveals and desktop PointerEvents survived final build.');
