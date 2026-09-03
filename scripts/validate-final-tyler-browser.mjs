@@ -13,6 +13,8 @@ for(const marker of [
  'CANVAS_H*.92',
  '420,0',
  '560',
+ "name==='Tyler'?230:185",
+ "au.name==='Tyler'&&Math.hypot(to.x-from.x,to.y-from.y)<40",
  'pruneTinyComponents',
  'bgDistance(i)<8200',
  'candidates=[u?.assets?.art,u?.assets?.portrait,u?.assets?.card]',

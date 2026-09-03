@@ -17,6 +17,9 @@ if(html.includes(legacyTeamImage))html=html.replace(legacyTeamImage,fullArtTeamI
 else if(html.includes(priorTeamImage))html=html.replace(priorTeamImage,fullArtTeamImage);
 else if(!html.includes(fullArtTeamImage))throw new Error('Tyler playable integration: team-editor image resolver anchor missing');
 
+replaceOne("const idleMs=name==='Lebee'?520:185;","const idleMs=name==='Lebee'?520:(name==='Tyler'?230:185);",'Tyler idle playback speed');
+replaceOne('runBasicAttack=animateLunge;basicTarget=to;',"runBasicAttack=animateLunge;basicTarget=au.name==='Tyler'&&Math.hypot(to.x-from.x,to.y-from.y)<40?{x:from.x+dx/len*40,y:from.y+dy/len*40}:to;",'Tyler minimum solo lunge distance');
+
 const idlePath='assets/characters/tyler/sprites/source/20AAB6CC-D064-4F8A-A155-BC2A55A831C5.png';
 const basicPath='assets/characters/tyler/sprites/source/basic_attack_sheet.png';
 const runtime=String.raw`const TYLER_BODY_RUNTIME=(()=>{
@@ -68,5 +71,5 @@ const runtime=String.raw`const TYLER_BODY_RUNTIME=(()=>{
 if(!html.includes('const TYLER_BODY_RUNTIME=(()=>{')){const at=html.indexOf('function unitIdleFrames(name){');if(at<0)throw new Error('Tyler playable integration: idle anchor missing');html=html.slice(0,at)+runtime+'\n '+html.slice(at);}
 if(!html.includes("function unitIdleFrames(name){if(name==='Tyler'&&TYLER_BODY_RUNTIME.idle.ready)return TYLER_BODY_RUNTIME.idle.frames;"))replaceOne('function unitIdleFrames(name){',"function unitIdleFrames(name){if(name==='Tyler'&&TYLER_BODY_RUNTIME.idle.ready)return TYLER_BODY_RUNTIME.idle.frames;",'Tyler idle runtime hook');
 if(!html.includes("function unitAttackFrames(name,kind){if(name==='Tyler'&&TYLER_BODY_RUNTIME.basic.ready)return TYLER_BODY_RUNTIME.basic.frames;"))replaceOne('function unitAttackFrames(name,kind){',"function unitAttackFrames(name,kind){if(name==='Tyler'&&TYLER_BODY_RUNTIME.basic.ready)return TYLER_BODY_RUNTIME.basic.frames;",'Tyler Basic Attack runtime hook');
-for(const marker of ["['crimson','subzero','lebee','senku','tyler','anubis']","['Crimson','Sub-Zero','Lebee','Senku','Tyler']","['Tyler','Lebee','Sub-Zero']",'activeTeam.v4',idlePath,basicPath,"[0,1,2,3,4,3,2,1]","[0,0,1,2,3,4,5,6,7,7]",'pruneTinyComponents','bgDistance','CANVAS_H*.92','canvasW=420','420,0','560'])if(!html.includes(marker))throw new Error(`Tyler playable integration: final shell missing ${marker}`);
+for(const marker of ["['crimson','subzero','lebee','senku','tyler','anubis']","['Crimson','Sub-Zero','Lebee','Senku','Tyler']","['Tyler','Lebee','Sub-Zero']",'activeTeam.v4',idlePath,basicPath,"[0,1,2,3,4,3,2,1]","[0,0,1,2,3,4,5,6,7,7]",'pruneTinyComponents','bgDistance','CANVAS_H*.92','canvasW=420','420,0','560',"name==='Tyler'?230:185","au.name==='Tyler'&&Math.hypot(to.x-from.x,to.y-from.y)<40"])if(!html.includes(marker))throw new Error(`Tyler playable integration: final shell missing ${marker}`);
 await fs.writeFile(file,html);console.log('Tyler playable integration applied: new ping-pong idle sheet, larger battle rendering, existing Basic Attack sheet, enclosed-white cleanup, and tiny sheet-artifact pruning.');
