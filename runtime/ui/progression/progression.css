@@ -226,12 +226,23 @@
  to{opacity:1;transform:translateX(-50%) scale(1.035) rotate(2deg)}
 }
 
-/* The Forge uses clean full art, then earns a prismatic collector foil at R5. */
-.forgeArtStage{position:relative;width:min(100%,var(--forge-art-max,323px));height:auto;aspect-ratio:var(--forge-art-ratio,.75);margin:0 auto;overflow:hidden;border:1px solid rgba(160,126,182,.22);border-radius:12px;background:radial-gradient(circle,rgba(171,101,236,.24),transparent 70%);isolation:isolate}
-.forgePortrait{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;background:rgba(8,7,12,.58)}
+/* The Forge keeps foil inside the art, while selected Shiny fighters break its inset frame. */
+.forgeArtDepth{position:relative;width:min(100%,var(--forge-art-max,323px));height:auto;aspect-ratio:var(--forge-art-ratio,.75);margin:0 auto;isolation:isolate}
+.forgeArtStage{position:absolute;inset:0;overflow:hidden;border:1px solid rgba(160,126,182,.22);border-radius:12px;background:radial-gradient(circle,rgba(171,101,236,.24),transparent 70%);transition:inset .28s ease,border-radius .28s ease}
+.forgePortrait{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;background:rgba(8,7,12,.58);transition:width .28s ease,height .28s ease,left .28s ease,top .28s ease}
 .forgeHoloTexture,.forgeShinyStamp{display:none}
+.forgePopout{display:block;position:absolute;z-index:5;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;opacity:0;filter:drop-shadow(0 11px 8px rgba(0,0,0,.5)) drop-shadow(0 0 7px var(--forge-pop-glow,rgba(255,226,140,.3)));transition:opacity .2s ease;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.forgeCard[data-fighter="tyler"] .forgePopout{-webkit-mask-image:linear-gradient(to bottom,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to top,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to right,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to left,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%);mask-image:linear-gradient(to bottom,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to top,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to right,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to left,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%)}
+.forgeCard[data-fighter="subzero"] .forgePopout{-webkit-mask-image:linear-gradient(to right,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to top,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%);mask-image:linear-gradient(to right,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to top,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%)}
+.forgePopout[hidden]{display:none!important}
 .forgeCard.shiny::after{display:none!important;content:none!important;animation:none!important}
 .forgeCard.shiny .forgeArtStage{border-color:#ffe08a;box-shadow:0 0 0 2px rgba(255,225,130,.18),0 0 24px rgba(225,168,48,.24);background:#08090f}
+.forgeCard.shiny.hasPopout{--forge-pop-glow:rgba(255,226,140,.3)}
+.forgeCard.shiny.hasPopout[data-fighter="tyler"]{--forge-pop-glow:rgba(179,91,255,.34)}
+.forgeCard.shiny.hasPopout[data-fighter="subzero"]{--forge-pop-glow:rgba(92,207,255,.38)}
+.forgeCard.shiny.hasPopout .forgeArtStage{inset:6%;border-radius:10px}
+.forgeCard.shiny.hasPopout .forgePortrait{position:absolute;width:113.64%;height:113.64%;max-width:none;left:-6.82%;top:-6.82%;border-radius:0}
+.forgeCard.shiny.hasPopout .forgePopout{opacity:1}
 .forgeCard.shiny .forgeHoloTexture{
  --foil-x:50%;--foil-y:46%;display:block;position:absolute;z-index:2;inset:0;pointer-events:none;border-radius:inherit;
  background:
@@ -255,7 +266,7 @@
  background:linear-gradient(112deg,transparent 37%,rgba(255,255,255,.04) 43%,rgba(255,255,255,.62) 49%,rgba(255,241,190,.15) 55%,transparent 61%);
  transform:translateX(-72%);mix-blend-mode:screen;animation:forgeCollectorSweep 4.8s ease-in-out infinite;
 }
-.forgeCard.shiny .forgeShinyStamp{display:block;position:absolute;z-index:5;right:9px;bottom:9px;padding:5px 7px;border:1px solid rgba(255,240,178,.75);border-radius:4px;background:rgba(55,35,12,.72);color:#fff1ae;font-size:8px;font-weight:1000;letter-spacing:.13em;box-shadow:0 2px 10px rgba(0,0,0,.35);backdrop-filter:blur(4px)}
+.forgeCard.shiny .forgeShinyStamp{display:block;position:absolute;z-index:6;right:9px;bottom:9px;padding:5px 7px;border:1px solid rgba(255,240,178,.75);border-radius:4px;background:rgba(55,35,12,.72);color:#fff1ae;font-size:8px;font-weight:1000;letter-spacing:.13em;box-shadow:0 2px 10px rgba(0,0,0,.35);backdrop-filter:blur(4px)}
 @keyframes forgeHoloDrift{from{background-position:120% 0,0 0;opacity:.35}to{background-position:-115% 0,18px 11px;opacity:.56}}
 @keyframes forgeGlintPulse{from{opacity:.36;filter:drop-shadow(0 0 1px #fff)}to{opacity:.9;filter:drop-shadow(0 0 5px #fff1a8)}}
 @keyframes forgeCollectorSweep{0%,56%{transform:translateX(-78%);opacity:0}65%{opacity:.7}84%,100%{transform:translateX(78%);opacity:0}}
@@ -287,7 +298,7 @@
  .bb-resonance-path{padding:7px 5px;min-height:43px}.bb-resonance-path span{font-size:7px;line-height:1.2}.bb-resonance-path b{font-size:9px}.bb-resonance-path i{font-size:17px}
  .bb-summon-actions{gap:6px;padding:7px}.bb-summon-actions .bigSummonBtn{min-height:57px!important;padding:7px 5px!important}.bb-summon-actions .bigSummonBtn b{font-size:12px!important}.bb-summon-actions .bigSummonBtn span{font-size:8px!important}.bb-summon-actions .bigSummonBtn em{font-size:6px!important}
  .bb-summon-secondary{grid-template-columns:1fr 1fr;gap:6px;padding:7px}.bb-forge-launch,.bb-banner-details summary{min-height:38px;font-size:8px}
- .forgeArtStage{height:auto;min-height:0;max-height:none}.forgePortrait{height:100%}
+ .forgeArtDepth{height:auto;min-height:0;max-height:none}.forgeArtStage{min-height:0;max-height:none}.forgePortrait{height:100%}
  #summonPullScreen .resultsMode .pullHeroArea{min-height:auto!important;padding-top:10px!important}
 }
 @media(max-width:370px){
