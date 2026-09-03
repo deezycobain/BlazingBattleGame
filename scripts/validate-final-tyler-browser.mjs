@@ -57,7 +57,10 @@ for(const marker of [
  'forgeHoloTexture',
  'bbGoldFlow',
  'summonPullScreen.scrollTop=0',
- 'overflow-y:auto!important'
+ 'overflow-y:auto!important',
+ 'fitForgeArtwork',
+ '--forge-art-ratio',
+ '--forge-art-max'
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);
 for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait"])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
 console.log('Final Tyler/browser PASS: team and summon pages use canonical full art plus parchment/cloud theming; skippable Shiny-to-Forge reveals and desktop PointerEvents survived final build.');

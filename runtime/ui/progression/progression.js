@@ -102,10 +102,14 @@ function showSummonResultsNow(){
 }
 function openForge(name){selected=FIGHTERS.includes(name)?name:'Tyler';candidate=null;document.querySelectorAll('.screen').forEach(s=>{if(s.id!=='resonanceScreen')s.classList.remove('active')});const menu=document.getElementById('menuScreen');if(menu)menu.style.display='none';const screen=document.getElementById('resonanceScreen');screen.classList.add('active');screen.scrollTop=0;renderForge();window.scrollTo(0,0)}
 function closeForge(){document.getElementById('resonanceScreen').classList.remove('active');const menu=document.getElementById('menuScreen');if(menu){menu.style.display='grid';menu.classList.remove('leaving')}}
+function fitForgeArtwork(image){
+ const stage=image.closest('.forgeArtStage'),ratio=image.naturalWidth&&image.naturalHeight?image.naturalWidth/image.naturalHeight:.75;if(!stage)return;
+ stage.style.setProperty('--forge-art-ratio',String(ratio));stage.style.setProperty('--forge-art-max',`${Math.min(520,Math.round(430*ratio))}px`);
+}
 function renderForge(message=''){
  const u=unit();const maxed=u.resonance>=MAX_RESONANCE;
  document.getElementById('forgeRoster').innerHTML=FIGHTERS.map(name=>{const x=unit(name);return `<button class="forgeFighter ${name===selected?'active':''} ${x.resonance>=5?'maxed':''}" data-fighter="${name}">${name}<small>${x.resonance>=5?'SHINY • ':''}R${x.resonance}/5 • ${x.shards} ✦</small></button>`}).join('');
- const card=document.getElementById('forgeCard');card.classList.toggle('shiny',u.shiny);const portrait=document.getElementById('forgePortrait');portrait.src=art(selected);portrait.alt=`${selected} card`;
+ const card=document.getElementById('forgeCard');card.classList.toggle('shiny',u.shiny);const portrait=document.getElementById('forgePortrait');portrait.onload=()=>fitForgeArtwork(portrait);portrait.src=art(selected);portrait.alt=`${selected} card`;if(portrait.complete)fitForgeArtwork(portrait);
  document.getElementById('forgeName').textContent=selected.toUpperCase();const rank=document.getElementById('forgeRank');rank.textContent=maxed?'SHINY AWAKENED':`RESONANCE ${u.resonance} / 5`;rank.classList.toggle('shinyText',maxed);document.getElementById('forgePips').innerHTML=pipHtml(u);document.getElementById('forgeShardCount').textContent=u.shards;
  document.getElementById('forgeCurrent').innerHTML=statsHtml(u.roll,u.locks);document.getElementById('forgeBuildName').textContent=maxed?buildName(u.roll):`${5-u.resonance} MORE DUPLICATE${5-u.resonance===1?'':'S'} TO AWAKEN`;
  const box=document.getElementById('forgeCandidate');box.classList.toggle('active',!!candidate);document.getElementById('forgeCandidateStats').innerHTML=candidate?statsHtml(candidate,[],true):'';document.getElementById('forgeCandidateName').textContent=candidate?buildName(candidate):'';
