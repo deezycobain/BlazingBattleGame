@@ -76,6 +76,8 @@ for(const marker of [
  'radial-gradient(ellipse 14% 23% at 0% 34%',
  'radial-gradient(ellipse 27% 12% at 48% 0%',
  'radial-gradient(ellipse 16% 24% at 0% 45%',
+ 'transform:translate(.39%,2.68%) scale(.997)',
+ 'transform:translate(-3.23%,2.15%) scale(1.058)',
  '.forgeCard.shiny.hasPopout .forgeArtStage{inset:10%',
  '.forgeCard.shiny.hasPopout[data-fighter="subzero"] .forgeArtStage{inset:12%'
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);
