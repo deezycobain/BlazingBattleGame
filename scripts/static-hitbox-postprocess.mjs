@@ -60,15 +60,17 @@ else if(html.includes(freezeFacingLegacy))html=html.replace(freezeFacingLegacy,f
 else if(!html.includes("resolveActionRotation(canonicalUnit(unitName),'jutsu',from,S.enemies||[],0)"))throw new Error('Freeze Blast target-facing pass: animation anchor not found');
 
 // Lebee uses the same strict horizontal left/right aiming rule as Freeze Blast. Commit
-// each projectile to the resolved side and keep its full flight on the caster's hand line.
+// each cast against the attack's actual target (including when Lebee is a chain helper),
+// then keep the full projectile flight on the caster's hand line. Resolving from the
+// entire enemy roster here could make her body face a nearer enemy on the opposite side.
 const lebeeFnStart=html.indexOf('function animateLebeeStarBlast(');
 const lebeeFnEnd=html.indexOf('\nfunction ',lebeeFnStart+1);
 if(lebeeFnStart<0||lebeeFnEnd<0)throw new Error('Lebee target-facing projectile pass: animation function not found');
 let lebeeFn=html.slice(lebeeFnStart,lebeeFnEnd);
 const lebeePose=" state.attackPose[unitName]={kind:'punch',start:performance.now(),duration:castDuration+flightDuration};";
-if(!lebeeFn.includes("resolveActionRotation(canonicalUnit(unitName),'basic',from,S.enemies||[],0)")){
+if(!lebeeFn.includes("resolveActionRotation(canonicalUnit(unitName),'basic',from,[enemy],0)")){
   if(!lebeeFn.includes(lebeePose))throw new Error('Lebee target-facing projectile pass: attack-pose anchor not found');
-  lebeeFn=lebeeFn.replace(lebeePose,`${lebeePose}\n const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'basic',from,S.enemies||[],0);\n window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`);
+  lebeeFn=lebeeFn.replace(lebeePose,`${lebeePose}\n const facing=window.BlazingAttackPresentation.resolveActionRotation(canonicalUnit(unitName),'basic',from,[enemy],0);\n window.BlazingAttackPresentation.lockRotation(state,unitName,facing);`);
 }
 const lebeeProjectile="   const projectile={kind:'lebeeStarProjectile',from:{x:from.x,y:from.y-20},to:{x:enemy.x,y:enemy.y-12},start:performance.now(),duration:flightDuration,life:1};";
 if(lebeeFn.includes(lebeeProjectile)){
