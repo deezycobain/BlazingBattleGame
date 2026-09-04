@@ -5,9 +5,9 @@ const MAX_RESONANCE=5,STAT_BUDGET=12,MAX_STAT=5;
 const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler'];
 const IDS={'Crimson':'crimson','Sub-Zero':'subzero','Lebee':'lebee','Senku':'senku','Tyler':'tyler'};
 const CARD_ART={
- 'Crimson':'assets/characters/crimson/cards/summon_card_legacy.jpg',
- 'Sub-Zero':'assets/characters/subzero/cards/unit_details_absolute_zero_v2.jpeg',
- 'Lebee':'assets/characters/lebee/cards/unit_details_cosmic_wish.jpeg',
+ 'Crimson':'assets/characters/crimson/art/current_collection_art.jpg',
+ 'Sub-Zero':'assets/characters/subzero/art/full_art_absolute_zero_v2.jpeg',
+ 'Lebee':'assets/characters/lebee/art/full_art_cosmic_wish.jpeg',
  'Senku':'assets/characters/senku/cards/senku_card.jpeg',
  'Tyler':'assets/characters/tyler/cards/current_collection_card.png'
 };
@@ -83,6 +83,12 @@ function installSummonOverhaul(){
  const revealMeta=document.querySelector('#summonPullScreen .pullCardMeta'),revealBadge=document.getElementById('pullNewBadge');if(revealMeta&&revealBadge)revealMeta.before(revealBadge);
  const title=document.querySelector('#pullResultsPanel .pullResultsTitle');if(title&&!document.getElementById('bbShinySummary'))title.insertAdjacentHTML('afterend','<div id="bbShinySummary" class="bb-shiny-summary" hidden></div>');
 }
+function installTylerPopoutFraming(){
+ if(document.getElementById('bbTylerPopoutFramingV2'))return;
+ const style=document.createElement('style');style.id='bbTylerPopoutFramingV2';
+ style.textContent='.forgeCard[data-fighter="tyler"] .forgePopout{-webkit-mask-image:linear-gradient(to right,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to bottom,#000 0 5.5%,rgba(0,0,0,.92) 7%,transparent 10.5%),radial-gradient(ellipse 24% 10% at 26% 98%,#000 0 48%,rgba(0,0,0,.92) 62%,transparent 82%);mask-image:linear-gradient(to right,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to bottom,#000 0 5.5%,rgba(0,0,0,.92) 7%,transparent 10.5%),radial-gradient(ellipse 24% 10% at 26% 98%,#000 0 48%,rgba(0,0,0,.92) 62%,transparent 82%)}';
+ document.head.appendChild(style);
+}
 function installDom(){
  const menuActions=document.querySelector('#menuScreen .menuActions');if(menuActions&&!document.getElementById('forgeBtn'))menuActions.insertAdjacentHTML('beforeend','<button id="forgeBtn" class="forgeNode" aria-label="Open Resonance Forge"><span class="forgeWord">FORGE</span><span class="forgeSigil">✦</span></button>');
  if(!document.getElementById('resonanceScreen')){const screen=document.createElement('div');screen.id='resonanceScreen';screen.className='screen';screen.innerHTML=forgeMarkup();document.body.appendChild(screen)}
@@ -144,6 +150,6 @@ function activateSummons(){
  const badge=document.querySelector('#summonScreen .testSummonBadge');if(badge)badge.textContent='DEV CORE BANNER • UNLIMITED EMBERS • DUPES BUILD RESONANCE';
  const featured=document.querySelector('#summonScreen .showcaseSubline');if(featured)featured.textContent='ALL FIVE PLAYABLE FIGHTERS • EQUAL DEV TEST ODDS';
 }
-installDom();activateSummons();applyCombatBonuses();refreshInventoryBadges();
+installTylerPopoutFraming();installDom();activateSummons();applyCombatBonuses();refreshInventoryBadges();
 window.BlazingProgression=Object.freeze({getState:()=>JSON.parse(JSON.stringify(state)),openForge,rollStats,buildName,applyPull,applyCombatBonuses});
 })();
