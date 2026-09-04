@@ -22,6 +22,12 @@ const SHINY_CUTOUT={
  'Sub-Zero':'assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
  'Tyler':'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp'
 };
+const SHINY_POPOUT_PROFILE={
+ 'Sub-Zero':'left-bottom',
+ 'Tyler':'top-bottom',
+ 'Lebee':'top-left',
+ 'Senku':'top-left'
+};
 const STATS=['hp','attack','defense','speed'];
 const LABELS={hp:'HP',attack:'ATK',defense:'DEF',speed:'SPD'};
 let state=load(),selected='Tyler',candidate=null,activeSummonPulls=[];
@@ -83,12 +89,8 @@ function installSummonOverhaul(){
  const revealMeta=document.querySelector('#summonPullScreen .pullCardMeta'),revealBadge=document.getElementById('pullNewBadge');if(revealMeta&&revealBadge)revealMeta.before(revealBadge);
  const title=document.querySelector('#pullResultsPanel .pullResultsTitle');if(title&&!document.getElementById('bbShinySummary'))title.insertAdjacentHTML('afterend','<div id="bbShinySummary" class="bb-shiny-summary" hidden></div>');
 }
-function installTylerPopoutFraming(){
- if(document.getElementById('bbTylerPopoutFramingV2'))return;
- const style=document.createElement('style');style.id='bbTylerPopoutFramingV2';
- style.textContent='.forgeCard[data-fighter="tyler"] .forgePopout{-webkit-mask-image:linear-gradient(to right,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to bottom,#000 0 5.5%,rgba(0,0,0,.92) 7%,transparent 10.5%),radial-gradient(ellipse 24% 10% at 26% 98%,#000 0 48%,rgba(0,0,0,.92) 62%,transparent 82%);mask-image:linear-gradient(to right,#000 0 8%,rgba(0,0,0,.92) 11%,transparent 19%),linear-gradient(to bottom,#000 0 5.5%,rgba(0,0,0,.92) 7%,transparent 10.5%),radial-gradient(ellipse 24% 10% at 26% 98%,#000 0 48%,rgba(0,0,0,.92) 62%,transparent 82%)}';
- document.head.appendChild(style);
-}
+function syncRevealArt(pull){const image=document.querySelector('#summonPullScreen .summonedTradingCard');if(image&&pull&&CARD_ART[pull.name]){image.src=CARD_ART[pull.name];image.alt=`${pull.name} summon art`}}
+function syncResultArt(pulls){[...document.querySelectorAll('#pullResultsGrid .pullCard')].forEach((card,index)=>{const pull=pulls?.[index],image=card.querySelector('.resultTradingCard')||card.querySelector('img');if(image&&pull&&CARD_ART[pull.name]){image.src=CARD_ART[pull.name];image.alt=`${pull.name} summon art`}})}
 function installDom(){
  const menuActions=document.querySelector('#menuScreen .menuActions');if(menuActions&&!document.getElementById('forgeBtn'))menuActions.insertAdjacentHTML('beforeend','<button id="forgeBtn" class="forgeNode" aria-label="Open Resonance Forge"><span class="forgeWord">FORGE</span><span class="forgeSigil">✦</span></button>');
  if(!document.getElementById('resonanceScreen')){const screen=document.createElement('div');screen.id='resonanceScreen';screen.className='screen';screen.innerHTML=forgeMarkup();document.body.appendChild(screen)}
@@ -119,7 +121,7 @@ function fitForgeArtwork(image){
 function renderForge(message=''){
  const u=unit();const maxed=u.resonance>=MAX_RESONANCE;
  document.getElementById('forgeRoster').innerHTML=FIGHTERS.map(name=>{const x=unit(name);return `<button class="forgeFighter ${name===selected?'active':''} ${x.resonance>=5?'maxed':''}" data-fighter="${name}">${name}<small>${x.resonance>=5?'SHINY • ':''}R${x.resonance}/5 • ${x.shards} ✦</small></button>`}).join('');
- const card=document.getElementById('forgeCard'),cutout=u.shiny?SHINY_CUTOUT[selected]:null;card.classList.toggle('shiny',u.shiny);card.classList.toggle('hasPopout',!!cutout);card.dataset.fighter=IDS[selected];const portrait=document.getElementById('forgePortrait');portrait.onload=()=>fitForgeArtwork(portrait);portrait.src=art(selected);portrait.alt=`${selected} card`;if(portrait.complete)fitForgeArtwork(portrait);const popout=document.getElementById('forgePopout');popout.hidden=!cutout;popout.alt=cutout?`${selected} Shiny foreground`:'';if(cutout)popout.src=cutout;else popout.removeAttribute('src');
+ const card=document.getElementById('forgeCard'),cutout=u.shiny?SHINY_CUTOUT[selected]:null;card.classList.toggle('shiny',u.shiny);card.classList.toggle('hasPopout',!!cutout);card.dataset.fighter=IDS[selected];card.dataset.popoutProfile=cutout?SHINY_POPOUT_PROFILE[selected]||'none':'none';const portrait=document.getElementById('forgePortrait');portrait.onload=()=>fitForgeArtwork(portrait);portrait.src=art(selected);portrait.alt=`${selected} card`;if(portrait.complete)fitForgeArtwork(portrait);const popout=document.getElementById('forgePopout');popout.hidden=!cutout;popout.alt=cutout?`${selected} Shiny foreground`:'';if(cutout)popout.src=cutout;else popout.removeAttribute('src');
  document.getElementById('forgeName').textContent=selected.toUpperCase();const rank=document.getElementById('forgeRank');rank.textContent=maxed?'SHINY AWAKENED':`RESONANCE ${u.resonance} / 5`;rank.classList.toggle('shinyText',maxed);document.getElementById('forgePips').innerHTML=pipHtml(u);document.getElementById('forgeShardCount').textContent=u.shards;
  document.getElementById('forgeCurrent').innerHTML=statsHtml(u.roll,u.locks);document.getElementById('forgeBuildName').textContent=maxed?buildName(u.roll):`${5-u.resonance} MORE DUPLICATE${5-u.resonance===1?'':'S'} TO AWAKEN`;
  const box=document.getElementById('forgeCandidate');box.classList.toggle('active',!!candidate);document.getElementById('forgeCandidateStats').innerHTML=candidate?statsHtml(candidate,[],true):'';document.getElementById('forgeCandidateName').textContent=candidate?buildName(candidate):'';
@@ -137,12 +139,12 @@ function activateSummons(){
  rosterForRarity=function(){return FIGHTERS};summonOne=function(){return randomCore()};
  const launch=launchSummonSequence;launchSummonSequence=function(pulls){activeSummonPulls=pulls;pulls.forEach(applyPull);summonPullScreen.scrollTop=0;pullScene.scrollTop=0;return launch(pulls)};
  multiSummonBtn.addEventListener('click',event=>{event.stopImmediatePropagation();launchSummonSequence(Array.from({length:10},()=>randomCore()))},true);
- const setup=setupPullCard;setupPullCard=function(pull,index,total){setup(pull,index,total);const wrap=document.getElementById('pullCardWrap'),badge=document.getElementById('pullNewBadge'),forge=document.getElementById('bbRevealForge');wrap.dataset.fighter=pull.name;wrap.dataset.rarity=pull.rarity;pullScene.classList.toggle('bb-shiny-awakening',!!pull.shinyUnlock);if(badge)badge.textContent=pull.shinyUnlock?'SHINY AWAKENED':pull.progress||'DUPLICATE';if(forge){forge.hidden=!pull.shinyUnlock;forge.textContent=`OPEN ${pull.name.toUpperCase()} IN FORGE`}document.getElementById('pullMessage').textContent=pull.shinyUnlock?'SHINY AWAKENING!':'RESONANCE ENERGY GATHERING...'};
+ const setup=setupPullCard;setupPullCard=function(pull,index,total){setup(pull,index,total);const wrap=document.getElementById('pullCardWrap'),badge=document.getElementById('pullNewBadge'),forge=document.getElementById('bbRevealForge');wrap.dataset.fighter=pull.name;wrap.dataset.rarity=pull.rarity;pullScene.classList.toggle('bb-shiny-awakening',!!pull.shinyUnlock);if(badge)badge.textContent=pull.shinyUnlock?'SHINY AWAKENED':pull.progress||'DUPLICATE';if(forge){forge.hidden=!pull.shinyUnlock;forge.textContent=`OPEN ${pull.name.toUpperCase()} IN FORGE`}document.getElementById('pullMessage').textContent=pull.shinyUnlock?'SHINY AWAKENING!':'RESONANCE ENERGY GATHERING...';syncRevealArt(pull);requestAnimationFrame(()=>syncRevealArt(pull))};
  const results=renderDedicatedResults;renderDedicatedResults=function(pulls){
   results(pulls);const shiny=pulls.find(pull=>pull.shinyUnlock),summary=document.getElementById('bbShinySummary');
   [...document.querySelectorAll('#pullResultsGrid .pullCard')].forEach((card,i)=>{const pull=pulls[i];card.dataset.fighter=pull.name;card.classList.toggle('bb-shiny-result-card',!!pull.shinyUnlock);card.insertAdjacentHTML('beforeend',`<div class="bb-pull-progress">${pull.progress}${pull.shinyUnlock?' • SHINY':''}</div>`)});
   if(summary){summary.hidden=!shiny;summary.innerHTML=shiny?`<div><small>SHINY AWAKENED</small><strong>${shiny.name.toUpperCase()} REACHED R5</strong><span>Your randomized stat destiny is ready.</span></div><button type="button" data-open-forge="${shiny.name}">OPEN ${shiny.name.toUpperCase()} IN FORGE</button>`:''}
-  pullCounter.textContent=`${pulls.length} PULL${pulls.length===1?'':'S'} • RESULTS`;requestAnimationFrame(()=>{summonPullScreen.scrollTop=0;pullScene.scrollTop=0;window.scrollTo(0,0)});
+  pullCounter.textContent=`${pulls.length} PULL${pulls.length===1?'':'S'} • RESULTS`;syncResultArt(pulls);requestAnimationFrame(()=>{syncResultArt(pulls);summonPullScreen.scrollTop=0;pullScene.scrollTop=0;window.scrollTo(0,0)});
  };
  document.getElementById('pullResultsPanel')?.addEventListener('click',event=>{const button=event.target.closest('[data-open-forge]');if(button)openForge(button.dataset.openForge)});
  document.getElementById('summonsBtn')?.addEventListener('click',()=>{populateSummonShopArt();summonScreen.scrollTop=0;document.querySelectorAll('#emberCount,#pullEmberCount').forEach(el=>el.textContent='∞')});
@@ -150,6 +152,6 @@ function activateSummons(){
  const badge=document.querySelector('#summonScreen .testSummonBadge');if(badge)badge.textContent='DEV CORE BANNER • UNLIMITED EMBERS • DUPES BUILD RESONANCE';
  const featured=document.querySelector('#summonScreen .showcaseSubline');if(featured)featured.textContent='ALL FIVE PLAYABLE FIGHTERS • EQUAL DEV TEST ODDS';
 }
-installTylerPopoutFraming();installDom();activateSummons();applyCombatBonuses();refreshInventoryBadges();
+installDom();activateSummons();applyCombatBonuses();refreshInventoryBadges();
 window.BlazingProgression=Object.freeze({getState:()=>JSON.parse(JSON.stringify(state)),openForge,rollStats,buildName,applyPull,applyCombatBonuses});
 })();

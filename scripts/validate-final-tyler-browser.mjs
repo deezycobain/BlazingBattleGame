@@ -57,6 +57,10 @@ for(const marker of [
  'assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
  'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp',
  'const SHINY_CUTOUT=',
+ 'const SHINY_POPOUT_PROFILE=',
+ 'dataset.popoutProfile',
+ 'syncRevealArt',
+ 'syncResultArt',
  'forgeArtDepth',
  'forgePopout',
  'hasPopout',
@@ -68,5 +72,8 @@ for(const marker of [
  '--forge-art-ratio',
  '--forge-art-max'
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);
-for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait",'assets/characters/subzero/cards/unit_details_absolute_zero_v2.jpeg','assets/characters/lebee/cards/unit_details_cosmic_wish.jpeg'])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
-console.log('Final Tyler/browser PASS: team and summon pages use canonical full art plus parchment/cloud theming; skippable Shiny-to-Forge reveals and desktop PointerEvents survived final build.');
+for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait",'assets/characters/subzero/cards/unit_details_absolute_zero_v2.jpeg','assets/characters/lebee/cards/unit_details_cosmic_wish.jpeg','id="bb-progression-visual-hotfix"','bbTylerSelectivePopoutV3','bbTylerPopLayer','bbTylerPopFx','bbTylerPopHand','bbTylerPopHair','installTylerPopoutFraming'])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
+const popoutMasks=[...html.matchAll(/\.forgeCard\[data-popout-profile="(?:top-bottom|left-bottom|top-left)"\] \.forgePopout\{[^}]+\}/g)].map(match=>match[0]);
+if(popoutMasks.length!==3)fail(`expected 3 profile-driven pop-out masks, found ${popoutMasks.length}`);
+if(popoutMasks.some(mask=>mask.includes('transparent 19%')))fail('wide overlapping pop-out mask survived');
+console.log('Final Tyler/browser PASS: canonical summon art, edge-only profile-driven Shiny pop-outs, parchment/cloud theming, and desktop PointerEvents survived final build.');
