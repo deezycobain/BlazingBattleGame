@@ -70,10 +70,18 @@ for(const marker of [
  'overflow-y:auto!important',
  'fitForgeArtwork',
  '--forge-art-ratio',
- '--forge-art-max'
+ '--forge-art-max',
+ 'radial-gradient(ellipse 24% 11.5% at 40% 0%',
+ 'radial-gradient(ellipse 32% 12.5% at 31% 100%',
+ 'radial-gradient(ellipse 14% 23% at 0% 34%',
+ 'radial-gradient(ellipse 18% 13% at 70% 100%',
+ 'radial-gradient(ellipse 27% 12% at 48% 0%',
+ 'radial-gradient(ellipse 16% 24% at 0% 45%',
+ '.forgeCard.shiny.hasPopout .forgeArtStage{inset:10%',
+ '.forgeCard.shiny.hasPopout[data-fighter="subzero"] .forgeArtStage{inset:12%'
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);
 for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait",'assets/characters/subzero/cards/unit_details_absolute_zero_v2.jpeg','assets/characters/lebee/cards/unit_details_cosmic_wish.jpeg','id="bb-progression-visual-hotfix"','bbTylerSelectivePopoutV3','bbTylerPopLayer','bbTylerPopFx','bbTylerPopHand','bbTylerPopHair','installTylerPopoutFraming'])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
 const popoutMasks=[...html.matchAll(/\.forgeCard\[data-popout-profile="(?:top-bottom|left-bottom|top-left)"\] \.forgePopout\{[^}]+\}/g)].map(match=>match[0]);
 if(popoutMasks.length!==3)fail(`expected 3 profile-driven pop-out masks, found ${popoutMasks.length}`);
-if(popoutMasks.some(mask=>mask.includes('transparent 19%')))fail('wide overlapping pop-out mask survived');
+if(popoutMasks.some(mask=>mask.includes('linear-gradient(')||mask.includes('transparent 19%')))fail('broad overlapping pop-out mask survived');
 console.log('Final Tyler/browser PASS: canonical summon art, edge-only profile-driven Shiny pop-outs, parchment/cloud theming, and desktop PointerEvents survived final build.');
