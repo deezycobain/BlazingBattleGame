@@ -23,8 +23,8 @@ const SHINY_CUTOUT={
  'Tyler':'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp'
 };
 const SHINY_POPOUT_PROFILE={
- 'Sub-Zero':'left-bottom',
- 'Tyler':'top-bottom',
+ 'Sub-Zero':'ice-hand',
+ 'Tyler':'head-hand',
  'Lebee':'top-left',
  'Senku':'top-left'
 };
