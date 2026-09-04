@@ -12,12 +12,15 @@
   linear-gradient(115deg,transparent 14%,rgba(255,80,205,.2) 29%,rgba(72,227,255,.36) 42%,rgba(255,241,125,.4) 52%,rgba(116,255,207,.25) 63%,rgba(151,96,255,.3) 74%,transparent 88%),
   repeating-conic-gradient(from 42deg at 50% 46%,rgba(255,255,255,.22) 0 7deg,rgba(84,221,255,.1) 7deg 14deg,rgba(255,99,210,.12) 14deg 21deg,transparent 21deg 28deg);
  background-size:230% 100%,34px 34px;background-position:120% 0,0 0;
- mix-blend-mode:screen;opacity:.34;filter:saturate(1.25) contrast(1.06);
+ mix-blend-mode:screen;opacity:.28;filter:saturate(1.25) contrast(1.06);
  -webkit-mask-image:url("assets/characters/tyler/art/shiny_foreground_cutout_v1.webp");
  mask-image:url("assets/characters/tyler/art/shiny_foreground_cutout_v1.webp");
  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
  -webkit-mask-position:center;mask-position:center;
  -webkit-mask-size:contain;mask-size:contain;
+ /* bbTylerCharacterHoloClip keeps foil inside the art plus only the approved hair/hand breakouts. */
+ -webkit-clip-path:polygon(10% 10%,27% 10%,28% 5%,34% 1%,46% 1%,54% 6%,55% 10%,90% 10%,90% 90%,55% 90%,53% 94%,48% 97%,39% 100%,29% 98%,21% 92%,10% 90%);
+ clip-path:polygon(10% 10%,27% 10%,28% 5%,34% 1%,46% 1%,54% 6%,55% 10%,90% 10%,90% 90%,55% 90%,53% 94%,48% 97%,39% 100%,29% 98%,21% 92%,10% 90%);
  transform-origin:0 0;transform:translate(.39%,2.68%) scale(.997);
  animation:bbTylerCharacterHolo 6.5s ease-in-out infinite alternate;
 }
@@ -29,5 +32,5 @@
  -webkit-clip-path:polygon(20.99% 69.06%,21.45% 88.47%,29.65% 94.13%,37.38% 97.72%,44.94% 97.31%,49.82% 95.17%,55.06% 91.02%,52.95% 89.43%,47.42% 90.75%,49.82% 85.5%,49.72% 79.14%,52.76% 76.24%,50.46% 78.04%,46.78% 76.66%,45.3% 77.28%,44.84% 84.32%,41.62% 86.12%,34.35% 78.52%,27.44% 75.48%,25.05% 69.89%);
  filter:drop-shadow(0 10px 8px rgba(0,0,0,.46)) drop-shadow(0 0 6px rgba(179,91,255,.24));
 }
-@keyframes bbTylerCharacterHolo{from{background-position:120% 0,0 0;opacity:.24}to{background-position:-115% 0,18px 11px;opacity:.42}}
-@media (prefers-reduced-motion:reduce){#forgeCard.shiny.hasPopout[data-fighter="tyler"] .forgeArtDepth::after{animation:none;opacity:.32}}
+@keyframes bbTylerCharacterHolo{from{background-position:120% 0,0 0;opacity:.18}to{background-position:-115% 0,18px 11px;opacity:.34}}
+@media (prefers-reduced-motion:reduce){#forgeCard.shiny.hasPopout[data-fighter="tyler"] .forgeArtDepth::after{animation:none;opacity:.26}}

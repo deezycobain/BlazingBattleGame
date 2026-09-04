@@ -80,9 +80,11 @@ for(const marker of [
  'transform:translate(-3.23%,2.15%) scale(1.058)',
  'bbTylerExactHairMask',
  'bbTylerCharacterHoloMask',
+ 'bbTylerCharacterHoloClip',
  'bbTylerCharacterHolo',
  'mask-image:url("assets/characters/tyler/art/shiny_foreground_cutout_v1.webp")',
  '-webkit-mask-size:contain;mask-size:contain',
+ 'clip-path:polygon(10% 10%,27% 10%,28% 5%',
  'radial-gradient(ellipse 26% 14% at 40% 0%',
  '#forgeCard.shiny.hasPopout[data-fighter="tyler"] #forgePopout',
  '.forgeCard.shiny.hasPopout .forgeArtStage{inset:10%',
@@ -92,4 +94,4 @@ for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.
 const popoutMasks=[...html.matchAll(/\.forgeCard\[data-popout-profile="(?:head-hand|ice-hand|top-left)"\] \.forgePopout\{[^}]+\}/g)].map(match=>match[0]);
 if(popoutMasks.length!==3)fail(`expected 3 profile-driven pop-out masks, found ${popoutMasks.length}`);
 if(popoutMasks.some(mask=>mask.includes('linear-gradient(')||mask.includes('transparent 19%')))fail('broad overlapping pop-out mask survived');
-console.log('Final Tyler/browser PASS: Tyler hair and hand break the Shiny frame cleanly, character foil follows his alpha silhouette, and desktop PointerEvents survived final build.');
+console.log('Final Tyler/browser PASS: Tyler hair and hand break the Shiny frame cleanly, bounded character foil follows his alpha silhouette, and desktop PointerEvents survived final build.');
