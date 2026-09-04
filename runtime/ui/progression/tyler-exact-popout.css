@@ -1,11 +1,11 @@
-/* Tyler Shiny pop-out v5: alpha-cut hair above the frame, exact Forge portrait for the hand. */
+/* Tyler Shiny pop-out v6: exact hand, compensated in-card foil, and a brighter hair-only foil pass. */
 /* bbTylerExactHairMask */
 #forgeCard.shiny.hasPopout[data-fighter="tyler"] #forgePopout{
  opacity:1!important;pointer-events:none!important;
  -webkit-mask-image:radial-gradient(ellipse 26% 14% at 40% 0%,#000 0 88%,rgba(0,0,0,.94) 94%,transparent 100%)!important;
  mask-image:radial-gradient(ellipse 26% 14% at 40% 0%,#000 0 88%,rgba(0,0,0,.94) 94%,transparent 100%)!important;
 }
-/* bbTylerCharacterHoloMask: a second foil pass follows Tyler's alpha silhouette, including the breakout pieces. */
+/* bbTylerCharacterHoloMask: this pass follows Tyler inside the inset art only. Its clip compensates for the alignment transform. */
 #forgeCard.shiny.hasPopout[data-fighter="tyler"] .forgeArtDepth::after{
  content:'';position:absolute;z-index:5;inset:0;pointer-events:none;
  background:
@@ -18,11 +18,29 @@
  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
  -webkit-mask-position:center;mask-position:center;
  -webkit-mask-size:contain;mask-size:contain;
- /* bbTylerCharacterHoloClip keeps foil inside the art plus the hair breakout; the exposed hand stays crisp. */
- -webkit-clip-path:polygon(10% 10%,27% 10%,28% 5%,34% 1%,46% 1%,54% 6%,55% 10%,90% 10%,90% 90%,10% 90%);
- clip-path:polygon(10% 10%,27% 10%,28% 5%,34% 1%,46% 1%,54% 6%,55% 10%,90% 10%,90% 90%,10% 90%);
+ /* bbTylerCharacterHoloClip resolves to the visible 10%-90% frame after translate/scale, so no foil can spill beneath the hand. */
+ -webkit-clip-path:polygon(9.64% 7.34%,89.88% 7.34%,89.88% 87.58%,9.64% 87.58%);
+ clip-path:polygon(9.64% 7.34%,89.88% 7.34%,89.88% 87.58%,9.64% 87.58%);
  transform-origin:0 0;transform:translate(.39%,2.68%) scale(.997);
  animation:bbTylerCharacterHolo 6.5s ease-in-out infinite alternate;
+}
+/* bbTylerHairHoloMask: a brighter independent foil layer makes only the raised hair read outside the frame. */
+#forgeCard.shiny.hasPopout[data-fighter="tyler"] .forgeArtDepth::before{
+ content:'';position:absolute;z-index:7;inset:0;pointer-events:none;
+ background:
+  linear-gradient(108deg,transparent 8%,rgba(255,103,224,.38) 27%,rgba(96,236,255,.62) 43%,rgba(255,244,145,.7) 54%,rgba(123,255,213,.44) 68%,rgba(174,111,255,.5) 81%,transparent 94%),
+  repeating-conic-gradient(from 32deg at 41% 7%,rgba(255,255,255,.36) 0 7deg,rgba(84,221,255,.18) 7deg 14deg,rgba(255,99,210,.2) 14deg 21deg,transparent 21deg 28deg);
+ background-size:205% 100%,28px 28px;background-position:110% 0,0 0;
+ mix-blend-mode:screen;opacity:.48;filter:saturate(1.45) contrast(1.1) brightness(1.08);
+ -webkit-mask-image:url("assets/characters/tyler/art/shiny_foreground_cutout_v1.webp");
+ mask-image:url("assets/characters/tyler/art/shiny_foreground_cutout_v1.webp");
+ -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+ -webkit-mask-position:center;mask-position:center;
+ -webkit-mask-size:contain;mask-size:contain;
+ -webkit-clip-path:polygon(26.7% 7.34%,27.7% 2.33%,33.7% 0,45.8% 0,53.8% 3.33%,54.8% 7.34%,54.8% 10.4%,26.7% 10.4%);
+ clip-path:polygon(26.7% 7.34%,27.7% 2.33%,33.7% 0,45.8% 0,53.8% 3.33%,54.8% 7.34%,54.8% 10.4%,26.7% 10.4%);
+ transform-origin:0 0;transform:translate(.39%,2.68%) scale(.997);
+ animation:bbTylerHairHolo 5.4s ease-in-out infinite alternate;
 }
 #forgeCard .bbTylerExactHand{display:none}
 #forgeCard.shiny.hasPopout[data-fighter="tyler"] .bbTylerExactHand{
@@ -30,7 +48,11 @@
  pointer-events:none;user-select:none;-webkit-user-drag:none;
  clip-path:polygon(20.99% 69.06%,21.45% 88.47%,29.65% 94.13%,37.38% 97.72%,44.94% 97.31%,49.82% 95.17%,55.06% 91.02%,52.95% 89.43%,47.42% 90.75%,49.82% 85.5%,49.72% 79.14%,52.76% 76.24%,50.46% 78.04%,46.78% 76.66%,45.3% 77.28%,44.84% 84.32%,41.62% 86.12%,34.35% 78.52%,27.44% 75.48%,25.05% 69.89%);
  -webkit-clip-path:polygon(20.99% 69.06%,21.45% 88.47%,29.65% 94.13%,37.38% 97.72%,44.94% 97.31%,49.82% 95.17%,55.06% 91.02%,52.95% 89.43%,47.42% 90.75%,49.82% 85.5%,49.72% 79.14%,52.76% 76.24%,50.46% 78.04%,46.78% 76.66%,45.3% 77.28%,44.84% 84.32%,41.62% 86.12%,34.35% 78.52%,27.44% 75.48%,25.05% 69.89%);
- filter:drop-shadow(0 10px 8px rgba(0,0,0,.46)) drop-shadow(0 0 6px rgba(179,91,255,.24));
+ filter:drop-shadow(0 5px 4px rgba(0,0,0,.34)) drop-shadow(0 0 4px rgba(179,91,255,.2));
 }
 @keyframes bbTylerCharacterHolo{from{background-position:120% 0,0 0;opacity:.18}to{background-position:-115% 0,18px 11px;opacity:.34}}
-@media (prefers-reduced-motion:reduce){#forgeCard.shiny.hasPopout[data-fighter="tyler"] .forgeArtDepth::after{animation:none;opacity:.26}}
+@keyframes bbTylerHairHolo{from{background-position:110% 0,0 0;opacity:.38}to{background-position:-105% 0,13px 8px;opacity:.66}}
+@media (prefers-reduced-motion:reduce){
+ #forgeCard.shiny.hasPopout[data-fighter="tyler"] .forgeArtDepth::after{animation:none;opacity:.26}
+ #forgeCard.shiny.hasPopout[data-fighter="tyler"] .forgeArtDepth::before{animation:none;opacity:.54}
+}
