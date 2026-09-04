@@ -1,5 +1,10 @@
-/* Tyler Shiny pop-out v4: reuse the exact Forge portrait so pixels align perfectly. */
-#forgeCard[data-fighter="tyler"] #forgePopout{opacity:0!important;pointer-events:none!important}
+/* Tyler Shiny pop-out v5: alpha-cut hair above the frame, exact Forge portrait for the hand. */
+/* bbTylerExactHairMask */
+#forgeCard.shiny.hasPopout[data-fighter="tyler"] #forgePopout{
+ opacity:1!important;pointer-events:none!important;
+ -webkit-mask-image:radial-gradient(ellipse 26% 14% at 40% 0%,#000 0 88%,rgba(0,0,0,.94) 94%,transparent 100%)!important;
+ mask-image:radial-gradient(ellipse 26% 14% at 40% 0%,#000 0 88%,rgba(0,0,0,.94) 94%,transparent 100%)!important;
+}
 #forgeCard .bbTylerExactHand{display:none}
 #forgeCard.shiny.hasPopout[data-fighter="tyler"] .bbTylerExactHand{
  display:block;position:absolute;z-index:5;inset:0;width:100%;height:100%;max-width:none;object-fit:contain;
