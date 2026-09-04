@@ -1,0 +1,27 @@
+/* Authored Shiny foreground pieces. The inner art stays framed; only selected foreground details escape it. */
+.forgeCard.bb-authored-popout #forgePopout{display:none!important;opacity:0!important}
+.forgeCard.bb-authored-popout .forgeArtDepth{overflow:visible!important}
+.bbForgePopouts{position:absolute;z-index:6;inset:0;overflow:visible;pointer-events:none}
+.bbForgePopoutLayer{position:absolute;display:block;max-width:none!important;height:auto!important;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;filter:drop-shadow(0 10px 8px rgba(0,0,0,.48)) drop-shadow(0 0 8px var(--forge-pop-glow,rgba(255,226,140,.28)));transform:translateZ(0)}
+.forgeCard.bb-authored-popout[data-fighter="tyler"]{--forge-pop-glow:rgba(179,91,255,.38)}
+.forgeCard.bb-authored-popout[data-fighter="subzero"]{--forge-pop-glow:rgba(92,207,255,.42)}
+.forgeCard.bb-authored-popout[data-fighter="lebee"]{--forge-pop-glow:rgba(255,101,231,.38)}
+.forgeCard.bb-authored-popout[data-fighter="senku"]{--forge-pop-glow:rgba(132,255,126,.28)}
+
+/* Tyler: complete forward hand + violet energy. Torso side is trimmed well away from the fingers. */
+.bbForgePopoutLayer.bb-tyler.bb-hand{width:53%;left:-5.5%;bottom:4.5%;clip-path:polygon(0 0,78% 0,78% 100%,0 100%)}
+/* Sub-Zero: preserve the whole ice orb and every finger; crop only the body-side edge. */
+.bbForgePopoutLayer.bb-subzero.bb-hand{width:52%;left:-8%;top:14%;clip-path:polygon(0 0,78% 0,78% 100%,0 100%)}
+/* Lebee: hand/star magic is the hero pop-out; face/body remain in the framed portrait. */
+.bbForgePopoutLayer.bb-lebee.bb-hand{width:52%;left:-7%;top:9%;clip-path:polygon(0 0,73% 0,73% 100%,0 100%)}
+/* Senku: hand and hair are independent so the body stays cleanly framed. */
+.bbForgePopoutLayer.bb-senku.bb-hand{width:57%;left:-9%;top:15%;clip-path:polygon(0 0,69% 0,69% 100%,0 100%)}
+.bbForgePopoutLayer.bb-senku.bb-hair{width:48%;left:28%;top:-5%;clip-path:inset(0 0 43% 0)}
+
+@media(max-width:700px){
+ .bbForgePopoutLayer.bb-tyler.bb-hand{width:54%;left:-6%;bottom:4%}
+ .bbForgePopoutLayer.bb-subzero.bb-hand{width:53%;left:-8.5%;top:13.5%}
+ .bbForgePopoutLayer.bb-lebee.bb-hand{width:53%;left:-7.5%;top:8.5%}
+ .bbForgePopoutLayer.bb-senku.bb-hand{width:58%;left:-9.5%;top:14.5%}
+ .bbForgePopoutLayer.bb-senku.bb-hair{width:49%;left:27.5%;top:-5.5%}
+}
