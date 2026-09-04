@@ -18,9 +18,9 @@
  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
  -webkit-mask-position:center;mask-position:center;
  -webkit-mask-size:contain;mask-size:contain;
- /* bbTylerCharacterHoloClip keeps foil inside the art plus only the approved hair/hand breakouts. */
- -webkit-clip-path:polygon(10% 10%,27% 10%,28% 5%,34% 1%,46% 1%,54% 6%,55% 10%,90% 10%,90% 90%,55% 90%,53% 94%,48% 97%,39% 100%,29% 98%,21% 92%,10% 90%);
- clip-path:polygon(10% 10%,27% 10%,28% 5%,34% 1%,46% 1%,54% 6%,55% 10%,90% 10%,90% 90%,55% 90%,53% 94%,48% 97%,39% 100%,29% 98%,21% 92%,10% 90%);
+ /* bbTylerCharacterHoloClip keeps foil inside the art plus the hair breakout; the exposed hand stays crisp. */
+ -webkit-clip-path:polygon(10% 10%,27% 10%,28% 5%,34% 1%,46% 1%,54% 6%,55% 10%,90% 10%,90% 90%,10% 90%);
+ clip-path:polygon(10% 10%,27% 10%,28% 5%,34% 1%,46% 1%,54% 6%,55% 10%,90% 10%,90% 90%,10% 90%);
  transform-origin:0 0;transform:translate(.39%,2.68%) scale(.997);
  animation:bbTylerCharacterHolo 6.5s ease-in-out infinite alternate;
 }
