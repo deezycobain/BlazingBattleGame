@@ -49,11 +49,11 @@ for(const marker of [
  'SKIP TO RESULTS',
  'bb-shiny-awakening',
  'showSummonResultsNow',
- 'assets/characters/subzero/cards/unit_details_absolute_zero_v2.jpeg',
- 'assets/characters/lebee/cards/unit_details_cosmic_wish.jpeg',
+ 'assets/characters/crimson/art/current_collection_art.jpg',
+ 'assets/characters/subzero/art/full_art_absolute_zero_v2.jpeg',
+ 'assets/characters/lebee/art/full_art_cosmic_wish.jpeg',
  'assets/characters/senku/cards/senku_card.jpeg',
  'assets/characters/tyler/cards/current_collection_card.png',
- 'assets/characters/subzero/art/full_art_absolute_zero_v2.jpeg',
  'assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
  'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp',
  'const SHINY_CUTOUT=',
@@ -68,5 +68,5 @@ for(const marker of [
  '--forge-art-ratio',
  '--forge-art-max'
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);
-for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait"])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
+for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait",'assets/characters/subzero/cards/unit_details_absolute_zero_v2.jpeg','assets/characters/lebee/cards/unit_details_cosmic_wish.jpeg'])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
 console.log('Final Tyler/browser PASS: team and summon pages use canonical full art plus parchment/cloud theming; skippable Shiny-to-Forge reveals and desktop PointerEvents survived final build.');
