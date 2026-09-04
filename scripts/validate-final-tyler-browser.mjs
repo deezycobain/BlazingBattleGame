@@ -54,7 +54,7 @@ for(const marker of [
  'assets/characters/senku/cards/senku_card.jpeg',
  'assets/characters/tyler/cards/current_collection_card.png',
  'assets/characters/subzero/art/full_art_absolute_zero_v2.jpeg',
- 'assets/characters/subzero/art/shiny_foreground_cutout_v1.webp',
+ 'assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
  'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp',
  'const SHINY_CUTOUT=',
  'forgeArtDepth',

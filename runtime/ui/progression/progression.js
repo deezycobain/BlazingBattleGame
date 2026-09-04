@@ -19,7 +19,7 @@ const FORGE_ART={
  'Tyler':'assets/characters/tyler/art/current_collection_art.png'
 };
 const SHINY_CUTOUT={
- 'Sub-Zero':'assets/characters/subzero/art/shiny_foreground_cutout_v1.webp',
+ 'Sub-Zero':'assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
  'Tyler':'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp'
 };
 const STATS=['hp','attack','defense','speed'];
