@@ -40,6 +40,9 @@ const styleMarkers=[
  '[data-popout-profile="senku-hand-hair"]','radial-gradient(ellipse 24% 11.5% at 40% 0%',
  'radial-gradient(ellipse 24% 10% at 30% 96%','radial-gradient(ellipse 19% 24% at 0% 34%',
  'inset:0;width:100%;height:100%;object-fit:contain;-webkit-mask-image:none;mask-image:none',
+ 'linear-gradient(to bottom,#000 0 10%,rgba(0,0,0,.92) 10.45%',
+ 'linear-gradient(to right,#000 0 10%,rgba(0,0,0,.92) 10.45%',
+ '-webkit-mask-composite:source-over;mask-composite:add',
  'transform:translate(.39%,2.68%) scale(.997)','transform:translate(-3.23%,2.15%) scale(1.058)',
  '.forgeCard.shiny.hasPopout .forgeArtStage{inset:10%','width:125%;height:125%',
  '.forgeCard.shiny.hasPopout[data-fighter="subzero"] .forgeArtStage{inset:12%','width:131.58%;height:131.58%',
@@ -55,7 +58,9 @@ for(const obsolete of ['installTylerPopoutFraming','bbTylerSelectivePopoutV3','b
 
 const popoutProfiles=[...css.matchAll(/\.forgeCard\[data-popout-profile="(?:head-hand|ice-hand|lebee-hand-hair|senku-hand-hair)"\] \.forgePopout\{[^}]+\}/g)].map(match=>match[0]);
 if(popoutProfiles.length!==4)fail(`expected 4 profile-driven pop-outs, found ${popoutProfiles.length}`);
-if(popoutProfiles.some(rule=>rule.includes('linear-gradient(')||rule.includes('transparent 19%')))fail('broad overlapping pop-out mask survived');
+const senkuProfile=popoutProfiles.find(rule=>rule.includes('senku-hand-hair'))||'';
+if(popoutProfiles.some(rule=>!rule.includes('senku-hand-hair')&&rule.includes('linear-gradient('))||popoutProfiles.some(rule=>rule.includes('transparent 19%')))fail('broad overlapping pop-out mask survived');
+if(!senkuProfile.includes('linear-gradient(to bottom,#000 0 10%')||!senkuProfile.includes('linear-gradient(to right,#000 0 10%')||!senkuProfile.includes('-webkit-mask-composite:source-over;mask-composite:add'))fail('Senku edge-only blend gate missing');
 
 for(const [rel,width,height] of [
  ['assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',1086,1448],
