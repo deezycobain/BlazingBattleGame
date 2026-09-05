@@ -20,8 +20,8 @@ const FORGE_ART={
 };
 const SHINY_CUTOUT={
  'Sub-Zero':'assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
- 'Lebee':'assets/characters/lebee/art/shiny_foreground_cutout_v1.webp',
- 'Senku':'assets/characters/senku/art/shiny_foreground_cutout_v1.webp',
+ 'Lebee':'assets/characters/lebee/art/shiny_foreground_cutout_v2.webp',
+ 'Senku':'assets/characters/senku/art/shiny_foreground_cutout_v2.webp',
  'Tyler':'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp'
 };
 const SHINY_POPOUT_PROFILE={

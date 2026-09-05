@@ -24,8 +24,8 @@ const runtimeMarkers=[
  'assets/characters/crimson/art/current_collection_art.jpg','assets/characters/subzero/art/full_art_absolute_zero_v2.jpeg',
  'assets/characters/lebee/art/full_art_cosmic_wish.jpeg','assets/characters/senku/cards/senku_card.jpeg',
  'assets/characters/tyler/cards/current_collection_card.png','assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
- 'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp','assets/characters/lebee/art/shiny_foreground_cutout_v1.webp',
- 'assets/characters/senku/art/shiny_foreground_cutout_v1.webp','forgeArtDepth','forgePopout','hasPopout','forgeHoloTexture',
+ 'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp','assets/characters/lebee/art/shiny_foreground_cutout_v2.webp',
+ 'assets/characters/senku/art/shiny_foreground_cutout_v2.webp','forgeArtDepth','forgePopout','hasPopout','forgeHoloTexture',
  'summonPullScreen.scrollTop=0','PULL${pulls.length===1','function fitForgeArtwork(image)',
  'image.naturalWidth/image.naturalHeight','--forge-art-max'
 ];
@@ -40,13 +40,11 @@ const styleMarkers=[
  '[data-popout-profile="senku-hand-hair"]','radial-gradient(ellipse 24% 11.5% at 40% 0%',
  'radial-gradient(ellipse 24% 10% at 30% 96%','radial-gradient(ellipse 19% 24% at 0% 34%',
  'inset:0;width:100%;height:100%;object-fit:contain;-webkit-mask-image:none;mask-image:none',
- 'linear-gradient(to bottom,#000 0 10%,rgba(0,0,0,.92) 10.45%',
- 'linear-gradient(to right,#000 0 10%,rgba(0,0,0,.92) 10.45%',
- '-webkit-mask-composite:source-over;mask-composite:add',
  'transform:translate(.39%,2.68%) scale(.997)','transform:translate(-3.23%,2.15%) scale(1.058)',
  '.forgeCard.shiny.hasPopout .forgeArtStage{inset:10%','width:125%;height:125%',
+ '.forgeCard.shiny.hasPopout[data-fighter="senku"] .forgeArtStage{inset:14%','width:138.89%;height:138.89%;left:-19.445%;top:-19.445%',
  '.forgeCard.shiny.hasPopout[data-fighter="subzero"] .forgeArtStage{inset:12%','width:131.58%;height:131.58%',
- 'assets/characters/lebee/art/shiny_unified_foil_mask_v1.png','assets/characters/senku/art/shiny_unified_foil_mask_v1.png',
+ 'assets/characters/lebee/art/shiny_unified_foil_mask_v2.png','assets/characters/senku/art/shiny_unified_foil_mask_v2.png',
  '.forgeCard.shiny .forgeHoloTexture','repeating-conic-gradient','@keyframes forgeHoloDrift','overflow-y:auto!important',
  'width:min(100%,var(--forge-art-max,323px))','aspect-ratio:var(--forge-art-ratio,.75)'
 ];
@@ -58,15 +56,13 @@ for(const obsolete of ['installTylerPopoutFraming','bbTylerSelectivePopoutV3','b
 
 const popoutProfiles=[...css.matchAll(/\.forgeCard\[data-popout-profile="(?:head-hand|ice-hand|lebee-hand-hair|senku-hand-hair)"\] \.forgePopout\{[^}]+\}/g)].map(match=>match[0]);
 if(popoutProfiles.length!==4)fail(`expected 4 profile-driven pop-outs, found ${popoutProfiles.length}`);
-const senkuProfile=popoutProfiles.find(rule=>rule.includes('senku-hand-hair'))||'';
-if(popoutProfiles.some(rule=>!rule.includes('senku-hand-hair')&&rule.includes('linear-gradient('))||popoutProfiles.some(rule=>rule.includes('transparent 19%')))fail('broad overlapping pop-out mask survived');
-if(!senkuProfile.includes('linear-gradient(to bottom,#000 0 10%')||!senkuProfile.includes('linear-gradient(to right,#000 0 10%')||!senkuProfile.includes('-webkit-mask-composite:source-over;mask-composite:add'))fail('Senku edge-only blend gate missing');
+if(popoutProfiles.some(rule=>rule.includes('linear-gradient(')||rule.includes('transparent 19%')))fail('broad overlapping pop-out mask survived');
 
 for(const [rel,width,height] of [
  ['assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',1086,1448],
  ['assets/characters/tyler/art/shiny_foreground_cutout_v1.webp',1086,1448],
- ['assets/characters/lebee/art/shiny_foreground_cutout_v1.webp',1086,1448],
- ['assets/characters/senku/art/shiny_foreground_cutout_v1.webp',1402,1122]
+ ['assets/characters/lebee/art/shiny_foreground_cutout_v2.webp',1086,1448],
+ ['assets/characters/senku/art/shiny_foreground_cutout_v2.webp',1402,1122]
 ]){
  const webp=await readBinary(rel);
  if(webp.length<50000)fail(`Shiny cutout too small: ${rel}`);
@@ -76,8 +72,8 @@ for(const [rel,width,height] of [
 }
 
 for(const [rel,width,height] of [
- ['assets/characters/lebee/art/shiny_unified_foil_mask_v1.png',1086,1448],
- ['assets/characters/senku/art/shiny_unified_foil_mask_v1.png',1402,1122]
+ ['assets/characters/lebee/art/shiny_unified_foil_mask_v2.png',1086,1448],
+ ['assets/characters/senku/art/shiny_unified_foil_mask_v2.png',1402,1122]
 ]){
  const png=await readBinary(rel);
  if(png.length<10000)fail(`Shiny PNG too small: ${rel}`);

@@ -3,10 +3,10 @@ import path from 'node:path';
 const html=await fs.readFile(path.join(process.cwd(),'dist','index.html'),'utf8'),fail=msg=>{throw new Error(`Final Tyler/browser validation failed: ${msg}`)};
 for(const rel of [
  'assets/characters/tyler/art/shiny_unified_foil_mask_v1.png',
- 'assets/characters/lebee/art/shiny_foreground_cutout_v1.webp',
- 'assets/characters/lebee/art/shiny_unified_foil_mask_v1.png',
- 'assets/characters/senku/art/shiny_foreground_cutout_v1.webp',
- 'assets/characters/senku/art/shiny_unified_foil_mask_v1.png'
+ 'assets/characters/lebee/art/shiny_foreground_cutout_v2.webp',
+ 'assets/characters/lebee/art/shiny_unified_foil_mask_v2.png',
+ 'assets/characters/senku/art/shiny_foreground_cutout_v2.webp',
+ 'assets/characters/senku/art/shiny_unified_foil_mask_v2.png'
 ])await fs.access(path.join(process.cwd(),'dist',rel)).catch(()=>fail(`built Shiny asset missing: ${rel}`));
 for(const marker of [
  "['crimson','subzero','lebee','senku','tyler','anubis']",
@@ -63,10 +63,10 @@ for(const marker of [
  'assets/characters/tyler/cards/current_collection_card.png',
  'assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
  'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp',
- 'assets/characters/lebee/art/shiny_foreground_cutout_v1.webp',
- 'assets/characters/senku/art/shiny_foreground_cutout_v1.webp',
- 'assets/characters/lebee/art/shiny_unified_foil_mask_v1.png',
- 'assets/characters/senku/art/shiny_unified_foil_mask_v1.png',
+ 'assets/characters/lebee/art/shiny_foreground_cutout_v2.webp',
+ 'assets/characters/senku/art/shiny_foreground_cutout_v2.webp',
+ 'assets/characters/lebee/art/shiny_unified_foil_mask_v2.png',
+ 'assets/characters/senku/art/shiny_unified_foil_mask_v2.png',
  'const SHINY_CUTOUT=',
  'const SHINY_POPOUT_PROFILE=',
  'dataset.popoutProfile',
@@ -86,9 +86,6 @@ for(const marker of [
  'radial-gradient(ellipse 24% 10% at 30% 96%',
  'radial-gradient(ellipse 19% 24% at 0% 34%',
  'inset:0;width:100%;height:100%;object-fit:contain;-webkit-mask-image:none;mask-image:none',
- 'linear-gradient(to bottom,#000 0 10%,rgba(0,0,0,.92) 10.45%',
- 'linear-gradient(to right,#000 0 10%,rgba(0,0,0,.92) 10.45%',
- '-webkit-mask-composite:source-over;mask-composite:add',
  'transform:translate(.39%,2.68%) scale(.997)',
  'transform:translate(-3.23%,2.15%) scale(1.058)',
  'bbTylerExactHairMask',
@@ -103,16 +100,16 @@ for(const marker of [
  'radial-gradient(ellipse 26% 14% at 40% 0%',
  '#forgeCard.shiny.hasPopout[data-fighter="tyler"] #forgePopout',
  '.forgeCard.shiny.hasPopout .forgeArtStage{inset:10%',
+ '.forgeCard.shiny.hasPopout[data-fighter="senku"] .forgeArtStage{inset:14%',
+ 'width:138.89%;height:138.89%;left:-19.445%;top:-19.445%',
  '.forgeCard.shiny.hasPopout[data-fighter="subzero"] .forgeArtStage{inset:12%'
 ])if(!html.includes(marker))fail(`built shell missing ${marker}`);
 for(const obsolete of ['new TouchEvent(',"dispatchTouch('touchstart'","asset=u?.assets?.card||u?.assets?.art||u?.assets?.portrait",'assets/characters/subzero/cards/unit_details_absolute_zero_v2.jpeg','assets/characters/lebee/cards/unit_details_cosmic_wish.jpeg',"resolveActionRotation(canonicalUnit(unitName),'basic',from,S.enemies||[],0)",'id="bb-progression-visual-hotfix"','bbTylerSelectivePopoutV3','bbTylerPopLayer','bbTylerPopFx','bbTylerPopHand','bbTylerPopHair','installTylerPopoutFraming','39% 100%,29% 98%','90% 90%,10% 90%)','bbTylerCharacterHoloMask','bbTylerCharacterHoloClip','bbTylerCharacterHolo','bbTylerHairHoloMask','bbTylerHairHolo','clip-path:polygon(9.64% 7.34%,89.88% 7.34%','clip-path:polygon(26.7% 7.34%,27.7% 2.33%'])if(html.includes(obsolete))fail(`obsolete runtime survived: ${obsolete}`);
 const popoutMasks=[...html.matchAll(/\.forgeCard\[data-popout-profile="(?:head-hand|ice-hand|lebee-hand-hair|senku-hand-hair)"\] \.forgePopout\{[^}]+\}/g)].map(match=>match[0]);
 if(popoutMasks.length!==4)fail(`expected 4 profile-driven pop-out masks, found ${popoutMasks.length}`);
-const senkuPopout=popoutMasks.find(mask=>mask.includes('senku-hand-hair'))||'';
-if(popoutMasks.some(mask=>!mask.includes('senku-hand-hair')&&mask.includes('linear-gradient('))||popoutMasks.some(mask=>mask.includes('transparent 19%')))fail('broad overlapping pop-out mask survived');
-if(!senkuPopout.includes('linear-gradient(to bottom,#000 0 10%')||!senkuPopout.includes('linear-gradient(to right,#000 0 10%')||!senkuPopout.includes('-webkit-mask-composite:source-over;mask-composite:add'))fail('Senku edge-only blend gate missing');
+if(popoutMasks.some(mask=>mask.includes('linear-gradient(')||mask.includes('transparent 19%')))fail('broad overlapping pop-out mask survived');
 const unifiedFoilRules=[...html.matchAll(/#forgeCard\.shiny\.hasPopout\[data-fighter="tyler"\] \.forgeArtDepth::after\{([^}]*)\}/g)].filter(match=>match[1].includes('shiny_unified_foil_mask_v1.png'));
 if(unifiedFoilRules.length!==1)fail(`expected one Tyler unified foil rule, found ${unifiedFoilRules.length}`);
-for(const fighter of ['lebee','senku'])if(!html.includes(`#forgeCard.shiny.hasPopout[data-fighter="${fighter}"] .forgeArtDepth::after{-webkit-mask-image:url("assets/characters/${fighter}/art/shiny_unified_foil_mask_v1.png")`))fail(`${fighter} unified foil rule missing`);
+for(const fighter of ['lebee','senku'])if(!html.includes(`#forgeCard.shiny.hasPopout[data-fighter="${fighter}"] .forgeArtDepth::after{-webkit-mask-image:url("assets/characters/${fighter}/art/shiny_unified_foil_mask_v2.png")`))fail(`${fighter} unified foil rule missing`);
 if((html.match(/@keyframes bbTylerUnifiedHolo\{/g)||[]).length!==1)fail('expected exactly one Tyler unified foil animation');
 console.log('Final Tyler/browser PASS: uniform holographic masks cover Tyler, Lebee, and Senku pop-outs; Sub-Zero, desktop PointerEvents, and Lebee per-target facing survived final build.');
