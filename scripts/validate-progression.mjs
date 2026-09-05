@@ -25,7 +25,7 @@ const runtimeMarkers=[
  'assets/characters/lebee/art/full_art_cosmic_wish.jpeg','assets/characters/senku/cards/senku_card.jpeg',
  'assets/characters/tyler/cards/current_collection_card.png','assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
  'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp','assets/characters/lebee/art/shiny_foreground_cutout_v3.png',
- 'assets/characters/senku/art/shiny_foreground_cutout_v3.png','forgeArtDepth','forgePopout','hasPopout','forgeHoloTexture',
+ 'assets/characters/senku/art/shiny_foreground_cutout_v4.png','forgeArtDepth','forgePopout','hasPopout','forgeHoloTexture',
  'summonPullScreen.scrollTop=0','PULL${pulls.length===1','function fitForgeArtwork(image)',
  'image.naturalWidth/image.naturalHeight','--forge-art-max'
 ];
@@ -40,11 +40,11 @@ const styleMarkers=[
  '[data-popout-profile="senku-hand-hair"]','radial-gradient(ellipse 24% 11.5% at 40% 0%',
  'radial-gradient(ellipse 24% 10% at 30% 96%','radial-gradient(ellipse 19% 24% at 0% 34%',
  'z-index:5;inset:0;width:100%;height:100%;object-fit:contain;-webkit-mask-image:none;mask-image:none',
- 'transform:translate(.39%,2.68%) scale(.997)','transform:translate(-3.23%,2.15%) scale(1.058)',
+ 'transform:translate(.39%,2.68%) scale(.997)','transform:translate(-3.23%,2.15%) scale(1.058)','transform:translateY(3.209%)',
  '.forgeCard.shiny.hasPopout .forgeArtStage{inset:10%','width:125%;height:125%',
  '.forgeCard.shiny.hasPopout[data-fighter="senku"] .forgeArtStage{inset:14%','width:138.89%;height:138.89%;left:-19.445%;top:-19.445%',
  '.forgeCard.shiny.hasPopout[data-fighter="subzero"] .forgeArtStage{inset:12%','width:131.58%;height:131.58%',
- 'assets/characters/lebee/art/shiny_unified_foil_mask_v3.png','assets/characters/senku/art/shiny_unified_foil_mask_v3.png',
+ 'assets/characters/lebee/art/shiny_unified_foil_mask_v3.png','assets/characters/senku/art/shiny_unified_foil_mask_v4.png',
  '.forgeCard.shiny .forgeHoloTexture','repeating-conic-gradient','@keyframes forgeHoloDrift','overflow-y:auto!important',
  'width:min(100%,var(--forge-art-max,323px))','aspect-ratio:var(--forge-art-ratio,.75)'
 ];
@@ -53,7 +53,7 @@ for(const marker of styleMarkers)if(!css.includes(marker))fail(`style missing ${
 for(const obsolete of ['installTylerPopoutFraming','bbTylerSelectivePopoutV3','bbTylerPopLayer','bbTylerPopFx','bbTylerPopHand','bbTylerPopHair','MutationObserver']){
  if(js.includes(obsolete)||css.includes(obsolete))fail(`stacked pop-out implementation survived: ${obsolete}`);
 }
-for(const obsoleteAsset of ['assets/characters/lebee/art/shiny_foreground_cutout_v2.webp','assets/characters/senku/art/shiny_foreground_cutout_v2.webp']){
+for(const obsoleteAsset of ['assets/characters/lebee/art/shiny_foreground_cutout_v2.webp','assets/characters/senku/art/shiny_foreground_cutout_v2.webp','assets/characters/senku/art/shiny_foreground_cutout_v3.png']){
  if(js.includes(obsoleteAsset))fail(`outside-only cutout survived in runtime: ${obsoleteAsset}`);
 }
 
@@ -74,15 +74,16 @@ for(const [rel,width,height] of [
 
 for(const [rel,width,height,minBytes] of [
  ['assets/characters/lebee/art/shiny_foreground_cutout_v3.png',600,800,500000],
- ['assets/characters/senku/art/shiny_foreground_cutout_v3.png',720,576,500000],
+ ['assets/characters/senku/art/shiny_foreground_cutout_v4.png',1402,1158,500000],
  ['assets/characters/lebee/art/shiny_unified_foil_mask_v3.png',1086,1448,10000],
- ['assets/characters/senku/art/shiny_unified_foil_mask_v3.png',1402,1122,10000]
+ ['assets/characters/senku/art/shiny_unified_foil_mask_v4.png',1402,1158,10000]
 ]){
  const png=await readBinary(rel);
  if(png.length<minBytes)fail(`Shiny PNG too small: ${rel}`);
  if(png.toString('hex',0,8)!=='89504e470d0a1a0a')fail(`Shiny asset is not PNG: ${rel}`);
  if(png.readUInt32BE(16)!==width||png.readUInt32BE(20)!==height)fail(`Shiny PNG dimensions changed: ${rel}`);
- if(png[25]!==6)fail(`Shiny PNG lost RGBA transparency: ${rel}`);
+ if(![3,6].includes(png[25]))fail(`Shiny PNG lost palette/RGBA transparency: ${rel}`);
+ if(png[25]===3&&!png.includes(Buffer.from('tRNS')))fail(`Indexed Shiny PNG lost transparency: ${rel}`);
 }
 
 if(!pkg.scripts?.build?.includes('progression-postprocess.mjs'))fail('build chain missing progression postprocess');
