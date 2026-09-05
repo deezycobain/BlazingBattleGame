@@ -20,13 +20,15 @@ const FORGE_ART={
 };
 const SHINY_CUTOUT={
  'Sub-Zero':'assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
+ 'Lebee':'assets/characters/lebee/art/shiny_foreground_cutout_v1.webp',
+ 'Senku':'assets/characters/senku/art/shiny_foreground_cutout_v1.webp',
  'Tyler':'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp'
 };
 const SHINY_POPOUT_PROFILE={
  'Sub-Zero':'ice-hand',
  'Tyler':'head-hand',
- 'Lebee':'top-left',
- 'Senku':'top-left'
+ 'Lebee':'lebee-hand-hair',
+ 'Senku':'senku-hand-hair'
 };
 const STATS=['hp','attack','defense','speed'];
 const LABELS={hp:'HP',attack:'ATK',defense:'DEF',speed:'SPD'};
