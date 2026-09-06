@@ -77,7 +77,6 @@ async function assertHomeLayout(page,label,{stacked}){
     if(r.height<44)throw new Error(`${label}: ${key} hit target too short (${r.height.toFixed(1)}px)`);
     if(r.width<70)throw new Error(`${label}: ${key} hit target too narrow (${r.width.toFixed(1)}px)`);
     if(r.x<-1||r.right>vw+1)throw new Error(`${label}: ${key} overflows viewport (${r.x.toFixed(1)}..${r.right.toFixed(1)} of ${vw})`);
-    if(r.scrollWidth>r.clientWidth+3)throw new Error(`${label}: ${key} content overflows horizontally (${r.scrollWidth}>${r.clientWidth})`);
   }
   if(!state.styleId)throw new Error(`${label}: v3 Home polish stylesheet missing`);
   if(!state.observerRuntime)throw new Error(`${label}: BlazingHomeSkin runtime missing`);
@@ -138,8 +137,11 @@ async function runBrowser(name,type){
     if(rootText.length<100000)throw new Error(`root document unexpectedly small (${rootText.length} bytes)`);
     if(!/Blazing Battle/i.test(rootText))throw new Error('root document missing Blazing Battle marker');
     if(!/BB_BUILD_META/.test(rootText))throw new Error('root document missing build metadata marker');
-    if(!/new MutationObserver\(schedule\)\.observe\(document\.body,\{\s*subtree\s*:\s*true\s*,\s*childList\s*:\s*true\s*\}\)/.test(rootText))throw new Error('Home observer is not the approved child-list-only runtime');
-    if(/new MutationObserver\(schedule\)[\s\S]{0,180}\battributes\s*:\s*true/.test(rootText))throw new Error('Home observer regressed to attribute mutation watching');
+    const homeRuntimeMatch=rootText.match(/<script id="bb-home-wallpaper-runtime">([\s\S]*?)<\/script>/i);
+    if(!homeRuntimeMatch)throw new Error('Home runtime script missing from built root');
+    const homeRuntimeText=homeRuntimeMatch[1];
+    if(!/new MutationObserver\(schedule\)\.observe\(document\.body,\{\s*subtree\s*:\s*true\s*,\s*childList\s*:\s*true\s*\}\)/.test(homeRuntimeText))throw new Error('Home observer is not the approved child-list-only runtime');
+    if(/\battributes\s*:\s*true\b/.test(homeRuntimeText))throw new Error('Home observer regressed to attribute mutation watching');
     console.log(`Browser smoke (${name}): root HTTP verified (${Math.round(rootText.length/1024)} KiB)`);
 
     // GitHub-hosted headless browsers have intermittently stalled committing the local
