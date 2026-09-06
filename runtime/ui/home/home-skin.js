@@ -42,7 +42,10 @@ function installStyle(){if(document.getElementById(STYLE_ID))return;for(const id
 .bb-mode-play{position:absolute!important;right:13px!important;top:12px!important;padding:6px 9px 6px 10px!important;border:1px solid rgba(255,239,183,.58)!important;border-radius:999px!important;background:rgba(9,9,13,.42)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)!important;font:900 8px/1 system-ui,sans-serif!important;letter-spacing:.17em!important;color:#ffe69c!important}
 .bb-mode-play::after{content:"›";padding-left:5px;font-size:11px;line-height:0}
 .bb-home-theme .bb-home-action--summon,.bb-home-theme .bb-home-action--inventory,.bb-home-theme .bb-home-action--forge{grid-column:span 2!important;min-height:62px!important;padding:11px 10px!important;font-size:clamp(10px,1.35vw,14px)!important;letter-spacing:.035em!important}
-.bb-home-theme .bb-home-actions > #summonsBtn.bb-home-action--summon,.bb-home-theme .bb-home-actions > #inventoryBtn.bb-home-action--inventory,.bb-home-theme .bb-home-actions > #forgeBtn.bb-home-action--forge{grid-area:auto!important;grid-column:auto/span 2!important;grid-row:auto!important;inline-size:auto!important;block-size:auto!important;width:auto!important;height:auto!important;min-width:0!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;display:flex!important;flex:none!important;align-items:center!important;justify-content:center!important;place-self:stretch!important}
+.bb-home-theme .bb-home-actions > #summonsBtn.bb-home-action--summon,.bb-home-theme .bb-home-actions > #inventoryBtn.bb-home-action--inventory,.bb-home-theme .bb-home-actions > #forgeBtn.bb-home-action--forge{inline-size:auto!important;block-size:auto!important;width:auto!important;height:auto!important;min-width:0!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;display:flex!important;flex:none!important;align-items:center!important;justify-content:center!important;place-self:stretch!important;grid-row:2!important}
+.bb-home-theme .bb-home-actions > #summonsBtn.bb-home-action--summon{grid-column:1/3!important}
+.bb-home-theme .bb-home-actions > #inventoryBtn.bb-home-action--inventory{grid-column:3/5!important}
+.bb-home-theme .bb-home-actions > #forgeBtn.bb-home-action--forge{grid-column:5/7!important}
 .bb-home-theme .bb-home-action--summon{animation-delay:.045s!important}.bb-home-theme .bb-home-action--inventory{animation-delay:.08s!important}.bb-home-theme .bb-home-action--forge{animation-delay:.115s!important}
 .bb-home-theme .bb-home-action--road{animation-delay:0s!important}.bb-home-theme .bb-home-action--castle{animation-delay:.035s!important}
 .bb-home-theme .bb-home-ambient{position:absolute!important;inset:0!important;z-index:0!important;overflow:hidden!important;pointer-events:none!important}
@@ -57,6 +60,7 @@ function installStyle(){if(document.getElementById(STYLE_ID))return;for(const id
  .bb-mode-desc{font-size:9px!important;margin-top:6px!important;max-width:78%!important}
  .bb-mode-play{right:10px!important;top:9px!important;padding:5px 7px 5px 8px!important;font-size:7px!important}
  .bb-home-theme .bb-home-action--summon,.bb-home-theme .bb-home-action--inventory,.bb-home-theme .bb-home-action--forge{min-height:56px!important;padding:9px 6px!important;font-size:clamp(9px,2.55vw,11px)!important}
+ .bb-home-theme .bb-home-actions > #summonsBtn.bb-home-action--summon,.bb-home-theme .bb-home-actions > #inventoryBtn.bb-home-action--inventory,.bb-home-theme .bb-home-actions > #forgeBtn.bb-home-action--forge{grid-row:3!important}
 }
 @media(max-width:390px){
  .bb-home-theme .bb-home-title{font-size:clamp(33px,10.5vw,44px)!important}
