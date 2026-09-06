@@ -14,10 +14,33 @@ async function waitForHome(page){
   await page.waitForFunction(()=>typeof window.BlazingRoadRun==='object',{timeout:30000});
 }
 
+async function readBattle(page){
+  return page.evaluate(()=>{
+    try{
+      const state=globalThis.eval('S');
+      return {
+        ok:!!state,
+        mode:state?.bbRunMode||null,
+        stage:state?.bbRoadStage||null,
+        phase:state?.phase||null,
+        pairs:Array.isArray(state?.pairs)?state.pairs.length:0,
+        battleActive:document.getElementById('battleScreen')?.classList.contains('active')||false,
+        menuDisplay:getComputedStyle(document.getElementById('menuScreen')).display
+      };
+    }catch(error){return {ok:false,error:error.message,battleActive:document.getElementById('battleScreen')?.classList.contains('active')||false};}
+  });
+}
+
 async function waitForMode(page,mode){
-  await page.waitForFunction(expected=>{
-    try{return typeof S!=='undefined'&&S?.bbRunMode===expected&&Array.isArray(S?.pairs)}catch{return false}
-  },mode,{timeout:15000});
+  await page.locator('#battleScreen.active').waitFor({state:'attached',timeout:15000});
+  const deadline=Date.now()+15000;
+  let last=null;
+  while(Date.now()<deadline){
+    last=await readBattle(page);
+    if(last.ok&&last.mode===mode&&last.pairs>0)return last;
+    await page.waitForTimeout(100);
+  }
+  throw new Error(`battle mode ${mode} not observed: ${JSON.stringify(last)}`);
 }
 
 async function run(name,type){
@@ -49,22 +72,24 @@ async function run(name,type){
 
     // Damage one fighter, KO a second, leave the third alive, then resolve victory.
     const first=await page.evaluate(()=>{
-      const fighters=S.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
+      const state=globalThis.eval('S');
+      const checkVictory=globalThis.eval('checkVictoryKillshot');
+      const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
       if(fighters.length<3)throw new Error(`expected 3 Road fighters, found ${fighters.length}`);
       fighters[0].hp=Math.max(1,Math.floor(fighters[0].maxHp*0.53));
       fighters[1].hp=0;
       fighters[2].hp=Math.max(1,fighters[2].maxHp-11);
       const expected=Object.fromEntries(fighters.map(unit=>[window.BlazingRoadRun.stateUnitId(unit),unit.hp]));
-      S.enemies.forEach(enemy=>{enemy.hp=0;});
-      const victory=checkVictoryKillshot();
+      state.enemies.forEach(enemy=>{enemy.hp=0;});
+      const victory=checkVictory();
       const run=window.BlazingRoadRun.loadRun();
       return {
         victory,
         expected,
         run,
-        battleMode:S.bbRunMode,
-        stage:S.bbRoadStage,
-        log:S.log
+        battleMode:state.bbRunMode,
+        stage:state.bbRoadStage,
+        log:state.log
       };
     });
 
@@ -85,9 +110,10 @@ async function run(name,type){
     await page.locator('#level1Btn').click({force:true});
     await waitForMode(page,'road');
     const resumed=await page.evaluate(()=>{
-      const fighters=S.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
+      const state=globalThis.eval('S');
+      const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
       return {
-        stage:S.bbRoadStage,
+        stage:state.bbRoadStage,
         hp:Object.fromEntries(fighters.map(unit=>[window.BlazingRoadRun.stateUnitId(unit),unit.hp])),
         defeated:fighters.filter(unit=>unit.hp<=0).map(unit=>window.BlazingRoadRun.stateUnitId(unit))
       };
@@ -102,7 +128,8 @@ async function run(name,type){
     await page.locator('#boss1Btn').click({force:true});
     await waitForMode(page,'castle');
     const castle=await page.evaluate(()=>{
-      const fighters=S.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
+      const state=globalThis.eval('S');
+      const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
       const road=window.BlazingRoadRun.loadRun();
       return {
         fullHp:fighters.every(unit=>unit.hp===unit.maxHp),
