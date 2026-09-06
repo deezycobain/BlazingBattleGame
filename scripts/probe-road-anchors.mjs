@@ -21,15 +21,22 @@ function probe(label,needle,{limit=5,radius=420}={}){
   }
 }
 
-probe('LEVEL_BUTTON','level1Btn',{limit:8,radius:340});
-probe('VICTORY_FN','function checkVictoryKillshot',{limit:3,radius:650});
-probe('VICTORY_CALL','checkVictoryKillshot()',{limit:8,radius:300});
-probe('PLAYERS_ASSIGN','S.players=',{limit:8,radius:420});
-probe('PHASE_VICTORY',"S.phase='victory'",{limit:5,radius:420});
-probe('PHASE_MENU',"S.phase='menu'",{limit:5,radius:420});
-probe('START_BATTLE','function startBattle',{limit:5,radius:620});
-probe('START_LEVEL','function startLevel',{limit:5,radius:620});
-probe('RESET_BATTLE','function resetBattle',{limit:5,radius:620});
-probe('VICTORY_OVERLAY','victoryOverlay',{limit:5,radius:420});
+probe('FRESH_FN','function fresh()',{limit:3,radius:1800});
+probe('FRESH_BOSS_FN','function freshBoss()',{limit:3,radius:1400});
+probe('ALIVE_PLAYERS','function alivePlayers',{limit:5,radius:900});
+probe('FRONT_FN','function front(',{limit:5,radius:900});
+probe('SAVED_TEAM','function savedTeamNames',{limit:5,radius:1100});
+probe('SAVED_TEAM_CALL','savedTeamNames()',{limit:8,radius:700});
+probe('PLAYERS_KEY','players:',{limit:12,radius:650});
+probe('UNITS_KEY','units:',{limit:12,radius:650});
+probe('TEAM_KEY','team:',{limit:12,radius:650});
+probe('PARTY_KEY','party:',{limit:12,radius:650});
+probe('FIGHTERS_KEY','fighters:',{limit:12,radius:650});
+probe('S_PLAYERS','S.players',{limit:12,radius:650});
+probe('S_UNITS','S.units',{limit:12,radius:650});
+probe('S_TEAM','S.team',{limit:12,radius:650});
+probe('START_BATTLE','function startBattle',{limit:3,radius:1900});
+probe('VICTORY_SEQUENCE','function startVictorySequence',{limit:3,radius:1200});
+probe('LEVEL_CLICK','level1Btn.addEventListener',{limit:5,radius:900});
 
 console.log('ROAD_PROBE complete');
