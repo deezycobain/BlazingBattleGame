@@ -72,6 +72,14 @@ async function assertHomeLayout(page,label,{stacked}){
           className:String(node.className||'').slice(0,220),
           display:s.display,
           position:s.position,
+          gridTemplateColumns:s.gridTemplateColumns,
+          gridColumnStart:s.gridColumnStart,
+          gridColumnEnd:s.gridColumnEnd,
+          width:s.width,
+          maxWidth:s.maxWidth,
+          flex:s.flex,
+          flexDirection:s.flexDirection,
+          alignItems:s.alignItems,
           rect:rect(node)
         });
       }
@@ -87,6 +95,14 @@ async function assertHomeLayout(page,label,{stacked}){
         position:cs.position,
         visibility:cs.visibility,
         opacity:cs.opacity,
+        gridColumnStart:cs.gridColumnStart,
+        gridColumnEnd:cs.gridColumnEnd,
+        gridRowStart:cs.gridRowStart,
+        gridRowEnd:cs.gridRowEnd,
+        widthStyle:cs.width,
+        maxWidth:cs.maxWidth,
+        minWidth:cs.minWidth,
+        flex:cs.flex,
         outerHTML:(el.outerHTML||'').slice(0,900),
         trail
       };
@@ -98,6 +114,7 @@ async function assertHomeLayout(page,label,{stacked}){
       group:describe(group),
       actions,
       styleId:document.querySelector('#bb-home-polish-v3')?.id||'',
+      finalStyleId:document.querySelector('#bb-home-grid-final')?.id||'',
       observerRuntime:typeof window.BlazingHomeSkin?.apply==='function'
     };
   });
@@ -112,6 +129,7 @@ async function assertHomeLayout(page,label,{stacked}){
     if(r.x<-1||r.right>vw+1)throw new Error(`${label}: ${key} overflows viewport (${r.x.toFixed(1)}..${r.right.toFixed(1)} of ${vw}) :: ${diag()}`);
   }
   if(!state.styleId)throw new Error(`${label}: v3 Home polish stylesheet missing`);
+  if(!state.finalStyleId)throw new Error(`${label}: final Home grid stylesheet missing`);
   if(!state.observerRuntime)throw new Error(`${label}: BlazingHomeSkin runtime missing`);
   if(!/BLAZING\s+ROAD/i.test(state.actions.road.text)||!/PHANTOM\s+CASTLE/i.test(state.actions.castle.text))throw new Error(`${label}: featured mode labels missing`);
   if(/\bSTORY\b/i.test(state.rootText))throw new Error(`${label}: Story Mode unexpectedly visible`);
@@ -123,7 +141,7 @@ async function assertHomeLayout(page,label,{stacked}){
   }else{
     if(Math.abs(road.y-castle.y)>4)throw new Error(`${label}: featured cards should share a desktop row`);
     if(road.right>castle.x+4)throw new Error(`${label}: desktop featured cards overlap`);
-    if(road.width<280||castle.width<280)throw new Error(`${label}: desktop featured cards are undersized`);
+    if(road.width<280||castle.width<280)throw new Error(`${label}: desktop featured cards are undersized :: ${JSON.stringify({road,castle,group:state.group,viewport:state.viewport})}`);
   }
   const secondary=['summon','inventory','forge'].map(key=>state.actions[key]);
   if(Math.max(...secondary.map(r=>r.y))-Math.min(...secondary.map(r=>r.y))>4)throw new Error(`${label}: secondary navigation is not aligned to one row :: ${JSON.stringify(Object.fromEntries(['summon','inventory','forge'].map(key=>[key,state.actions[key]])))}`);
@@ -177,12 +195,6 @@ async function runBrowser(name,type){
     if(/\battributes\s*:\s*true\b/.test(homeRuntimeText))throw new Error('Home observer regressed to attribute mutation watching');
     console.log(`Browser smoke (${name}): root HTTP verified (${Math.round(rootText.length/1024)} KiB)`);
 
-    // GitHub-hosted headless browsers have intermittently stalled committing the local
-    // loopback main-document response even though the same response is healthy via the
-    // Playwright request client. The server is already verified above. For local smoke,
-    // fulfill only the main document with the exact bytes just fetched, preserving its
-    // HTTP URL/base so every asset still loads from the real local server. Deployed smoke
-    // never uses this route and therefore validates Cloudflare's real network response.
     if(IS_LOCAL){
       await page.route(`${BASE}/`,async route=>{
         await route.fulfill({status:200,contentType:'text/html; charset=utf-8',body:rootText,headers:{'cache-control':'no-store'}});
