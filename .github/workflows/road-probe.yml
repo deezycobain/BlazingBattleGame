@@ -1,0 +1,23 @@
+name: Blazing Road probe
+on:
+  push:
+    branches: [dev-next-2026-09-01]
+    paths:
+      - 'scripts/probe-road-anchors.mjs'
+      - 'scripts/blazing-road-postprocess.mjs'
+      - 'runtime/modes/blazing-road-run.js'
+      - 'package.json'
+      - '.github/workflows/road-probe.yml'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build and print Road anchors
+        run: npm run build
