@@ -58,12 +58,44 @@ async function assertHomeLayout(page,label,{stacked}){
     const root=document.querySelector('.bb-home-theme');
     const group=root?.querySelector('.bb-home-actions');
     const keys=['road','castle','summon','inventory','forge'];
-    const box=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom,scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,text:(el.innerText||'').replace(/\s+/g,' ').trim()};};
-    const actions=Object.fromEntries(keys.map(key=>[key,box(root?.querySelector(`[data-bb-home-action="${key}"]`))]));
+    const rect=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom};};
+    const describe=el=>{
+      if(!el)return null;
+      const cs=getComputedStyle(el);
+      const trail=[];
+      let node=el;
+      for(let depth=0;node&&depth<7;depth++,node=node.parentElement){
+        const s=getComputedStyle(node);
+        trail.push({
+          tag:node.tagName,
+          id:node.id||'',
+          className:String(node.className||'').slice(0,220),
+          display:s.display,
+          position:s.position,
+          rect:rect(node)
+        });
+      }
+      return {
+        ...rect(el),
+        scrollWidth:el.scrollWidth,
+        clientWidth:el.clientWidth,
+        text:(el.innerText||'').replace(/\s+/g,' ').trim(),
+        tag:el.tagName,
+        id:el.id||'',
+        className:String(el.className||'').slice(0,260),
+        display:cs.display,
+        position:cs.position,
+        visibility:cs.visibility,
+        opacity:cs.opacity,
+        outerHTML:(el.outerHTML||'').slice(0,900),
+        trail
+      };
+    };
+    const actions=Object.fromEntries(keys.map(key=>[key,describe(root?.querySelector(`[data-bb-home-action="${key}"]`))]));
     return {
       viewport:{width:innerWidth,height:innerHeight},
       rootText:(root?.innerText||'').replace(/\s+/g,' ').trim(),
-      group:box(group),
+      group:describe(group),
       actions,
       styleId:document.querySelector('#bb-home-polish-v3')?.id||'',
       observerRuntime:typeof window.BlazingHomeSkin?.apply==='function'
@@ -73,16 +105,17 @@ async function assertHomeLayout(page,label,{stacked}){
   const required=['road','castle','summon','inventory','forge'];
   for(const key of required){
     const r=state.actions[key];
+    const diag=()=>JSON.stringify({action:r,group:state.group});
     if(!r)throw new Error(`${label}: missing ${key} home action`);
-    if(r.height<44)throw new Error(`${label}: ${key} hit target too short (${r.height.toFixed(1)}px)`);
-    if(r.width<70)throw new Error(`${label}: ${key} hit target too narrow (${r.width.toFixed(1)}px)`);
-    if(r.x<-1||r.right>vw+1)throw new Error(`${label}: ${key} overflows viewport (${r.x.toFixed(1)}..${r.right.toFixed(1)} of ${vw})`);
+    if(r.height<44)throw new Error(`${label}: ${key} hit target too short (${r.height.toFixed(1)}px) :: ${diag()}`);
+    if(r.width<70)throw new Error(`${label}: ${key} hit target too narrow (${r.width.toFixed(1)}px) :: ${diag()}`);
+    if(r.x<-1||r.right>vw+1)throw new Error(`${label}: ${key} overflows viewport (${r.x.toFixed(1)}..${r.right.toFixed(1)} of ${vw}) :: ${diag()}`);
   }
   if(!state.styleId)throw new Error(`${label}: v3 Home polish stylesheet missing`);
   if(!state.observerRuntime)throw new Error(`${label}: BlazingHomeSkin runtime missing`);
   if(!/BLAZING\s+ROAD/i.test(state.actions.road.text)||!/PHANTOM\s+CASTLE/i.test(state.actions.castle.text))throw new Error(`${label}: featured mode labels missing`);
   if(/\bSTORY\b/i.test(state.rootText))throw new Error(`${label}: Story Mode unexpectedly visible`);
-  if(!state.group||state.group.scrollWidth>state.group.clientWidth+3)throw new Error(`${label}: Home action grid overflows horizontally`);
+  if(!state.group||state.group.scrollWidth>state.group.clientWidth+3)throw new Error(`${label}: Home action grid overflows horizontally :: ${JSON.stringify(state.group)}`);
   const road=state.actions.road,castle=state.actions.castle;
   if(stacked){
     if(castle.y<road.bottom-3)throw new Error(`${label}: featured cards should stack on phone`);
@@ -93,7 +126,7 @@ async function assertHomeLayout(page,label,{stacked}){
     if(road.width<280||castle.width<280)throw new Error(`${label}: desktop featured cards are undersized`);
   }
   const secondary=['summon','inventory','forge'].map(key=>state.actions[key]);
-  if(Math.max(...secondary.map(r=>r.y))-Math.min(...secondary.map(r=>r.y))>4)throw new Error(`${label}: secondary navigation is not aligned to one row`);
+  if(Math.max(...secondary.map(r=>r.y))-Math.min(...secondary.map(r=>r.y))>4)throw new Error(`${label}: secondary navigation is not aligned to one row :: ${JSON.stringify(Object.fromEntries(['summon','inventory','forge'].map(key=>[key,state.actions[key]])))}`);
   console.log(`Browser smoke (${label}) Home layout PASS: ${stacked?'stacked phone':'two-column desktop'} featured modes; grid=${state.group.width.toFixed(1)}px`);
 }
 
