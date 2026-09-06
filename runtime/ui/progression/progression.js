@@ -21,7 +21,7 @@ const FORGE_ART={
 const SHINY_CUTOUT={
  'Sub-Zero':'assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
  'Lebee':'assets/characters/lebee/art/shiny_foreground_cutout_v3.png',
- 'Senku':'assets/characters/senku/art/shiny_foreground_cutout_v4.png',
+ 'Senku':'assets/characters/senku/art/shiny_foreground_cutout_v5.png',
  'Tyler':'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp'
 };
 const SHINY_POPOUT_PROFILE={
@@ -33,6 +33,7 @@ const SHINY_POPOUT_PROFILE={
 const STATS=['hp','attack','defense','speed'];
 const LABELS={hp:'HP',attack:'ATK',defense:'DEF',speed:'SPD'};
 let state=load(),selected='Tyler',candidate=null,activeSummonPulls=[];
+let forgeArtToken=0,forgeArtRequestedKey='';
 const BASE_RUNTIME=typeof BATTLE_ROSTER==='undefined'?{}:Object.fromEntries(FIGHTERS.filter(name=>BATTLE_ROSTER[name]).map(name=>[name,{...BATTLE_ROSTER[name]}]));
 
 function freshUnit(){return {resonance:0,shards:0,shiny:false,roll:null,locks:[]}}
@@ -120,10 +121,26 @@ function fitForgeArtwork(image){
  const depth=image.closest('.forgeArtDepth'),ratio=image.naturalWidth&&image.naturalHeight?image.naturalWidth/image.naturalHeight:.75;if(!depth)return;
  depth.style.setProperty('--forge-art-ratio',String(ratio));depth.style.setProperty('--forge-art-max',`${Math.min(520,Math.round(430*ratio))}px`);
 }
+function preloadForgeAsset(src){
+ if(!src)return Promise.resolve(null);
+ return new Promise(resolve=>{const image=new Image();let finished=false;const done=()=>{if(finished)return;finished=true;const decoded=typeof image.decode==='function'?image.decode():null;if(decoded?.then)decoded.then(()=>resolve(image),()=>resolve(image));else resolve(image)};image.onload=done;image.onerror=done;image.src=src;if(image.complete)done()});
+}
+function syncForgeArtwork(card,name,shiny,portraitSrc,cutout){
+ const key=[name,shiny?'1':'0',portraitSrc,cutout||''].join('|');if(forgeArtRequestedKey===key)return;forgeArtRequestedKey=key;
+ const token=++forgeArtToken;card.classList.add('artSwitching');card.setAttribute('aria-busy','true');
+ Promise.all([preloadForgeAsset(portraitSrc),preloadForgeAsset(cutout)]).then(()=>{
+  if(token!==forgeArtToken)return;
+  card.classList.toggle('shiny',shiny);card.classList.toggle('hasPopout',!!cutout);card.dataset.fighter=IDS[name];card.dataset.popoutProfile=cutout?SHINY_POPOUT_PROFILE[name]||'none':'none';
+  const portrait=document.getElementById('forgePortrait');portrait.onload=()=>fitForgeArtwork(portrait);portrait.src=portraitSrc;portrait.alt=`${name} card`;if(portrait.complete)fitForgeArtwork(portrait);
+  const popout=document.getElementById('forgePopout');popout.hidden=!cutout;popout.alt=cutout?`${name} Shiny foreground`:'';if(cutout)popout.src=cutout;else popout.removeAttribute('src');
+  card.dataset.forgeArtKey=key;void card.offsetWidth;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(token!==forgeArtToken)return;card.classList.remove('artSwitching');card.removeAttribute('aria-busy')}));
+ });
+}
 function renderForge(message=''){
  const u=unit();const maxed=u.resonance>=MAX_RESONANCE;
  document.getElementById('forgeRoster').innerHTML=FIGHTERS.map(name=>{const x=unit(name);return `<button class="forgeFighter ${name===selected?'active':''} ${x.resonance>=5?'maxed':''}" data-fighter="${name}">${name}<small>${x.resonance>=5?'SHINY • ':''}R${x.resonance}/5 • ${x.shards} ✦</small></button>`}).join('');
- const card=document.getElementById('forgeCard'),cutout=u.shiny?SHINY_CUTOUT[selected]:null;card.classList.toggle('shiny',u.shiny);card.classList.toggle('hasPopout',!!cutout);card.dataset.fighter=IDS[selected];card.dataset.popoutProfile=cutout?SHINY_POPOUT_PROFILE[selected]||'none':'none';const portrait=document.getElementById('forgePortrait');portrait.onload=()=>fitForgeArtwork(portrait);portrait.src=art(selected);portrait.alt=`${selected} card`;if(portrait.complete)fitForgeArtwork(portrait);const popout=document.getElementById('forgePopout');popout.hidden=!cutout;popout.alt=cutout?`${selected} Shiny foreground`:'';if(cutout)popout.src=cutout;else popout.removeAttribute('src');
+ const card=document.getElementById('forgeCard'),cutout=u.shiny?SHINY_CUTOUT[selected]:null;syncForgeArtwork(card,selected,u.shiny,art(selected),cutout);
  document.getElementById('forgeName').textContent=selected.toUpperCase();const rank=document.getElementById('forgeRank');rank.textContent=maxed?'SHINY AWAKENED':`RESONANCE ${u.resonance} / 5`;rank.classList.toggle('shinyText',maxed);document.getElementById('forgePips').innerHTML=pipHtml(u);document.getElementById('forgeShardCount').textContent=u.shards;
  document.getElementById('forgeCurrent').innerHTML=statsHtml(u.roll,u.locks);document.getElementById('forgeBuildName').textContent=maxed?buildName(u.roll):`${5-u.resonance} MORE DUPLICATE${5-u.resonance===1?'':'S'} TO AWAKEN`;
  const box=document.getElementById('forgeCandidate');box.classList.toggle('active',!!candidate);document.getElementById('forgeCandidateStats').innerHTML=candidate?statsHtml(candidate,[],true):'';document.getElementById('forgeCandidateName').textContent=candidate?buildName(candidate):'';
