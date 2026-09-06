@@ -12,6 +12,17 @@ function replaceUnique(rx,replacement,label){
   if(hits.length!==1)throw new Error(`Blazing Road integration: expected one ${label}, found ${hits.length}`);
   html=html.replace(rx,replacement);
 }
+function replaceUniqueWithin(startNeedle,endNeedle,rx,replacement,label){
+  const start=html.indexOf(startNeedle);
+  if(start<0)throw new Error(`Blazing Road integration: missing ${label} start boundary`);
+  if(html.indexOf(startNeedle,start+startNeedle.length)>=0)throw new Error(`Blazing Road integration: ${label} start boundary is not unique`);
+  const end=html.indexOf(endNeedle,start+startNeedle.length);
+  if(end<0)throw new Error(`Blazing Road integration: missing ${label} end boundary`);
+  const segment=html.slice(start,end);
+  const hits=[...segment.matchAll(rx)];
+  if(hits.length!==1)throw new Error(`Blazing Road integration: expected one ${label} anchor in scoped function, found ${hits.length}`);
+  html=html.slice(0,start)+segment.replace(rx,replacement)+html.slice(end);
+}
 
 const helpers=`
 function roadBattleFighters(state=S){
@@ -68,22 +79,28 @@ replaceUnique(
   'menu battle entry anchor'
 );
 
-replaceUnique(
+replaceUniqueWithin(
+  'function startBattle(kind){',
+  "level1Btn.addEventListener('click',()=>startBattle('level'));",
   /S=boss\?freshBoss\(\):fresh\(\);\s*S\._chargeSince=performance\.now\(\);/g,
   `S=boss?freshBoss():fresh();\n   S.bbRunMode=boss?'castle':'road';\n   if(!boss)beginRoadBattle();\n   S._chargeSince=performance.now();`,
-  'fresh battle state anchor'
+  'fresh battle state'
 );
 
-replaceUnique(
+replaceUniqueWithin(
+  'function startVictorySequence(){',
+  'function checkVictoryKillshot(){',
   /function startVictorySequence\(\)\{\s*if\(S\.victoryFX\)return;\s*S\.victoryFX=\{/g,
   `function startVictorySequence(){\n if(S.victoryFX)return;\n const roadBeforeStage=S.bbRunMode==='road'?(S.bbRoadStage||S.bbRoadRun?.stage||1):null;\n const roadRun=recordRoadVictory();\n S.victoryFX={`,
-  'victory sequence anchor'
+  'victory sequence setup'
 );
 
-replaceUnique(
+replaceUniqueWithin(
+  'function startVictorySequence(){',
+  'function checkVictoryKillshot(){',
   /S\.phase='resolve';\s*S\.log='Victory — all enemies defeated\.';/g,
   `S.phase='resolve';\n if(S.bbRunMode==='road'&&roadRun?.status==='active'){\n  S.log=\`Victory — Road Stage \${roadBeforeStage} cleared. Survivors carry into Stage \${roadRun.stage}.\`;\n }else{\n  S.log='Victory — all enemies defeated.';\n }`,
-  'victory log anchor'
+  'victory log'
 );
 
 html=html.replace(new RegExp(`<script\\b[^>]*id=["']${RUNTIME_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'');
