@@ -10,8 +10,14 @@ function sameHpMap(a,b){
 }
 
 async function waitForHome(page){
-  await page.locator('#level1Btn').waitFor({state:'attached',timeout:30000});
+  await page.locator('#level1Btn').waitFor({state:'visible',timeout:30000});
   await page.waitForFunction(()=>typeof window.BlazingRoadRun==='object',{timeout:30000});
+  // The startup shell intentionally covers Home until window load + its readiness gate.
+  // Do not synthesize a player click through that overlay; wait until it releases input.
+  const loading=page.locator('#bb-loading-screen');
+  if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
+  await page.waitForFunction(()=>document.readyState==='complete',{timeout:30000});
+  await page.waitForTimeout(120);
 }
 
 async function readBattle(page){
@@ -25,22 +31,29 @@ async function readBattle(page){
         phase:state?.phase||null,
         pairs:Array.isArray(state?.pairs)?state.pairs.length:0,
         battleActive:document.getElementById('battleScreen')?.classList.contains('active')||false,
-        menuDisplay:getComputedStyle(document.getElementById('menuScreen')).display
+        battleClass:document.getElementById('battleScreen')?.className||'',
+        menuClass:document.getElementById('menuScreen')?.className||'',
+        menuDisplay:getComputedStyle(document.getElementById('menuScreen')).display,
+        levelClass:document.getElementById('level1Btn')?.className||'',
+        loadingPresent:!!document.getElementById('bb-loading-screen'),
+        loadingClass:document.getElementById('bb-loading-screen')?.className||'',
+        readyState:document.readyState,
+        startBattleType:globalThis.eval('typeof startBattle'),
+        transitioning:globalThis.eval('typeof menuTransitioning!=="undefined"?menuTransitioning:null')
       };
     }catch(error){return {ok:false,error:error.message,battleActive:document.getElementById('battleScreen')?.classList.contains('active')||false};}
   });
 }
 
-async function waitForMode(page,mode){
-  await page.locator('#battleScreen.active').waitFor({state:'attached',timeout:15000});
+async function waitForMode(page,mode,pageErrors=[]){
   const deadline=Date.now()+15000;
   let last=null;
   while(Date.now()<deadline){
     last=await readBattle(page);
-    if(last.ok&&last.mode===mode&&last.pairs>0)return last;
+    if(last.ok&&last.battleActive&&last.mode===mode&&last.pairs>0)return last;
     await page.waitForTimeout(100);
   }
-  throw new Error(`battle mode ${mode} not observed: ${JSON.stringify(last)}`);
+  throw new Error(`battle mode ${mode} not observed: ${JSON.stringify({last,pageErrors})}`);
 }
 
 async function run(name,type){
@@ -54,7 +67,7 @@ async function run(name,type){
     page.setDefaultNavigationTimeout(30000);
 
     const pageErrors=[];
-    page.on('pageerror',error=>pageErrors.push(error.message));
+    page.on('pageerror',error=>{pageErrors.push(error.message);console.log(`Road browser smoke (${name}) pageerror: ${error.message}`)});
 
     await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});
     await waitForHome(page);
@@ -66,9 +79,9 @@ async function run(name,type){
 
     await page.evaluate(()=>window.BlazingRoadRun.clearRun());
 
-    // Enter Road through the real Home button.
-    await page.locator('#level1Btn').click({force:true});
-    await waitForMode(page,'road');
+    // Enter Road exactly as a player does, after the loading shell has released input.
+    await page.locator('#level1Btn').click();
+    await waitForMode(page,'road',pageErrors);
 
     // Damage one fighter, KO a second, leave the third alive, then resolve victory.
     const first=await page.evaluate(()=>{
@@ -107,8 +120,8 @@ async function run(name,type){
     const cardText=await page.locator('[data-bb-home-action="road"] .bb-mode-desc').textContent().catch(()=>null);
     if(!/Stage\s*2/i.test(cardText||'')||!/Run in Progress/i.test(cardText||''))throw new Error(`Road Home card did not resume Stage 2: ${JSON.stringify(cardText)}`);
 
-    await page.locator('#level1Btn').click({force:true});
-    await waitForMode(page,'road');
+    await page.locator('#level1Btn').click();
+    await waitForMode(page,'road',pageErrors);
     const resumed=await page.evaluate(()=>{
       const state=globalThis.eval('S');
       const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
@@ -125,8 +138,8 @@ async function run(name,type){
     // Reload and enter Castle. Road damage must not bleed into that mode.
     await page.reload({waitUntil:'domcontentloaded'});
     await waitForHome(page);
-    await page.locator('#boss1Btn').click({force:true});
-    await waitForMode(page,'castle');
+    await page.locator('#boss1Btn').click();
+    await waitForMode(page,'castle',pageErrors);
     const castle=await page.evaluate(()=>{
       const state=globalThis.eval('S');
       const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
