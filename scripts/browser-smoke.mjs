@@ -52,6 +52,52 @@ async function snapshot(page){
   }
 }
 
+async function assertHomeLayout(page,label,{stacked}){
+  await page.locator('.bb-home-theme [data-bb-home-action="road"]').waitFor({state:'visible',timeout:20000});
+  const state=await page.evaluate(()=>{
+    const root=document.querySelector('.bb-home-theme');
+    const group=root?.querySelector('.bb-home-actions');
+    const keys=['road','castle','summon','inventory','forge'];
+    const box=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom,scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,text:(el.innerText||'').replace(/\s+/g,' ').trim()};};
+    const actions=Object.fromEntries(keys.map(key=>[key,box(root?.querySelector(`[data-bb-home-action="${key}"]`))]));
+    return {
+      viewport:{width:innerWidth,height:innerHeight},
+      rootText:(root?.innerText||'').replace(/\s+/g,' ').trim(),
+      group:box(group),
+      actions,
+      styleId:document.querySelector('#bb-home-polish-v3')?.id||'',
+      observerRuntime:typeof window.BlazingHomeSkin?.apply==='function'
+    };
+  });
+  const {width:vw}=state.viewport;
+  const required=['road','castle','summon','inventory','forge'];
+  for(const key of required){
+    const r=state.actions[key];
+    if(!r)throw new Error(`${label}: missing ${key} home action`);
+    if(r.height<44)throw new Error(`${label}: ${key} hit target too short (${r.height.toFixed(1)}px)`);
+    if(r.width<70)throw new Error(`${label}: ${key} hit target too narrow (${r.width.toFixed(1)}px)`);
+    if(r.x<-1||r.right>vw+1)throw new Error(`${label}: ${key} overflows viewport (${r.x.toFixed(1)}..${r.right.toFixed(1)} of ${vw})`);
+    if(r.scrollWidth>r.clientWidth+3)throw new Error(`${label}: ${key} content overflows horizontally (${r.scrollWidth}>${r.clientWidth})`);
+  }
+  if(!state.styleId)throw new Error(`${label}: v3 Home polish stylesheet missing`);
+  if(!state.observerRuntime)throw new Error(`${label}: BlazingHomeSkin runtime missing`);
+  if(!/BLAZING\s+ROAD/i.test(state.actions.road.text)||!/PHANTOM\s+CASTLE/i.test(state.actions.castle.text))throw new Error(`${label}: featured mode labels missing`);
+  if(/\bSTORY\b/i.test(state.rootText))throw new Error(`${label}: Story Mode unexpectedly visible`);
+  if(!state.group||state.group.scrollWidth>state.group.clientWidth+3)throw new Error(`${label}: Home action grid overflows horizontally`);
+  const road=state.actions.road,castle=state.actions.castle;
+  if(stacked){
+    if(castle.y<road.bottom-3)throw new Error(`${label}: featured cards should stack on phone`);
+    if(Math.abs(road.width-castle.width)>4)throw new Error(`${label}: stacked featured cards have inconsistent widths`);
+  }else{
+    if(Math.abs(road.y-castle.y)>4)throw new Error(`${label}: featured cards should share a desktop row`);
+    if(road.right>castle.x+4)throw new Error(`${label}: desktop featured cards overlap`);
+    if(road.width<280||castle.width<280)throw new Error(`${label}: desktop featured cards are undersized`);
+  }
+  const secondary=['summon','inventory','forge'].map(key=>state.actions[key]);
+  if(Math.max(...secondary.map(r=>r.y))-Math.min(...secondary.map(r=>r.y))>4)throw new Error(`${label}: secondary navigation is not aligned to one row`);
+  console.log(`Browser smoke (${label}) Home layout PASS: ${stacked?'stacked phone':'two-column desktop'} featured modes; grid=${state.group.width.toFixed(1)}px`);
+}
+
 async function runBrowser(name,type){
   let browser,page;
   const pageErrors=[];
@@ -92,6 +138,8 @@ async function runBrowser(name,type){
     if(rootText.length<100000)throw new Error(`root document unexpectedly small (${rootText.length} bytes)`);
     if(!/Blazing Battle/i.test(rootText))throw new Error('root document missing Blazing Battle marker');
     if(!/BB_BUILD_META/.test(rootText))throw new Error('root document missing build metadata marker');
+    if(!/new MutationObserver\(schedule\)\.observe\(document\.body,\{\s*subtree\s*:\s*true\s*,\s*childList\s*:\s*true\s*\}\)/.test(rootText))throw new Error('Home observer is not the approved child-list-only runtime');
+    if(/new MutationObserver\(schedule\)[\s\S]{0,180}\battributes\s*:\s*true/.test(rootText))throw new Error('Home observer regressed to attribute mutation watching');
     console.log(`Browser smoke (${name}): root HTTP verified (${Math.round(rootText.length/1024)} KiB)`);
 
     // GitHub-hosted headless browsers have intermittently stalled committing the local
@@ -122,6 +170,11 @@ async function runBrowser(name,type){
     const readySelector='canvas,.bb-home-theme,#homeScreen,[data-screen="home"]';
     console.log(`Browser smoke (${name}): wait for rendered game/home surface`);
     await page.locator(readySelector).first().waitFor({state:'attached',timeout:30000});
+
+    await assertHomeLayout(page,`${name}/phone`,{stacked:true});
+    await page.setViewportSize({width:1366,height:900});
+    await page.waitForTimeout(180);
+    await assertHomeLayout(page,`${name}/desktop`,{stacked:false});
 
     const state=await page.evaluate(()=>({
       meta:window.BB_BUILD_META||null,
