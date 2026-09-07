@@ -48,11 +48,12 @@ async function run(name,type){
    s.phase='charge';s.ready=null;s._chargeSince=performance.now();
    for(let i=0;i<80&&s.phase==='charge';i++)tick();
    snapshot.speedWinner=s.ready?.kind||null;
-   if(s.ready?.kind==='enemy')s.ready.ref.gauge=0;
+   // Cancel the scheduled CPU action after proving meter ownership; the next reload restores canonical stats.
+   if(s.ready?.kind==='enemy'){s.ready.ref.gauge=0;s.ready=null;s.phase='resolve';}
    return snapshot;
   });
   if(stage1.stage!==1||stage1.elite)throw new Error(`Stage 1 content wrong: ${JSON.stringify(stage1)}`);
-  if(!/stage-01-south-sac\.jpg$/.test(stage1.map||'')||stage1.mapSource!==stage1.map)throw new Error(`Stage 1 map routing wrong: ${JSON.stringify(stage1)}`);
+  if(!/stage-01-south-sac\.webp$/.test(stage1.map||'')||stage1.mapSource!==stage1.map)throw new Error(`Stage 1 map routing wrong: ${JSON.stringify(stage1)}`);
   if(stage1.enemies.length<3||stage1.enemies.some(e=>e.attack<24||!e.ai))throw new Error(`Stage 1 enemies are not combat-ready: ${JSON.stringify(stage1.enemies)}`);
   if(stage1.chakra.some(u=>u.chakra>Math.min(2,u.max)))throw new Error(`development full-chakra shortcut survived: ${JSON.stringify(stage1.chakra)}`);
   if(stage1.speedWinner!=='enemy')throw new Error(`Speed meter did not allow faster enemy to win: ${stage1.speedWinner}`);
@@ -88,7 +89,7 @@ async function run(name,type){
    };
   });
   if(stage10.stage!==10||!stage10.elite||stage10.maxStage!==10)throw new Error(`Stage 10 is not final elite: ${JSON.stringify(stage10)}`);
-  if(!/stage-05-training-grounds\.jpg$/.test(stage10.map||'')||stage10.mapSource!==stage10.map)throw new Error(`Stage 10 map slot wrong: ${JSON.stringify(stage10)}`);
+  if(!/stage-05-training-grounds\.webp$/.test(stage10.map||'')||stage10.mapSource!==stage10.map)throw new Error(`Stage 10 map slot wrong: ${JSON.stringify(stage10)}`);
   if(stage10.enemies.length<5||Math.min(...stage10.enemies.map(e=>e.attack))<=Math.min(...stage1.enemies.map(e=>e.attack)))throw new Error(`Stage 10 threat did not scale: ${JSON.stringify(stage10.enemies)}`);
 
   const victory=await page.evaluate(()=>{
