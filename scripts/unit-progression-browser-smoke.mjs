@@ -5,10 +5,10 @@ const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
 const TYPES={chromium,webkit};
 
 async function waitHome(page){
-  await page.locator('#forgeBtn').waitFor({state:'visible',timeout:30000});
+  await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
   const loading=page.locator('#bb-loading-screen');
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
-  await page.waitForFunction(()=>typeof window.BlazingEconomy==='object'&&typeof window.BlazingUnitProgression==='object'&&typeof window.BlazingProgression==='object'&&typeof window.BlazingProgressionEconomyUI==='object',{timeout:30000});
+  await page.waitForFunction(()=>typeof window.BlazingEconomy==='object'&&typeof window.BlazingUnitProgression==='object'&&typeof window.BlazingProgression==='object'&&typeof window.BlazingProgressionEconomyUI==='object'&&typeof window.BlazingApprovedHomeCompat==='object',{timeout:30000});
   await page.waitForTimeout(180);
 }
 
@@ -66,7 +66,8 @@ async function run(name,type){
   if(purchaseAfter.marks!==purchaseBefore.marks-purchaseBefore.cost)throw new Error(`Battle Mark level cost mismatch: ${JSON.stringify({purchaseBefore,purchaseAfter})}`);
 
   await page.locator('#forgeBack').click();
-  await page.locator('#summonsBtn').waitFor({state:'visible'});await page.locator('#summonsBtn').click();
+  await waitHome(page);
+  await page.locator('#bbHomeApproved [data-nav="summon"]').click();
   await page.locator('#summonScreen.active #bbEmberExchange').waitFor({state:'visible'});
   let exchange=await page.locator('#bbEmberExchange').innerText();
   if(!/300\s*◈/.test(exchange)||!/WEEKLY\s*0\/10/i.test(exchange))throw new Error(`Ember exchange initial UI incorrect: ${exchange}`);
@@ -103,7 +104,7 @@ async function run(name,type){
 
   await page.evaluate(()=>{window.BlazingUnitProgression.reset();window.BlazingEconomy.reset()});
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Unit progression browser smoke PASS (${name}): level-up FX, Awakening FX, distinct Shiny FX, Lv10 gate, duplicate banking, Battle Mark level purchase, Ember exchange, and persistence verified.`);
+  console.log(`Unit progression browser smoke PASS (${name}): approved Home return route, level-up FX, Awakening FX, distinct Shiny FX, Lv10 gate, duplicate banking, Battle Mark level purchase, Ember exchange, and persistence verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
