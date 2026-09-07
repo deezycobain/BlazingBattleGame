@@ -3,11 +3,11 @@
 
 const MAX_STAGE=10;
 const MAPS=Object.freeze([
-  Object.freeze({key:'south-sac',name:'South Sac Approach',src:'assets/maps/blazing-road/stage-01-south-sac.jpg'}),
-  Object.freeze({key:'moon-statue-garden',name:'Moon Statue Garden',src:'assets/maps/blazing-road/stage-02-moon-statue-garden.jpg'}),
-  Object.freeze({key:'lantern-garden',name:'Lantern Garden',src:'assets/maps/blazing-road/stage-03-lantern-garden.jpg'}),
-  Object.freeze({key:'shinobi-overlook',name:'Shinobi Overlook',src:'assets/maps/blazing-road/stage-04-shinobi-overlook.jpg'}),
-  Object.freeze({key:'training-grounds',name:'Training Grounds',src:'assets/maps/blazing-road/stage-05-training-grounds.jpg'})
+  Object.freeze({key:'south-sac',name:'South Sac Approach',src:'assets/maps/blazing-road/stage-01-south-sac.webp'}),
+  Object.freeze({key:'moon-statue-garden',name:'Moon Statue Garden',src:'assets/maps/blazing-road/stage-02-moon-statue-garden.webp'}),
+  Object.freeze({key:'lantern-garden',name:'Lantern Garden',src:'assets/maps/blazing-road/stage-03-lantern-garden.webp'}),
+  Object.freeze({key:'shinobi-overlook',name:'Shinobi Overlook',src:'assets/maps/blazing-road/stage-04-shinobi-overlook.webp'}),
+  Object.freeze({key:'training-grounds',name:'Training Grounds',src:'assets/maps/blazing-road/stage-05-training-grounds.webp'})
 ]);
 
 const FORMATIONS=Object.freeze([
@@ -59,10 +59,11 @@ function stageConfig(value){
   const map=MAPS[(stage-1)%MAPS.length];
   const formation=FORMATIONS[(stage-1)%FORMATIONS.length];
   const secondRoute=stage>5;
-  const hpMultiplier=1+(stage-1)*0.10+(elite?0.12:0);
-  const attackMultiplier=1+(stage-1)*0.075+(elite?0.10:0);
-  const defenseMultiplier=1+(stage-1)*0.04+(elite?0.06:0);
-  const speedMultiplier=1+Math.min(0.12,(stage-1)*0.012)+(elite?0.02:0);
+  // Elite stages spike above the previous encounter without making the next stage weaker.
+  const hpMultiplier=1+(stage-1)*0.10+(elite?0.08:0);
+  const attackMultiplier=1+(stage-1)*0.075+(elite?0.06:0);
+  const defenseMultiplier=1+(stage-1)*0.04+(elite?0.03:0);
+  const speedMultiplier=1+Math.min(0.12,(stage-1)*0.012)+(elite?0.01:0);
   const extraEnemy=secondRoute&&formation.length<5
     ? [{id:['onre','gotoku','yurei'][stage%3],x:stage%2?300:178,y:stage%2?292:286}]
     : [];
@@ -83,9 +84,9 @@ function stageConfig(value){
       attackMultiplier,
       defenseMultiplier,
       speedMultiplier,
-      hpFloor:118+(stage-1)*10+(elite?18:0),
-      attackFloor:24+(stage-1)*2+(elite?4:0),
-      defenseFloor:8+Math.floor((stage-1)/2)
+      hpFloor:118+(stage-1)*10+(elite?14:0),
+      attackFloor:24+(stage-1)*2+(elite?3:0),
+      defenseFloor:8+Math.floor((stage-1)/2)+(elite?1:0)
     }),
     ai:Object.freeze({
       evadeBase:0.08+Math.min(0.10,(stage-1)*0.012),
