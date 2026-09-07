@@ -25,7 +25,11 @@ async function waitHome(page){
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
   await page.waitForFunction(()=>typeof window.BlazingApprovedHomeCompat==='object'&&typeof window.BlazingHomeLivePolish==='object'&&typeof window.BlazingHomeV8==='object',{timeout:30000});
   await page.waitForFunction(()=>document.querySelector('#bbHomeApproved')?.dataset?.bbHomeLayout==='v8-mockup',{timeout:10000});
-  await page.waitForTimeout(180);
+  await page.waitForFunction(()=>{
+    const images=[...document.querySelectorAll('#bbHomeApproved img')];
+    return images.length>0&&images.every(img=>img.complete);
+  },{timeout:10000});
+  await page.waitForTimeout(100);
 }
 
 async function assertHome(page,label){
