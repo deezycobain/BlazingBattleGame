@@ -10,10 +10,8 @@ function sameHpMap(a,b){
 }
 
 async function waitForHome(page){
-  await page.locator('#level1Btn').waitFor({state:'visible',timeout:30000});
-  await page.waitForFunction(()=>typeof window.BlazingRoadRun==='object',{timeout:30000});
-  // The startup shell intentionally covers Home until window load + its readiness gate.
-  // Do not synthesize a player click through that overlay; wait until it releases input.
+  await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
+  await page.waitForFunction(()=>typeof window.BlazingRoadRun==='object'&&typeof window.BlazingApprovedHomeCompat==='object',{timeout:30000});
   const loading=page.locator('#bb-loading-screen');
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
   await page.waitForFunction(()=>document.readyState==='complete',{timeout:30000});
@@ -34,7 +32,7 @@ async function readBattle(page){
         battleClass:document.getElementById('battleScreen')?.className||'',
         menuClass:document.getElementById('menuScreen')?.className||'',
         menuDisplay:getComputedStyle(document.getElementById('menuScreen')).display,
-        levelClass:document.getElementById('level1Btn')?.className||'',
+        homeShell:!!document.getElementById('bbHomeApproved'),
         loadingPresent:!!document.getElementById('bb-loading-screen'),
         loadingClass:document.getElementById('bb-loading-screen')?.className||'',
         readyState:document.readyState,
@@ -54,6 +52,14 @@ async function waitForMode(page,mode,pageErrors=[]){
     await page.waitForTimeout(100);
   }
   throw new Error(`battle mode ${mode} not observed: ${JSON.stringify({last,pageErrors})}`);
+}
+
+async function enterMode(page,mode,pageErrors=[]){
+  const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');
+  if(!await panel.isVisible())await page.locator('#bbHomeApproved [data-nav="battle"]').click();
+  await panel.waitFor({state:'visible',timeout:5000});
+  await page.locator(`#bbHomeApproved [data-mode="${mode}"]`).click();
+  return waitForMode(page,mode==='road'?'road':'castle',pageErrors);
 }
 
 async function run(name,type){
@@ -79,11 +85,8 @@ async function run(name,type){
 
     await page.evaluate(()=>window.BlazingRoadRun.clearRun());
 
-    // Enter Road exactly as a player does, after the loading shell has released input.
-    await page.locator('#level1Btn').click();
-    await waitForMode(page,'road',pageErrors);
+    await enterMode(page,'road',pageErrors);
 
-    // Damage one fighter, KO a second, leave the third alive, then resolve victory.
     const first=await page.evaluate(()=>{
       const state=globalThis.eval('S');
       const checkVictory=globalThis.eval('checkVictoryKillshot');
@@ -96,14 +99,7 @@ async function run(name,type){
       state.enemies.forEach(enemy=>{enemy.hp=0;});
       const victory=checkVictory();
       const run=window.BlazingRoadRun.loadRun();
-      return {
-        victory,
-        expected,
-        run,
-        battleMode:state.bbRunMode,
-        stage:state.bbRoadStage,
-        log:state.log
-      };
+      return {victory,expected,run,battleMode:state.bbRunMode,stage:state.bbRoadStage,log:state.log};
     });
 
     if(!first.victory)throw new Error('Road victory hook did not resolve');
@@ -114,14 +110,12 @@ async function run(name,type){
     const defeated=first.run.fighters.filter(f=>f.defeated);
     if(defeated.length!==1||defeated[0].hp!==0)throw new Error(`expected exactly one persisted KO: ${JSON.stringify(first.run.fighters)}`);
 
-    // Reload the whole game to prove persistence is not just in-memory state.
     await page.reload({waitUntil:'domcontentloaded'});
     await waitForHome(page);
-    const cardText=await page.locator('[data-bb-home-action="road"] .bb-mode-desc').textContent().catch(()=>null);
-    if(!/Stage\s*2/i.test(cardText||'')||!/Run in Progress/i.test(cardText||''))throw new Error(`Road Home card did not resume Stage 2: ${JSON.stringify(cardText)}`);
+    const cardText=await page.locator('#bbHomeApproved [data-mode="road"] span:last-child').textContent().catch(()=>null);
+    if(!/Stage\s*2/i.test(cardText||'')||!/Run in Progress/i.test(cardText||''))throw new Error(`approved Road selector did not resume Stage 2: ${JSON.stringify(cardText)}`);
 
-    await page.locator('#level1Btn').click();
-    await waitForMode(page,'road',pageErrors);
+    await enterMode(page,'road',pageErrors);
     const resumed=await page.evaluate(()=>{
       const state=globalThis.eval('S');
       const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
@@ -135,11 +129,9 @@ async function run(name,type){
     if(!sameHpMap(resumed.hp,first.expected))throw new Error(`live Stage 2 HP did not carry forward: expected ${JSON.stringify(first.expected)}, got ${JSON.stringify(resumed.hp)}`);
     if(resumed.defeated.length!==1)throw new Error(`persisted KO was not preserved in live Stage 2 battle: ${JSON.stringify(resumed)}`);
 
-    // Reload and enter Castle. Road damage must not bleed into that mode.
     await page.reload({waitUntil:'domcontentloaded'});
     await waitForHome(page);
-    await page.locator('#boss1Btn').click();
-    await waitForMode(page,'castle',pageErrors);
+    await enterMode(page,'castle',pageErrors);
     const castle=await page.evaluate(()=>{
       const state=globalThis.eval('S');
       const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
@@ -156,7 +148,7 @@ async function run(name,type){
 
     await page.evaluate(()=>window.BlazingRoadRun.clearRun());
     if(pageErrors.length)throw new Error(`pageerror: ${pageErrors.join(' | ')}`);
-    console.log(`Road browser smoke PASS (${name}): Stage 1 damage + KO persisted into Stage 2 after reload; Phantom Castle stayed full HP.`);
+    console.log(`Road browser smoke PASS (${name}): approved Battle selector preserves Stage 1 damage + KO into Stage 2 after reload; Phantom Castle stayed full HP.`);
   }finally{
     if(browser)await browser.close().catch(()=>{});
   }
