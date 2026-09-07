@@ -7,6 +7,7 @@ on:
     paths:
       - home-ui-import.zip
       - blazing-battle-home-ui-approved-assets.zip
+      - .github/workflows/import-home-ui-assets.yml
 
 permissions:
   contents: write
@@ -73,7 +74,13 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A assets/ui/home home-ui-import.zip blazing-battle-home-ui-approved-assets.zip || true
+
+          git add -A -- assets/ui/home
+          for candidate in home-ui-import.zip blazing-battle-home-ui-approved-assets.zip; do
+            if git ls-files --error-unmatch "$candidate" >/dev/null 2>&1; then
+              git add -u -- "$candidate"
+            fi
+          done
 
           if git diff --cached --quiet; then
             echo "No Home UI asset changes to commit."
