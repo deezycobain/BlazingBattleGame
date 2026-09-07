@@ -59,32 +59,49 @@ async function assertApprovedHome(page,label,{mobile}){
     const shell=document.querySelector('#bbHomeApproved');
     const dock=shell?.querySelector('.bb-home-v4-dock');
     const feature=shell?.querySelector('.bb-home-v4-feature');
+    const leader=shell?.querySelector('[data-v5-leader-art]');
+    const profileTexture=shell?.querySelector('.bb-home-v5-profile-texture');
+    const currencyTextures=[...shell?.querySelectorAll('.bb-home-v5-currency>img')||[]];
+    const brand=shell?.querySelector('.bb-home-v4-brand');
     const rect=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom};};
     const nav={};
     for(const key of ['battle','summon','units','forge'])nav[key]=rect(shell?.querySelector(`[data-nav="${key}"]`));
-    const images=[...shell?.querySelectorAll('img')||[]].map(img=>({src:img.getAttribute('src')||'',complete:img.complete,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight}));
+    const images=[...shell?.querySelectorAll('img')||[]].map(img=>({src:img.getAttribute('src')||'',complete:img.complete,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,hidden:img.hidden,display:getComputedStyle(img).display}));
+    const isHidden=el=>!el||el.hidden||getComputedStyle(el).display==='none'||getComputedStyle(el).visibility==='hidden';
     return {
       viewport:{width:innerWidth,height:innerHeight},
       shell:rect(shell),dock:rect(dock),feature:rect(feature),nav,images,
       style:!!document.querySelector('#bb-home-approved-v4-style'),
+      liveStyle:!!document.querySelector('#bb-home-live-v7-style'),
+      finalStyle:!!document.querySelector('#bb-home-v7-build-final'),
       runtime:typeof window.BlazingHomeSkin?.apply==='function',
+      liveRuntime:typeof window.BlazingHomeLivePolish?.apply==='function',
+      liveVersion:shell?.dataset?.bbHomeLivePolish||'',
       background:root?getComputedStyle(root,'::before').backgroundImage:'',
+      leaderSrc:leader?.getAttribute('src')||'',
+      brandHidden:isHidden(brand),
+      bakedHudHidden:isHidden(profileTexture)&&currencyTextures.every(isHidden),
       legacy:{level1:!!document.querySelector('#level1Btn'),boss1:!!document.querySelector('#boss1Btn'),summon:!!document.querySelector('#summonsBtn'),inventory:!!document.querySelector('#inventoryBtn'),forge:!!document.querySelector('#forgeBtn')}
     };
   });
 
   const {width:vw,height:vh}=state.viewport;
-  if(!state.style)throw new Error(`${label}: approved Home v4 stylesheet missing`);
+  if(!state.style)throw new Error(`${label}: approved Home base stylesheet missing`);
+  if(!state.liveStyle||!state.liveRuntime||state.liveVersion!=='v7')throw new Error(`${label}: Home v7 presentation runtime is not active :: ${JSON.stringify({liveStyle:state.liveStyle,liveRuntime:state.liveRuntime,liveVersion:state.liveVersion})}`);
+  if(mobile&&!state.finalStyle)throw new Error(`${label}: Home v7 mobile viewport finalizer missing`);
   if(!state.runtime)throw new Error(`${label}: BlazingHomeSkin runtime missing`);
   if(!state.shell||state.shell.width<vw-8||state.shell.height<vh-8)throw new Error(`${label}: approved Home shell does not cover viewport :: ${JSON.stringify(state.shell)}`);
   if(!state.dock||state.dock.x<-1||state.dock.right>vw+1)throw new Error(`${label}: Home dock overflows viewport :: ${JSON.stringify(state.dock)}`);
   if(!state.feature||state.feature.width<180||state.feature.height<70)throw new Error(`${label}: featured Battle card is undersized :: ${JSON.stringify(state.feature)}`);
-  if(!/home-city-clean-a\.webp/i.test(state.background))throw new Error(`${label}: approved clean city background is not active :: ${state.background}`);
+  if(!/runtime\/ui\/home\/home-wallpaper-hq\.png/i.test(state.background))throw new Error(`${label}: original generated Home wallpaper is not active :: ${state.background}`);
+  if(!/assets\/characters\/tyler\/art\/shiny_foreground_cutout_v1\.webp/i.test(state.leaderSrc))throw new Error(`${label}: Tyler Home presentation cutout is not active :: ${state.leaderSrc}`);
+  if(!state.bakedHudHidden)throw new Error(`${label}: baked profile/currency textures are still visible behind live HUD values`);
+  if(!state.brandHidden)throw new Error(`${label}: obsolete generic Home brand text is still visible`);
 
   for(const key of ['battle','summon','units','forge']){
     const r=state.nav[key];
     if(!r)throw new Error(`${label}: missing ${key} navigation button`);
-    if(r.width<70||r.height<38)throw new Error(`${label}: ${key} navigation hit target is undersized :: ${JSON.stringify(r)}`);
+    if(r.width<70||r.height<34)throw new Error(`${label}: ${key} navigation hit target is undersized :: ${JSON.stringify(r)}`);
     if(r.x<-1||r.right>vw+1||r.y<-1||r.bottom>vh+1)throw new Error(`${label}: ${key} navigation overflows viewport :: ${JSON.stringify(r)}`);
   }
 
@@ -94,15 +111,13 @@ async function assertApprovedHome(page,label,{mobile}){
   for(const required of ['level1','boss1','summon','inventory','forge'])if(!state.legacy[required])throw new Error(`${label}: legacy route anchor ${required} missing behind new shell`);
 
   const n=state.nav;
-  if(mobile){
-    if(Math.abs(n.battle.y-n.summon.y)>4)throw new Error(`${label}: first mobile nav row is misaligned`);
-    if(Math.abs(n.units.y-n.forge.y)>4)throw new Error(`${label}: second mobile nav row is misaligned`);
-    if(n.units.y<=n.battle.y+8)throw new Error(`${label}: mobile dock did not form two rows`);
-  }else{
-    const ys=Object.values(n).map(r=>r.y);
-    if(Math.max(...ys)-Math.min(...ys)>4)throw new Error(`${label}: desktop dock is not aligned to one row`);
-  }
-  console.log(`Browser smoke (${label}) approved Home v4 PASS: ${mobile?'two-row phone':'four-button desktop'} dock; ${state.images.length} assets loaded`);
+  const lower=[n.summon,n.units,n.forge];
+  const lowerY=lower.map(r=>r.y);
+  if(Math.max(...lowerY)-Math.min(...lowerY)>7)throw new Error(`${label}: Summon/Units/Forge dock row is misaligned :: ${JSON.stringify(lower)}`);
+  if(Math.min(...lowerY)<=n.battle.y+Math.max(14,n.battle.height*.45))throw new Error(`${label}: dominant Battle button did not occupy its own upper dock row :: ${JSON.stringify(n)}`);
+  if(n.battle.width<Math.max(210,n.summon.width*2.25))throw new Error(`${label}: Battle is not visually dominant in the asymmetric dock :: ${JSON.stringify(n)}`);
+
+  console.log(`Browser smoke (${label}) Home v7 PASS: original wallpaper + Tyler cutout + live HUD + Battle-led two-tier dock; ${state.images.length} assets loaded`);
 }
 
 async function exerciseBattleMenu(page,label){
@@ -161,8 +176,11 @@ async function runBrowser(name,type){
     const homeRuntimeMatch=rootText.match(/<script id="bb-home-wallpaper-runtime">([\s\S]*?)<\/script>/i);
     if(!homeRuntimeMatch)throw new Error('Home runtime script missing from built root');
     const homeRuntimeText=homeRuntimeMatch[1];
-    for(const marker of ['bbHomeApproved','approved-v4','navigation/battle.webp','navigation/summon.webp','navigation/units.webp','navigation/forge.webp','home-city-clean-a.webp']){
+    for(const marker of ['bbHomeApproved','approved-v4','navigation/battle.webp','navigation/summon.webp','navigation/units.webp','navigation/forge.webp']){
       if(!homeRuntimeText.includes(marker))throw new Error(`approved Home runtime missing ${marker}`);
+    }
+    for(const marker of ['home-wallpaper-hq.png','shiny_foreground_cutout_v1.webp','bb-home-live-v7-style']){
+      if(!rootText.includes(marker))throw new Error(`Home v7 built root missing ${marker}`);
     }
     if(/assets\/ui\/home\/reference\//i.test(homeRuntimeText))throw new Error('Home runtime references design-only assets');
     if(!/new MutationObserver\(schedule\)/.test(homeRuntimeText))throw new Error('Home observer runtime missing');
@@ -206,9 +224,9 @@ async function runBrowser(name,type){
     if(!state.hasHome)throw new Error('approved Home surface missing after readiness signal');
     if(EXPECT&&(!state.meta?.commit||!String(state.meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`deployed commit mismatch: expected ${EXPECT.slice(0,12)}, got ${state.meta?.commit||'missing'}`);
     if(pageErrors.length)throw new Error(`pageerror: ${pageErrors.join(' | ')}`);
-    const homeFailures=failedRequests.filter(msg=>/assets\/ui\/home\//i.test(msg));
-    if(homeFailures.length)throw new Error(`approved Home asset requests failed: ${homeFailures.join(' | ')}`);
-    console.log(`Browser smoke PASS (${name}): approved Home v4 rendered; readyState=${state.readyState}${EXPECT?` @ ${String(state.meta?.commit).slice(0,12)}`:''}`);
+    const homeFailures=failedRequests.filter(msg=>/assets\/ui\/home\/|runtime\/ui\/home\/home-wallpaper-hq\.png|assets\/characters\/tyler\/art\/shiny_foreground_cutout_v1\.webp/i.test(msg));
+    if(homeFailures.length)throw new Error(`Home v7 asset requests failed: ${homeFailures.join(' | ')}`);
+    console.log(`Browser smoke PASS (${name}): Home v7 rendered; readyState=${state.readyState}${EXPECT?` @ ${String(state.meta?.commit).slice(0,12)}`:''}`);
   }catch(err){
     const snap=page?await snapshot(page):null;
     console.error(`Browser smoke FAIL (${name}): ${err.message}`);
