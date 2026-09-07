@@ -57,6 +57,11 @@ function ensureLevelPanel(){
     const msg=result.ok?`${name} reached Lv.${result.level}.`:result.reason==='AWAKENING_REQUIRED'?'Awaken this unit before the next ten levels.':result.reason==='INSUFFICIENT_MARKS'?`Need ${result.cost} Blazing Coins to finish this level.`:'Level upgrade unavailable.';
     reopen(name,msg);if(result.ok)setTimeout(()=>playFx('level',{name,level:result.level}),60);
    }
+   if(button.dataset.action==='max-level'){
+    const result=api.buyToGate(name);
+    const msg=result.ok?`${name} reached the Awakening gate at Lv.${result.level}.`:result.reason==='AWAKENING_REQUIRED'?'This unit is already at its Awakening gate.':result.reason==='INSUFFICIENT_MARKS'?`Need ${result.cost} Blazing Coins to reach the next Awakening gate.`:'Max level upgrade unavailable.';
+    reopen(name,msg);if(result.ok)setTimeout(()=>playFx('level',{name,level:result.level}),60);
+   }
    if(button.dataset.action==='awaken'){
     const result=api.awaken(name);
     let msg='Awakening unavailable.';
@@ -74,11 +79,12 @@ function renderLevelPanel(message=''){
  current=selectedName();
  const u=api.unit(current),cap=api.capForAwakening(u.awakening),xpNeed=u.level>=cap||u.level>=50?0:api.xpForNextLevel(u.level);
  const xpPct=xpNeed?Math.max(0,Math.min(100,(u.xp/xpNeed)*100)):100;
- const gate=api.canAwaken(current),markCost=api.markCostToFinish(current),atGate=api.isAtGate(u);
- const nextAwakening=Math.min(5,u.awakening+1),copyLabel=gate.cost===1?'COPY':'COPIES';
+ const gate=api.canAwaken(current),markCost=api.markCostToFinish(current),gateCost=api.markCostToGate(current),atGate=api.isAtGate(u),balance=E()?.balance?.()??0;
+ const nextAwakening=Math.min(5,u.awakening+1),copyLabel=gate.cost===1?'COPY':'COPIES',levelsToGate=Math.max(0,cap-u.level);
  const levelButton=u.level>=50?'<button type="button" data-action="level" disabled>MAX LEVEL</button>':atGate?'<button type="button" data-action="level" disabled>AWAKEN TO CONTINUE</button>':`<button type="button" data-action="level">FINISH LEVEL <b>${markCost} ◈</b></button>`;
+ const maxButton=!atGate&&u.level<50&&levelsToGate>1&&gateCost>0&&balance>=gateCost?`<button type="button" data-action="max-level" class="bb-progression-max">MAX TO AWAKENING · LV.${cap} <b>${gateCost} ◈</b></button>`:'';
  const awakenButton=u.shiny?'<button type="button" data-action="awaken" class="awaken" disabled>SHINY COMPLETE</button>':`<button type="button" data-action="awaken" class="awaken" ${gate.ok?'':'disabled'}>${nextAwakening===5?'SHINY AWAKEN':`AWAKEN ${roman(nextAwakening)}`} <b>${gate.cost} ${copyLabel}</b></button>`;
- box.innerHTML=`<div class="bb-level-head"><div><span>UNIT PROGRESSION</span><strong>LV. ${u.level}<small>/ ${cap}</small></strong></div><div class="bb-awaken-rank">${u.shiny?'SHINY':`AWAKENING ${u.awakening} / 5`}</div></div><div class="bb-xp-row"><div><span>XP</span><b>${xpNeed?`${u.xp} / ${xpNeed}`:'LEVEL CAP'}</b></div><div class="bb-xp-track"><i style="width:${xpPct}%"></i></div></div><div class="bb-progression-meta"><span>DUPLICATES <b>${u.copies}</b></span><span>NEXT GATE <b>${u.shiny?'COMPLETE':`LV.${cap}`}</b></span><span>CORE GROWTH <b>+${Math.round(api.statMultipliers(u).coreGrowth*1000)/10}%</b></span></div><div class="bb-progression-actions">${levelButton}${awakenButton}</div><p class="bb-progression-note">Battle XP levels units naturally. Blazing Coins finish the current level. Each 10-level band requires Awakening before the next band opens.${message?` <strong>${esc(message)}</strong>`:''}</p>`;
+ box.innerHTML=`<div class="bb-level-head"><div><span>UNIT PROGRESSION</span><strong>LV. ${u.level}<small>/ ${cap}</small></strong></div><div class="bb-awaken-rank">${u.shiny?'SHINY':`AWAKENING ${u.awakening} / 5`}</div></div><div class="bb-xp-row"><div><span>XP</span><b>${xpNeed?`${u.xp} / ${xpNeed}`:'LEVEL CAP'}</b></div><div class="bb-xp-track"><i style="width:${xpPct}%"></i></div></div><div class="bb-progression-meta"><span>DUPLICATES <b>${u.copies}</b></span><span>NEXT GATE <b>${u.shiny?'COMPLETE':`LV.${cap}`}</b></span><span>CORE GROWTH <b>+${Math.round(api.statMultipliers(u).coreGrowth*1000)/10}%</b></span></div><div class="bb-progression-actions">${levelButton}${maxButton}${awakenButton}</div><p class="bb-progression-note">Battle XP levels units naturally. Blazing Coins finish the current level. If your balance covers the full band, MAX TO AWAKENING pays the exact remaining cost and stops at the next gate. Each 10-level band requires Awakening before the next band opens.${message?` <strong>${esc(message)}</strong>`:''}</p>`;
 }
 
 function ensureExchange(){
