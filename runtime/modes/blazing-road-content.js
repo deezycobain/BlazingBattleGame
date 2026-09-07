@@ -2,6 +2,8 @@
 'use strict';
 
 const MAX_STAGE=10;
+const STAT_MAX=100;
+const clampStat=value=>Math.max(1,Math.min(STAT_MAX,Math.round(Number(value)||1)));
 const MAPS=Object.freeze([
   Object.freeze({key:'south-sac',name:'South Sac Approach',src:'assets/maps/blazing-road/stage-01-south-sac.webp'}),
   Object.freeze({key:'moon-statue-garden',name:'Moon Statue Garden',src:'assets/maps/blazing-road/stage-02-moon-statue-garden.webp'}),
@@ -9,6 +11,12 @@ const MAPS=Object.freeze([
   Object.freeze({key:'shinobi-overlook',name:'Shinobi Overlook',src:'assets/maps/blazing-road/stage-04-shinobi-overlook.webp'}),
   Object.freeze({key:'training-grounds',name:'Training Grounds',src:'assets/maps/blazing-road/stage-05-training-grounds.webp'})
 ]);
+
+const BASE_ENEMY_STATS=Object.freeze({
+  onre:Object.freeze({hp:55,attack:29,defense:22,speed:58}),
+  gotoku:Object.freeze({hp:70,attack:34,defense:38,speed:44}),
+  yurei:Object.freeze({hp:50,attack:37,defense:18,speed:68})
+});
 
 const FORMATIONS=Object.freeze([
   Object.freeze([
@@ -53,41 +61,40 @@ function stageNumber(value){
   return Math.max(1,Math.min(MAX_STAGE,n));
 }
 
+function statsForEnemy(id,stage,elite){
+  const base=BASE_ENEMY_STATS[id]||BASE_ENEMY_STATS.onre;
+  const n=stage-1;
+  return Object.freeze({
+    hp:clampStat(base.hp+n*3+(elite?4:0)),
+    attack:clampStat(base.attack+n*2+(elite?2:0)),
+    defense:clampStat(base.defense+Math.floor(n*1.5)+(elite?2:0)),
+    speed:clampStat(base.speed+Math.floor(n*.8)+(elite?1:0))
+  });
+}
+
 function stageConfig(value){
   const stage=stageNumber(value);
   const elite=stage===5||stage===10;
   const map=MAPS[(stage-1)%MAPS.length];
   const formation=FORMATIONS[(stage-1)%FORMATIONS.length];
   const secondRoute=stage>5;
-  // Elite stages spike above the previous encounter without making the next stage weaker.
-  const hpMultiplier=1+(stage-1)*0.10+(elite?0.08:0);
-  const attackMultiplier=1+(stage-1)*0.075+(elite?0.06:0);
-  const defenseMultiplier=1+(stage-1)*0.04+(elite?0.03:0);
-  const speedMultiplier=1+Math.min(0.12,(stage-1)*0.012)+(elite?0.01:0);
   const extraEnemy=secondRoute&&formation.length<5
     ? [{id:['onre','gotoku','yurei'][stage%3],x:stage%2?300:178,y:stage%2?292:286}]
     : [];
   const enemies=[...formation,...extraEnemy].map((enemy,index)=>Object.freeze({
     ...enemy,
     name:`Road Rogue ${index+1}`,
-    mark:String(index+1)
+    mark:String(index+1),
+    stats:statsForEnemy(enemy.id,stage,elite)
   }));
   return Object.freeze({
     stage,
     maxStage:MAX_STAGE,
+    statMax:STAT_MAX,
     name:STAGE_NAMES[stage-1],
     elite,
     route:stage<=5?1:2,
     map:Object.freeze({...map,slot:(stage-1)%MAPS.length+1}),
-    scale:Object.freeze({
-      hpMultiplier,
-      attackMultiplier,
-      defenseMultiplier,
-      speedMultiplier,
-      hpFloor:118+(stage-1)*10+(elite?14:0),
-      attackFloor:24+(stage-1)*2+(elite?3:0),
-      defenseFloor:8+Math.floor((stage-1)/2)+(elite?1:0)
-    }),
     ai:Object.freeze({
       evadeBase:0.08+Math.min(0.10,(stage-1)*0.012),
       evadeLowHp:0.48+(stage>=6?0.08:0),
@@ -102,5 +109,5 @@ function stageConfig(value){
 function mapForStage(stage){return stageConfig(stage).map;}
 function isFinalStage(stage){return stageNumber(stage)>=MAX_STAGE;}
 
-window.BlazingRoadContent=Object.freeze({MAX_STAGE,MAPS,stageNumber,stageConfig,mapForStage,isFinalStage});
+window.BlazingRoadContent=Object.freeze({MAX_STAGE,STAT_MAX,MAPS,BASE_ENEMY_STATS,stageNumber,stageConfig,mapForStage,isFinalStage});
 })();
