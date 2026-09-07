@@ -168,9 +168,9 @@ function economy(){
 function ensureV5(shell){
  if(!shell)return null;
  const root=shell.parentElement;
- shell.classList.add('bb-home-v5');
- shell.dataset.bbHomeGeneration='v5';
- root?.classList?.add('bb-home-v5');
+ if(!shell.classList.contains('bb-home-v5'))shell.classList.add('bb-home-v5');
+ if(shell.dataset.bbHomeGeneration!=='v5')shell.dataset.bbHomeGeneration='v5';
+ if(root&&!root.classList.contains('bb-home-v5'))root.classList.add('bb-home-v5');
 
  let hud=shell.querySelector('.bb-home-v5-hud');
  if(!hud){
@@ -278,9 +278,18 @@ window.addEventListener('bb:unit-progression',schedule);
 window.addEventListener('storage',schedule);
 window.addEventListener('pageshow',schedule);
 window.addEventListener('resize',schedule,{passive:true});
-document.addEventListener('click',()=>setTimeout(schedule,0),true);
+document.addEventListener('click',event=>{
+ const menu=document.getElementById('menuScreen');
+ if(menu?.contains(event.target))setTimeout(schedule,0);
+},true);
 new MutationObserver(records=>{
- if(records.some(record=>record.type==='childList'||record.target?.id==='menuScreen'||record.target?.id===SHELL_ID))schedule();
+ const relevant=records.some(record=>{
+  if(record.type==='attributes')return record.target?.id==='menuScreen'||record.target?.id===SHELL_ID;
+  if(record.type!=='childList')return false;
+  if(record.target?.id==='menuScreen'||record.target?.id===SHELL_ID)return true;
+  return [...record.addedNodes,...record.removedNodes].some(node=>node?.nodeType===1&&(node.id===SHELL_ID||node.id==='menuScreen'||node.querySelector?.(`#${SHELL_ID},#menuScreen`)));
+ });
+ if(relevant)schedule();
 }).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class','style']});
 
 Promise.resolve(window.BLAZING_UNIT_DATA_READY).catch(()=>null).finally(schedule);
