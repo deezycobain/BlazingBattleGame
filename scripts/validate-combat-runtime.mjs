@@ -11,25 +11,33 @@ const fail=message=>{throw new Error(`Combat runtime validation failed: ${messag
 const assert=(condition,message)=>{if(!condition)fail(message)};
 
 assert(combat&&typeof combat.execute==='function','runtime did not expose BlazingCombatRuntime.execute');
+assert(combat.STAT_MAX===100,'combat stat cap must remain 100');
 assert(combat.computeScaledDamage(38,1)===38,'scaled basic damage changed');
 assert(combat.computeScaledDamage(32,2.4)===77,'scaled Jutsu rounding changed');
+assert(combat.computeScaledDamage(132,1)===100,'Attack input must clamp to the 100-point stat ceiling');
 assert(combat.computeBuffedNormalDamage(40,0.25)===50,'linked normal damage rounding changed');
+assert(Math.abs(combat.defenseMitigation(50)-0.225)<1e-9,'50 Defense must mitigate 22.5% damage');
+assert(combat.defenseMitigation(100)===0.45,'100 Defense must cap at 45% mitigation');
 
-const damageTarget={hp:30,maxHp:30};
-const damageResult=combat.execute('damage_target',{target:damageTarget,damage:38});
-assert(damageTarget.hp===0&&damageResult.amount===30&&damageResult.defeated===true,'damage_target must clamp HP at zero');
+const damageTarget={hp:100,maxHp:100,defense:50};
+const damageResult=combat.execute('damage_target',{target:damageTarget,damage:40});
+assert(damageTarget.hp===69&&damageResult.amount===31&&damageResult.defeated===false,'Defense must reduce incoming damage before HP mutation');
 
-const targets=[{hp:100,maxHp:100},{hp:20,maxHp:20}];
+const lethal={hp:20,maxHp:20,defense:0};
+const lethalResult=combat.execute('damage_target',{target:lethal,damage:38});
+assert(lethal.hp===0&&lethalResult.amount===20&&lethalResult.defeated===true,'damage_target must clamp HP at zero');
+
+const targets=[{hp:100,maxHp:100,defense:0},{hp:20,maxHp:20,defense:0}];
 const multi=combat.execute('damage_targets',{targets,damage:25});
 assert(targets[0].hp===75&&targets[1].hp===0&&multi.length===2,'damage_targets mutation changed');
 
-const senku={hp:90,maxHp:180};
+const senku={hp:41,maxHp:82};
 const heal=combat.execute('heal_party_percent',{targets:[senku],parameters:{percent_of_max_hp:0.30}})[0];
-assert(senku.hp===144&&heal.amount===54,'Senku 30% max-HP heal must equal 54 at 180 max HP');
-const capped={hp:170,maxHp:180};
+assert(senku.hp===66&&heal.amount===25,'Senku 30% max-HP heal must use the normalized HP scale');
+const capped={hp:80,maxHp:82};
 const cappedHeal=combat.healPercentMaxHp(capped,0.30);
-assert(capped.hp===180&&cappedHeal.amount===10,'heal must cap at max HP');
-const defeated={hp:0,maxHp:180};
+assert(capped.hp===82&&cappedHeal.amount===2,'heal must cap at max HP');
+const defeated={hp:0,maxHp:82};
 const skipped=combat.healPercentMaxHp(defeated,0.30);
 assert(defeated.hp===0&&skipped.amount===0&&skipped.skipped===true,'heal must not revive defeated units');
 
@@ -49,4 +57,4 @@ let unsupported=false;
 try{combat.execute('declared_future_action',{})}catch{unsupported=true}
 assert(unsupported,'unsupported combat actions must fail closed');
 
-console.log('Combat runtime smoke PASS: damage, multi-target damage, link scaling, Ally Heal, chakra, and Freeze gauge semantics verified.');
+console.log('Combat runtime smoke PASS: normalized 100-point Attack/Defense, mitigation, multi-target damage, Ally Heal, chakra, and Freeze gauge semantics verified.');
