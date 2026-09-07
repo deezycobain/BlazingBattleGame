@@ -162,11 +162,9 @@ replaceUniqueWithin(
   'Road attack-or-evade decision'
 );
 
-replaceUniqueWithin(
-  '// v0.5.15 global state watchdog.',
-  'render();',
-  /\}else if\(S\.phase==='charge'\)\{[\s\S]*?\n  \}/g,
-  `}else if(S.phase==='charge'){\n    // Charge recovery is handled by tick() after a long neutral timeout.\n    // Do not force a player turn here; Speed must decide normal turn order.\n    if(!S._chargeSince)S._chargeSince=performance.now();\n  }`,
+replaceUnique(
+  /if\(now-S\._chargeSince>5000\)\{[\s\S]*?S\.log='Turn meter fallback restored player control\.';\s*\}\s*\}/g,
+  `if(false&&now-S._chargeSince>5000){\n   // Legacy player-forcing rescue disabled. tick() owns neutral deadlock recovery.\n  }`,
   'player-forcing global charge watchdog'
 );
 
