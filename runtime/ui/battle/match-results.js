@@ -37,7 +37,7 @@ function labelSecondaryButtons(){
 function ensureHud(){
  const root=menu();if(!root)return null;
  let hud=document.getElementById('bbEconomyHud');
- if(!hud){hud=document.createElement('div');hud.id='bbEconomyHud';hud.className='bb-economy-hud';hud.setAttribute('aria-label','Battle Marks balance');hud.innerHTML='<i>◈</i><span>0</span>';root.appendChild(hud)}
+ if(!hud){hud=document.createElement('div');hud.id='bbEconomyHud';hud.className='bb-economy-hud';hud.setAttribute('aria-label','Blazing Coins balance');hud.innerHTML='<i>◈</i><span>0</span>';root.appendChild(hud)}
  return hud;
 }
 function syncHud(){const hud=ensureHud();if(hud)hud.querySelector('span').textContent=String(window.BlazingEconomy?.balance?.()??0)}
@@ -87,7 +87,7 @@ function showResult(kind,s){
  document.getElementById('bbResultsSub').textContent=roadComplete?`All ${window.BlazingRoadContent?.MAX_STAGE||10} stages cleared`:mode==='road'?(victory?'Stage '+stage+' cleared':'Run ended'):(mode==='castle'?(victory?'Boss '+boss+' defeated':'Boss '+boss+' stands'):'Match complete');
  const rewardBox=document.getElementById('bbResultsReward'),balance=document.getElementById('bbResultsBalance');
  if(victory&&reward){rewardBox.hidden=false;rewardBox.innerHTML='<strong>'+escapeHtml(reward.symbol)+' +'+escapeHtml(reward.amount)+'</strong><span>'+escapeHtml(reward.currency)+'</span>';balance.textContent='BALANCE '+reward.balance+' '+reward.currency}
- else{rewardBox.hidden=true;rewardBox.innerHTML='';balance.textContent=victory?'':'NO BATTLE MARKS EARNED'}
+ else{rewardBox.hidden=true;rewardBox.innerHTML='';balance.textContent=victory?'':'NO BLAZING COINS EARNED'}
  renderXp(s,victory);
  const actions=document.getElementById('bbResultsActions');actions.replaceChildren();actions.className='bb-results-actions';
  const add=(label,cls,fn)=>{const btn=document.createElement('button');btn.type='button';btn.textContent=label;if(cls)btn.className=cls;btn.addEventListener('click',fn);actions.appendChild(btn)};
