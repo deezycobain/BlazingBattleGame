@@ -103,8 +103,8 @@ replaceUnique(
 );
 
 replaceUnique(
-  /function teamSpawnOptions\(name\)\{\s*\/\/ Current development test configuration: Lebee and Sub-Zero remain Jutsu-ready\.\s*return \(name==='Lebee'\|\|name==='Sub-Zero'\)\?\{startingChakra:'full'\}:\{\};\s*\}/g,
-  `function teamSpawnOptions(name){\n // Real combat testing uses each unit's normal starting chakra.\n return {};\n}`,
+  /function teamSpawnOptions\(name\)\{[\s\S]*?(?=\nfunction\s+[A-Za-z_$][A-Za-z0-9_$]*\s*\()/g,
+  `function teamSpawnOptions(name){\n // Real combat testing uses each unit's normal starting chakra.\n return {};\n}\n`,
   'development chakra shortcut'
 );
 
@@ -150,7 +150,7 @@ replaceUniqueWithin(
   'function tick(){',
   'setInterval(tick,30);',
   /\/\/ v0\.5\.11 hard rescue:[\s\S]*?if\(rescuePair\)\{rescuePair\.gauge=100;max=\{kind:'pair',ref:rescuePair,g:100\};S\.log='Turn system recovered — player control restored\.';\}\s*\}/g,
-  `// Neutral deadlock safety only. Normal turns are determined entirely by unit Speed.\n if(!S._chargeSince)S._chargeSince=performance.now();\n if(!max && performance.now()-S._chargeSince>15000){\n  const contenders=[\n   ...alivePairs().map(p=>({kind:'pair',ref:p,g:p.gauge})),\n   ...aliveEnemies().map(e=>({kind:'enemy',ref:e,g:e.gauge}))\n  ].sort((a,b)=>b.g-a.g);\n  const rescue=contenders[0];\n  if(rescue){rescue.ref.gauge=100;max={...rescue,g:100};S.log='Turn meter safety recovered the highest-gauge unit.';}\n }`,
+  `// Neutral deadlock safety only. Normal turns are determined entirely by unit Speed.\n if(!S._chargeSince)S._chargeSince=performance.now();\n if(!max && performance.now()-S._chargeSince>15000){\n  const contenders=[\n   ...alivePairs().map(p=>({kind:'pair',ref:p,g:p.gauge})),\n   ...S.enemies.filter(e=>e.hp>0).map(e=>({kind:'enemy',ref:e,g:e.gauge}))\n  ].sort((a,b)=>b.g-a.g);\n  const rescue=contenders[0];\n  if(rescue){rescue.ref.gauge=100;max={...rescue,g:100};S.log='Turn meter safety recovered the highest-gauge unit.';}\n }`,
   'neutral speed deadlock safety'
 );
 
