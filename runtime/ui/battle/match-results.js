@@ -1,6 +1,7 @@
 (()=>{
 'use strict';
 const RESULTS='bbMatchResults';
+const NAV_STYLE='bb-official-nav-runtime-style';
 let victoryToken=null,defeatToken=null,showTimer=0;
 
 function state(){try{return typeof S!=='undefined'?S:null}catch{return null}}
@@ -11,10 +12,22 @@ function fighters(s){return (Array.isArray(s?.pairs)?s.pairs:[]).flatMap(pair=>A
 function allDefeated(s){const list=fighters(s);return !!list.length&&list.every(unit=>Number(unit.hp)<=0)}
 function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
 
+function ensureOfficialNavStyle(){
+ if(document.getElementById(NAV_STYLE))return;
+ const style=document.createElement('style');style.id=NAV_STYLE;
+ style.textContent='#menuScreen.bb-home-theme .menuActions.bb-home-actions>#summonsBtn,#menuScreen.bb-home-theme .menuActions.bb-home-actions>#inventoryBtn,#menuScreen.bb-home-theme .menuActions.bb-home-actions>#forgeBtn{display:flex!important;inline-size:100%!important;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;overflow:hidden!important}#menuScreen.bb-home-theme .menuActions.bb-home-actions>#summonsBtn::before,#menuScreen.bb-home-theme .menuActions.bb-home-actions>#summonsBtn::after,#menuScreen.bb-home-theme .menuActions.bb-home-actions>#inventoryBtn::before,#menuScreen.bb-home-theme .menuActions.bb-home-actions>#inventoryBtn::after,#menuScreen.bb-home-theme .menuActions.bb-home-actions>#forgeBtn::before,#menuScreen.bb-home-theme .menuActions.bb-home-actions>#forgeBtn::after{content:none!important;display:none!important;width:0!important;height:0!important;inset:auto!important}';
+ document.head.appendChild(style);
+}
+
 function labelSecondaryButtons(){
- const defs=[['summonsBtn','SUMMONS','RECRUIT'],['inventoryBtn','INVENTORY','ROSTER'],['forgeBtn','FORGE','AWAKEN']];
- for(const [id,label,sub] of defs){
-  const btn=document.getElementById(id);if(!btn||btn.dataset.bbOfficialNav==='1')continue;
+ ensureOfficialNavStyle();
+ const defs=[['summonsBtn','summon','SUMMONS','RECRUIT'],['inventoryBtn','inventory','INVENTORY','ROSTER'],['forgeBtn','forge','FORGE','AWAKEN']];
+ for(const [id,key,label,sub] of defs){
+  const btn=document.getElementById(id);if(!btn)continue;
+  btn.classList.remove('bb-home-grid-shell');
+  btn.classList.add('bb-home-action',`bb-home-action--${key}`);
+  btn.dataset.bbHomeAction=key;
+  if(btn.dataset.bbOfficialNav==='1')continue;
   btn.dataset.bbOfficialNav='1';btn.replaceChildren();
   const a=document.createElement('span'),b=document.createElement('span');
   a.className='bb-nav-label';a.textContent=label;b.className='bb-nav-sub';b.textContent=sub;btn.append(a,b);
