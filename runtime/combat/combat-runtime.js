@@ -4,22 +4,36 @@
   const finite=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;
   const nonNegative=value=>Math.max(0,finite(value,0));
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+  const STAT_MAX=100;
+  const DEFENSE_REDUCTION_PER_POINT=.0045;
+  const DEFENSE_REDUCTION_MAX=.45;
 
   function computeScaledDamage(attack,multiplier=1){
-    return Math.max(0,Math.round(nonNegative(attack)*nonNegative(multiplier)));
+    return Math.max(0,Math.round(clamp(nonNegative(attack),0,STAT_MAX)*nonNegative(multiplier)));
   }
 
   function computeBuffedNormalDamage(attack,bonus=0){
-    return Math.max(0,Math.round(nonNegative(attack)*(1+finite(bonus,0))));
+    return Math.max(0,Math.round(clamp(nonNegative(attack),0,STAT_MAX)*(1+finite(bonus,0))));
+  }
+
+  function defenseMitigation(defense=0){
+    return Math.min(DEFENSE_REDUCTION_MAX,clamp(nonNegative(defense),0,STAT_MAX)*DEFENSE_REDUCTION_PER_POINT);
+  }
+
+  function mitigatedDamage(damage,defense=0){
+    const raw=nonNegative(damage),mitigation=defenseMitigation(defense);
+    if(raw<=0)return {raw:0,mitigation,damage:0};
+    return {raw,mitigation,damage:Math.max(1,Math.round(raw*(1-mitigation)))};
   }
 
   function applyDamage(target,damage){
     if(!target)throw new Error('applyDamage requires a target');
     const before=nonNegative(target.hp);
-    const requested=nonNegative(damage);
+    const reduced=mitigatedDamage(damage,target.defense);
+    const requested=reduced.damage;
     const after=Math.max(0,before-requested);
     target.hp=after;
-    return {before,after,requested,amount:before-after,defeated:after<=0};
+    return {before,after,raw:reduced.raw,mitigation:reduced.mitigation,requested,amount:before-after,defeated:after<=0};
   }
 
   function applyDamageTargets(targets,damage){
@@ -90,8 +104,11 @@
   }
 
   window.BlazingCombatRuntime=Object.freeze({
+    STAT_MAX,
     computeScaledDamage,
     computeBuffedNormalDamage,
+    defenseMitigation,
+    mitigatedDamage,
     applyDamage,
     applyDamageTargets,
     spendChakra,
