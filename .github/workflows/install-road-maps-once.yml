@@ -1,0 +1,49 @@
+name: Install Blazing Road maps once
+
+on:
+  push:
+    branches: [dev-next-2026-09-01]
+    paths:
+      - 'blazing-road-maps.zip'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev-next-2026-09-01
+
+      - name: Install approved Road maps
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f blazing-road-maps.zip
+          mkdir -p assets/maps/blazing-road
+          rm -f assets/maps/blazing-road/*.webp
+          unzip -j -o blazing-road-maps.zip '*.webp' -d assets/maps/blazing-road
+          test "$(find assets/maps/blazing-road -maxdepth 1 -type f -name '*.webp' | wc -l)" -eq 5
+          cat > /tmp/road-map-checksums <<'EOF'
+          23a9d7891c2655c8e7baec1172af02d184995dad6dd8a48b498c6a06f8c4cc5c  assets/maps/blazing-road/stage-01-south-sac.webp
+          65dfc0714f135550257797c7a5a3be355e98bec5d8ab27e1494edae222582ce2  assets/maps/blazing-road/stage-02-moon-statue-garden.webp
+          51f9cea825c4a5b18104d72d235f03ae4d5afbd82e073d1b92ed215053cb09ec  assets/maps/blazing-road/stage-03-lantern-garden.webp
+          ffea5ecd5cc076224f2d413414b284ce920e9306942c9d51a779396226b50e1a  assets/maps/blazing-road/stage-04-shinobi-overlook.webp
+          2c0e6f22d919ef3bc38d853b48a5d6d508abcb8e728c37fe255ce673f0a7ed4f  assets/maps/blazing-road/stage-05-training-grounds.webp
+          EOF
+          sha256sum -c /tmp/road-map-checksums
+          git rm blazing-road-maps.zip
+
+      - name: Commit installed map assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/maps/blazing-road blazing-road-maps.zip
+          git diff --cached --quiet && exit 0
+          git commit -m "Install approved Blazing Road map assets"
+          git push origin HEAD:dev-next-2026-09-01
