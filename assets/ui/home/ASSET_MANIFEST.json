@@ -1,0 +1,235 @@
+{
+  "version": "home-ui-v1",
+  "branch": "dev-next-2026-09-01",
+  "assets": [
+    {
+      "path": "assets/ui/home/navigation/battle.webp",
+      "source": "battle_arena_crossed_swords_button.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 35798
+    },
+    {
+      "path": "assets/ui/home/navigation/summon.webp",
+      "source": "summon_meet_new_allies.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 35330
+    },
+    {
+      "path": "assets/ui/home/navigation/units.webp",
+      "source": "anime_game_ui_units_banner.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 34782
+    },
+    {
+      "path": "assets/ui/home/navigation/forge.webp",
+      "source": "forge_upgrade_evolve.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 35110
+    },
+    {
+      "path": "assets/ui/home/utility/missions.webp",
+      "source": "missions_anime_game_ui_badge.png",
+      "width": 241,
+      "height": 300,
+      "bytes": 14812
+    },
+    {
+      "path": "assets/ui/home/utility/inbox.webp",
+      "source": "grunge_red_mail_inbox_badge.png",
+      "width": 241,
+      "height": 300,
+      "bytes": 12444
+    },
+    {
+      "path": "assets/ui/home/utility/shop.webp",
+      "source": "blazing_battle_shop_button.png",
+      "width": 241,
+      "height": 300,
+      "bytes": 13626
+    },
+    {
+      "path": "assets/ui/home/utility/settings.webp",
+      "source": "grunge_gear_settings_button.png",
+      "width": 241,
+      "height": 300,
+      "bytes": 13550
+    },
+    {
+      "path": "assets/ui/home/utility/chat.webp",
+      "source": "grunge_battle_chat_badge.png",
+      "width": 300,
+      "height": 300,
+      "bytes": 13428
+    },
+    {
+      "path": "assets/ui/home/utility/friends.webp",
+      "source": "grunge_anime_friends_button.png",
+      "width": 300,
+      "height": 300,
+      "bytes": 14222
+    },
+    {
+      "path": "assets/ui/home/utility/menu.webp",
+      "source": "grunge_comic_hamburger_menu_icon.png",
+      "width": 300,
+      "height": 300,
+      "bytes": 12840
+    },
+    {
+      "path": "assets/ui/home/hud/player-profile.webp",
+      "source": "blazing_battle_player_profile_hud.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 19022
+    },
+    {
+      "path": "assets/ui/home/hud/premium-currency.webp",
+      "source": "anime_style_red_crystal_currency_bar.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 15450
+    },
+    {
+      "path": "assets/ui/home/hud/gold-currency.webp",
+      "source": "anime_style_gold_currency_hud_bar.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 14264
+    },
+    {
+      "path": "assets/ui/home/controls/carousel-frame.webp",
+      "source": "angular_red_grunge_game_banner_frame.png",
+      "width": 300,
+      "height": 100,
+      "bytes": 10648
+    },
+    {
+      "path": "assets/ui/home/controls/arrow-left.webp",
+      "source": "grungy_red_and_silver_left_arrow.png",
+      "width": 300,
+      "height": 300,
+      "bytes": 10354
+    },
+    {
+      "path": "assets/ui/home/controls/arrow-right.webp",
+      "source": "grunge_red_chevron_arrow_button.png",
+      "width": 300,
+      "height": 300,
+      "bytes": 9610
+    },
+    {
+      "path": "assets/ui/home/controls/carousel-dot-active.webp",
+      "source": "grungy_red_comic_hud_indicator.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 5438
+    },
+    {
+      "path": "assets/ui/home/controls/carousel-dot-inactive.webp",
+      "source": "grunge_textured_ui_indicator_dot.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 2634
+    },
+    {
+      "path": "assets/ui/home/controls/alert-badge.webp",
+      "source": "grunge_comic_alert_badge.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 9154
+    },
+    {
+      "path": "assets/ui/home/controls/plus-button.webp",
+      "source": "gritty_comic_style_plus_button.png",
+      "width": 300,
+      "height": 300,
+      "bytes": 8856
+    },
+    {
+      "path": "assets/ui/home/banners/promo-frame.webp",
+      "source": "jagged_red_comic_banner_ui_overlay.png",
+      "width": 640,
+      "height": 214,
+      "bytes": 36606
+    },
+    {
+      "path": "assets/ui/home/banners/promo-frame-alt.webp",
+      "source": "jagged_crimson_esports_banner_frame.png",
+      "width": 640,
+      "height": 214,
+      "bytes": 36514
+    },
+    {
+      "path": "assets/ui/home/banners/tag-new.webp",
+      "source": "dynamic_red_and_black_new_badge.png",
+      "width": 640,
+      "height": 320,
+      "bytes": 30804
+    },
+    {
+      "path": "assets/ui/home/banners/tag-event.webp",
+      "source": "dynamic_red_black_event_banner.png",
+      "width": 640,
+      "height": 320,
+      "bytes": 34524
+    },
+    {
+      "path": "assets/ui/home/banners/tag-limited.webp",
+      "source": "limited_grunge_battle_badge.png",
+      "width": 640,
+      "height": 320,
+      "bytes": 33708
+    },
+    {
+      "path": "assets/ui/home/backgrounds/home-hero-city-concept.webp",
+      "source": "red_streaked_hero_overlooking_cliffside_city.png",
+      "width": 406,
+      "height": 720,
+      "bytes": 59164
+    },
+    {
+      "path": "assets/ui/home/backgrounds/home-city-clean-a.webp",
+      "source": "a_highly_detailed_cinematic_anime_style_fantasy.png",
+      "width": 406,
+      "height": 720,
+      "bytes": 80672
+    },
+    {
+      "path": "assets/ui/home/backgrounds/home-city-clean-b.webp",
+      "source": "a_dramatic_fantasy_asian_inspired_landscape_scene.png",
+      "width": 406,
+      "height": 720,
+      "bytes": 80508
+    },
+    {
+      "path": "assets/ui/home/reference/home-ui-reference-sheet.webp",
+      "source": "a_clean_high_resolution_ui_asset_sheet_on_a_dark.png",
+      "width": 640,
+      "height": 427,
+      "bytes": 110870
+    },
+    {
+      "path": "assets/ui/home/reference/navigation-alt-reference.webp",
+      "source": "a_clean_high_resolution_game_ui_asset_sheet_on_a_t.png",
+      "width": 640,
+      "height": 276,
+      "bytes": 61296
+    },
+    {
+      "path": "assets/ui/home/reference/home-concept-target.webp",
+      "source": "8A8726E1-A098-4318-A370-5187ABD3368E.jpeg",
+      "width": 360,
+      "height": 640,
+      "bytes": 52248
+    }
+  ],
+  "notes": {
+    "dimensions": "width/height record optimized runtime WebP dimensions",
+    "reference_assets": "reference/ files are design targets and should not be loaded by the runtime",
+    "background_status": "backgrounds are approved concepts; select one during Home-screen implementation"
+  }
+}
