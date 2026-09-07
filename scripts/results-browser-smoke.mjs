@@ -60,7 +60,8 @@ async function run(name,type){
     await page.locator('#bbMatchResults.active').waitFor({state:'visible',timeout:5000});
     const roadResult=await page.locator('#bbMatchResults').innerText();
     if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BATTLE MARKS/.test(roadResult)||!/\+180 XP/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
-    const roadLevels=await page.evaluate(()=>Object.fromEntries(['Crimson','Sub-Zero','Lebee'].map(unit=>[unit,window.BlazingUnitProgression.unit(unit)])));
+    const roadNames=road.xp.units.map(item=>item.name);
+    const roadLevels=await page.evaluate(names=>Object.fromEntries(names.map(unit=>[unit,window.BlazingUnitProgression.unit(unit)])),roadNames);
     if(Object.values(roadLevels).some(unit=>unit.level!==2||unit.xp!==80))throw new Error(`Road XP did not persist into deployed team levels: ${JSON.stringify(roadLevels)}`);
     await page.getByRole('button',{name:'MAIN MENU'}).click();
     await page.waitForFunction(()=>!document.getElementById('battleScreen')?.classList.contains('active')&&getComputedStyle(document.getElementById('menuScreen')).display!=='none');
