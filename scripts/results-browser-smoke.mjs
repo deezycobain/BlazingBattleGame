@@ -9,7 +9,7 @@ async function waitHome(page){
   const loading=page.locator('#bb-loading-screen');
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
   await page.waitForFunction(()=>typeof window.BlazingEconomy==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingRoadRun==='object'&&typeof window.BlazingUnitProgression==='object'&&typeof window.BlazingApprovedHomeCompat==='object',{timeout:30000});
-  await page.locator('#bbEconomyHud').waitFor({state:'visible',timeout:10000});
+  await page.locator('#bbHomeApproved[data-bb-home-generation="v5"] [data-v5-marks]').waitFor({state:'visible',timeout:10000});
   await page.waitForTimeout(180);
 }
 
@@ -63,21 +63,32 @@ async function run(name,type){
         const btn=shell?.querySelector(`[data-nav="${key}"]`),img=btn?.querySelector('img');
         nav[key]={exists:!!btn,src:img?.getAttribute('src')||'',visible:!!btn&&getComputedStyle(btn).display!=='none'};
       }
-      const marks=document.getElementById('bbEconomyHud');
+      const marks=shell?.querySelector('[data-v5-marks]');
+      const embers=shell?.querySelector('[data-v5-embers]');
+      const legacyMarks=document.getElementById('bbEconomyHud');
+      const legacyMarksStyle=legacyMarks?getComputedStyle(legacyMarks):null;
       return {
         approved:!!shell,
+        generation:shell?.dataset.bbHomeGeneration||'',
         legacyHidden:!legacy||legacyStyle?.visibility==='hidden'||legacyStyle?.opacity==='0'||legacyStyle?.display==='none',
         nav,
-        marks:marks?.innerText||'',marksVisible:!!marks&&getComputedStyle(marks).display!=='none'
+        marks:marks?.textContent||'',
+        marksVisible:!!marks&&getComputedStyle(marks).display!=='none'&&getComputedStyle(marks).visibility!=='hidden',
+        embers:embers?.textContent||'',
+        embersVisible:!!embers&&getComputedStyle(embers).display!=='none'&&getComputedStyle(embers).visibility!=='hidden',
+        legacyMarksHidden:!legacyMarks||legacyMarksStyle?.display==='none'||legacyMarksStyle?.visibility==='hidden'||legacyMarksStyle?.opacity==='0'
       };
     });
-    if(!home.approved)throw new Error('approved Home v4 shell missing');
+    if(!home.approved)throw new Error('approved Home shell missing');
+    if(home.generation!=='v5')throw new Error(`Home v5 generation marker missing: ${home.generation}`);
     if(!home.legacyHidden)throw new Error('legacy Home controls are still visually exposed behind approved shell');
     for(const [key,file] of Object.entries({battle:'battle.webp',summon:'summon.webp',units:'units.webp',forge:'forge.webp'})){
       const item=home.nav[key];
       if(!item?.exists||!item.visible||!item.src.endsWith(`/navigation/${file}`))throw new Error(`approved ${key} navigation asset missing: ${JSON.stringify(item)}`);
     }
-    if(!home.marksVisible||!/0/.test(home.marks))throw new Error(`approved Home Battle Marks HUD did not reset visibly: ${JSON.stringify(home)}`);
+    if(!home.marksVisible||!/0/.test(home.marks))throw new Error(`Home v5 Battle Marks HUD did not reset visibly: ${JSON.stringify(home)}`);
+    if(!home.embersVisible||!/0/.test(home.embers))throw new Error(`Home v5 Embers HUD did not reset visibly: ${JSON.stringify(home)}`);
+    if(!home.legacyMarksHidden)throw new Error('legacy Battle Marks pill is visually exposed beside Home v5 HUD');
 
     await launchMode(page,'road');
     const road=await win(page);
@@ -104,18 +115,18 @@ async function run(name,type){
     if(!/250/.test(castleResult)||!/350/.test(castleResult)||!/\+450 XP/.test(castleResult)||!/RETURN TO MENU/.test(castleResult))throw new Error(`Castle results content incorrect: ${castleResult}`);
     await page.getByRole('button',{name:'RETURN TO MENU'}).click();
     await waitHome(page);
-    const hud=await page.locator('#bbEconomyHud').innerText();
-    if(!/350/.test(hud))throw new Error(`approved Home Battle Marks HUD not updated: ${hud}`);
+    const hud=await page.locator('#bbHomeApproved [data-v5-marks]').innerText();
+    if(!/350/.test(hud))throw new Error(`Home v5 Battle Marks HUD not updated: ${hud}`);
 
     const progressionBeforeReload=await page.evaluate(()=>window.BlazingUnitProgression.getState());
     await page.reload({waitUntil:'domcontentloaded'});await waitHome(page);
-    const persisted=await page.locator('#bbEconomyHud').innerText();
-    if(!/350/.test(persisted))throw new Error(`Battle Marks did not persist after reload: ${persisted}`);
+    const persisted=await page.locator('#bbHomeApproved [data-v5-marks]').innerText();
+    if(!/350/.test(persisted))throw new Error(`Battle Marks did not persist in Home v5 after reload: ${persisted}`);
     const progressionAfterReload=await page.evaluate(()=>window.BlazingUnitProgression.getState());
     if(JSON.stringify(progressionAfterReload)!==JSON.stringify(progressionBeforeReload))throw new Error('Battle XP progression did not persist after reload');
     await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset()});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Results browser smoke PASS (${name}): approved Home v4 routes, visible Battle Marks, Road/Castle rewards, Battle XP, Stage 2 menu return, and persistent progression verified.`);
+    console.log(`Results browser smoke PASS (${name}): Home v5 live Battle Marks/Embers HUD, approved routes, Road/Castle rewards, Battle XP, Stage 2 menu return, and persistent progression verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
