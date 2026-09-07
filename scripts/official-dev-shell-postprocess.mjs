@@ -33,6 +33,14 @@ const hits=html.split(anchor).length-1;
 if(hits!==1)throw new Error(`Official dev shell: expected one victory anchor, found ${hits}`);
 html=html.replace(anchor,replacement);
 
+// Presentation-only fighter enlargement. This touches only the canvas draw transform;
+// actor radii, hitboxes, walkable geometry, targeting, and movement remain unchanged.
+const spriteScaleAnchor='ctx.scale(directionalFlip*scale*activePulse,scale*activePulse);';
+const spriteScaleReplacement='ctx.scale(directionalFlip*scale*activePulse*1.15,scale*activePulse*1.15);';
+const spriteScaleHits=html.split(spriteScaleAnchor).length-1;
+if(spriteScaleHits!==1)throw new Error(`Official dev shell: expected one battle sprite scale anchor, found ${spriteScaleHits}`);
+html=html.replace(spriteScaleAnchor,spriteScaleReplacement);
+
 const v8File=path.join(process.cwd(),'dist','runtime','ui','home','home-v8-runtime.js');
 let v8=await fs.readFile(v8File,'utf8');
 const v8LayoutAnchor="shell.dataset.bbHomeLayout='v8-mockup';";
@@ -41,6 +49,17 @@ if(v8LayoutHits!==1)throw new Error(`Official dev shell: expected one Home v8 la
 v8=v8.replace(v8LayoutAnchor,"if(!shell.classList.contains('bb-home-v9')&&shell.dataset.bbHomeLayout!=='v9-polish')shell.dataset.bbHomeLayout='v8-mockup';");
 await fs.writeFile(v8File,v8);
 
+// The slight Forge rotation can extend a fraction of a pixel below a desktop viewport.
+// Lift only that final row, preserving the approved phone geometry and dock proportions.
+const v9File=path.join(process.cwd(),'dist','runtime','ui','home','home-v9-runtime.js');
+let v9=await fs.readFile(v9File,'utf8');
+const forgeTransformAnchor='transform:rotate(.3deg) translateX(-1px)!important';
+const forgeTransformReplacement='transform:rotate(.3deg) translate(-1px,-4px)!important';
+const forgeTransformHits=v9.split(forgeTransformAnchor).length-1;
+if(forgeTransformHits!==1)throw new Error(`Official dev shell: expected one Home v9 Forge transform, found ${forgeTransformHits}`);
+v9=v9.replace(forgeTransformAnchor,forgeTransformReplacement);
+await fs.writeFile(v9File,v9);
+
 const head=html.toLowerCase().lastIndexOf('</head>');
 if(head<0)throw new Error('Official dev shell: closing head missing');
 html=html.slice(0,head)+`<link id="${STYLE_ID}" rel="stylesheet" href="runtime/ui/home/home-official-dev.css">`+html.slice(head);
@@ -48,6 +67,7 @@ const body=html.toLowerCase().lastIndexOf('</body>');
 if(body<0)throw new Error('Official dev shell: closing body missing');
 html=html.slice(0,body)+`<script id="${ECONOMY_ID}" src="runtime/modes/battle-economy.js"></script><script id="${RESULTS_ID}" src="runtime/ui/battle/match-results.js"></script><script id="${HOME_COMPAT_ID}" src="runtime/ui/home/home-approved-compat.js"></script><script id="${HOME_LIVE_ID}" src="runtime/ui/home/home-live-polish.js"></script><script id="${HOME_V8_ID}" src="runtime/ui/home/home-v8-runtime.js"></script><script id="${HOME_V9_ID}" src="runtime/ui/home/home-v9-runtime.js"></script><script id="${HOME_V9_LIFECYCLE_ID}" src="runtime/ui/home/home-v9-lifecycle.js"></script>`+html.slice(body);
 
-for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
+for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js','activePulse*1.15'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
+if(!v9.includes(forgeTransformReplacement))throw new Error('Official dev shell: Home v9 Forge safe-area correction missing');
 await fs.writeFile(file,html);
-console.log('Official dev shell PASS: Home v9 owns final layout state; v8 compatibility, live currencies, profile, parallax, and post-match return controls integrated.');
+console.log('Official dev shell PASS: Home v9 owns final layout state; Forge remains viewport-safe; fighter sprites render at 1.15x; v8 compatibility, live currencies, profile, parallax, and post-match return controls integrated.');
