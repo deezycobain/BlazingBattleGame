@@ -1,0 +1,29 @@
+name: Normalize roster stats once
+on:
+  push:
+    branches: [dev-next-2026-09-01]
+    paths:
+      - '.github/workflows/restat-roster-once.yml'
+permissions:
+  contents: write
+jobs:
+  restat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev-next-2026-09-01
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply normalized roster stats
+        run: node scripts/restat-roster-once.mjs
+      - name: Commit canonical unit data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/characters/*/data/unit.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Normalize canonical unit stats to 100-point scale"
+          git push origin HEAD:dev-next-2026-09-01
