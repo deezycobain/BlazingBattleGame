@@ -5,10 +5,11 @@ const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
 const TYPES={chromium,webkit};
 
 async function waitHome(page){
-  await page.locator('#level1Btn').waitFor({state:'visible',timeout:30000});
+  await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
   const loading=page.locator('#bb-loading-screen');
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
-  await page.waitForFunction(()=>typeof window.BlazingEconomy==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingRoadRun==='object'&&typeof window.BlazingUnitProgression==='object',{timeout:30000});
+  await page.waitForFunction(()=>typeof window.BlazingEconomy==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingRoadRun==='object'&&typeof window.BlazingUnitProgression==='object'&&typeof window.BlazingApprovedHomeCompat==='object',{timeout:30000});
+  await page.locator('#bbEconomyHud').waitFor({state:'visible',timeout:10000});
   await page.waitForTimeout(180);
 }
 
@@ -16,6 +17,18 @@ async function waitMode(page,mode){
   await page.waitForFunction(expected=>{
     try{const s=globalThis.eval('S');return document.getElementById('battleScreen')?.classList.contains('active')&&s?.bbRunMode===expected}catch{return false}
   },mode,{timeout:15000});
+}
+
+async function openBattle(page){
+  const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');
+  if(!await panel.isVisible())await page.locator('#bbHomeApproved [data-nav="battle"]').click();
+  await panel.waitFor({state:'visible',timeout:5000});
+}
+
+async function launchMode(page,mode){
+  await openBattle(page);
+  await page.locator(`#bbHomeApproved [data-mode="${mode}"]`).click();
+  await waitMode(page,mode==='road'?'road':'castle');
 }
 
 async function win(page){
@@ -40,20 +53,33 @@ async function run(name,type){
     const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
     if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
 
-    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset()});
-    const home=await page.evaluate(async()=>{
-      const title=document.querySelector('#menuScreen .bb-home-title');
-      const labels=['summonsBtn','inventoryBtn','forgeBtn'].map(id=>document.getElementById(id)?.innerText||'');
-      for(let i=0;i<40&&!window.BlazingHdAudit?.homeWallpaper;i++)await new Promise(r=>setTimeout(r,100));
-      return {titleDisplay:title?getComputedStyle(title).display:null,labels,hd:window.BlazingHdAudit?.homeWallpaper||null};
+    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset();window.BlazingApprovedHomeCompat.apply()});
+    const home=await page.evaluate(()=>{
+      const shell=document.getElementById('bbHomeApproved');
+      const legacy=document.querySelector('#menuScreen > .menuInner');
+      const legacyStyle=legacy?getComputedStyle(legacy):null;
+      const nav={};
+      for(const key of ['battle','summon','units','forge']){
+        const btn=shell?.querySelector(`[data-nav="${key}"]`),img=btn?.querySelector('img');
+        nav[key]={exists:!!btn,src:img?.getAttribute('src')||'',visible:!!btn&&getComputedStyle(btn).display!=='none'};
+      }
+      const marks=document.getElementById('bbEconomyHud');
+      return {
+        approved:!!shell,
+        legacyHidden:!legacy||legacyStyle?.visibility==='hidden'||legacyStyle?.opacity==='0'||legacyStyle?.display==='none',
+        nav,
+        marks:marks?.innerText||'',marksVisible:!!marks&&getComputedStyle(marks).display!=='none'
+      };
     });
-    if(home.titleDisplay!=='none')throw new Error(`duplicate Home title still visible: ${home.titleDisplay}`);
-    if(!/RECRUIT/.test(home.labels[0])||!/ROSTER/.test(home.labels[1])||!/AWAKEN/.test(home.labels[2]))throw new Error(`official secondary labels missing: ${JSON.stringify(home.labels)}`);
-    if(!home.hd)throw new Error('Home wallpaper HD audit did not resolve');
-    if(!home.hd.hd)throw new Error(`Home wallpaper source is below HD gate: ${home.hd.naturalWidth}x${home.hd.naturalHeight}`);
-    console.log(`Results browser smoke (${name}) Home wallpaper: ${home.hd.naturalWidth}x${home.hd.naturalHeight}`);
+    if(!home.approved)throw new Error('approved Home v4 shell missing');
+    if(!home.legacyHidden)throw new Error('legacy Home controls are still visually exposed behind approved shell');
+    for(const [key,file] of Object.entries({battle:'battle.webp',summon:'summon.webp',units:'units.webp',forge:'forge.webp'})){
+      const item=home.nav[key];
+      if(!item?.exists||!item.visible||!item.src.endsWith(`/navigation/${file}`))throw new Error(`approved ${key} navigation asset missing: ${JSON.stringify(item)}`);
+    }
+    if(!home.marksVisible||!/0/.test(home.marks))throw new Error(`approved Home Battle Marks HUD did not reset visibly: ${JSON.stringify(home)}`);
 
-    await page.locator('#level1Btn').click();await waitMode(page,'road');
+    await launchMode(page,'road');
     const road=await win(page);
     if(!road.victory||road.reward?.amount!==100||road.reward?.balance!==100)throw new Error(`Road reward incorrect: ${JSON.stringify(road)}`);
     if(road.xp?.amount!==180||road.xp?.units?.length!==3)throw new Error(`Road Battle XP incorrect: ${JSON.stringify(road.xp)}`);
@@ -64,11 +90,12 @@ async function run(name,type){
     const roadLevels=await page.evaluate(names=>Object.fromEntries(names.map(unit=>[unit,window.BlazingUnitProgression.unit(unit)])),roadNames);
     if(Object.values(roadLevels).some(unit=>unit.level!==2||unit.xp!==80))throw new Error(`Road XP did not persist into deployed team levels: ${JSON.stringify(roadLevels)}`);
     await page.getByRole('button',{name:'MAIN MENU'}).click();
-    await page.waitForFunction(()=>!document.getElementById('battleScreen')?.classList.contains('active')&&getComputedStyle(document.getElementById('menuScreen')).display!=='none');
-    const roadCard=await page.locator('[data-bb-home-action="road"] .bb-mode-desc').textContent();
-    if(!/Stage\s*2/i.test(roadCard||''))throw new Error(`Road card did not show Stage 2 after menu return: ${roadCard}`);
+    await waitHome(page);
+    await openBattle(page);
+    const roadCard=await page.locator('#bbHomeApproved [data-mode="road"] span:last-child').textContent();
+    if(!/Stage\s*2/i.test(roadCard||''))throw new Error(`approved Road selector did not show Stage 2 after menu return: ${roadCard}`);
 
-    await page.locator('#boss1Btn').click();await waitMode(page,'castle');
+    await page.locator('#bbHomeApproved [data-mode="castle"]').click();await waitMode(page,'castle');
     const castle=await win(page);
     if(!castle.victory||castle.reward?.amount!==250||castle.reward?.balance!==350)throw new Error(`Castle reward incorrect: ${JSON.stringify(castle)}`);
     if(castle.xp?.amount!==450||castle.xp?.units?.length!==3)throw new Error(`Castle Battle XP incorrect: ${JSON.stringify(castle.xp)}`);
@@ -76,9 +103,9 @@ async function run(name,type){
     const castleResult=await page.locator('#bbMatchResults').innerText();
     if(!/250/.test(castleResult)||!/350/.test(castleResult)||!/\+450 XP/.test(castleResult)||!/RETURN TO MENU/.test(castleResult))throw new Error(`Castle results content incorrect: ${castleResult}`);
     await page.getByRole('button',{name:'RETURN TO MENU'}).click();
-    await page.waitForFunction(()=>!document.getElementById('battleScreen')?.classList.contains('active')&&getComputedStyle(document.getElementById('menuScreen')).display!=='none');
+    await waitHome(page);
     const hud=await page.locator('#bbEconomyHud').innerText();
-    if(!/350/.test(hud))throw new Error(`Home Battle Marks HUD not updated: ${hud}`);
+    if(!/350/.test(hud))throw new Error(`approved Home Battle Marks HUD not updated: ${hud}`);
 
     const progressionBeforeReload=await page.evaluate(()=>window.BlazingUnitProgression.getState());
     await page.reload({waitUntil:'domcontentloaded'});await waitHome(page);
@@ -88,7 +115,7 @@ async function run(name,type){
     if(JSON.stringify(progressionAfterReload)!==JSON.stringify(progressionBeforeReload))throw new Error('Battle XP progression did not persist after reload');
     await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset()});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Results browser smoke PASS (${name}): official Home skin, HD wallpaper, Road/Castle rewards, Battle XP, menu return, and persistent progression verified.`);
+    console.log(`Results browser smoke PASS (${name}): approved Home v4 routes, visible Battle Marks, Road/Castle rewards, Battle XP, Stage 2 menu return, and persistent progression verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
