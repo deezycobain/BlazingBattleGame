@@ -67,7 +67,9 @@ async function run(name,type){
    try{cpuTurn()}finally{Math.random=random}
    return {name:e.name,log:s.log};
   });
-  await page.waitForTimeout(900);
+  await page.waitForFunction(()=>{
+   try{const s=globalThis.eval('S');return /repositioned out of danger/i.test(s?.log||'')}catch{return false}
+  },null,{timeout:3500});
   const evadeEnded=await page.evaluate(()=>{const s=globalThis.eval('S');return {log:s.log,phase:s.phase}});
   if(!/evad/i.test(evadeStarted.log)||!/repositioned out of danger/i.test(evadeEnded.log))throw new Error(`enemy evade branch did not complete: ${JSON.stringify({evadeStarted,evadeEnded})}`);
 
