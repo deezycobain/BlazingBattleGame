@@ -30,14 +30,14 @@ jobs:
           exit 1
       - name: Chromium + WebKit local boot smoke
         run: npm run smoke:browser
-      - name: Chromium + WebKit local Blazing Road persistence smoke
-        run: node scripts/road-browser-smoke.mjs
-      - name: Chromium + WebKit local Retina display-quality smoke
-        run: node scripts/display-quality-smoke.mjs
       - name: Chromium + WebKit local results and economy smoke
         run: node scripts/results-browser-smoke.mjs
       - name: Chromium + WebKit local unit progression smoke
         run: node scripts/unit-progression-browser-smoke.mjs
+      - name: Chromium + WebKit local Blazing Road persistence smoke
+        run: node scripts/road-browser-smoke.mjs
+      - name: Chromium + WebKit local Retina display-quality smoke
+        run: node scripts/display-quality-smoke.mjs
       - name: Chromium + WebKit deployed dev smoke
         if: github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
         env:
@@ -47,30 +47,6 @@ jobs:
           for attempt in {1..6}; do
             echo "Deployed smoke attempt $attempt/6"
             if npm run smoke:browser; then exit 0; fi
-            sleep 20
-          done
-          exit 1
-      - name: Chromium + WebKit deployed Blazing Road persistence smoke
-        if: github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
-        env:
-          BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
-          BB_EXPECT_COMMIT: ${{ github.sha }}
-        run: |
-          for attempt in {1..6}; do
-            echo "Deployed Road smoke attempt $attempt/6"
-            if node scripts/road-browser-smoke.mjs; then exit 0; fi
-            sleep 20
-          done
-          exit 1
-      - name: Chromium + WebKit deployed Retina display-quality smoke
-        if: github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
-        env:
-          BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
-          BB_EXPECT_COMMIT: ${{ github.sha }}
-        run: |
-          for attempt in {1..6}; do
-            echo "Deployed Retina smoke attempt $attempt/6"
-            if node scripts/display-quality-smoke.mjs; then exit 0; fi
             sleep 20
           done
           exit 1
@@ -95,6 +71,30 @@ jobs:
           for attempt in {1..6}; do
             echo "Deployed unit progression smoke attempt $attempt/6"
             if node scripts/unit-progression-browser-smoke.mjs; then exit 0; fi
+            sleep 20
+          done
+          exit 1
+      - name: Chromium + WebKit deployed Blazing Road persistence smoke
+        if: github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        env:
+          BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
+          BB_EXPECT_COMMIT: ${{ github.sha }}
+        run: |
+          for attempt in {1..6}; do
+            echo "Deployed Road smoke attempt $attempt/6"
+            if node scripts/road-browser-smoke.mjs; then exit 0; fi
+            sleep 20
+          done
+          exit 1
+      - name: Chromium + WebKit deployed Retina display-quality smoke
+        if: github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        env:
+          BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
+          BB_EXPECT_COMMIT: ${{ github.sha }}
+        run: |
+          for attempt in {1..6}; do
+            echo "Deployed Retina smoke attempt $attempt/6"
+            if node scripts/display-quality-smoke.mjs; then exit 0; fi
             sleep 20
           done
           exit 1
