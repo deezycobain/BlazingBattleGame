@@ -8,8 +8,8 @@ async function waitHome(page){
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
   const loading=page.locator('#bb-loading-screen');
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
-  await page.waitForFunction(()=>typeof window.BlazingEconomy==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingRoadRun==='object'&&typeof window.BlazingUnitProgression==='object'&&typeof window.BlazingApprovedHomeCompat==='object'&&typeof window.BlazingHomeLivePolish==='object'&&typeof window.BlazingHomeV8==='object',{timeout:30000});
-  await page.locator('#bbHomeApproved[data-bb-home-generation="v5"][data-bb-home-live-polish="v7"][data-bb-home-layout="v8-mockup"] [data-v5-marks]').waitFor({state:'visible',timeout:10000});
+  await page.waitForFunction(()=>typeof window.BlazingEconomy==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingRoadRun==='object'&&typeof window.BlazingUnitProgression==='object'&&typeof window.BlazingApprovedHomeCompat==='object'&&typeof window.BlazingHomeLivePolish==='object'&&typeof window.BlazingHomeV8==='object'&&typeof window.BlazingHomeV9==='object',{timeout:30000});
+  await page.locator('#bbHomeApproved[data-bb-home-generation="v5"][data-bb-home-live-polish="v7"][data-bb-home-layout="v9-polish"] [data-v9-currency="blazing-coins"] [data-v5-marks]').waitFor({state:'visible',timeout:10000});
   await page.waitForTimeout(180);
 }
 
@@ -53,7 +53,7 @@ async function run(name,type){
     const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
     if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
 
-    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset();window.BlazingApprovedHomeCompat.apply();window.BlazingHomeLivePolish.apply();window.BlazingHomeV8.apply()});
+    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset();window.BlazingApprovedHomeCompat.apply();window.BlazingHomeLivePolish.apply();window.BlazingHomeV8.apply();window.BlazingHomeV9.apply()});
     const home=await page.evaluate(()=>{
       const shell=document.getElementById('bbHomeApproved');
       const legacy=document.querySelector('#menuScreen > .menuInner');
@@ -63,19 +63,24 @@ async function run(name,type){
         const btn=shell?.querySelector(`[data-nav="${key}"]`),img=btn?.querySelector('img');
         nav[key]={exists:!!btn,src:img?.getAttribute('src')||'',visible:!!btn&&getComputedStyle(btn).display!=='none'};
       }
-      const marks=shell?.querySelector('[data-v5-marks]');
+      const coinBox=shell?.querySelector('[data-v9-currency="blazing-coins"]');
+      const marks=coinBox?.querySelector('[data-v5-marks]');
       const embers=shell?.querySelector('[data-v5-embers]');
       const legacyMarks=document.getElementById('bbEconomyHud');
       const legacyMarksStyle=legacyMarks?getComputedStyle(legacyMarks):null;
+      const center=shell?.querySelector('.bb-home-v4-center');
+      const centerStyle=center?getComputedStyle(center):null;
       return {
         approved:!!shell,
         generation:shell?.dataset.bbHomeGeneration||'',
         livePolish:shell?.dataset.bbHomeLivePolish||'',
         layout:shell?.dataset.bbHomeLayout||'',
+        currencyMode:shell?.dataset.bbHomeCurrency||'',
         roadState:shell?.dataset.bbRoadState||'',
-        roadProgress:!!shell?.querySelector('.bb-home-v6-road-progress'),
+        centerHidden:!center||centerStyle?.display==='none'||centerStyle?.visibility==='hidden'||centerStyle?.opacity==='0',
         legacyHidden:!legacy||legacyStyle?.visibility==='hidden'||legacyStyle?.opacity==='0'||legacyStyle?.display==='none',
         nav,
+        coinLabel:coinBox?.querySelector('.bb-home-v5-currency-copy small')?.textContent?.trim()||'',
         marks:marks?.textContent||'',
         marksVisible:!!marks&&getComputedStyle(marks).display!=='none'&&getComputedStyle(marks).visibility!=='hidden',
         embers:embers?.textContent||'',
@@ -85,61 +90,60 @@ async function run(name,type){
     });
     if(!home.approved)throw new Error('approved Home shell missing');
     if(home.generation!=='v5')throw new Error(`Home compatibility generation marker missing: ${home.generation}`);
-    if(home.livePolish!=='v7'||home.layout!=='v8-mockup'||!home.roadProgress)throw new Error(`Home v7/v8 live presentation missing: ${JSON.stringify(home)}`);
+    if(home.livePolish!=='v7'||home.layout!=='v9-polish'||home.currencyMode!=='blazing-coins'||!home.centerHidden)throw new Error(`Home v9 live presentation missing: ${JSON.stringify(home)}`);
     if(home.roadState!=='fresh')throw new Error(`fresh Home Road state incorrect: ${home.roadState}`);
     if(!home.legacyHidden)throw new Error('legacy Home controls are still visually exposed behind approved shell');
     for(const [key,file] of Object.entries({battle:'battle.webp',summon:'summon.webp',units:'units.webp',forge:'forge.webp'})){
       const item=home.nav[key];
       if(!item?.exists||!item.visible||!item.src.endsWith(`/navigation/${file}`))throw new Error(`approved ${key} navigation asset missing: ${JSON.stringify(item)}`);
     }
-    if(!home.marksVisible||!/0/.test(home.marks))throw new Error(`Home Battle Marks HUD did not reset visibly: ${JSON.stringify(home)}`);
+    if(home.coinLabel!=='BLAZING COINS'||!home.marksVisible||!/0/.test(home.marks))throw new Error(`Home Blazing Coins HUD did not reset visibly: ${JSON.stringify(home)}`);
     if(!home.embersVisible||!/0/.test(home.embers))throw new Error(`Home Embers HUD did not reset visibly: ${JSON.stringify(home)}`);
-    if(!home.legacyMarksHidden)throw new Error('legacy Battle Marks pill is visually exposed beside live Home HUD');
+    if(!home.legacyMarksHidden)throw new Error('legacy currency pill is visually exposed beside live Home HUD');
 
     await launchMode(page,'road');
     const road=await win(page);
-    if(!road.victory||road.reward?.amount!==100||road.reward?.balance!==100)throw new Error(`Road reward incorrect: ${JSON.stringify(road)}`);
+    if(!road.victory||road.reward?.amount!==100||road.reward?.balance!==100||road.reward?.currency!=='BLAZING COINS')throw new Error(`Road reward incorrect: ${JSON.stringify(road)}`);
     if(road.xp?.amount!==180||road.xp?.units?.length!==3)throw new Error(`Road Battle XP incorrect: ${JSON.stringify(road.xp)}`);
     await page.locator('#bbMatchResults.active').waitFor({state:'visible',timeout:5000});
     const roadResult=await page.locator('#bbMatchResults').innerText();
-    if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BATTLE MARKS/.test(roadResult)||!/\+180 XP/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
+    if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BLAZING COINS/.test(roadResult)||!/\+180 XP/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
     const roadNames=road.xp.units.map(item=>item.name);
     const roadLevels=await page.evaluate(names=>Object.fromEntries(names.map(unit=>[unit,window.BlazingUnitProgression.unit(unit)])),roadNames);
     if(Object.values(roadLevels).some(unit=>unit.level!==2||unit.xp!==80))throw new Error(`Road XP did not persist into deployed team levels: ${JSON.stringify(roadLevels)}`);
     await page.getByRole('button',{name:'MAIN MENU'}).click();
     await waitHome(page);
     const liveRoad=await page.evaluate(()=>{
-      window.BlazingHomeLivePolish.apply();window.BlazingHomeV8.apply();
+      window.BlazingHomeLivePolish.apply();window.BlazingHomeV8.apply();window.BlazingHomeV9.apply();
       const shell=document.getElementById('bbHomeApproved');
-      const feature=shell?.querySelector('.bb-home-v4-feature');
-      return {state:shell?.dataset.bbRoadState||'',stage:shell?.dataset.bbRoadStage||'',text:feature?.innerText||'',fill:feature?.querySelector('.bb-home-v6-road-track i')?.style.width||''};
+      return {state:shell?.dataset.bbRoadState||'',stage:shell?.dataset.bbRoadStage||'',layout:shell?.dataset.bbHomeLayout||''};
     });
-    if(liveRoad.state!=='active'||liveRoad.stage!=='2'||!/CONTINUE\s+BLAZING\s+ROAD/i.test(liveRoad.text)||!/STAGE\s*2\s*\/\s*10/i.test(liveRoad.text)||liveRoad.fill!=='10%')throw new Error(`Home Road feature did not advance to Stage 2: ${JSON.stringify(liveRoad)}`);
+    if(liveRoad.state!=='active'||liveRoad.stage!=='2'||liveRoad.layout!=='v9-polish')throw new Error(`Home Road state did not advance to Stage 2: ${JSON.stringify(liveRoad)}`);
     await openBattle(page);
     const roadCard=await page.locator('#bbHomeApproved [data-mode="road"] span:last-child').textContent();
     if(!/Stage\s*2/i.test(roadCard||''))throw new Error(`approved Road selector did not show Stage 2 after menu return: ${roadCard}`);
 
     await page.locator('#bbHomeApproved [data-mode="castle"]').click();await waitMode(page,'castle');
     const castle=await win(page);
-    if(!castle.victory||castle.reward?.amount!==250||castle.reward?.balance!==350)throw new Error(`Castle reward incorrect: ${JSON.stringify(castle)}`);
+    if(!castle.victory||castle.reward?.amount!==250||castle.reward?.balance!==350||castle.reward?.currency!=='BLAZING COINS')throw new Error(`Castle reward incorrect: ${JSON.stringify(castle)}`);
     if(castle.xp?.amount!==450||castle.xp?.units?.length!==3)throw new Error(`Castle Battle XP incorrect: ${JSON.stringify(castle.xp)}`);
     await page.locator('#bbMatchResults.active').waitFor({state:'visible',timeout:5000});
     const castleResult=await page.locator('#bbMatchResults').innerText();
-    if(!/250/.test(castleResult)||!/350/.test(castleResult)||!/\+450 XP/.test(castleResult)||!/RETURN TO MENU/.test(castleResult))throw new Error(`Castle results content incorrect: ${castleResult}`);
+    if(!/250/.test(castleResult)||!/350/.test(castleResult)||!/BLAZING COINS/.test(castleResult)||!/\+450 XP/.test(castleResult)||!/RETURN TO MENU/.test(castleResult))throw new Error(`Castle results content incorrect: ${castleResult}`);
     await page.getByRole('button',{name:'RETURN TO MENU'}).click();
     await waitHome(page);
-    const hud=await page.locator('#bbHomeApproved [data-v5-marks]').innerText();
-    if(!/350/.test(hud))throw new Error(`Home Battle Marks HUD not updated: ${hud}`);
+    const hud=await page.locator('#bbHomeApproved [data-v9-currency="blazing-coins"] [data-v5-marks]').innerText();
+    if(!/350/.test(hud))throw new Error(`Home Blazing Coins HUD not updated: ${hud}`);
 
     const progressionBeforeReload=await page.evaluate(()=>window.BlazingUnitProgression.getState());
     await page.reload({waitUntil:'domcontentloaded'});await waitHome(page);
-    const persisted=await page.locator('#bbHomeApproved [data-v5-marks]').innerText();
-    if(!/350/.test(persisted))throw new Error(`Battle Marks did not persist in Home after reload: ${persisted}`);
+    const persisted=await page.locator('#bbHomeApproved [data-v9-currency="blazing-coins"] [data-v5-marks]').innerText();
+    if(!/350/.test(persisted))throw new Error(`Blazing Coins did not persist in Home after reload: ${persisted}`);
     const progressionAfterReload=await page.evaluate(()=>window.BlazingUnitProgression.getState());
     if(JSON.stringify(progressionAfterReload)!==JSON.stringify(progressionBeforeReload))throw new Error('Battle XP progression did not persist after reload');
     await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset()});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Results browser smoke PASS (${name}): Home v7/v8 Road presentation, live Battle Marks/Embers HUD, approved routes, Road/Castle rewards, Battle XP, Stage 2 menu return, and persistent progression verified.`);
+    console.log(`Results browser smoke PASS (${name}): Home v9, live Blazing Coins/Embers HUD, approved routes, Road/Castle rewards, Battle XP, Stage 2 menu return, and persistent progression verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
