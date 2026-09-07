@@ -1,6 +1,33 @@
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
 
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+
+const roadContentSource=await fs.readFile('runtime/modes/blazing-road-content.js','utf8');
+const expectedMaps=[
+  'assets/maps/blazing-road/stage-01-south-sac.webp',
+  'assets/maps/blazing-road/stage-02-moon-statue-garden.webp',
+  'assets/maps/blazing-road/stage-03-lantern-garden.webp',
+  'assets/maps/blazing-road/stage-04-shinobi-overlook.webp',
+  'assets/maps/blazing-road/stage-05-training-grounds.webp'
+];
+for(const path of expectedMaps){
+  const bytes=await fs.readFile(path);
+  assert(bytes.length>40000,`Road map asset is unexpectedly small: ${path} (${bytes.length} bytes)`);
+  assert(bytes.subarray(0,4).toString('ascii')==='RIFF',`Road map is not RIFF/WebP: ${path}`);
+  assert(bytes.subarray(8,12).toString('ascii')==='WEBP',`Road map is not WebP: ${path}`);
+  assert(roadContentSource.includes(path),`Road content runtime does not reference map: ${path}`);
+}
+const contentContext={window:{},console,Math,Object};
+vm.createContext(contentContext);
+vm.runInContext(roadContentSource,contentContext,{filename:'blazing-road-content.js'});
+const RoadContent=contentContext.window.BlazingRoadContent;
+assert(RoadContent?.MAPS?.length===5,'Blazing Road should expose exactly five map slots');
+assert(RoadContent.stageConfig(1).map.src===expectedMaps[0],'Stage 1 map route is wrong');
+assert(RoadContent.stageConfig(5).map.src===expectedMaps[4],'Stage 5 map route is wrong');
+assert(RoadContent.stageConfig(6).map.src===expectedMaps[0],'Stage 6 should begin the second five-map rotation');
+assert(RoadContent.stageConfig(10).map.src===expectedMaps[4],'Stage 10 should end on the fifth map slot');
+
 const source=await fs.readFile('runtime/modes/blazing-road-run.js','utf8');
 const memory=new Map();
 const localStorage={
@@ -14,7 +41,6 @@ vm.runInContext(source,context,{filename:'blazing-road-run.js'});
 const Road=context.window.BlazingRoadRun;
 if(!Road)throw new Error('Blazing Road runtime did not register');
 
-const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 const fighters=[
   {unit_id:'senku',hp:1000,max_hp:1000},
   {unit_id:'lebee',hp:850,max_hp:850},
@@ -64,4 +90,4 @@ let blocked=false;
 try{Road.advanceStage(failed)}catch{blocked=true}
 assert(blocked,'Failed Road run was allowed to advance');
 
-console.log('Blazing Road PASS: stage progression, persistent HP, defeats, carry-forward, failure state, and local persistence verified.');
+console.log('Blazing Road PASS: five WebP maps, 10-stage map rotation, persistent HP, defeats, carry-forward, failure state, and local persistence verified.');
