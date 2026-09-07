@@ -46,14 +46,12 @@ function roadSyncCard(run){
 }
 function roadApplyStageContent(stage){
  const C=window.BlazingRoadContent;if(!C)return null;
- const cfg=C.stageConfig(stage),scale=cfg.scale;
+ const cfg=C.stageConfig(stage),statMax=C.STAT_MAX||100;
+ const stat=value=>Math.max(1,Math.min(statMax,Math.round(Number(value)||1)));
  S.enemies=cfg.enemies.map((spec,index)=>{
-  const e=makeEnemyFromData(spec.id,spec.name,spec.x,spec.y,spec.mark);
-  const hp=Math.max(Math.round(e.maxHp*scale.hpMultiplier),scale.hpFloor);
-  e.maxHp=hp;e.hp=hp;
-  e.attack=Math.max(Math.round(e.attack*scale.attackMultiplier),scale.attackFloor);
-  e.defense=Math.max(Math.round((e.defense||0)*scale.defenseMultiplier),scale.defenseFloor);
-  e.speed=Math.max(1,Math.round(e.speed*scale.speedMultiplier));
+  const e=makeEnemyFromData(spec.id,spec.name,spec.x,spec.y,spec.mark),stats=spec.stats||{};
+  e.maxHp=stat(stats.hp);e.hp=e.maxHp;
+  e.attack=stat(stats.attack);e.defense=stat(stats.defense);e.speed=stat(stats.speed);
   e.bbRoadStage=cfg.stage;e.bbRoadElite=cfg.elite;e.bbRoadAi={...cfg.ai};e.bbRoadIndex=index;
   return e;
  });
@@ -188,6 +186,7 @@ for(const marker of [
   'R.applyRunToBattle(run,fighters)',
   'R.recordBattleResult(run,fighters)',
   'R.completeRun(run)',
+  'spec.stats||{}',
   'Turn meter safety recovered the highest-gauge unit.',
   'reads the field and evades',
   'Real combat testing uses each unit',
@@ -199,4 +198,4 @@ if(html.includes('Turn meter fallback restored player control.'))throw new Error
 if(html.includes('Turn system recovered — player control restored.'))throw new Error('Blazing Road integration: player-forcing 3.8s turn fallback survived');
 
 await fs.writeFile(file,html);
-console.log('Blazing Road integration PASS: ten-stage encounters, stage maps, real Speed turns, attack/evade AI, persistent HP, and Stage 10 completion wired.');
+console.log('Blazing Road integration PASS: normalized 100-point enemies, ten-stage encounters, stage maps, real Speed turns, attack/evade AI, persistent HP, and Stage 10 completion wired.');
