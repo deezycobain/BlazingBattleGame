@@ -28,8 +28,6 @@ jobs:
           done
           cat /tmp/bb-server.log
           exit 1
-      - name: WebKit Home overflow diagnostics
-        run: node scripts/home-overflow-probe.mjs
       - name: Chromium + WebKit local boot smoke
         run: npm run smoke:browser
       - name: Chromium + WebKit local Blazing Road persistence smoke
