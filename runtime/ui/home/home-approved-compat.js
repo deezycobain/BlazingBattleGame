@@ -48,9 +48,12 @@ function syncRoad(run){
  if(castle)castle.dataset.bbHomeAction='castle';
  const desc=road?.querySelector('span:last-child');
  if(!desc)return;
- if(run?.status==='active')desc.textContent=`Stage ${Math.max(1,Number(run.stage)||1)} · Run in Progress`;
- else if(run?.status==='complete')desc.textContent='Road Complete · 10/10';
- else desc.textContent='Stage 1 · First Route';
+ const next=run?.status==='active'
+  ?`Stage ${Math.max(1,Number(run.stage)||1)} · Run in Progress`
+  :run?.status==='complete'
+   ?'Road Complete · 10/10'
+   :'Stage 1 · First Route';
+ if(desc.textContent!==next)desc.textContent=next;
 }
 
 function apply(){
@@ -66,7 +69,8 @@ window.roadSyncCard=function(run){
 };
 
 new MutationObserver(records=>{
- if(records.some(record=>record.addedNodes.length))apply();
+ const inserted=records.some(record=>[...record.addedNodes].some(node=>node.nodeType===1&&(node.id==='bbHomeApproved'||node.querySelector?.('#bbHomeApproved'))));
+ if(inserted)apply();
 }).observe(document.body,{subtree:true,childList:true});
 window.addEventListener('bb:economy',apply);
 setTimeout(apply,0);
