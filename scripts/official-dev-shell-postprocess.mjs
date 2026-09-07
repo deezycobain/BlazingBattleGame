@@ -42,26 +42,14 @@ const hits=html.split(anchor).length-1;
 if(hits!==1)throw new Error(`Official dev shell: expected one victory anchor, found ${hits}`);
 html=html.replace(anchor,replacement);
 
-// Presentation-only fighter enlargement. This touches only the canvas draw transform;
-// actor radii, hitboxes, walkable geometry, targeting, and movement remain unchanged.
+// Presentation-only fighter enlargement. The small local Y translation follows the
+// scaled sprite transform so enlarged feet sit back on the existing actor contact point.
+// Actor radii, hitboxes, walkable geometry, targeting, movement and shadow logic stay unchanged.
 const spriteScaleAnchor='ctx.scale(directionalFlip*scale*activePulse,scale*activePulse);';
-const spriteScaleReplacement='ctx.scale(directionalFlip*scale*activePulse*1.15,scale*activePulse*1.15);';
+const spriteScaleReplacement='ctx.scale(directionalFlip*scale*activePulse*1.15,scale*activePulse*1.15);ctx.translate(0,5);';
 const spriteScaleHits=html.split(spriteScaleAnchor).length-1;
 if(spriteScaleHits!==1)throw new Error(`Official dev shell: expected one battle sprite scale anchor, found ${spriteScaleHits}`);
 html=html.replace(spriteScaleAnchor,spriteScaleReplacement);
-
-// Pull the actor shadow back under the feet and tighten it into a contact shadow.
-// This is visual only and leaves collision/movement coordinates untouched.
-for(const [from,to,label] of [
-  ['shadowW=Math.max(9,span*(0.43-0.12*liftRatio))','shadowW=Math.max(8,span*(0.34-0.10*liftRatio))','actor shadow width'],
-  ['shadowH=Math.max(2.2,span*(0.068-0.018*liftRatio))','shadowH=Math.max(1.8,span*(0.050-0.014*liftRatio))','actor shadow height'],
-  ['ctx.translate(x,y+11.5);','ctx.translate(x,y+6.5);','actor shadow contact point'],
-  ['ctx.shadowBlur=lift>5?2.4:1.5;','ctx.shadowBlur=lift>5?1.8:.8;','actor shadow blur']
-]){
-  const count=html.split(from).length-1;
-  if(count!==1)throw new Error(`Official dev shell: expected one ${label} anchor, found ${count}`);
-  html=html.replace(from,to);
-}
 
 const v8File=path.join(process.cwd(),'dist','runtime','ui','home','home-v8-runtime.js');
 let v8=await fs.readFile(v8File,'utf8');
@@ -89,7 +77,7 @@ const body=html.toLowerCase().lastIndexOf('</body>');
 if(body<0)throw new Error('Official dev shell: closing body missing');
 html=html.slice(0,body)+`<script id="${ECONOMY_ID}" src="runtime/modes/battle-economy.js"></script><script id="${RESULTS_ID}" src="runtime/ui/battle/match-results.js"></script><script id="${TERRAIN_DEBUG_ID}" src="runtime/ui/battle/road-terrain-debug.js"></script><script id="${ROAD_FEEDBACK_ID}" src="runtime/ui/battle/road-feedback-fixes.js"></script><script id="${HOME_COMPAT_ID}" src="runtime/ui/home/home-approved-compat.js"></script><script id="${HOME_LIVE_ID}" src="runtime/ui/home/home-live-polish.js"></script><script id="${HOME_V8_ID}" src="runtime/ui/home/home-v8-runtime.js"></script><script id="${HOME_V9_ID}" src="runtime/ui/home/home-v9-runtime.js"></script><script id="${HOME_V9_LIFECYCLE_ID}" src="runtime/ui/home/home-v9-lifecycle.js"></script><script id="${HOME_FEEDBACK_ID}" src="runtime/ui/home/home-feedback-fixes.js"></script>`+html.slice(body);
 
-for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,TERRAIN_DEBUG_ID,ROAD_FEEDBACK_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,HOME_FEEDBACK_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','road-terrain-debug.js','road-feedback-fixes.js','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js','home-feedback-fixes.js','activePulse*1.15','shadowW=Math.max(8,span*(0.34-0.10*liftRatio))','ctx.translate(x,y+6.5)'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
+for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,TERRAIN_DEBUG_ID,ROAD_FEEDBACK_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,HOME_FEEDBACK_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','road-terrain-debug.js','road-feedback-fixes.js','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js','home-feedback-fixes.js','activePulse*1.15','ctx.translate(0,5)'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
 if(!v9.includes(forgeTransformReplacement))throw new Error('Official dev shell: Home v9 Forge safe-area correction missing');
 await fs.writeFile(file,html);
-console.log('Official dev shell PASS: Home v9 owns final layout state; requested Home spacing/cutout fixes are loaded; actor contact shadows are grounded; Forge remains viewport-safe; fighter sprites render at 1.15x; Road terrain feedback is loaded; v8 compatibility, live currencies, profile, parallax, and post-match return controls integrated.');
+console.log('Official dev shell PASS: Home feedback is loaded with the leader presentation hidden and wider action spacing; enlarged fighter sprites are grounded visually without changing gameplay geometry; Lantern Garden feedback is loaded; Forge remains viewport-safe; live currencies, profile, parallax, Reset, Pause, and post-match return controls remain integrated.');
