@@ -6,6 +6,7 @@ let html=await fs.readFile(file,'utf8');
 const STYLE_ID='bb-official-dev-shell-style';
 const ECONOMY_ID='bb-battle-economy-runtime';
 const RESULTS_ID='bb-match-results-runtime';
+const TERRAIN_DEBUG_ID='bb-road-terrain-debug-runtime';
 const HOME_COMPAT_ID='bb-approved-home-compat-runtime';
 const HOME_LIVE_ID='bb-home-live-polish-runtime';
 const HOME_V8_ID='bb-home-v8-runtime';
@@ -16,6 +17,8 @@ html=html
   .replace(new RegExp(`<link\\b[^>]*id=["']${STYLE_ID}["'][^>]*>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${ECONOMY_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${RESULTS_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
+  .replace(new RegExp(`<script\\b[^>]*id=["']${TERRAIN_DEBUG_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
+  .replace(new RegExp(`<script\\b[^>]*id=["']${TERRAIN_DEBUG_ID}["'][^>]*/>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_COMPAT_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_COMPAT_ID}["'][^>]*/>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_LIVE_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
@@ -65,9 +68,9 @@ if(head<0)throw new Error('Official dev shell: closing head missing');
 html=html.slice(0,head)+`<link id="${STYLE_ID}" rel="stylesheet" href="runtime/ui/home/home-official-dev.css">`+html.slice(head);
 const body=html.toLowerCase().lastIndexOf('</body>');
 if(body<0)throw new Error('Official dev shell: closing body missing');
-html=html.slice(0,body)+`<script id="${ECONOMY_ID}" src="runtime/modes/battle-economy.js"></script><script id="${RESULTS_ID}" src="runtime/ui/battle/match-results.js"></script><script id="${HOME_COMPAT_ID}" src="runtime/ui/home/home-approved-compat.js"></script><script id="${HOME_LIVE_ID}" src="runtime/ui/home/home-live-polish.js"></script><script id="${HOME_V8_ID}" src="runtime/ui/home/home-v8-runtime.js"></script><script id="${HOME_V9_ID}" src="runtime/ui/home/home-v9-runtime.js"></script><script id="${HOME_V9_LIFECYCLE_ID}" src="runtime/ui/home/home-v9-lifecycle.js"></script>`+html.slice(body);
+html=html.slice(0,body)+`<script id="${ECONOMY_ID}" src="runtime/modes/battle-economy.js"></script><script id="${RESULTS_ID}" src="runtime/ui/battle/match-results.js"></script><script id="${TERRAIN_DEBUG_ID}" src="runtime/ui/battle/road-terrain-debug.js"></script><script id="${HOME_COMPAT_ID}" src="runtime/ui/home/home-approved-compat.js"></script><script id="${HOME_LIVE_ID}" src="runtime/ui/home/home-live-polish.js"></script><script id="${HOME_V8_ID}" src="runtime/ui/home/home-v8-runtime.js"></script><script id="${HOME_V9_ID}" src="runtime/ui/home/home-v9-runtime.js"></script><script id="${HOME_V9_LIFECYCLE_ID}" src="runtime/ui/home/home-v9-lifecycle.js"></script>`+html.slice(body);
 
-for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js','activePulse*1.15'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
+for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,TERRAIN_DEBUG_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','road-terrain-debug.js','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js','activePulse*1.15'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
 if(!v9.includes(forgeTransformReplacement))throw new Error('Official dev shell: Home v9 Forge safe-area correction missing');
 await fs.writeFile(file,html);
-console.log('Official dev shell PASS: Home v9 owns final layout state; Forge remains viewport-safe; fighter sprites render at 1.15x; v8 compatibility, live currencies, profile, parallax, and post-match return controls integrated.');
+console.log('Official dev shell PASS: Home v9 owns final layout state; Forge remains viewport-safe; fighter sprites render at 1.15x; Road terrain debug is available with ?terrain=1; v8 compatibility, live currencies, profile, parallax, and post-match return controls integrated.');
