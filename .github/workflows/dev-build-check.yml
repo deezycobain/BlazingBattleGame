@@ -36,6 +36,8 @@ jobs:
         run: node scripts/unit-progression-browser-smoke.mjs
       - name: Chromium + WebKit local Blazing Road persistence smoke
         run: node scripts/road-browser-smoke.mjs
+      - name: Chromium + WebKit local Blazing Road gameplay smoke
+        run: node scripts/road-gameplay-browser-smoke.mjs
       - name: Chromium + WebKit local Retina display-quality smoke
         run: node scripts/display-quality-smoke.mjs
       - name: Chromium + WebKit deployed dev smoke
@@ -83,6 +85,18 @@ jobs:
           for attempt in {1..6}; do
             echo "Deployed Road smoke attempt $attempt/6"
             if node scripts/road-browser-smoke.mjs; then exit 0; fi
+            sleep 20
+          done
+          exit 1
+      - name: Chromium + WebKit deployed Blazing Road gameplay smoke
+        if: github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        env:
+          BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
+          BB_EXPECT_COMMIT: ${{ github.sha }}
+        run: |
+          for attempt in {1..6}; do
+            echo "Deployed Road gameplay smoke attempt $attempt/6"
+            if node scripts/road-gameplay-browser-smoke.mjs; then exit 0; fi
             sleep 20
           done
           exit 1
