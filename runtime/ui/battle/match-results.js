@@ -79,17 +79,20 @@ function showResult(kind,s){
  const root=ensureResults(),reward=s?.bbVictoryReward||null,mode=s?.bbRunMode||'battle',victory=kind==='victory';
  const stage=Math.max(1,Number(s?.bbVictoryStage||s?.bbRoadStage||1));
  const boss=Math.max(1,Number(s?.bbVictoryBoss||s?.bbCastleBoss||1));
+ const roadComplete=victory&&mode==='road'&&s?.bbRoadRun?.status==='complete';
  root.dataset.result=kind;
+ root.dataset.roadComplete=roadComplete?'1':'0';
  document.getElementById('bbResultsKicker').textContent=mode==='road'?'BLAZING ROAD':mode==='castle'?'PHANTOM CASTLE':'BATTLE COMPLETE';
- document.getElementById('bbResultsTitle').textContent=victory?'VICTORY':'DEFEAT';
- document.getElementById('bbResultsSub').textContent=mode==='road'?(victory?'Stage '+stage+' cleared':'Run ended'):(mode==='castle'?(victory?'Boss '+boss+' defeated':'Boss '+boss+' stands'):'Match complete');
+ document.getElementById('bbResultsTitle').textContent=roadComplete?'ROAD COMPLETE':victory?'VICTORY':'DEFEAT';
+ document.getElementById('bbResultsSub').textContent=roadComplete?`All ${window.BlazingRoadContent?.MAX_STAGE||10} stages cleared`:mode==='road'?(victory?'Stage '+stage+' cleared':'Run ended'):(mode==='castle'?(victory?'Boss '+boss+' defeated':'Boss '+boss+' stands'):'Match complete');
  const rewardBox=document.getElementById('bbResultsReward'),balance=document.getElementById('bbResultsBalance');
  if(victory&&reward){rewardBox.hidden=false;rewardBox.innerHTML='<strong>'+escapeHtml(reward.symbol)+' +'+escapeHtml(reward.amount)+'</strong><span>'+escapeHtml(reward.currency)+'</span>';balance.textContent='BALANCE '+reward.balance+' '+reward.currency}
  else{rewardBox.hidden=true;rewardBox.innerHTML='';balance.textContent=victory?'':'NO BATTLE MARKS EARNED'}
  renderXp(s,victory);
  const actions=document.getElementById('bbResultsActions');actions.replaceChildren();actions.className='bb-results-actions';
  const add=(label,cls,fn)=>{const btn=document.createElement('button');btn.type='button';btn.textContent=label;if(cls)btn.className=cls;btn.addEventListener('click',fn);actions.appendChild(btn)};
- if(victory&&mode==='road'){actions.classList.add('two');add('CONTINUE ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
+ if(roadComplete){actions.classList.add('two');add('RESTART ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
+ else if(victory&&mode==='road'){actions.classList.add('two');add('CONTINUE ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
  else if(!victory&&mode==='road'){actions.classList.add('two');add('RESTART ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
  else if(!victory&&mode==='castle'){actions.classList.add('two');add('RETRY BOSS','primary',()=>launch('castle'));add('MAIN MENU','',returnHome)}
  else add('RETURN TO MENU','primary',returnHome);
