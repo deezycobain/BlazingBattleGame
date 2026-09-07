@@ -37,6 +37,10 @@
 #bbMatchResults .bb-results-reward{margin:20px 0 8px;padding:15px;border:1px solid rgba(255,212,106,.24);border-radius:14px;background:linear-gradient(180deg,rgba(255,211,101,.09),rgba(255,211,101,.025))}
 #bbMatchResults .bb-results-reward strong{display:block;font-size:24px;font-weight:950;letter-spacing:.02em;color:#ffd66f}
 #bbMatchResults .bb-results-reward span{display:block;margin-top:4px;font-size:9px;font-weight:800;letter-spacing:.15em;color:rgba(235,238,243,.56)}
+#bbMatchResults .bb-results-xp{margin:8px 0;padding:13px;border:1px solid rgba(119,185,255,.22);border-radius:14px;background:linear-gradient(180deg,rgba(91,154,224,.10),rgba(70,109,163,.025))}
+#bbMatchResults .bb-results-xp strong{display:block;font-size:20px;font-weight:950;letter-spacing:.025em;color:#a9d6ff}
+#bbMatchResults .bb-results-xp span{display:block;margin-top:4px;font-size:8px;font-weight:850;letter-spacing:.15em;color:rgba(219,232,247,.55)}
+#bbMatchResults .bb-results-xp small{display:block;margin-top:8px;font-size:9px;font-weight:750;line-height:1.45;color:rgba(232,238,246,.74)}
 #bbMatchResults .bb-results-balance{margin:0 0 18px;font-size:10px;font-weight:750;color:rgba(235,238,243,.52)}
 #bbMatchResults .bb-results-actions{display:grid;grid-template-columns:1fr;gap:9px}
 #bbMatchResults .bb-results-actions.two{grid-template-columns:1fr 1fr}
