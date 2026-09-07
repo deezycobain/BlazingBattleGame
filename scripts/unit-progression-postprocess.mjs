@@ -62,17 +62,17 @@ replaceUnique(/function renderForge\(message=''\)\{[\s\S]*?\n\}\n(?=function tog
 
 replaceUnique(/function reroll\(\)\{[\s\S]*?(?=\nfunction acceptRoll)/,`function reroll(){
  const u=unit(),progress=window.BlazingUnitProgression?.unit?.(selected);if(!progress?.shiny)return renderForge('Reach Lv.50 and complete the final Shiny Awakening first.');
- const cost=150+u.locks.length*125,spent=window.BlazingEconomy?.spend?.(cost,\`FORGE_REROLL_\${selected}\`);if(!spent?.ok)return renderForge(\`Need \${cost} Battle Marks for this reroll.\`);
- candidate=rollStats(u.locks,u.roll);save();renderForge(\`New destiny roll ready. \${cost} Battle Marks spent.\`)
+ const cost=150+u.locks.length*125,spent=window.BlazingEconomy?.spend?.(cost,\`FORGE_REROLL_\${selected}\`);if(!spent?.ok)return renderForge(\`Need \${cost} Blazing Coins for this reroll.\`);
+ candidate=rollStats(u.locks,u.roll);save();renderForge(\`New destiny roll ready. \${cost} Blazing Coins spent.\`)
 }`,'Forge reroll function');
 
 replaceUnique(/function resetDevProgression\(\)\{[\s\S]*?(?=\nfunction refreshInventoryBadges)/,`function resetDevProgression(){if(!confirm('Reset unit levels, XP, duplicate copies, Awakenings, Shiny unlocks, and stat rolls?'))return;state=fresh();window.BlazingUnitProgression?.reset?.();candidate=null;save();renderForge('Developer unit progression reset.')}`,'progression reset function');
 
 replaceUnique(/function refreshInventoryBadges\(\)\{[\s\S]*?(?=\nfunction activateSummons)/,`function refreshInventoryBadges(){document.querySelectorAll('.unitTile[data-unit]').forEach(tile=>{const name=tile.dataset.unit;if(!FIGHTERS.includes(name))return;let badge=tile.querySelector('.bb-resonance-badge');if(!badge){badge=document.createElement('span');badge.className='bb-resonance-badge';tile.appendChild(badge)}const x=window.BlazingUnitProgression?.unit?.(name)||{level:1,awakening:0,shiny:false};badge.textContent=x.shiny?'SHINY • 50':\`LV.\${x.level} • A\${x.awakening}\`;badge.classList.toggle('maxed',x.shiny)})}`,'inventory progression badge function');
 
-replaceLiteralUnique('<small>REROLL SHARDS</small><span id="forgeShardCount">0</span> ✦','<small>BATTLE MARKS</small><span id="forgeShardCount">0</span> ◈','Forge resource label');
-replaceLiteralUnique('Every Resonance rank adds a small core combat boost. Reach R5 to unlock Shiny status and a randomized 12-point build. Lock up to two stats before rerolling; you always choose whether to keep or replace your build.','Levels and Awakenings add small automatic combat growth. Reach Lv.50 and complete the final Shiny Awakening to unlock a randomized 12-point destiny build. Lock up to two stats before rerolling with Battle Marks.','Forge help copy');
-replaceLiteralUnique('Changes apply to the next battle. Extra R5 copies become reroll shards. Summon currency is unlimited in development.','Changes apply to the next battle. Duplicates are banked for Awakening gates. Stat rerolls spend Battle Marks. Summon pulls remain unlimited in development.','Forge development note');
+replaceLiteralUnique('<small>REROLL SHARDS</small><span id="forgeShardCount">0</span> ✦','<small>BLAZING COINS</small><span id="forgeShardCount">0</span> ◈','Forge resource label');
+replaceLiteralUnique('Every Resonance rank adds a small core combat boost. Reach R5 to unlock Shiny status and a randomized 12-point build. Lock up to two stats before rerolling; you always choose whether to keep or replace your build.','Levels and Awakenings add small automatic combat growth. Reach Lv.50 and complete the final Shiny Awakening to unlock a randomized 12-point destiny build. Lock up to two stats before rerolling with Blazing Coins.','Forge help copy');
+replaceLiteralUnique('Changes apply to the next battle. Extra R5 copies become reroll shards. Summon currency is unlimited in development.','Changes apply to the next battle. Duplicates are banked for Awakening gates. Stat rerolls spend Blazing Coins. Summon pulls remain unlimited in development.','Forge development note');
 replaceLiteralUnique('DEV CORE BANNER • UNLIMITED EMBERS • DUPES BUILD RESONANCE','DEV CORE BANNER • FREE TEST PULLS • DUPLICATES BANKED','Summon development badge');
 
 const progressionScript='<script id="bb-progression-runtime">';
@@ -90,6 +90,6 @@ html=html.slice(0,head)+'<link id="bb-progression-economy-style" rel="stylesheet
 const body=html.toLowerCase().lastIndexOf('</body>');if(body<0)throw new Error('Unit progression: body missing');
 html=html.slice(0,body)+'<script id="bb-progression-economy-bridge" src="runtime/ui/progression/progression-economy-bridge.js"></script>'+html.slice(body);
 
-for(const marker of ['bb-unit-progression-runtime','runtime/progression/unit-progression.js','COPY +1','S.bbVictoryXp','awardBattleXp','REROLL •','FORGE_REROLL_','BATTLE MARKS</small>','FREE TEST PULLS • DUPLICATES BANKED','bb-progression-economy-style','bb-progression-economy-bridge','Math.min(100'])if(!html.includes(marker))throw new Error(`Unit progression: missing ${marker}`);
+for(const marker of ['bb-unit-progression-runtime','runtime/progression/unit-progression.js','COPY +1','S.bbVictoryXp','awardBattleXp','REROLL •','FORGE_REROLL_','BLAZING COINS</small>','FREE TEST PULLS • DUPLICATES BANKED','bb-progression-economy-style','bb-progression-economy-bridge','Math.min(100'])if(!html.includes(marker))throw new Error(`Unit progression: missing ${marker}`);
 await fs.writeFile(file,html);
-console.log('Unit progression PASS: Lv1-50 XP bands, duplicate-gated Awakenings, 100-point combat cap, Battle Mark leveling/rerolls, and Ember exchange wired.');
+console.log('Unit progression PASS: Lv1-50 XP bands, duplicate-gated Awakenings, 100-point combat cap, Blazing Coin leveling/rerolls, and Ember exchange wired.');
