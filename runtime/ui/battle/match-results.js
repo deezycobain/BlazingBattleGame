@@ -45,7 +45,7 @@ function syncHud(){const hud=ensureHud();if(hud)hud.querySelector('span').textCo
 function ensureResults(){
  let root=document.getElementById(RESULTS);if(root)return root;
  root=document.createElement('div');root.id=RESULTS;root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-labelledby','bbResultsTitle');
- root.innerHTML='<section class="bb-results-card"><div class="bb-results-kicker" id="bbResultsKicker"></div><div class="bb-results-title" id="bbResultsTitle"></div><div class="bb-results-sub" id="bbResultsSub"></div><div class="bb-results-reward" id="bbResultsReward"></div><div class="bb-results-balance" id="bbResultsBalance"></div><div class="bb-results-actions" id="bbResultsActions"></div></section>';
+ root.innerHTML='<section class="bb-results-card"><div class="bb-results-kicker" id="bbResultsKicker"></div><div class="bb-results-title" id="bbResultsTitle"></div><div class="bb-results-sub" id="bbResultsSub"></div><div class="bb-results-reward" id="bbResultsReward"></div><div class="bb-results-xp" id="bbResultsXp" hidden></div><div class="bb-results-balance" id="bbResultsBalance"></div><div class="bb-results-actions" id="bbResultsActions"></div></section>';
  document.body.appendChild(root);return root;
 }
 function hideResults(){document.getElementById(RESULTS)?.classList.remove('active')}
@@ -61,6 +61,19 @@ function returnHome(){
 }
 function launch(mode){returnHome();setTimeout(()=>document.getElementById(mode==='road'?'level1Btn':'boss1Btn')?.click(),180)}
 
+function renderXp(s,victory){
+ const box=document.getElementById('bbResultsXp'),xp=s?.bbVictoryXp;
+ if(!box)return;
+ if(!victory||!xp||!Number(xp.amount)){box.hidden=true;box.innerHTML='';return}
+ const leveled=(Array.isArray(xp.units)?xp.units:[]).filter(item=>Number(item?.levelsGained)>0);
+ const locked=(Array.isArray(xp.units)?xp.units:[]).filter(item=>item?.locked);
+ const notes=[];
+ if(leveled.length)notes.push(leveled.map(item=>`${escapeHtml(item.name)} → LV.${escapeHtml(item.level)}`).join(' • '));
+ if(locked.length)notes.push(locked.map(item=>`${escapeHtml(item.name)} reached Awakening gate`).join(' • '));
+ box.hidden=false;
+ box.innerHTML=`<strong>+${escapeHtml(xp.amount)} XP</strong><span>DEPLOYED UNIT BATTLE XP</span>${notes.length?`<small>${notes.join('<br>')}</small>`:''}`;
+}
+
 function showResult(kind,s){
  if(!battleActive())return;
  const root=ensureResults(),reward=s?.bbVictoryReward||null,mode=s?.bbRunMode||'battle',victory=kind==='victory';
@@ -73,6 +86,7 @@ function showResult(kind,s){
  const rewardBox=document.getElementById('bbResultsReward'),balance=document.getElementById('bbResultsBalance');
  if(victory&&reward){rewardBox.hidden=false;rewardBox.innerHTML='<strong>'+escapeHtml(reward.symbol)+' +'+escapeHtml(reward.amount)+'</strong><span>'+escapeHtml(reward.currency)+'</span>';balance.textContent='BALANCE '+reward.balance+' '+reward.currency}
  else{rewardBox.hidden=true;rewardBox.innerHTML='';balance.textContent=victory?'':'NO BATTLE MARKS EARNED'}
+ renderXp(s,victory);
  const actions=document.getElementById('bbResultsActions');actions.replaceChildren();actions.className='bb-results-actions';
  const add=(label,cls,fn)=>{const btn=document.createElement('button');btn.type='button';btn.textContent=label;if(cls)btn.className=cls;btn.addEventListener('click',fn);actions.appendChild(btn)};
  if(victory&&mode==='road'){actions.classList.add('two');add('CONTINUE ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
