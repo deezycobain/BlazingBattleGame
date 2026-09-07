@@ -73,6 +73,7 @@ replaceUnique(/function refreshInventoryBadges\(\)\{[\s\S]*?(?=\nfunction activa
 replaceLiteralUnique('<small>REROLL SHARDS</small><span id="forgeShardCount">0</span> ✦','<small>BATTLE MARKS</small><span id="forgeShardCount">0</span> ◈','Forge resource label');
 replaceLiteralUnique('Every Resonance rank adds a small core combat boost. Reach R5 to unlock Shiny status and a randomized 12-point build. Lock up to two stats before rerolling; you always choose whether to keep or replace your build.','Levels and Awakenings add small automatic combat growth. Reach Lv.50 and complete the final Shiny Awakening to unlock a randomized 12-point destiny build. Lock up to two stats before rerolling with Battle Marks.','Forge help copy');
 replaceLiteralUnique('Changes apply to the next battle. Extra R5 copies become reroll shards. Summon currency is unlimited in development.','Changes apply to the next battle. Duplicates are banked for Awakening gates. Stat rerolls spend Battle Marks. Summon pulls remain unlimited in development.','Forge development note');
+replaceLiteralUnique('DEV CORE BANNER • UNLIMITED EMBERS • DUPES BUILD RESONANCE','DEV CORE BANNER • FREE TEST PULLS • DUPLICATES BANKED','Summon development badge');
 
 const progressionScript='<script id="bb-progression-runtime">';
 const scriptHits=html.split(progressionScript).length-1;
@@ -89,6 +90,6 @@ html=html.slice(0,head)+'<link id="bb-progression-economy-style" rel="stylesheet
 const body=html.toLowerCase().lastIndexOf('</body>');if(body<0)throw new Error('Unit progression: body missing');
 html=html.slice(0,body)+'<script id="bb-progression-economy-bridge" src="runtime/ui/progression/progression-economy-bridge.js"></script>'+html.slice(body);
 
-for(const marker of ['bb-unit-progression-runtime','runtime/progression/unit-progression.js','COPY +1','S.bbVictoryXp','awardBattleXp','REROLL •','FORGE_REROLL_','BATTLE MARKS</small>','bb-progression-economy-style','bb-progression-economy-bridge'])if(!html.includes(marker))throw new Error(`Unit progression: missing ${marker}`);
+for(const marker of ['bb-unit-progression-runtime','runtime/progression/unit-progression.js','COPY +1','S.bbVictoryXp','awardBattleXp','REROLL •','FORGE_REROLL_','BATTLE MARKS</small>','FREE TEST PULLS • DUPLICATES BANKED','bb-progression-economy-style','bb-progression-economy-bridge'])if(!html.includes(marker))throw new Error(`Unit progression: missing ${marker}`);
 await fs.writeFile(file,html);
 console.log('Unit progression PASS: Lv1-50 XP bands, duplicate-gated Awakenings, Battle Mark leveling/rerolls, and Ember exchange wired.');
