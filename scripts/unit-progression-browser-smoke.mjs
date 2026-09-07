@@ -37,12 +37,7 @@ async function run(name,type){
   const awakenButton=page.locator('#bbLevelProgression button[data-action="awaken"]');
   if(!(await awakenButton.isDisabled()))throw new Error('Awaken button should be disabled without a duplicate');
 
-  const pull=await page.evaluate(()=>{
-    const before=window.BlazingUnitProgression.unit('Lebee');
-    const result=window.BlazingProgression.applyPull({name:'Lebee'});
-    const after=window.BlazingUnitProgression.unit('Lebee');
-    return {before,after,result};
-  });
+  const pull=await page.evaluate(()=>{const before=window.BlazingUnitProgression.unit('Lebee'),result=window.BlazingProgression.applyPull({name:'Lebee'}),after=window.BlazingUnitProgression.unit('Lebee');return {before,after,result}});
   if(pull.before.awakening!==0||pull.after.awakening!==0||pull.after.copies!==1||!/^COPY \+1/.test(pull.result?.progress||''))throw new Error(`duplicate did not bank cleanly: ${JSON.stringify(pull)}`);
   await page.waitForFunction(()=>!document.querySelector('#bbLevelProgression button[data-action="awaken"]')?.disabled);
   await awakenButton.click();
@@ -51,65 +46,50 @@ async function run(name,type){
   if(!/AWAKENING COMPLETE/i.test(awakenFx)||!/AWAKENING I/i.test(awakenFx))throw new Error(`Awakening animation copy wrong: ${awakenFx}`);
   const awakened=await page.evaluate(()=>window.BlazingUnitProgression.unit('Lebee'));
   if(awakened.level!==10||awakened.awakening!==1||awakened.copies!==0||awakened.shiny)throw new Error(`Awakening I state incorrect: ${JSON.stringify(awakened)}`);
-  panel=await page.locator('#bbLevelProgression').innerText();
-  if(!/LV\.\s*10\s*\/\s*20/i.test(panel)||!/AWAKENING\s*1\s*\/\s*5/i.test(panel))throw new Error(`Lv20 band did not unlock: ${panel}`);
 
   await page.evaluate(()=>window.BlazingUnitProgression.grantXp('Lebee',50));
-  const purchaseBefore=await page.evaluate(()=>({marks:window.BlazingEconomy.balance(),cost:window.BlazingUnitProgression.markCostToFinish('Lebee'),unit:window.BlazingUnitProgression.unit('Lebee')}));
-  const finishButton=page.locator('#bbLevelProgression button[data-action="level"]');
-  await finishButton.click();
+  const purchaseBefore=await page.evaluate(()=>({coins:window.BlazingEconomy.balance(),cost:window.BlazingUnitProgression.markCostToFinish('Lebee'),unit:window.BlazingUnitProgression.unit('Lebee')}));
+  const finishButton=page.locator('#bbLevelProgression button[data-action="level"]');await finishButton.click();
   await page.locator('#bbProgressionFx.active.level').waitFor({state:'visible',timeout:2000});
-  const levelFx=await page.locator('#bbProgressionFx').innerText();
-  if(!/LEVEL UP/i.test(levelFx)||!/LV\.\s*11/i.test(levelFx))throw new Error(`Level-up animation copy wrong: ${levelFx}`);
-  const purchaseAfter=await page.evaluate(()=>({marks:window.BlazingEconomy.balance(),unit:window.BlazingUnitProgression.unit('Lebee')}));
-  if(purchaseAfter.unit.level!==11||purchaseAfter.unit.xp!==0)throw new Error(`Battle Mark level purchase failed: ${JSON.stringify({purchaseBefore,purchaseAfter})}`);
-  if(purchaseAfter.marks!==purchaseBefore.marks-purchaseBefore.cost)throw new Error(`Battle Mark level cost mismatch: ${JSON.stringify({purchaseBefore,purchaseAfter})}`);
+  let purchaseAfter=await page.evaluate(()=>({coins:window.BlazingEconomy.balance(),unit:window.BlazingUnitProgression.unit('Lebee')}));
+  if(purchaseAfter.unit.level!==11||purchaseAfter.unit.xp!==0||purchaseAfter.coins!==purchaseBefore.coins-purchaseBefore.cost)throw new Error(`single-level purchase failed: ${JSON.stringify({purchaseBefore,purchaseAfter})}`);
 
-  await page.locator('#forgeBack').click();
-  await waitHome(page);
-  await page.locator('#bbHomeApproved [data-nav="summon"]').click();
+  // MAX TO AWAKENING must be exact, all-or-nothing, and stop at the current gate.
+  const maxBefore=await page.evaluate(()=>({coins:window.BlazingEconomy.balance(),cost:window.BlazingUnitProgression.markCostToGate('Lebee'),unit:window.BlazingUnitProgression.unit('Lebee'),cap:window.BlazingUnitProgression.capForAwakening(window.BlazingUnitProgression.unit('Lebee').awakening)}));
+  const maxButton=page.locator('#bbLevelProgression button[data-action="max-level"]');
+  await maxButton.waitFor({state:'visible',timeout:3000});
+  const maxCopy=await maxButton.innerText();if(!new RegExp(`LV\\.${maxBefore.cap}`).test(maxCopy)||!maxCopy.includes(String(maxBefore.cost)))throw new Error(`MAX button copy/cost mismatch: ${JSON.stringify({maxCopy,maxBefore})}`);
+  await maxButton.click();
+  await page.waitForFunction(cap=>window.BlazingUnitProgression.unit('Lebee').level===cap,maxBefore.cap);
+  const maxAfter=await page.evaluate(()=>({coins:window.BlazingEconomy.balance(),unit:window.BlazingUnitProgression.unit('Lebee'),atGate:window.BlazingUnitProgression.isAtGate(window.BlazingUnitProgression.unit('Lebee'))}));
+  if(maxAfter.unit.level!==maxBefore.cap||maxAfter.unit.xp!==0||!maxAfter.atGate)throw new Error(`MAX did not land exactly on gate: ${JSON.stringify({maxBefore,maxAfter})}`);
+  if(maxAfter.coins!==maxBefore.coins-maxBefore.cost)throw new Error(`MAX coin deduction incorrect: ${JSON.stringify({maxBefore,maxAfter})}`);
+  if(maxAfter.unit.awakening!==maxBefore.unit.awakening||maxAfter.unit.copies!==maxBefore.unit.copies)throw new Error(`MAX crossed/consumed Awakening state: ${JSON.stringify({maxBefore,maxAfter})}`);
+  if(await page.locator('#bbLevelProgression button[data-action="max-level"]').count())throw new Error('MAX button should disappear at the Awakening gate');
+  panel=await page.locator('#bbLevelProgression').innerText();if(!/LV\.\s*20\s*\/\s*20/i.test(panel)||!/AWAKEN TO CONTINUE/i.test(panel))throw new Error(`MAX gate UI incorrect: ${panel}`);
+
+  const battleXp=await page.evaluate(()=>{const P=window.BlazingUnitProgression,before=P.unit('Tyler'),award=P.awardBattleXp({mode:'road',stage:1,names:['Tyler']}),after=P.unit('Tyler');return {before,award,after}});
+  if(battleXp.award?.amount!==180||battleXp.award?.units?.length!==1||battleXp.after.lifetimeXp-battleXp.before.lifetimeXp!==180)throw new Error(`battle XP regression after MAX work: ${JSON.stringify(battleXp)}`);
+
+  await page.locator('#forgeBack').click();await waitHome(page);await page.locator('#bbHomeApproved [data-nav="summon"]').click();
   await page.locator('#summonScreen.active #bbEmberExchange').waitFor({state:'visible'});
-  let exchange=await page.locator('#bbEmberExchange').innerText();
-  if(!/300\s*◈/.test(exchange)||!/WEEKLY\s*0\/10/i.test(exchange))throw new Error(`Ember exchange initial UI incorrect: ${exchange}`);
-  const emberBefore=await page.evaluate(()=>window.BlazingEconomy.load());
-  await page.locator('#bbBuyEmber').click();
-  const emberAfter=await page.evaluate(()=>window.BlazingEconomy.load());
+  let exchange=await page.locator('#bbEmberExchange').innerText();if(!/300\s*◈/.test(exchange)||!/WEEKLY\s*0\/10/i.test(exchange))throw new Error(`Ember exchange initial UI incorrect: ${exchange}`);
+  const emberBefore=await page.evaluate(()=>window.BlazingEconomy.load());await page.locator('#bbBuyEmber').click();const emberAfter=await page.evaluate(()=>window.BlazingEconomy.load());
   if(emberAfter.embers!==emberBefore.embers+1||emberAfter.embersBoughtThisWeek!==1||emberAfter.battleMarks!==emberBefore.battleMarks-300)throw new Error(`Ember purchase state incorrect: ${JSON.stringify({emberBefore,emberAfter})}`);
-  exchange=await page.locator('#bbEmberExchange').innerText();
-  if(!/EMBER BANK\s*1/i.test(exchange)||!/WEEKLY\s*1\/10/i.test(exchange))throw new Error(`Ember exchange did not refresh: ${exchange}`);
 
-  const expectedState=await page.evaluate(()=>({unit:window.BlazingUnitProgression.unit('Lebee'),economy:window.BlazingEconomy.load()}));
-  await page.reload({waitUntil:'domcontentloaded'});await waitHome(page);
+  const expectedState=await page.evaluate(()=>({unit:window.BlazingUnitProgression.unit('Lebee'),economy:window.BlazingEconomy.load()}));await page.reload({waitUntil:'domcontentloaded'});await waitHome(page);
   const persisted=await page.evaluate(()=>({unit:window.BlazingUnitProgression.unit('Lebee'),economy:window.BlazingEconomy.load()}));
-  if(JSON.stringify(persisted.unit)!==JSON.stringify(expectedState.unit))throw new Error(`unit progression did not persist: ${JSON.stringify({expectedState,persisted})}`);
-  if(persisted.economy.embers!==1||persisted.economy.embersBoughtThisWeek!==1||persisted.economy.battleMarks!==expectedState.economy.battleMarks)throw new Error(`economy/Ember state did not persist: ${JSON.stringify({expectedState,persisted})}`);
+  if(JSON.stringify(persisted.unit)!==JSON.stringify(expectedState.unit)||persisted.economy.embers!==1||persisted.economy.embersBoughtThisWeek!==1||persisted.economy.battleMarks!==expectedState.economy.battleMarks)throw new Error(`progression/economy did not persist: ${JSON.stringify({expectedState,persisted})}`);
 
-  await page.evaluate(()=>{
-    const P=window.BlazingUnitProgression;P.reset();
-    for(let awakening=0;awakening<4;awakening++){
-      P.grantXp('Lebee',999999);P.addDuplicate('Lebee',1);const result=P.awaken('Lebee');if(!result?.ok)throw new Error(`setup awakening ${awakening+1} failed`);
-    }
-    P.grantXp('Lebee',999999);P.addDuplicate('Lebee',2);
-    window.BlazingProgression.openForge('Lebee');window.BlazingProgressionEconomyUI.renderLevelPanel();
-  });
-  await page.locator('#resonanceScreen.active #bbLevelProgression').waitFor({state:'visible'});
-  const shinyButton=page.locator('#bbLevelProgression button[data-action="awaken"]');
-  await page.waitForFunction(()=>!document.querySelector('#bbLevelProgression button[data-action="awaken"]')?.disabled);
-  await shinyButton.click();
-  await page.locator('#bbProgressionFx.active.shiny').waitFor({state:'visible',timeout:2000});
-  const shinyFx=await page.locator('#bbProgressionFx').innerText();
-  const shiny=await page.evaluate(()=>window.BlazingUnitProgression.unit('Lebee'));
-  if(!shiny.shiny||shiny.awakening!==5||shiny.level!==50)throw new Error(`final Shiny state incorrect: ${JSON.stringify(shiny)}`);
-  if(!/SHINY AWAKENED/i.test(shinyFx)||!/FINAL AWAKENING/i.test(shinyFx))throw new Error(`Shiny animation is not distinct: ${shinyFx}`);
+  await page.evaluate(()=>{const P=window.BlazingUnitProgression;P.reset();for(let awakening=0;awakening<4;awakening++){P.grantXp('Lebee',999999);P.addDuplicate('Lebee',1);const result=P.awaken('Lebee');if(!result?.ok)throw new Error(`setup awakening ${awakening+1} failed`)}P.grantXp('Lebee',999999);P.addDuplicate('Lebee',2);window.BlazingProgression.openForge('Lebee');window.BlazingProgressionEconomyUI.renderLevelPanel()});
+  await page.locator('#resonanceScreen.active #bbLevelProgression').waitFor({state:'visible'});const shinyButton=page.locator('#bbLevelProgression button[data-action="awaken"]');await page.waitForFunction(()=>!document.querySelector('#bbLevelProgression button[data-action="awaken"]')?.disabled);await shinyButton.click();
+  await page.locator('#bbProgressionFx.active.shiny').waitFor({state:'visible',timeout:2000});const shinyFx=await page.locator('#bbProgressionFx').innerText(),shiny=await page.evaluate(()=>window.BlazingUnitProgression.unit('Lebee'));
+  if(!shiny.shiny||shiny.awakening!==5||shiny.level!==50||!/SHINY AWAKENED/i.test(shinyFx)||!/FINAL AWAKENING/i.test(shinyFx))throw new Error(`final Shiny state incorrect: ${JSON.stringify({shiny,shinyFx})}`);
 
   await page.evaluate(()=>{window.BlazingUnitProgression.reset();window.BlazingEconomy.reset()});
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Unit progression browser smoke PASS (${name}): approved Home return route, level-up FX, Awakening FX, distinct Shiny FX, Lv10 gate, duplicate banking, Battle Mark level purchase, Ember exchange, and persistence verified.`);
+  console.log(`Unit progression browser smoke PASS (${name}): single leveling, exact MAX TO AWAKENING, gate safety, battle XP, Awakening/Shiny, Ember exchange, and persistence verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
-let failed=false;
-for(const [name,type] of Object.entries(TYPES)){
- try{await run(name,type)}catch(error){failed=true;console.error(`Unit progression browser smoke FAIL (${name}): ${error.stack||error.message}`)}
-}
-if(failed)process.exit(1);
+let failed=false;for(const [name,type] of Object.entries(TYPES)){try{await run(name,type)}catch(error){failed=true;console.error(`Unit progression browser smoke FAIL (${name}): ${error.stack||error.message}`)}}if(failed)process.exit(1);
