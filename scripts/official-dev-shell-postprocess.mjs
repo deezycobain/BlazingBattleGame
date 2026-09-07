@@ -7,11 +7,13 @@ const STYLE_ID='bb-official-dev-shell-style';
 const ECONOMY_ID='bb-battle-economy-runtime';
 const RESULTS_ID='bb-match-results-runtime';
 const TERRAIN_DEBUG_ID='bb-road-terrain-debug-runtime';
+const ROAD_FEEDBACK_ID='bb-road-feedback-fixes-runtime';
 const HOME_COMPAT_ID='bb-approved-home-compat-runtime';
 const HOME_LIVE_ID='bb-home-live-polish-runtime';
 const HOME_V8_ID='bb-home-v8-runtime';
 const HOME_V9_ID='bb-home-v9-runtime';
 const HOME_V9_LIFECYCLE_ID='bb-home-v9-lifecycle-runtime';
+const HOME_FEEDBACK_ID='bb-home-feedback-fixes-runtime';
 
 html=html
   .replace(new RegExp(`<link\\b[^>]*id=["']${STYLE_ID}["'][^>]*>`,'gi'),'')
@@ -19,6 +21,8 @@ html=html
   .replace(new RegExp(`<script\\b[^>]*id=["']${RESULTS_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${TERRAIN_DEBUG_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${TERRAIN_DEBUG_ID}["'][^>]*/>`,'gi'),'')
+  .replace(new RegExp(`<script\\b[^>]*id=["']${ROAD_FEEDBACK_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
+  .replace(new RegExp(`<script\\b[^>]*id=["']${ROAD_FEEDBACK_ID}["'][^>]*/>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_COMPAT_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_COMPAT_ID}["'][^>]*/>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_LIVE_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
@@ -28,7 +32,9 @@ html=html
   .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_V9_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_V9_ID}["'][^>]*/>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_V9_LIFECYCLE_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
-  .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_V9_LIFECYCLE_ID}["'][^>]*/>`,'gi'),'');
+  .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_V9_LIFECYCLE_ID}["'][^>]*/>`,'gi'),'')
+  .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_FEEDBACK_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
+  .replace(new RegExp(`<script\\b[^>]*id=["']${HOME_FEEDBACK_ID}["'][^>]*/>`,'gi'),'');
 
 const anchor=` const roadRun=recordRoadVictory();\n S.victoryFX={`;
 const replacement=` const roadRun=recordRoadVictory();\n const victoryMode=S.bbRunMode==='road'?'road':S.bbRunMode==='castle'?'castle':null;\n const victoryStage=victoryMode==='road'?Math.max(1,Number(roadBeforeStage)||1):1;\n const victoryBoss=victoryMode==='castle'?Math.max(1,Number(S.bbCastleBoss||S.bbBossStage)||1):1;\n S.bbVictoryStage=victoryStage;\n S.bbVictoryBoss=victoryBoss;\n S.bbVictoryReward=victoryMode&&window.BlazingEconomy?window.BlazingEconomy.awardVictory({mode:victoryMode,stage:victoryStage,boss:victoryBoss}):null;\n S.victoryFX={`;
@@ -43,6 +49,19 @@ const spriteScaleReplacement='ctx.scale(directionalFlip*scale*activePulse*1.15,s
 const spriteScaleHits=html.split(spriteScaleAnchor).length-1;
 if(spriteScaleHits!==1)throw new Error(`Official dev shell: expected one battle sprite scale anchor, found ${spriteScaleHits}`);
 html=html.replace(spriteScaleAnchor,spriteScaleReplacement);
+
+// Pull the actor shadow back under the feet and tighten it into a contact shadow.
+// This is visual only and leaves collision/movement coordinates untouched.
+for(const [from,to,label] of [
+  ['shadowW=Math.max(9,span*(0.43-0.12*liftRatio))','shadowW=Math.max(8,span*(0.34-0.10*liftRatio))','actor shadow width'],
+  ['shadowH=Math.max(2.2,span*(0.068-0.018*liftRatio))','shadowH=Math.max(1.8,span*(0.050-0.014*liftRatio))','actor shadow height'],
+  ['ctx.translate(x,y+11.5);','ctx.translate(x,y+6.5);','actor shadow contact point'],
+  ['ctx.shadowBlur=lift>5?2.4:1.5;','ctx.shadowBlur=lift>5?1.8:.8;','actor shadow blur']
+]){
+  const count=html.split(from).length-1;
+  if(count!==1)throw new Error(`Official dev shell: expected one ${label} anchor, found ${count}`);
+  html=html.replace(from,to);
+}
 
 const v8File=path.join(process.cwd(),'dist','runtime','ui','home','home-v8-runtime.js');
 let v8=await fs.readFile(v8File,'utf8');
@@ -68,9 +87,9 @@ if(head<0)throw new Error('Official dev shell: closing head missing');
 html=html.slice(0,head)+`<link id="${STYLE_ID}" rel="stylesheet" href="runtime/ui/home/home-official-dev.css">`+html.slice(head);
 const body=html.toLowerCase().lastIndexOf('</body>');
 if(body<0)throw new Error('Official dev shell: closing body missing');
-html=html.slice(0,body)+`<script id="${ECONOMY_ID}" src="runtime/modes/battle-economy.js"></script><script id="${RESULTS_ID}" src="runtime/ui/battle/match-results.js"></script><script id="${TERRAIN_DEBUG_ID}" src="runtime/ui/battle/road-terrain-debug.js"></script><script id="${HOME_COMPAT_ID}" src="runtime/ui/home/home-approved-compat.js"></script><script id="${HOME_LIVE_ID}" src="runtime/ui/home/home-live-polish.js"></script><script id="${HOME_V8_ID}" src="runtime/ui/home/home-v8-runtime.js"></script><script id="${HOME_V9_ID}" src="runtime/ui/home/home-v9-runtime.js"></script><script id="${HOME_V9_LIFECYCLE_ID}" src="runtime/ui/home/home-v9-lifecycle.js"></script>`+html.slice(body);
+html=html.slice(0,body)+`<script id="${ECONOMY_ID}" src="runtime/modes/battle-economy.js"></script><script id="${RESULTS_ID}" src="runtime/ui/battle/match-results.js"></script><script id="${TERRAIN_DEBUG_ID}" src="runtime/ui/battle/road-terrain-debug.js"></script><script id="${ROAD_FEEDBACK_ID}" src="runtime/ui/battle/road-feedback-fixes.js"></script><script id="${HOME_COMPAT_ID}" src="runtime/ui/home/home-approved-compat.js"></script><script id="${HOME_LIVE_ID}" src="runtime/ui/home/home-live-polish.js"></script><script id="${HOME_V8_ID}" src="runtime/ui/home/home-v8-runtime.js"></script><script id="${HOME_V9_ID}" src="runtime/ui/home/home-v9-runtime.js"></script><script id="${HOME_V9_LIFECYCLE_ID}" src="runtime/ui/home/home-v9-lifecycle.js"></script><script id="${HOME_FEEDBACK_ID}" src="runtime/ui/home/home-feedback-fixes.js"></script>`+html.slice(body);
 
-for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,TERRAIN_DEBUG_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','road-terrain-debug.js','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js','activePulse*1.15'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
+for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,TERRAIN_DEBUG_ID,ROAD_FEEDBACK_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,HOME_FEEDBACK_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','road-terrain-debug.js','road-feedback-fixes.js','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js','home-feedback-fixes.js','activePulse*1.15','shadowW=Math.max(8,span*(0.34-0.10*liftRatio))','ctx.translate(x,y+6.5)'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
 if(!v9.includes(forgeTransformReplacement))throw new Error('Official dev shell: Home v9 Forge safe-area correction missing');
 await fs.writeFile(file,html);
-console.log('Official dev shell PASS: Home v9 owns final layout state; Forge remains viewport-safe; fighter sprites render at 1.15x; Road terrain debug is available with ?terrain=1; v8 compatibility, live currencies, profile, parallax, and post-match return controls integrated.');
+console.log('Official dev shell PASS: Home v9 owns final layout state; requested Home spacing/cutout fixes are loaded; actor contact shadows are grounded; Forge remains viewport-safe; fighter sprites render at 1.15x; Road terrain feedback is loaded; v8 compatibility, live currencies, profile, parallax, and post-match return controls integrated.');
