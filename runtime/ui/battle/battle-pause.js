@@ -124,7 +124,6 @@ document.addEventListener('click',event=>{
  if(!button||!battle()?.contains(button)||!/^\s*reset\s*$/i.test(button.textContent||''))return;
  const snapshot=roadResetSnapshot();if(!snapshot)return;
  setTimeout(()=>restoreRoadReset(snapshot),0);
- setTimeout(()=>restoreRoadReset(snapshot),90);
 },true);
 
 document.addEventListener('keydown',event=>{
