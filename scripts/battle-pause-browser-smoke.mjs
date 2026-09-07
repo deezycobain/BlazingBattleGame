@@ -8,7 +8,7 @@ async function waitHome(page){
  await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
  const loading=page.locator('#bb-loading-screen');
  if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
- await page.waitForFunction(()=>typeof window.BlazingBattlePause==='object'&&typeof window.BlazingRoadRun==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingApprovedHomeCompat==='object',{timeout:30000});
+ await page.waitForFunction(()=>typeof window.BlazingBattlePause==='object'&&typeof window.BlazingRoadRun==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingApprovedHomeCompat==='object'&&typeof window.BlazingHomeV9Lifecycle==='object',{timeout:30000});
 }
 async function enterRoad(page){
  const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');
@@ -31,7 +31,23 @@ async function run(name,type){
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());
   await enterRoad(page);
   await page.locator('#bbBattlePauseButton.visible').waitFor({state:'visible',timeout:5000});
-  const before=await page.evaluate(()=>{const s=globalThis.eval('S');return {stage:s.bbRoadStage,gauges:[...s.pairs.map(p=>p.gauge),...s.enemies.map(e=>e.gauge)],reward:window.BlazingEconomy?.balance?.()??0}});
+
+  const before=await page.evaluate(()=>{const s=globalThis.eval('S');return {stage:s.bbRoadStage,map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,gauges:[...s.pairs.map(p=>p.gauge),...s.enemies.map(e=>e.gauge)],reward:window.BlazingEconomy?.balance?.()??0}});
+  const reset=page.getByRole('button',{name:/^Reset$/i});
+  await reset.waitFor({state:'visible',timeout:5000});
+  await reset.click();
+  await page.waitForFunction(stage=>{try{const s=globalThis.eval('S'),run=window.BlazingRoadRun.loadRun();return s?.bbRunMode==='road'&&s?.bbRoadStage===stage&&run?.stage===stage&&s?.bbRoadContent?.map?.src&&s.bbRoadMapSource===s.bbRoadContent.map.src}catch{return false}},before.stage,{timeout:5000});
+  const afterReset=await page.evaluate(()=>{const s=globalThis.eval('S'),run=window.BlazingRoadRun.loadRun();return {stage:s.bbRoadStage,map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,runStage:run?.stage,runStatus:run?.status}});
+  if(afterReset.stage!==before.stage||afterReset.runStage!==before.stage||afterReset.runStatus!=='active'||afterReset.mapSource!==afterReset.map)throw new Error(`Reset did not preserve Road stage/map: ${JSON.stringify({before,afterReset})}`);
+
+  const placement=await page.evaluate(()=>{
+   const battle=document.getElementById('battleScreen'),pause=document.getElementById('bbBattlePauseButton');
+   const reset=[...battle.querySelectorAll('button')].find(button=>/^\s*reset\s*$/i.test(button.textContent||''));
+   const rect=el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height}};
+   return {battle:rect(battle),pause:rect(pause),reset:rect(reset)};
+  });
+  if(placement.pause.top<placement.reset.bottom-1||placement.pause.right>placement.battle.right+1||placement.pause.width>48)throw new Error(`Pause control placement is not below the battle toolbar: ${JSON.stringify(placement)}`);
+
   await page.locator('#bbBattlePauseButton').click();
   await page.locator('#bbBattlePause.active').waitFor({state:'visible',timeout:3000});
   if(!(await page.evaluate(()=>window.BlazingBattlePause.isPaused())))throw new Error('pause API did not enter paused state');
@@ -48,13 +64,15 @@ async function run(name,type){
   await page.getByRole('button',{name:'EXIT TO MAIN MENU'}).click();
   await waitHome(page);
   await page.waitForFunction(()=>!document.getElementById('battleScreen')?.classList.contains('active'));
-  const exitState=await page.evaluate(()=>({run:window.BlazingRoadRun.loadRun(),reward:window.BlazingEconomy?.balance?.()??0,paused:window.BlazingBattlePause.isPaused()}));
+  await page.waitForFunction(()=>{const art=document.querySelector('#bbHomeApproved [data-v5-leader-art]');return !!art&&/\/art\/shiny_foreground_cutout_/i.test(art.getAttribute('src')||'')&&art.dataset.bbHomePresentation==='cutout'},{timeout:5000});
+  const exitState=await page.evaluate(()=>({run:window.BlazingRoadRun.loadRun(),reward:window.BlazingEconomy?.balance?.()??0,paused:window.BlazingBattlePause.isPaused(),leaderSrc:document.querySelector('#bbHomeApproved [data-v5-leader-art]')?.getAttribute('src')||''}));
   if(exitState.paused)throw new Error('pause state survived Exit');
   if(exitState.run?.status!=='active'||exitState.run?.stage!==before.stage)throw new Error(`Exit mutated Road stage/status: ${JSON.stringify(exitState.run)}`);
   if(exitState.reward!==before.reward)throw new Error(`Exit awarded currency: before ${before.reward}, after ${exitState.reward}`);
+  if(!/\/art\/shiny_foreground_cutout_/i.test(exitState.leaderSrc))throw new Error(`Home returned to card art instead of a cutout: ${exitState.leaderSrc}`);
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Battle pause smoke PASS (${name}): approved Road entry, Pause freezes turn gauges, Resume restores battle flow, Exit returns Home without rewards or Road progression.`);
+  console.log(`Battle pause smoke PASS (${name}): Reset preserves Road stage/map, Pause sits below toolbar, gauges freeze/resume, Exit keeps Road state and restores Home cutout.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
