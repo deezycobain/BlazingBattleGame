@@ -40,7 +40,7 @@ function roadSyncCard(run){
  const card=document.querySelector('[data-bb-home-action="road"]');
  const desc=card?.querySelector('.bb-mode-desc');
  if(!desc)return;
- if(run?.status==='active')desc.textContent=\`Stage \${run.stage} · Run in Progress\`;
+ if(run?.status==='active')desc.textContent=`Stage ${run.stage} · Run in Progress`;
  else if(run?.status==='complete')desc.textContent='Road Complete · 10/10';
  else desc.textContent='Stage 1 · First Route';
 }
@@ -73,7 +73,7 @@ function beginRoadBattle(){
  R.saveRun(run);
  S.bbRoadRun=run;
  S.bbRoadStage=run.stage;
- S.log=\`BLAZING ROAD — Stage \${run.stage}\${cfg?.name?\` · \${cfg.name}\`:''}. Surviving HP carries forward.\`;
+ S.log=`BLAZING ROAD — Stage ${run.stage}${cfg?.name?` · ${cfg.name}`:''}. Surviving HP carries forward.`;
  roadSyncCard(run);
  return run;
 }
@@ -163,8 +163,8 @@ replaceUniqueWithin(
 );
 
 replaceUnique(
-  /if\(now-S\._chargeSince>5000\)\{[\s\S]*?S\.log='Turn meter fallback restored player control\.';\s*\}\s*\}/g,
-  `if(false&&now-S._chargeSince>5000){\n   // Legacy player-forcing rescue disabled. tick() owns neutral deadlock recovery.\n  }`,
+  /if\(performance\.now\(\)-S\._chargeSince>5000\)\{[\s\S]*?S\.log='Turn meter fallback restored player control\.';updateUI\(\);\}\s*\}/g,
+  `if(false&&performance.now()-S._chargeSince>5000){\n   // Legacy player-forcing rescue disabled. tick() owns neutral deadlock recovery.\n  }`,
   'player-forcing global charge watchdog'
 );
 
