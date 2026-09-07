@@ -5,10 +5,10 @@ const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
 const TYPES={chromium,webkit};
 
 async function waitHome(page){
- await page.locator('#level1Btn').waitFor({state:'visible',timeout:30000});
+ await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
  const loading=page.locator('#bb-loading-screen');
  if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
- await page.waitForFunction(()=>typeof window.BlazingRoadRun==='object'&&typeof window.BlazingRoadContent==='object'&&typeof window.BlazingMatchResults==='object',{timeout:30000});
+ await page.waitForFunction(()=>typeof window.BlazingRoadRun==='object'&&typeof window.BlazingRoadContent==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingApprovedHomeCompat==='object',{timeout:30000});
  await page.waitForTimeout(120);
 }
 async function waitRoad(page,stage){
@@ -16,7 +16,13 @@ async function waitRoad(page,stage){
   try{const s=globalThis.eval('S');return document.getElementById('battleScreen')?.classList.contains('active')&&s?.bbRunMode==='road'&&s?.bbRoadStage===expected}catch{return false}
  },stage,{timeout:15000});
 }
-async function enterRoad(page,stage){await page.locator('#level1Btn').click();await waitRoad(page,stage)}
+async function enterRoad(page,stage){
+ const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');
+ if(!await panel.isVisible())await page.locator('#bbHomeApproved [data-nav="battle"]').click();
+ await panel.waitFor({state:'visible',timeout:5000});
+ await page.locator('#bbHomeApproved [data-mode="road"]').click();
+ await waitRoad(page,stage);
+}
 
 async function run(name,type){
  let browser;
@@ -35,20 +41,12 @@ async function run(name,type){
   const stage1=await page.evaluate(()=>{
    const s=globalThis.eval('S'),front=globalThis.eval('front'),tick=globalThis.eval('tick');
    const players=s.pairs.filter(p=>p.units?.[p.active]?.name&&p.units[p.active].name!=='—').map(p=>front(p));
-   const snapshot={
-    stage:s.bbRoadContent?.stage,name:s.bbRoadContent?.name,elite:s.bbRoadContent?.elite,
-    map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,mapAudit:window.BlazingRoadMapAudit||null,
-    enemies:s.enemies.map(e=>({hp:e.maxHp,attack:e.attack,defense:e.defense,speed:e.speed,ai:!!e.bbRoadAi})),
-    chakra:players.map(u=>({name:u.name,chakra:u.chakra,max:u.maxChakra})),
-    tickSource:String(tick)
-   };
-   // Deterministic meter proof: with clean gauges, an intentionally much faster enemy must win.
+   const snapshot={stage:s.bbRoadContent?.stage,name:s.bbRoadContent?.name,elite:s.bbRoadContent?.elite,map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,mapAudit:window.BlazingRoadMapAudit||null,enemies:s.enemies.map(e=>({hp:e.maxHp,attack:e.attack,defense:e.defense,speed:e.speed,ai:!!e.bbRoadAi})),chakra:players.map(u=>({name:u.name,chakra:u.chakra,max:u.maxChakra})),tickSource:String(tick)};
    s.pairs.forEach(p=>{p.gauge=0;front(p).speed=1});
    s.enemies.forEach((e,i)=>{e.gauge=0;e.speed=i===0?100:1});
    s.phase='charge';s.ready=null;s._chargeSince=performance.now();
    for(let i=0;i<80&&s.phase==='charge';i++)tick();
    snapshot.speedWinner=s.ready?.kind||null;
-   // Cancel the scheduled CPU action after proving meter ownership; the next reload restores canonical stats.
    if(s.ready?.kind==='enemy'){s.ready.ref.gauge=0;s.ready=null;s.phase='resolve';}
    return snapshot;
   });
@@ -60,7 +58,6 @@ async function run(name,type){
   if(/player control restored|fallback restored player control/i.test(stage1.tickSource))throw new Error('player-forcing speed fallback survived in tick()');
   console.log(`Road gameplay smoke (${name}) Stage 1 map request: ${stage1.map}; fallback=${!!stage1.mapAudit?.fallback}`);
 
-  // Reload to restore canonical player/enemy speed values after the meter proof.
   await page.evaluate(()=>window.BlazingMatchResults.returnHome());
   await page.reload({waitUntil:'domcontentloaded'});await waitHome(page);await enterRoad(page,1);
   const evadeStarted=await page.evaluate(()=>{
@@ -74,19 +71,14 @@ async function run(name,type){
   const evadeEnded=await page.evaluate(()=>{const s=globalThis.eval('S');return {log:s.log,phase:s.phase}});
   if(!/evad/i.test(evadeStarted.log)||!/repositioned out of danger/i.test(evadeEnded.log))throw new Error(`enemy evade branch did not complete: ${JSON.stringify({evadeStarted,evadeEnded})}`);
 
-  // Seed the same surviving team directly at Stage 10, then enter it through the real Home button.
   await page.evaluate(()=>{
    const s=globalThis.eval('S'),R=window.BlazingRoadRun;
    const fighters=s.pairs.flatMap(p=>p.units||[]).filter(u=>u&&u.name&&u.name!=='—'&&Number(u.maxHp)>0);
    const run=R.createRun(fighters,{stage:10});R.saveRun(run);window.BlazingMatchResults.returnHome();
   });
-  await page.waitForTimeout(250);await enterRoad(page,10);
+  await waitHome(page);await enterRoad(page,10);
   const stage10=await page.evaluate(()=>{
-   const s=globalThis.eval('S');return {
-    stage:s.bbRoadContent?.stage,elite:s.bbRoadContent?.elite,map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,
-    enemies:s.enemies.map(e=>({hp:e.maxHp,attack:e.attack,defense:e.defense,speed:e.speed})),
-    maxStage:window.BlazingRoadContent.MAX_STAGE
-   };
+   const s=globalThis.eval('S');return {stage:s.bbRoadContent?.stage,elite:s.bbRoadContent?.elite,map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,enemies:s.enemies.map(e=>({hp:e.maxHp,attack:e.attack,defense:e.defense,speed:e.speed})),maxStage:window.BlazingRoadContent.MAX_STAGE};
   });
   if(stage10.stage!==10||!stage10.elite||stage10.maxStage!==10)throw new Error(`Stage 10 is not final elite: ${JSON.stringify(stage10)}`);
   if(!/stage-05-training-grounds\.webp$/.test(stage10.map||'')||stage10.mapSource!==stage10.map)throw new Error(`Stage 10 map slot wrong: ${JSON.stringify(stage10)}`);
@@ -101,13 +93,13 @@ async function run(name,type){
   const results=await page.locator('#bbMatchResults').innerText();
   if(!/ROAD COMPLETE/.test(results)||!/RESTART ROAD/.test(results)||!/MAIN MENU/.test(results))throw new Error(`Road completion results wrong: ${results}`);
   await page.getByRole('button',{name:'MAIN MENU'}).click();
-  await page.waitForFunction(()=>getComputedStyle(document.getElementById('menuScreen')).display!=='none');
-  const card=await page.locator('[data-bb-home-action="road"] .bb-mode-desc').textContent();
-  if(!/Road Complete/i.test(card||'')||!/10\/10/.test(card||''))throw new Error(`Home Road completion card wrong: ${card}`);
+  await waitHome(page);
+  const card=await page.locator('#bbHomeApproved [data-mode="road"] span:last-child').textContent();
+  if(!/Road Complete/i.test(card||'')||!/10\/10/.test(card||''))throw new Error(`approved Home Road completion status wrong: ${card}`);
 
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Road gameplay smoke PASS (${name}): real Speed ordering, meaningful enemy scaling, attack/evade AI, map routing, and Stage 10 completion verified.`);
+  console.log(`Road gameplay smoke PASS (${name}): approved Road entry, real Speed ordering, meaningful enemy scaling, attack/evade AI, map routing, and Stage 10 completion verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
