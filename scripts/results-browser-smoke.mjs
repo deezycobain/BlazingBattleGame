@@ -8,8 +8,8 @@ async function waitHome(page){
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
   const loading=page.locator('#bb-loading-screen');
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
-  await page.waitForFunction(()=>typeof window.BlazingEconomy==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingRoadRun==='object'&&typeof window.BlazingUnitProgression==='object'&&typeof window.BlazingApprovedHomeCompat==='object',{timeout:30000});
-  await page.locator('#bbHomeApproved[data-bb-home-generation="v5"] [data-v5-marks]').waitFor({state:'visible',timeout:10000});
+  await page.waitForFunction(()=>typeof window.BlazingEconomy==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingRoadRun==='object'&&typeof window.BlazingUnitProgression==='object'&&typeof window.BlazingApprovedHomeCompat==='object'&&typeof window.BlazingHomeLivePolish==='object',{timeout:30000});
+  await page.locator('#bbHomeApproved[data-bb-home-generation="v5"][data-bb-home-live-polish="v6"] [data-v5-marks]').waitFor({state:'visible',timeout:10000});
   await page.waitForTimeout(180);
 }
 
@@ -53,7 +53,7 @@ async function run(name,type){
     const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
     if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
 
-    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset();window.BlazingApprovedHomeCompat.apply()});
+    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset();window.BlazingApprovedHomeCompat.apply();window.BlazingHomeLivePolish.apply()});
     const home=await page.evaluate(()=>{
       const shell=document.getElementById('bbHomeApproved');
       const legacy=document.querySelector('#menuScreen > .menuInner');
@@ -70,6 +70,9 @@ async function run(name,type){
       return {
         approved:!!shell,
         generation:shell?.dataset.bbHomeGeneration||'',
+        livePolish:shell?.dataset.bbHomeLivePolish||'',
+        roadState:shell?.dataset.bbRoadState||'',
+        roadProgress:!!shell?.querySelector('.bb-home-v6-road-progress'),
         legacyHidden:!legacy||legacyStyle?.visibility==='hidden'||legacyStyle?.opacity==='0'||legacyStyle?.display==='none',
         nav,
         marks:marks?.textContent||'',
@@ -81,6 +84,8 @@ async function run(name,type){
     });
     if(!home.approved)throw new Error('approved Home shell missing');
     if(home.generation!=='v5')throw new Error(`Home v5 generation marker missing: ${home.generation}`);
+    if(home.livePolish!=='v6'||!home.roadProgress)throw new Error(`Home v6 live polish missing: ${JSON.stringify(home)}`);
+    if(home.roadState!=='fresh')throw new Error(`fresh Home Road state incorrect: ${home.roadState}`);
     if(!home.legacyHidden)throw new Error('legacy Home controls are still visually exposed behind approved shell');
     for(const [key,file] of Object.entries({battle:'battle.webp',summon:'summon.webp',units:'units.webp',forge:'forge.webp'})){
       const item=home.nav[key];
@@ -102,6 +107,13 @@ async function run(name,type){
     if(Object.values(roadLevels).some(unit=>unit.level!==2||unit.xp!==80))throw new Error(`Road XP did not persist into deployed team levels: ${JSON.stringify(roadLevels)}`);
     await page.getByRole('button',{name:'MAIN MENU'}).click();
     await waitHome(page);
+    const liveRoad=await page.evaluate(()=>{
+      window.BlazingHomeLivePolish.apply();
+      const shell=document.getElementById('bbHomeApproved');
+      const feature=shell?.querySelector('.bb-home-v4-feature');
+      return {state:shell?.dataset.bbRoadState||'',stage:shell?.dataset.bbRoadStage||'',text:feature?.innerText||'',fill:feature?.querySelector('.bb-home-v6-road-track i')?.style.width||''};
+    });
+    if(liveRoad.state!=='active'||liveRoad.stage!=='2'||!/CONTINUE\s+BLAZING\s+ROAD/i.test(liveRoad.text)||!/STAGE\s*2\s*\/\s*10/i.test(liveRoad.text)||liveRoad.fill!=='10%')throw new Error(`Home v6 Road feature did not advance to Stage 2: ${JSON.stringify(liveRoad)}`);
     await openBattle(page);
     const roadCard=await page.locator('#bbHomeApproved [data-mode="road"] span:last-child').textContent();
     if(!/Stage\s*2/i.test(roadCard||''))throw new Error(`approved Road selector did not show Stage 2 after menu return: ${roadCard}`);
@@ -126,7 +138,7 @@ async function run(name,type){
     if(JSON.stringify(progressionAfterReload)!==JSON.stringify(progressionBeforeReload))throw new Error('Battle XP progression did not persist after reload');
     await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset()});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Results browser smoke PASS (${name}): Home v5 live Battle Marks/Embers HUD, approved routes, Road/Castle rewards, Battle XP, Stage 2 menu return, and persistent progression verified.`);
+    console.log(`Results browser smoke PASS (${name}): Home v6 live Road presentation, Home v5 Battle Marks/Embers HUD, approved routes, Road/Castle rewards, Battle XP, Stage 2 menu return, and persistent progression verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
