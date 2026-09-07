@@ -109,6 +109,12 @@ function battleXpFor({mode,stage=1,boss=1}={}){
   if(mode==='castle')return 450+Math.max(0,Math.floor(Number(boss)||1)-1)*75;
   return 0;
 }
+function awardBattleXp({mode,stage=1,boss=1,names=[]}={}){
+  const amount=battleXpFor({mode,stage,boss});
+  const unique=[...new Set((Array.isArray(names)?names:[]).filter(name=>FIGHTERS.includes(name)))];
+  const results=unique.map(name=>grantXp(name,amount)).filter(Boolean);
+  return Object.freeze({amount,mode,stage,boss,units:results});
+}
 function markCostForUnit(data){
   const u=normalizeUnit(data),cap=capForAwakening(u.awakening);
   if(u.level>=MAX_LEVEL||u.level>=cap)return 0;
@@ -142,8 +148,7 @@ function buyToGate(name){
   const state=load(),u=state.units[name],cap=capForAwakening(u.awakening);
   if(u.level>=MAX_LEVEL)return {ok:false,reason:'MAX_LEVEL',unit:clone(u),cap};
   if(u.level>=cap)return {ok:false,reason:'AWAKENING_REQUIRED',unit:clone(u),cap};
-  let cost=markCostForUnit(u);
-  for(let level=u.level+1;level<cap;level++)cost+=fullMarkCost(level);
+  const cost=markCostToGate(name);
   const economy=window.BlazingEconomy;
   if(!economy?.spend)return {ok:false,reason:'ECONOMY_UNAVAILABLE',cost,unit:clone(u),cap};
   const spent=economy.spend(cost,`MAX_TO_GATE_${name}`);
