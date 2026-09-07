@@ -109,30 +109,49 @@ function battleXpFor({mode,stage=1,boss=1}={}){
   if(mode==='castle')return 450+Math.max(0,Math.floor(Number(boss)||1)-1)*75;
   return 0;
 }
-function awardBattleXp({mode,stage=1,boss=1,names=[]}={}){
-  const amount=battleXpFor({mode,stage,boss});
-  const unique=[...new Set((Array.isArray(names)?names:[]).filter(name=>FIGHTERS.includes(name)))];
-  const results=unique.map(name=>grantXp(name,amount)).filter(Boolean);
-  return Object.freeze({amount,mode,stage,boss,units:results});
-}
-function markCostToFinish(name){
-  const u=unit(name),cap=capForAwakening(u.awakening);
+function markCostForUnit(data){
+  const u=normalizeUnit(data),cap=capForAwakening(u.awakening);
   if(u.level>=MAX_LEVEL||u.level>=cap)return 0;
   const need=xpForNextLevel(u.level),remaining=Math.max(1,need-u.xp),full=fullMarkCost(u.level);
   return Math.max(15,Math.ceil(full*(remaining/need)));
+}
+function markCostToFinish(name){return FIGHTERS.includes(name)?markCostForUnit(unit(name)):0}
+function markCostToGate(name){
+  if(!FIGHTERS.includes(name))return 0;
+  const u=unit(name),cap=capForAwakening(u.awakening);
+  if(u.level>=MAX_LEVEL||u.level>=cap)return 0;
+  let total=markCostForUnit(u);
+  for(let level=u.level+1;level<cap;level++)total+=fullMarkCost(level);
+  return total;
 }
 function buyLevel(name){
   if(!FIGHTERS.includes(name))return {ok:false,reason:'UNKNOWN_UNIT'};
   const state=load(),u=state.units[name],cap=capForAwakening(u.awakening);
   if(u.level>=MAX_LEVEL)return {ok:false,reason:'MAX_LEVEL',unit:clone(u)};
   if(u.level>=cap)return {ok:false,reason:'AWAKENING_REQUIRED',unit:clone(u),cap};
-  const cost=markCostToFinish(name),economy=window.BlazingEconomy;
+  const cost=markCostForUnit(u),economy=window.BlazingEconomy;
   if(!economy?.spend)return {ok:false,reason:'ECONOMY_UNAVAILABLE',cost,unit:clone(u)};
   const spent=economy.spend(cost,`LEVEL_${name}`);
   if(!spent.ok)return {ok:false,reason:'INSUFFICIENT_MARKS',cost,balance:spent.balance,unit:clone(u)};
   u.level++;u.xp=0;
   const saved=save(state),next=saved.units[name];
   return {ok:true,cost,balance:spent.balance,name,level:next.level,cap:capForAwakening(next.awakening),locked:isAtGate(next),unit:clone(next)};
+}
+function buyToGate(name){
+  if(!FIGHTERS.includes(name))return {ok:false,reason:'UNKNOWN_UNIT'};
+  const state=load(),u=state.units[name],cap=capForAwakening(u.awakening);
+  if(u.level>=MAX_LEVEL)return {ok:false,reason:'MAX_LEVEL',unit:clone(u),cap};
+  if(u.level>=cap)return {ok:false,reason:'AWAKENING_REQUIRED',unit:clone(u),cap};
+  let cost=markCostForUnit(u);
+  for(let level=u.level+1;level<cap;level++)cost+=fullMarkCost(level);
+  const economy=window.BlazingEconomy;
+  if(!economy?.spend)return {ok:false,reason:'ECONOMY_UNAVAILABLE',cost,unit:clone(u),cap};
+  const spent=economy.spend(cost,`MAX_TO_GATE_${name}`);
+  if(!spent.ok)return {ok:false,reason:'INSUFFICIENT_MARKS',cost,balance:spent.balance,unit:clone(u),cap};
+  const before=u.level;
+  u.level=cap;u.xp=0;
+  const saved=save(state),next=saved.units[name];
+  return {ok:true,cost,balance:spent.balance,name,level:next.level,levelsGained:next.level-before,cap,awakening:next.awakening,locked:isAtGate(next),unit:clone(next)};
 }
 function awaken(name){
   if(!FIGHTERS.includes(name))return {ok:false,reason:'UNKNOWN_UNIT'};
@@ -154,5 +173,5 @@ function statMultipliers(data){
 }
 function reset(){localStorage.removeItem(KEY);const next=fresh();localStorage.setItem(KEY,JSON.stringify(next));window.dispatchEvent(new CustomEvent('bb:unit-progression',{detail:clone(next)}));return clone(next)}
 
-window.BlazingUnitProgression=Object.freeze({KEY,LEGACY_KEY,VERSION,FIGHTERS,AWAKENING_COSTS,CAPS,MAX_LEVEL,load,getState,unit,save,capForAwakening,xpForNextLevel,fullMarkCost,markCostToFinish,isAtGate,nextAwakeningCost,canAwaken,addDuplicate,grantXp,battleXpFor,awardBattleXp,buyLevel,awaken,statMultipliers,reset});
+window.BlazingUnitProgression=Object.freeze({KEY,LEGACY_KEY,VERSION,FIGHTERS,AWAKENING_COSTS,CAPS,MAX_LEVEL,load,getState,unit,save,capForAwakening,xpForNextLevel,fullMarkCost,markCostToFinish,markCostToGate,isAtGate,nextAwakeningCost,canAwaken,addDuplicate,grantXp,battleXpFor,awardBattleXp,buyLevel,buyToGate,awaken,statMultipliers,reset});
 })();
