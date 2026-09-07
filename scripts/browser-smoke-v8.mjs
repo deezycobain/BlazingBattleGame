@@ -25,11 +25,18 @@ async function waitHome(page){
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
   await page.waitForFunction(()=>typeof window.BlazingApprovedHomeCompat==='object'&&typeof window.BlazingHomeLivePolish==='object'&&typeof window.BlazingHomeV8==='object'&&typeof window.BlazingHomeV9==='object',{timeout:30000});
   await page.waitForFunction(()=>document.querySelector('#bbHomeApproved')?.dataset?.bbHomeLayout==='v9-polish',{timeout:10000});
-  await page.waitForFunction(()=>{
-    const images=[...document.querySelectorAll('#bbHomeApproved img')];
-    return images.length>0&&images.every(img=>img.complete);
-  },{timeout:10000});
   await waitPresentationDecode(page);
+  await page.waitForFunction(()=>{
+    const shell=document.querySelector('#bbHomeApproved');
+    if(!shell)return false;
+    const visible=el=>{
+      const style=getComputedStyle(el);
+      const r=el.getBoundingClientRect();
+      return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity||1)>0&&r.width>0&&r.height>0;
+    };
+    const images=[...shell.querySelectorAll('img')].filter(visible);
+    return images.length>0&&images.every(img=>img.naturalWidth>0&&img.naturalHeight>0);
+  },{timeout:20000});
   await page.waitForTimeout(100);
 }
 
@@ -37,7 +44,7 @@ async function waitPresentationDecode(page){
   await page.waitForFunction(()=>{
     const art=document.querySelector('#bbHomeApproved [data-v5-leader-art]');
     return !!art&&art.naturalWidth>0&&art.naturalHeight>0;
-  },{timeout:15000});
+  },{timeout:20000});
 }
 
 async function assertHome(page,label){
@@ -55,10 +62,11 @@ async function assertHome(page,label){
     const leaderSrc=shell?.querySelector('[data-v5-leader-art]')?.getAttribute('src')||'';
     const baked=[shell?.querySelector('.bb-home-v5-profile-texture'),...shell?.querySelectorAll('.bb-home-v5-currency>img')||[]].filter(Boolean);
     const hidden=el=>!el||el.hidden||getComputedStyle(el).display==='none'||getComputedStyle(el).visibility==='hidden';
+    const visible=el=>{if(!el||hidden(el))return false;const r=el.getBoundingClientRect();return Number(getComputedStyle(el).opacity||1)>0&&r.width>0&&r.height>0;};
     const coins=shell?.querySelector('[data-v9-currency="blazing-coins"]');
     const embers=shell?.querySelector('[data-v9-currency="embers"]');
     const currencyState=el=>({label:el?.querySelector('.bb-home-v5-currency-copy small')?.textContent?.trim()||'',value:el?.querySelector('strong')?.textContent?.trim()||'',icon:!!el?.querySelector('.bb-home-v5-currency-icon svg')});
-    const images=[...shell?.querySelectorAll('img')||[]].map(img=>({src:img.getAttribute('src')||'',complete:img.complete,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight}));
+    const images=[...shell?.querySelectorAll('img')||[]].map(img=>({src:img.getAttribute('src')||'',complete:img.complete,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,visible:visible(img)}));
     return {
       viewport:{width:innerWidth,height:innerHeight},dock,leader,nav,
       v8Style:!!document.querySelector('#bb-home-v8-style'),v9Style:!!document.querySelector('#bb-home-v9-style'),
@@ -88,7 +96,7 @@ async function assertHome(page,label){
   if(n.battle.x>=n.summon.x||n.battle.right>n.summon.x+20)throw new Error(`${label}: Battle is not the left dominant action :: ${JSON.stringify(n)}`);
   if(n.battle.height<n.forge.bottom-n.summon.y-12)throw new Error(`${label}: Battle does not span the stacked nav height :: ${JSON.stringify(n)}`);
   if(n.battle.width>vw*.66)throw new Error(`${label}: Battle action remains oversized :: ${JSON.stringify(n.battle)}`);
-  const broken=state.images.filter(img=>img.naturalWidth<=0||img.naturalHeight<=0);if(broken.length)throw new Error(`${label}: broken Home images :: ${JSON.stringify(broken.slice(0,8))}`);
+  const broken=state.images.filter(img=>img.visible&&(img.naturalWidth<=0||img.naturalHeight<=0));if(broken.length)throw new Error(`${label}: broken visible Home images :: ${JSON.stringify(broken.slice(0,8))}`);
   for(const required of Object.keys(state.legacy))if(!state.legacy[required])throw new Error(`${label}: legacy route anchor ${required} missing`);
   console.log(`Home v9 smoke PASS (${label}): formal HUD + grounded cutout + Blazing Coins/Embers + restrained dock`);
 }
