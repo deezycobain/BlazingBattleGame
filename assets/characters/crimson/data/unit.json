@@ -14,10 +14,10 @@
   },
   "stats": {
     "level": 1,
-    "hp": 118,
-    "attack": 35,
-    "defense": 18,
-    "speed": 68
+    "hp": 72,
+    "attack": 42,
+    "defense": 26,
+    "speed": 76
   },
   "combat": {
     "mark": "V",
@@ -25,7 +25,7 @@
     "basic_shape": {
       "type": "cone",
       "r": 182,
-      "a": 1.0
+      "a": 1
     },
     "jutsu_shape": {
       "type": "rect",
@@ -36,13 +36,13 @@
     "chakra_start": 2
   },
   "render": {
-    "scale": 1.0
+    "scale": 1
   },
   "abilities": {
     "basic": {
       "id": "basic_strike",
       "name": "Basic Strike",
-      "damage_multiplier": 1.0,
+      "damage_multiplier": 1,
       "chakra_gain": 1,
       "delivery": "melee"
     },
@@ -82,8 +82,8 @@
   },
   "balance": {
     "status": "provisional",
-    "pass": "v0.5.30",
-    "notes": "Initial archetype-based values. Tune freely during balance testing."
+    "pass": "v0.7.2-normalized-100",
+    "notes": "Normalized 1-100 combat-stat pass. HP, Attack, Defense, and Speed are capped at 100; combat ranges, chakra, costs, and ability multipliers remain separate parameters."
   },
   "animation_standard": {
     "version": "v0.6.16",

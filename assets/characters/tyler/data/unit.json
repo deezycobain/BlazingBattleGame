@@ -7,23 +7,146 @@
   "archetype": "melee_fighter",
   "element": null,
   "rarity": null,
-  "collection": {"owned": true,"inventory_visible": true,"battle_ready": true},
-  "stats": {"level": 1,"hp": 110,"attack": 30,"defense": 20,"speed": 58},
-  "combat": {"mark": "T","movement_range": 88,"basic_shape": {"type": "circle","r": 76},"jutsu_shape": {"type": "circle","r": 0},"chakra_max": 8,"chakra_start": 0},
-  "render": {"scale": 1.18},
-  "abilities": {
-    "basic": {"id": "basic_strike","name": "Basic Attack","damage_multiplier": 1.0,"chakra_gain": 1,"delivery": "melee","presentation": {"runtime_driver": "animateLunge","animation_kind": "basic_attack","melee_animation_kind": "basic_attack"}},
-    "jutsu": {"id": "tyler_jutsu_placeholder","name": "Jutsu Locked","cost": 99,"damage_multiplier": 0,"delivery": "disabled"}
+  "collection": {
+    "owned": true,
+    "inventory_visible": true,
+    "battle_ready": true
   },
-  "assets": {"art": "art/current_collection_art.png","card": "cards/current_collection_card.png","portrait": "art/current_collection_art.png","icon": null,"sprites": {"idle": "sprites/source/idle_sheet.png","attack_basic": "sprites/source/basic_attack_sheet.png"},"vfx": "vfx/"},
-  "readiness": {"collection": true,"battle": true,"idle": true,"basic_attack": true,"jutsu": false,"recoil": false,"notes": "Tyler uses the supplied collection artwork. The five-pose single-row source is the authored idle animation and the eight-pose 4x2 source is the authored Basic Attack animation. Browser preprocessing removes edge-connected sheet background, enclosed paper-white holes, and tiny disconnected source-sheet marks before battlefield rendering. Playback adds held beats without inventing new artwork. Jutsu remains intentionally locked until authored.","animation_map": true},
-  "balance": {"status": "provisional","pass": "v0.7.0-tyler-melee-tuning","notes": "Tyler's Basic Attack radius is tightened from 95 to 76 so the punch/lunge requires deliberate close positioning."},
+  "stats": {
+    "level": 1,
+    "hp": 88,
+    "attack": 36,
+    "defense": 48,
+    "speed": 64
+  },
+  "combat": {
+    "mark": "T",
+    "movement_range": 88,
+    "basic_shape": {
+      "type": "circle",
+      "r": 76
+    },
+    "jutsu_shape": {
+      "type": "circle",
+      "r": 0
+    },
+    "chakra_max": 8,
+    "chakra_start": 0
+  },
+  "render": {
+    "scale": 1.18
+  },
+  "abilities": {
+    "basic": {
+      "id": "basic_strike",
+      "name": "Basic Attack",
+      "damage_multiplier": 1,
+      "chakra_gain": 1,
+      "delivery": "melee",
+      "presentation": {
+        "runtime_driver": "animateLunge",
+        "animation_kind": "basic_attack",
+        "melee_animation_kind": "basic_attack"
+      }
+    },
+    "jutsu": {
+      "id": "tyler_jutsu_placeholder",
+      "name": "Jutsu Locked",
+      "cost": 99,
+      "damage_multiplier": 0,
+      "delivery": "disabled"
+    }
+  },
+  "assets": {
+    "art": "art/current_collection_art.png",
+    "card": "cards/current_collection_card.png",
+    "portrait": "art/current_collection_art.png",
+    "icon": null,
+    "sprites": {
+      "idle": "sprites/source/idle_sheet.png",
+      "attack_basic": "sprites/source/basic_attack_sheet.png"
+    },
+    "vfx": "vfx/"
+  },
+  "readiness": {
+    "collection": true,
+    "battle": true,
+    "idle": true,
+    "basic_attack": true,
+    "jutsu": false,
+    "recoil": false,
+    "notes": "Tyler uses the supplied collection artwork. The five-pose single-row source is the authored idle animation and the eight-pose 4x2 source is the authored Basic Attack animation. Browser preprocessing removes edge-connected sheet background, enclosed paper-white holes, and tiny disconnected source-sheet marks before battlefield rendering. Playback adds held beats without inventing new artwork. Jutsu remains intentionally locked until authored.",
+    "animation_map": true
+  },
+  "balance": {
+    "status": "provisional",
+    "pass": "v0.7.2-normalized-100",
+    "notes": "Normalized 1-100 combat-stat pass. HP, Attack, Defense, and Speed are capped at 100; combat ranges, chakra, costs, and ability multipliers remain separate parameters."
+  },
   "animation_standard": {
     "version": "v0.7.0-tyler-authored-sheets-polish",
-    "canvas": {"width": 420,"height": 420,"anchor_x": 210,"anchor_y": 392},
+    "canvas": {
+      "width": 420,
+      "height": 420,
+      "anchor_x": 210,
+      "anchor_y": 392
+    },
     "animations": {
-      "idle": {"source_sheet": {"path": "sprites/source/20AAB6CC-D064-4F8A-A155-BC2A55A831C5.png","columns": 5,"rows": 1,"frame_count": 5,"content_top_px": 0,"background_cleanup": "edge_flood_plus_enclosed_white_and_component_prune"},"frames": [],"frame_ms": 230,"loop": true,"runtime_playback_sequence": [0,1,2,3,4,3,2,1],"events": []},
-      "basic_attack": {"source_sheet": {"path": "sprites/source/basic_attack_sheet.png","columns": 4,"rows": 2,"frame_count": 8,"content_top_px": 100,"background_cleanup": "edge_flood_plus_enclosed_white_and_component_prune"},"frames": [],"frame_ms": 80,"loop": false,"runtime_playback_sequence": [0,0,1,2,3,4,5,6,7,7],"events": [{"frame": 4,"event": "apply_melee_impact"}]}
+      "idle": {
+        "source_sheet": {
+          "path": "sprites/source/20AAB6CC-D064-4F8A-A155-BC2A55A831C5.png",
+          "columns": 5,
+          "rows": 1,
+          "frame_count": 5,
+          "content_top_px": 0,
+          "background_cleanup": "edge_flood_plus_enclosed_white_and_component_prune"
+        },
+        "frames": [],
+        "frame_ms": 230,
+        "loop": true,
+        "runtime_playback_sequence": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          3,
+          2,
+          1
+        ],
+        "events": []
+      },
+      "basic_attack": {
+        "source_sheet": {
+          "path": "sprites/source/basic_attack_sheet.png",
+          "columns": 4,
+          "rows": 2,
+          "frame_count": 8,
+          "content_top_px": 100,
+          "background_cleanup": "edge_flood_plus_enclosed_white_and_component_prune"
+        },
+        "frames": [],
+        "frame_ms": 80,
+        "loop": false,
+        "runtime_playback_sequence": [
+          0,
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          7
+        ],
+        "events": [
+          {
+            "frame": 4,
+            "event": "apply_melee_impact"
+          }
+        ]
+      }
     },
     "vfx": {}
   }
