@@ -22,7 +22,7 @@ for(const id of ['bb-unit-progression-runtime','bb-progression-economy-style','b
 
 replaceUnique(/function applyCombatBonuses\(\)\{[\s\S]*?\n\}\n(?=function applyPull)/,`function applyCombatBonuses(){
  if(typeof BATTLE_ROSTER==='undefined')return;
- const P=window.BlazingUnitProgression;
+ const P=window.BlazingUnitProgression,stat=value=>Math.max(1,Math.min(100,Math.round(Number(value)||1)));
  for(const name of FIGHTERS){
   const base=BASE_RUNTIME[name],target=BATTLE_ROSTER[name];if(!base||!target)continue;
   const u=unit(name),progress=P?.unit?.(name)||{level:1,awakening:0},growth=P?.statMultipliers?.(progress)||{hp:1,attack:1,defense:1,speed:1},roll=u.roll||{};
@@ -30,10 +30,10 @@ replaceUnique(/function applyCombatBonuses\(\)\{[\s\S]*?\n\}\n(?=function applyP
   const attackMultiplier=growth.attack+(roll.attack||0)*.025;
   const defenseMultiplier=growth.defense+(roll.defense||0)*.03;
   const speedMultiplier=growth.speed+(roll.speed||0)*.015;
-  target.maxHp=Math.round(base.maxHp*hpMultiplier);target.hp=target.maxHp;
-  target.attack=Math.round(base.attack*attackMultiplier);
-  target.defense=Math.round(base.defense*defenseMultiplier);
-  target.speed=Math.round(base.speed*speedMultiplier);
+  target.maxHp=stat(base.maxHp*hpMultiplier);target.hp=target.maxHp;
+  target.attack=stat(base.attack*attackMultiplier);
+  target.defense=stat(base.defense*defenseMultiplier);
+  target.speed=stat(base.speed*speedMultiplier);
   target.jutsuDamage=Math.round(base.jutsuDamage*(target.attack/base.attack));
  }
 }
@@ -90,6 +90,6 @@ html=html.slice(0,head)+'<link id="bb-progression-economy-style" rel="stylesheet
 const body=html.toLowerCase().lastIndexOf('</body>');if(body<0)throw new Error('Unit progression: body missing');
 html=html.slice(0,body)+'<script id="bb-progression-economy-bridge" src="runtime/ui/progression/progression-economy-bridge.js"></script>'+html.slice(body);
 
-for(const marker of ['bb-unit-progression-runtime','runtime/progression/unit-progression.js','COPY +1','S.bbVictoryXp','awardBattleXp','REROLL •','FORGE_REROLL_','BATTLE MARKS</small>','FREE TEST PULLS • DUPLICATES BANKED','bb-progression-economy-style','bb-progression-economy-bridge'])if(!html.includes(marker))throw new Error(`Unit progression: missing ${marker}`);
+for(const marker of ['bb-unit-progression-runtime','runtime/progression/unit-progression.js','COPY +1','S.bbVictoryXp','awardBattleXp','REROLL •','FORGE_REROLL_','BATTLE MARKS</small>','FREE TEST PULLS • DUPLICATES BANKED','bb-progression-economy-style','bb-progression-economy-bridge','Math.min(100'])if(!html.includes(marker))throw new Error(`Unit progression: missing ${marker}`);
 await fs.writeFile(file,html);
-console.log('Unit progression PASS: Lv1-50 XP bands, duplicate-gated Awakenings, Battle Mark leveling/rerolls, and Ember exchange wired.');
+console.log('Unit progression PASS: Lv1-50 XP bands, duplicate-gated Awakenings, 100-point combat cap, Battle Mark leveling/rerolls, and Ember exchange wired.');
