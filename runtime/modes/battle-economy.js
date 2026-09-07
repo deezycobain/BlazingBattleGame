@@ -3,7 +3,7 @@
 
 const KEY='blazing.economy.v1';
 const VERSION=2;
-const CURRENCY='BATTLE MARKS';
+const CURRENCY='BLAZING COINS';
 const SYMBOL='◈';
 const EMBER_COST=300;
 const EMBER_WEEKLY_CAP=10;
