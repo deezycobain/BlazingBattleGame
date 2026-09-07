@@ -1,0 +1,47 @@
+name: QHD Home wallpaper one-shot
+on:
+  push:
+    branches: [dev-next-2026-09-01]
+    paths:
+      - '.github/workflows/qhd-home-wallpaper-once.yml'
+permissions:
+  contents: write
+jobs:
+  upscale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install image resampler
+        run: python -m pip install --disable-pip-version-check pillow
+      - name: Resample Home wallpaper to QHD
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageFilter, ImageOps
+          p=Path('runtime/ui/home/home-wallpaper-hq.png')
+          im=Image.open(p).convert('RGB')
+          print('SOURCE', im.size)
+          if im.width < 2560 or im.height < 1440:
+              im=ImageOps.fit(im,(2560,1440),method=Image.Resampling.LANCZOS,centering=(0.5,0.5))
+              im=im.filter(ImageFilter.UnsharpMask(radius=0.8,percent=65,threshold=3))
+              im.save(p,'PNG',optimize=True,compress_level=9)
+          check=Image.open(p)
+          print('OUTPUT', check.size, p.stat().st_size)
+          assert check.width >= 2560 and check.height >= 1440
+          assert p.stat().st_size < 25*1024*1024
+          PY
+      - name: Commit QHD wallpaper to dev
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add runtime/ui/home/home-wallpaper-hq.png
+          git diff --cached --quiet && exit 0
+          git commit -m "Upscale Home wallpaper source to QHD"
+          git pull --rebase origin dev-next-2026-09-01
+          git push origin HEAD:dev-next-2026-09-01
