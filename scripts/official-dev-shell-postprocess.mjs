@@ -33,6 +33,14 @@ const hits=html.split(anchor).length-1;
 if(hits!==1)throw new Error(`Official dev shell: expected one victory anchor, found ${hits}`);
 html=html.replace(anchor,replacement);
 
+const v8File=path.join(process.cwd(),'dist','runtime','ui','home','home-v8-runtime.js');
+let v8=await fs.readFile(v8File,'utf8');
+const v8LayoutAnchor="shell.dataset.bbHomeLayout='v8-mockup';";
+const v8LayoutHits=v8.split(v8LayoutAnchor).length-1;
+if(v8LayoutHits!==1)throw new Error(`Official dev shell: expected one Home v8 layout assignment, found ${v8LayoutHits}`);
+v8=v8.replace(v8LayoutAnchor,"if(!shell.classList.contains('bb-home-v9')&&shell.dataset.bbHomeLayout!=='v9-polish')shell.dataset.bbHomeLayout='v8-mockup';");
+await fs.writeFile(v8File,v8);
+
 const head=html.toLowerCase().lastIndexOf('</head>');
 if(head<0)throw new Error('Official dev shell: closing head missing');
 html=html.slice(0,head)+`<link id="${STYLE_ID}" rel="stylesheet" href="runtime/ui/home/home-official-dev.css">`+html.slice(head);
@@ -42,4 +50,4 @@ html=html.slice(0,body)+`<script id="${ECONOMY_ID}" src="runtime/modes/battle-ec
 
 for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
 await fs.writeFile(file,html);
-console.log('Official dev shell PASS: Home v9 cohesion + lifecycle reconciliation, live currencies, profile, parallax, and post-match return controls integrated.');
+console.log('Official dev shell PASS: Home v9 owns final layout state; v8 compatibility, live currencies, profile, parallax, and post-match return controls integrated.');
