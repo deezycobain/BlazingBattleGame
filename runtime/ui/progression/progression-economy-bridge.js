@@ -3,7 +3,7 @@
 const P=()=>window.BlazingUnitProgression;
 const E=()=>window.BlazingEconomy;
 const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler'];
-let current='Tyler';
+let current='Tyler',fxTimer=0;
 
 function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
 function roman(n){return ['I','II','III','IV','V'][Math.max(0,Math.min(4,n-1))]||String(n)}
@@ -18,6 +18,31 @@ function reopen(name,message=''){
  renderLevelPanel(message);renderExchange();
 }
 
+function ensureFx(){
+ let root=document.getElementById('bbProgressionFx');
+ if(root)return root;
+ root=document.createElement('div');root.id='bbProgressionFx';root.className='bb-progression-fx';root.setAttribute('aria-live','polite');
+ root.innerHTML='<div class="bb-progression-fx-flash"></div><div class="bb-progression-fx-particles" aria-hidden="true"></div><section class="bb-progression-fx-card"><div class="bb-progression-fx-ring"><i></i><i></i><i></i></div><div class="bb-progression-fx-kicker"></div><strong class="bb-progression-fx-title"></strong><b class="bb-progression-fx-value"></b><small class="bb-progression-fx-sub"></small></section>';
+ const particles=root.querySelector('.bb-progression-fx-particles');
+ for(let i=0;i<22;i++){const p=document.createElement('i');p.style.setProperty('--i',String(i));p.style.setProperty('--x',`${8+(i*37)%84}%`);p.style.setProperty('--d',`${(i%7)*55}ms`);particles.appendChild(p)}
+ document.body.appendChild(root);return root;
+}
+function playFx(kind,{name=current,level,awakening}={}){
+ const root=ensureFx(),kicker=root.querySelector('.bb-progression-fx-kicker'),title=root.querySelector('.bb-progression-fx-title'),value=root.querySelector('.bb-progression-fx-value'),sub=root.querySelector('.bb-progression-fx-sub');
+ clearTimeout(fxTimer);root.classList.remove('active','level','awaken','shiny');void root.offsetWidth;
+ root.classList.add(kind,'active');root.dataset.kind=kind;
+ if(kind==='level'){
+  kicker.textContent=name.toUpperCase();title.textContent='LEVEL UP';value.textContent=`LV. ${level}`;sub.textContent='COMBAT POTENTIAL INCREASED';
+ }else if(kind==='shiny'){
+  kicker.textContent='FINAL AWAKENING';title.textContent='SHINY AWAKENED';value.textContent=name.toUpperCase();sub.textContent='MAXIMUM AWAKENING REACHED';
+ }else{
+  kicker.textContent=name.toUpperCase();title.textContent='AWAKENING COMPLETE';value.textContent=`AWAKENING ${roman(awakening)}`;sub.textContent=`LEVEL CAP UNLOCKED • LV.${Math.min(50,(Number(awakening)||1)*10+10)}`;
+ }
+ const duration=kind==='shiny'?2350:kind==='awaken'?1650:1150;
+ fxTimer=setTimeout(()=>{root.classList.remove('active')},duration);
+ return {kind,duration};
+}
+
 function ensureLevelPanel(){
  const panel=document.querySelector('#resonanceScreen .forgePanel');if(!panel)return null;
  let box=document.getElementById('bbLevelProgression');
@@ -30,7 +55,7 @@ function ensureLevelPanel(){
    if(button.dataset.action==='level'){
     const result=api.buyLevel(name);
     const msg=result.ok?`${name} reached Lv.${result.level}.`:result.reason==='AWAKENING_REQUIRED'?'Awaken this unit before the next ten levels.':result.reason==='INSUFFICIENT_MARKS'?`Need ${result.cost} Battle Marks to finish this level.`:'Level upgrade unavailable.';
-    reopen(name,msg);
+    reopen(name,msg);if(result.ok)setTimeout(()=>playFx('level',{name,level:result.level}),60);
    }
    if(button.dataset.action==='awaken'){
     const result=api.awaken(name);
@@ -38,7 +63,7 @@ function ensureLevelPanel(){
     if(result.ok)msg=result.shiny?`${name} awakened into the Shiny version.`:`Awakening ${roman(result.awakening)} complete. Level cap raised to ${result.newCap}.`;
     else if(result.reason==='LEVEL_REQUIRED')msg=`Reach Lv.${result.requiredLevel} first.`;
     else if(result.reason==='COPIES_REQUIRED')msg=`Need ${result.requiredCopies} duplicate cop${result.requiredCopies===1?'y':'ies'}.`;
-    reopen(name,msg);
+    reopen(name,msg);if(result.ok)setTimeout(()=>playFx(result.shiny?'shiny':'awaken',{name,awakening:result.awakening}),80);
    }
   });
  }
@@ -82,12 +107,12 @@ function rewriteSummonCopy(){
  const path=lobby.querySelector('.bb-resonance-path');if(path)path.innerHTML='<span><b>LEVEL</b> EARN XP OR SPEND MARKS</span><i>›</i><span><b>AWAKEN</b> SPEND DUPLICATES AT CAPS</span><i>›</i><span><b>LV.50</b> FINAL SHINY AWAKENING</span>';
  const details=lobby.querySelector('.bb-banner-details p');if(details)details.textContent='Five playable fighters • equal 20% development odds • free dev pulls • duplicates are stored until an Awakening gate is ready.';
 }
-function sync(){renderLevelPanel();renderExchange();rewriteSummonCopy()}
+function sync(){renderLevelPanel();renderExchange();rewriteSummonCopy();ensureFx()}
 
 window.addEventListener('bb:unit-progression',()=>{renderLevelPanel();refreshCombat()});
 window.addEventListener('bb:economy',()=>{renderLevelPanel();renderExchange()});
 document.getElementById('forgeRoster')?.addEventListener('click',event=>{const b=event.target.closest('[data-fighter]');if(b){current=b.dataset.fighter;setTimeout(()=>renderLevelPanel(),0)}});
 const nameEl=document.getElementById('forgeName');if(nameEl)new MutationObserver(()=>renderLevelPanel()).observe(nameEl,{childList:true,subtree:true,characterData:true});
-window.BlazingProgressionEconomyUI=Object.freeze({sync,renderLevelPanel,renderExchange});
+window.BlazingProgressionEconomyUI=Object.freeze({sync,renderLevelPanel,renderExchange,playFx});
 if(document.readyState==='loading')addEventListener('DOMContentLoaded',sync,{once:true});else sync();
 })();
