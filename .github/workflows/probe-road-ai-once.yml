@@ -15,5 +15,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Probe legacy speed and enemy AI anchors
+      - name: Probe exact Road speed and enemy AI functions
         run: node scripts/probe-road-ai.mjs
