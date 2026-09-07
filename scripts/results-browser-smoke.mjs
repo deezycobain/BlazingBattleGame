@@ -8,7 +8,7 @@ async function waitHome(page){
   await page.locator('#level1Btn').waitFor({state:'visible',timeout:30000});
   const loading=page.locator('#bb-loading-screen');
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
-  await page.waitForFunction(()=>typeof window.BlazingEconomy==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingRoadRun==='object',{timeout:30000});
+  await page.waitForFunction(()=>typeof window.BlazingEconomy==='object'&&typeof window.BlazingMatchResults==='object'&&typeof window.BlazingRoadRun==='object'&&typeof window.BlazingUnitProgression==='object',{timeout:30000});
   await page.waitForTimeout(180);
 }
 
@@ -22,7 +22,8 @@ async function win(page){
   return page.evaluate(()=>{
     const s=globalThis.eval('S'),check=globalThis.eval('checkVictoryKillshot');
     s.enemies.forEach(enemy=>{enemy.hp=0});
-    return {victory:check(),reward:s.bbVictoryReward||null,mode:s.bbRunMode};
+    const victory=check();
+    return {victory,reward:s.bbVictoryReward||null,xp:s.bbVictoryXp||null,mode:s.bbRunMode};
   });
 }
 
@@ -39,7 +40,7 @@ async function run(name,type){
     const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
     if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
 
-    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset()});
+    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset()});
     const home=await page.evaluate(async()=>{
       const title=document.querySelector('#menuScreen .bb-home-title');
       const labels=['summonsBtn','inventoryBtn','forgeBtn'].map(id=>document.getElementById(id)?.innerText||'');
@@ -55,9 +56,12 @@ async function run(name,type){
     await page.locator('#level1Btn').click();await waitMode(page,'road');
     const road=await win(page);
     if(!road.victory||road.reward?.amount!==100||road.reward?.balance!==100)throw new Error(`Road reward incorrect: ${JSON.stringify(road)}`);
+    if(road.xp?.amount!==180||road.xp?.units?.length!==3)throw new Error(`Road Battle XP incorrect: ${JSON.stringify(road.xp)}`);
     await page.locator('#bbMatchResults.active').waitFor({state:'visible',timeout:5000});
     const roadResult=await page.locator('#bbMatchResults').innerText();
-    if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BATTLE MARKS/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
+    if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BATTLE MARKS/.test(roadResult)||!/\+180 XP/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
+    const roadLevels=await page.evaluate(()=>Object.fromEntries(['Crimson','Sub-Zero','Lebee'].map(unit=>[unit,window.BlazingUnitProgression.unit(unit)])));
+    if(Object.values(roadLevels).some(unit=>unit.level!==2||unit.xp!==80))throw new Error(`Road XP did not persist into deployed team levels: ${JSON.stringify(roadLevels)}`);
     await page.getByRole('button',{name:'MAIN MENU'}).click();
     await page.waitForFunction(()=>!document.getElementById('battleScreen')?.classList.contains('active')&&getComputedStyle(document.getElementById('menuScreen')).display!=='none');
     const roadCard=await page.locator('[data-bb-home-action="road"] .bb-mode-desc').textContent();
@@ -66,20 +70,24 @@ async function run(name,type){
     await page.locator('#boss1Btn').click();await waitMode(page,'castle');
     const castle=await win(page);
     if(!castle.victory||castle.reward?.amount!==250||castle.reward?.balance!==350)throw new Error(`Castle reward incorrect: ${JSON.stringify(castle)}`);
+    if(castle.xp?.amount!==450||castle.xp?.units?.length!==3)throw new Error(`Castle Battle XP incorrect: ${JSON.stringify(castle.xp)}`);
     await page.locator('#bbMatchResults.active').waitFor({state:'visible',timeout:5000});
     const castleResult=await page.locator('#bbMatchResults').innerText();
-    if(!/250/.test(castleResult)||!/350/.test(castleResult)||!/RETURN TO MENU/.test(castleResult))throw new Error(`Castle results content incorrect: ${castleResult}`);
+    if(!/250/.test(castleResult)||!/350/.test(castleResult)||!/\+450 XP/.test(castleResult)||!/RETURN TO MENU/.test(castleResult))throw new Error(`Castle results content incorrect: ${castleResult}`);
     await page.getByRole('button',{name:'RETURN TO MENU'}).click();
     await page.waitForFunction(()=>!document.getElementById('battleScreen')?.classList.contains('active')&&getComputedStyle(document.getElementById('menuScreen')).display!=='none');
     const hud=await page.locator('#bbEconomyHud').innerText();
     if(!/350/.test(hud))throw new Error(`Home Battle Marks HUD not updated: ${hud}`);
 
+    const progressionBeforeReload=await page.evaluate(()=>window.BlazingUnitProgression.getState());
     await page.reload({waitUntil:'domcontentloaded'});await waitHome(page);
     const persisted=await page.locator('#bbEconomyHud').innerText();
     if(!/350/.test(persisted))throw new Error(`Battle Marks did not persist after reload: ${persisted}`);
-    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset()});
+    const progressionAfterReload=await page.evaluate(()=>window.BlazingUnitProgression.getState());
+    if(JSON.stringify(progressionAfterReload)!==JSON.stringify(progressionBeforeReload))throw new Error('Battle XP progression did not persist after reload');
+    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset()});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Results browser smoke PASS (${name}): official Home skin, HD wallpaper, Road/Castle rewards, menu return, and persistent Battle Marks verified.`);
+    console.log(`Results browser smoke PASS (${name}): official Home skin, HD wallpaper, Road/Castle rewards, Battle XP, menu return, and persistent progression verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
