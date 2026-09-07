@@ -40,9 +40,9 @@ async function snapshot(page){
         bodyChildren:document.body?.children?.length??-1,
         bodyText:(document.body?.innerText||'').slice(0,500),
         htmlLength:document.documentElement?.outerHTML?.length||0,
-        scripts:[...document.scripts].slice(0,12).map(s=>({src:s.src||'',type:s.type||'',defer:s.defer,async:s.async,text:(s.src?'':(s.textContent||'').slice(0,80))})),
         canvases:document.querySelectorAll('canvas').length,
         home:!!document.querySelector('.bb-home-theme,#homeScreen,[data-screen="home"]'),
+        approvedHome:!!document.querySelector('#bbHomeApproved[data-bb-home-version="approved-v4"]'),
         meta:window.BB_BUILD_META||null
       })),
       new Promise((_,reject)=>setTimeout(()=>reject(new Error('snapshot timeout')),4000))
@@ -52,100 +52,70 @@ async function snapshot(page){
   }
 }
 
-async function assertHomeLayout(page,label,{stacked}){
-  await page.locator('.bb-home-theme [data-bb-home-action="road"]').waitFor({state:'visible',timeout:20000});
+async function assertApprovedHome(page,label,{mobile}){
+  await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:20000});
   const state=await page.evaluate(()=>{
-    const root=document.querySelector('.bb-home-theme');
-    const group=root?.querySelector('.bb-home-actions');
-    const keys=['road','castle','summon','inventory','forge'];
-    const rect=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom};};
-    const describe=el=>{
-      if(!el)return null;
-      const cs=getComputedStyle(el);
-      const trail=[];
-      let node=el;
-      for(let depth=0;node&&depth<7;depth++,node=node.parentElement){
-        const s=getComputedStyle(node);
-        trail.push({
-          tag:node.tagName,
-          id:node.id||'',
-          className:String(node.className||'').slice(0,220),
-          display:s.display,
-          position:s.position,
-          gridTemplateColumns:s.gridTemplateColumns,
-          gridColumnStart:s.gridColumnStart,
-          gridColumnEnd:s.gridColumnEnd,
-          width:s.width,
-          maxWidth:s.maxWidth,
-          flex:s.flex,
-          flexDirection:s.flexDirection,
-          alignItems:s.alignItems,
-          rect:rect(node)
-        });
-      }
-      return {
-        ...rect(el),
-        scrollWidth:el.scrollWidth,
-        clientWidth:el.clientWidth,
-        text:(el.innerText||'').replace(/\s+/g,' ').trim(),
-        tag:el.tagName,
-        id:el.id||'',
-        className:String(el.className||'').slice(0,260),
-        display:cs.display,
-        position:cs.position,
-        visibility:cs.visibility,
-        opacity:cs.opacity,
-        gridColumnStart:cs.gridColumnStart,
-        gridColumnEnd:cs.gridColumnEnd,
-        gridRowStart:cs.gridRowStart,
-        gridRowEnd:cs.gridRowEnd,
-        widthStyle:cs.width,
-        maxWidth:cs.maxWidth,
-        minWidth:cs.minWidth,
-        flex:cs.flex,
-        outerHTML:(el.outerHTML||'').slice(0,900),
-        trail
-      };
-    };
-    const actions=Object.fromEntries(keys.map(key=>[key,describe(root?.querySelector(`[data-bb-home-action="${key}"]`))]));
+    const root=document.querySelector('#menuScreen.bb-home-v4');
+    const shell=document.querySelector('#bbHomeApproved');
+    const dock=shell?.querySelector('.bb-home-v4-dock');
+    const feature=shell?.querySelector('.bb-home-v4-feature');
+    const rect=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom};};
+    const nav={};
+    for(const key of ['battle','summon','units','forge'])nav[key]=rect(shell?.querySelector(`[data-nav="${key}"]`));
+    const images=[...shell?.querySelectorAll('img')||[]].map(img=>({src:img.getAttribute('src')||'',complete:img.complete,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight}));
     return {
       viewport:{width:innerWidth,height:innerHeight},
-      rootText:(root?.innerText||'').replace(/\s+/g,' ').trim(),
-      group:describe(group),
-      actions,
-      styleId:document.querySelector('#bb-home-polish-v3')?.id||'',
-      finalStyleId:document.querySelector('#bb-home-grid-final')?.id||'',
-      observerRuntime:typeof window.BlazingHomeSkin?.apply==='function'
+      shell:rect(shell),dock:rect(dock),feature:rect(feature),nav,images,
+      style:!!document.querySelector('#bb-home-approved-v4-style'),
+      runtime:typeof window.BlazingHomeSkin?.apply==='function',
+      background:root?getComputedStyle(root,'::before').backgroundImage:'',
+      legacy:{level1:!!document.querySelector('#level1Btn'),boss1:!!document.querySelector('#boss1Btn'),summon:!!document.querySelector('#summonsBtn'),inventory:!!document.querySelector('#inventoryBtn'),forge:!!document.querySelector('#forgeBtn')}
     };
   });
-  const {width:vw}=state.viewport;
-  const required=['road','castle','summon','inventory','forge'];
-  for(const key of required){
-    const r=state.actions[key];
-    const diag=()=>JSON.stringify({action:r,group:state.group});
-    if(!r)throw new Error(`${label}: missing ${key} home action`);
-    if(r.height<44)throw new Error(`${label}: ${key} hit target too short (${r.height.toFixed(1)}px) :: ${diag()}`);
-    if(r.width<70)throw new Error(`${label}: ${key} hit target too narrow (${r.width.toFixed(1)}px) :: ${diag()}`);
-    if(r.x<-1||r.right>vw+1)throw new Error(`${label}: ${key} overflows viewport (${r.x.toFixed(1)}..${r.right.toFixed(1)} of ${vw}) :: ${diag()}`);
+
+  const {width:vw,height:vh}=state.viewport;
+  if(!state.style)throw new Error(`${label}: approved Home v4 stylesheet missing`);
+  if(!state.runtime)throw new Error(`${label}: BlazingHomeSkin runtime missing`);
+  if(!state.shell||state.shell.width<vw-8||state.shell.height<vh-8)throw new Error(`${label}: approved Home shell does not cover viewport :: ${JSON.stringify(state.shell)}`);
+  if(!state.dock||state.dock.x<-1||state.dock.right>vw+1)throw new Error(`${label}: Home dock overflows viewport :: ${JSON.stringify(state.dock)}`);
+  if(!state.feature||state.feature.width<180||state.feature.height<70)throw new Error(`${label}: featured Battle card is undersized :: ${JSON.stringify(state.feature)}`);
+  if(!/home-city-clean-a\.webp/i.test(state.background))throw new Error(`${label}: approved clean city background is not active :: ${state.background}`);
+
+  for(const key of ['battle','summon','units','forge']){
+    const r=state.nav[key];
+    if(!r)throw new Error(`${label}: missing ${key} navigation button`);
+    if(r.width<70||r.height<38)throw new Error(`${label}: ${key} navigation hit target is undersized :: ${JSON.stringify(r)}`);
+    if(r.x<-1||r.right>vw+1||r.y<-1||r.bottom>vh+1)throw new Error(`${label}: ${key} navigation overflows viewport :: ${JSON.stringify(r)}`);
   }
-  if(!state.styleId)throw new Error(`${label}: v3 Home polish stylesheet missing`);
-  if(!state.finalStyleId)throw new Error(`${label}: final Home grid stylesheet missing`);
-  if(!state.observerRuntime)throw new Error(`${label}: BlazingHomeSkin runtime missing`);
-  if(!/BLAZING\s+ROAD/i.test(state.actions.road.text)||!/PHANTOM\s+CASTLE/i.test(state.actions.castle.text))throw new Error(`${label}: featured mode labels missing`);
-  if(/\bSTORY\b/i.test(state.rootText))throw new Error(`${label}: Story Mode unexpectedly visible`);
-  if(!state.group||state.group.scrollWidth>state.group.clientWidth+3)throw new Error(`${label}: Home action grid overflows horizontally :: ${JSON.stringify(state.group)}`);
-  const road=state.actions.road,castle=state.actions.castle;
-  if(stacked){
-    if(castle.y<road.bottom-3)throw new Error(`${label}: featured cards should stack on phone`);
-    if(Math.abs(road.width-castle.width)>4)throw new Error(`${label}: stacked featured cards have inconsistent widths`);
+
+  const broken=state.images.filter(img=>!img.complete||img.naturalWidth<=0||img.naturalHeight<=0);
+  if(broken.length)throw new Error(`${label}: approved Home assets failed to load :: ${JSON.stringify(broken.slice(0,8))}`);
+  if(state.images.some(img=>/assets\/ui\/home\/reference\//i.test(img.src)))throw new Error(`${label}: design-reference asset was loaded by runtime`);
+  for(const required of ['level1','boss1','summon','inventory','forge'])if(!state.legacy[required])throw new Error(`${label}: legacy route anchor ${required} missing behind new shell`);
+
+  const n=state.nav;
+  if(mobile){
+    if(Math.abs(n.battle.y-n.summon.y)>4)throw new Error(`${label}: first mobile nav row is misaligned`);
+    if(Math.abs(n.units.y-n.forge.y)>4)throw new Error(`${label}: second mobile nav row is misaligned`);
+    if(n.units.y<=n.battle.y+8)throw new Error(`${label}: mobile dock did not form two rows`);
   }else{
-    if(Math.abs(road.y-castle.y)>4)throw new Error(`${label}: featured cards should share a desktop row`);
-    if(road.right>castle.x+4)throw new Error(`${label}: desktop featured cards overlap`);
-    if(road.width<280||castle.width<280)throw new Error(`${label}: desktop featured cards are undersized :: ${JSON.stringify({road,castle,group:state.group,viewport:state.viewport})}`);
+    const ys=Object.values(n).map(r=>r.y);
+    if(Math.max(...ys)-Math.min(...ys)>4)throw new Error(`${label}: desktop dock is not aligned to one row`);
   }
-  const secondary=['summon','inventory','forge'].map(key=>state.actions[key]);
-  if(Math.max(...secondary.map(r=>r.y))-Math.min(...secondary.map(r=>r.y))>4)throw new Error(`${label}: secondary navigation is not aligned to one row :: ${JSON.stringify(Object.fromEntries(['summon','inventory','forge'].map(key=>[key,state.actions[key]])))}`);
-  console.log(`Browser smoke (${label}) Home layout PASS: ${stacked?'stacked phone':'two-column desktop'} featured modes; grid=${state.group.width.toFixed(1)}px`);
+  console.log(`Browser smoke (${label}) approved Home v4 PASS: ${mobile?'two-row phone':'four-button desktop'} dock; ${state.images.length} assets loaded`);
+}
+
+async function exerciseBattleMenu(page,label){
+  await page.locator('#bbHomeApproved [data-nav="battle"]').click();
+  const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');
+  await panel.waitFor({state:'visible',timeout:5000});
+  await page.locator('#bbHomeApproved [data-mode="road"]').waitFor({state:'visible',timeout:5000});
+  await page.locator('#bbHomeApproved [data-mode="castle"]').waitFor({state:'visible',timeout:5000});
+  const labels=await page.locator('#bbHomeApproved .bb-home-v4-modes').innerText();
+  if(!/BLAZING\s+ROAD/i.test(labels)||!/PHANTOM\s+CASTLE/i.test(labels))throw new Error(`${label}: Battle selector labels missing`);
+  await page.locator('#bbHomeApproved [data-close-battle]').click();
+  await panel.waitFor({state:'hidden',timeout:5000});
+  console.log(`Browser smoke (${label}) Battle selector PASS`);
 }
 
 async function runBrowser(name,type){
@@ -191,8 +161,11 @@ async function runBrowser(name,type){
     const homeRuntimeMatch=rootText.match(/<script id="bb-home-wallpaper-runtime">([\s\S]*?)<\/script>/i);
     if(!homeRuntimeMatch)throw new Error('Home runtime script missing from built root');
     const homeRuntimeText=homeRuntimeMatch[1];
-    if(!/new MutationObserver\(schedule\)\.observe\(document\.body,\{\s*subtree\s*:\s*true\s*,\s*childList\s*:\s*true\s*\}\)/.test(homeRuntimeText))throw new Error('Home observer is not the approved child-list-only runtime');
-    if(/\battributes\s*:\s*true\b/.test(homeRuntimeText))throw new Error('Home observer regressed to attribute mutation watching');
+    for(const marker of ['bbHomeApproved','approved-v4','navigation/battle.webp','navigation/summon.webp','navigation/units.webp','navigation/forge.webp','home-city-clean-a.webp']){
+      if(!homeRuntimeText.includes(marker))throw new Error(`approved Home runtime missing ${marker}`);
+    }
+    if(/assets\/ui\/home\/reference\//i.test(homeRuntimeText))throw new Error('Home runtime references design-only assets');
+    if(!/new MutationObserver\(schedule\)/.test(homeRuntimeText))throw new Error('Home observer runtime missing');
     console.log(`Browser smoke (${name}): root HTTP verified (${Math.round(rootText.length/1024)} KiB)`);
 
     if(IS_LOCAL){
@@ -211,29 +184,31 @@ async function runBrowser(name,type){
       await page.waitForTimeout(delay);
       const snap=await snapshot(page);
       console.log(`Browser smoke (${name}) snapshot +${delay}ms: ${JSON.stringify(snap)}`);
-      if(snap.canvases||snap.home)break;
+      if(snap.approvedHome)break;
     }
 
-    const readySelector='canvas,.bb-home-theme,#homeScreen,[data-screen="home"]';
-    console.log(`Browser smoke (${name}): wait for rendered game/home surface`);
-    await page.locator(readySelector).first().waitFor({state:'attached',timeout:30000});
+    await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
+    await assertApprovedHome(page,`${name}/phone`,{mobile:true});
+    await exerciseBattleMenu(page,`${name}/phone`);
 
-    await assertHomeLayout(page,`${name}/phone`,{stacked:true});
     await page.setViewportSize({width:1366,height:900});
     await page.waitForTimeout(180);
-    await assertHomeLayout(page,`${name}/desktop`,{stacked:false});
+    await assertApprovedHome(page,`${name}/desktop`,{mobile:false});
+    await exerciseBattleMenu(page,`${name}/desktop`);
 
     const state=await page.evaluate(()=>({
       meta:window.BB_BUILD_META||null,
       hasCanvas:!!document.querySelector('canvas'),
-      hasHome:!!document.querySelector('.bb-home-theme,#homeScreen,[data-screen="home"]'),
+      hasHome:!!document.querySelector('#bbHomeApproved[data-bb-home-version="approved-v4"]'),
       title:document.title,
       readyState:document.readyState
     }));
-    if(!state.hasCanvas&&!state.hasHome)throw new Error('game/home surface missing after readiness signal');
+    if(!state.hasHome)throw new Error('approved Home surface missing after readiness signal');
     if(EXPECT&&(!state.meta?.commit||!String(state.meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`deployed commit mismatch: expected ${EXPECT.slice(0,12)}, got ${state.meta?.commit||'missing'}`);
     if(pageErrors.length)throw new Error(`pageerror: ${pageErrors.join(' | ')}`);
-    console.log(`Browser smoke PASS (${name}): direct root rendered ${state.hasHome?'home':'canvas'} surface; readyState=${state.readyState}${EXPECT?` @ ${String(state.meta?.commit).slice(0,12)}`:''}`);
+    const homeFailures=failedRequests.filter(msg=>/assets\/ui\/home\//i.test(msg));
+    if(homeFailures.length)throw new Error(`approved Home asset requests failed: ${homeFailures.join(' | ')}`);
+    console.log(`Browser smoke PASS (${name}): approved Home v4 rendered; readyState=${state.readyState}${EXPECT?` @ ${String(state.meta?.commit).slice(0,12)}`:''}`);
   }catch(err){
     const snap=page?await snapshot(page):null;
     console.error(`Browser smoke FAIL (${name}): ${err.message}`);
