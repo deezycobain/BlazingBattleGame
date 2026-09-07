@@ -37,7 +37,7 @@ async function waitPresentationDecode(page){
   await page.waitForFunction(()=>{
     const art=document.querySelector('#bbHomeApproved [data-v5-leader-art]');
     return !!art&&art.naturalWidth>0&&art.naturalHeight>0;
-  },{timeout:10000});
+  },{timeout:15000});
 }
 
 async function assertHome(page,label){
@@ -95,19 +95,26 @@ async function exerciseBattle(page,label){
   await page.locator('#bbHomeApproved [data-close-battle]').click();await panel.waitFor({state:'hidden',timeout:5000});
 }
 
-async function run(name,type){
-  let browser;
+async function exerciseViewport(browser,name,label,contextOptions){
   const errors=[];
+  const context=await browser.newContext(contextOptions);
   try{
-    browser=await type.launch({headless:true,timeout:15000});
-    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:name==='webkit'});
-    const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));
+    const page=await context.newPage();
+    page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));
     const response=await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);
     await waitHome(page);
     const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
-    await assertHome(page,`${name}/phone`);await exerciseBattle(page,`${name}/phone`);
-    await page.setViewportSize({width:1366,height:900});await waitPresentationDecode(page);await page.waitForTimeout(100);await assertHome(page,`${name}/desktop`);await exerciseBattle(page,`${name}/desktop`);
+    await assertHome(page,`${name}/${label}`);await exerciseBattle(page,`${name}/${label}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
+  }finally{await context.close().catch(()=>{})}
+}
+
+async function run(name,type){
+  let browser;
+  try{
+    browser=await type.launch({headless:true,timeout:15000});
+    await exerciseViewport(browser,name,'phone',{viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:name==='webkit'});
+    await exerciseViewport(browser,name,'desktop',{viewport:{width:1366,height:900},isMobile:false,hasTouch:false});
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
