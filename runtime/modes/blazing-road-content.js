@@ -8,43 +8,62 @@ const point=(x,y)=>Object.freeze({x,y});
 const polygon=(...points)=>Object.freeze({type:'polygon',points:Object.freeze(points.map(([x,y])=>point(x,y)))});
 const rect=(x,y,w,h)=>Object.freeze({type:'rect',x,y,w,h});
 const ellipse=(x,y,rx,ry)=>Object.freeze({type:'ellipse',x,y,rx,ry});
-const terrain=(blocked=[])=>Object.freeze({blocked:Object.freeze(blocked)});
+const terrain=({allowed=[],blocked=[]}={})=>Object.freeze({allowed:Object.freeze(allowed),blocked:Object.freeze(blocked)});
+const anchors=(...points)=>Object.freeze(points.map(([x,y])=>point(x,y)));
+const presentation=(scale=1,position='center center')=>Object.freeze({scale,position});
 
 const MAPS=Object.freeze([
-  Object.freeze({key:'south-sac',name:'South Sac Approach',src:'assets/maps/blazing-road/stage-01-south-sac.webp',movement:terrain()}),
+  Object.freeze({
+    key:'south-sac',name:'South Sac Approach',src:'assets/maps/blazing-road/stage-01-south-sac.webp',
+    presentation:presentation(1.10,'center 53%'),
+    enemyAnchors:anchors([188,190],[292,214],[238,332],[326,350],[170,355]),
+    movement:terrain({
+      allowed:[polygon([164,126],[316,126],[351,242],[405,405],[446,560],[34,560],[76,405],[123,242])],
+      blocked:[
+        polygon([0,94],[118,94],[129,164],[111,245],[72,315],[0,330]),
+        polygon([362,94],[480,94],[480,332],[408,316],[370,245],[351,164]),
+        rect(0,548,68,92),rect(412,548,68,92)
+      ]
+    })
+  }),
   Object.freeze({
     key:'moon-statue-garden',name:'Moon Statue Garden',src:'assets/maps/blazing-road/stage-02-moon-statue-garden.webp',
-    movement:terrain([
-      polygon([0,105],[66,105],[84,150],[96,225],[111,308],[108,395],[86,510],[0,548]),
-      polygon([414,104],[480,104],[480,556],[414,530],[397,452],[383,360],[383,274],[393,196]),
-      ellipse(239,115,57,48),
-      rect(0,536,67,104),
-      rect(415,540,65,100)
-    ])
+    presentation:presentation(1.08,'center 52%'),
+    enemyAnchors:anchors([202,178],[281,196],[200,314],[300,363],[241,263]),
+    movement:terrain({
+      allowed:[polygon([181,108],[299,108],[324,196],[350,306],[390,438],[438,560],[42,560],[90,438],[130,306],[156,196])],
+      blocked:[
+        polygon([0,105],[66,105],[84,150],[96,225],[111,308],[108,395],[86,510],[0,548]),
+        polygon([414,104],[480,104],[480,556],[414,530],[397,452],[383,360],[383,274],[393,196]),
+        ellipse(239,115,57,48),
+        rect(0,536,67,104),
+        rect(415,540,65,100)
+      ]
+    })
   }),
   Object.freeze({
     key:'lantern-garden',name:'Lantern Garden',src:'assets/maps/blazing-road/stage-03-lantern-garden.webp',
-    movement:terrain([
+    movement:terrain({blocked:[
       polygon([0,86],[54,86],[66,150],[70,230],[64,325],[70,430],[58,535],[0,560]),
       polygon([430,86],[480,86],[480,562],[426,535],[419,438],[422,335],[416,238],[422,150]),
       polygon([135,86],[345,86],[337,137],[320,157],[160,157],[143,136]),
       ellipse(45,404,24,61),
       ellipse(440,421,22,65)
-    ])
+    ]})
   }),
   Object.freeze({
     key:'shinobi-overlook',name:'Shinobi Overlook',src:'assets/maps/blazing-road/stage-04-shinobi-overlook.webp',
-    movement:terrain([
+    movement:terrain({blocked:[
       polygon([0,90],[52,90],[58,170],[56,270],[52,380],[58,520],[0,548]),
       polygon([428,90],[480,90],[480,548],[424,520],[422,410],[426,300],[422,190])
-    ])
+    ]})
   }),
   Object.freeze({
     key:'training-grounds',name:'Training Grounds',src:'assets/maps/blazing-road/stage-05-training-grounds.webp',
-    movement:terrain([
+    movement:terrain({blocked:[
       polygon([0,95],[50,95],[58,180],[54,285],[60,400],[55,530],[0,560]),
       polygon([432,95],[480,95],[480,560],[426,530],[422,410],[430,292],[426,180])
-    ])
+    ]})
   })
 ]);
 
@@ -125,6 +144,18 @@ function pointInPolygon(p,points){
   return inside;
 }
 
+const paddingOffsets=pad=>[[0,0],[pad,0],[-pad,0],[0,pad],[0,-pad],[pad*.7,pad*.7],[pad*.7,-pad*.7],[-pad*.7,pad*.7],[-pad*.7,-pad*.7]];
+
+function pointAllowedBy(shape,p,padding=0){
+  if(!shape||!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return false;
+  const pad=Math.max(0,Number(padding)||0);
+  const samples=paddingOffsets(pad);
+  if(shape.type==='rect')return samples.every(([dx,dy])=>p.x+dx>=shape.x&&p.x+dx<=shape.x+shape.w&&p.y+dy>=shape.y&&p.y+dy<=shape.y+shape.h);
+  if(shape.type==='ellipse')return samples.every(([dx,dy])=>((p.x+dx-shape.x)/Math.max(1,shape.rx))**2+((p.y+dy-shape.y)/Math.max(1,shape.ry))**2<=1);
+  if(shape.type==='polygon')return samples.every(([dx,dy])=>pointInPolygon({x:p.x+dx,y:p.y+dy},shape.points||[]));
+  return false;
+}
+
 function pointBlockedBy(shape,p,padding=0){
   if(!shape||!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return false;
   const pad=Math.max(0,Number(padding)||0);
@@ -136,8 +167,7 @@ function pointBlockedBy(shape,p,padding=0){
   if(shape.type==='polygon'){
     if(pointInPolygon(p,shape.points||[]))return true;
     if(pad<=0)return false;
-    const offsets=[[pad,0],[-pad,0],[0,pad],[0,-pad],[pad*.7,pad*.7],[pad*.7,-pad*.7],[-pad*.7,pad*.7],[-pad*.7,-pad*.7]];
-    return offsets.some(([dx,dy])=>pointInPolygon({x:p.x+dx,y:p.y+dy},shape.points||[]));
+    return paddingOffsets(pad).slice(1).some(([dx,dy])=>pointInPolygon({x:p.x+dx,y:p.y+dy},shape.points||[]));
   }
   return false;
 }
@@ -145,15 +175,18 @@ function pointBlockedBy(shape,p,padding=0){
 function isWalkablePoint(mapOrKey,p,{padding=14}={}){
   if(!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return false;
   const map=mapFrom(mapOrKey);
+  const allowed=map?.movement?.allowed||[];
   const blocked=map?.movement?.blocked||[];
+  if(allowed.length&&!allowed.some(shape=>pointAllowedBy(shape,p,padding)))return false;
   return !blocked.some(shape=>pointBlockedBy(shape,p,padding));
 }
 
-function nearestWalkable(map,p,{padding=14,maxRadius=96}={}){
+function nearestWalkable(mapOrKey,p,{padding=14,maxRadius=180}={}){
+  const map=mapFrom(mapOrKey);
   if(isWalkablePoint(map,p,{padding}))return {x:p.x,y:p.y};
   for(let radius=8;radius<=maxRadius;radius+=8){
-    for(let i=0;i<16;i++){
-      const angle=i*Math.PI/8;
+    for(let i=0;i<24;i++){
+      const angle=i*Math.PI/12;
       const candidate={x:p.x+Math.cos(angle)*radius,y:p.y+Math.sin(angle)*radius};
       if(isWalkablePoint(map,candidate,{padding}))return candidate;
     }
@@ -163,12 +196,13 @@ function nearestWalkable(map,p,{padding=14,maxRadius=96}={}){
 
 function constrainMovementPoint(mapOrKey,destination,from=null,{padding=14,step=6}={}){
   const map=mapFrom(mapOrKey);
-  if(!map?.movement?.blocked?.length)return {x:destination.x,y:destination.y};
+  const hasTerrain=!!((map?.movement?.allowed?.length||0)+(map?.movement?.blocked?.length||0));
+  if(!hasTerrain)return {x:destination.x,y:destination.y};
   const to={x:Number(destination.x),y:Number(destination.y)};
   if(!Number.isFinite(to.x)||!Number.isFinite(to.y))return from&&Number.isFinite(from.x)&&Number.isFinite(from.y)?{x:from.x,y:from.y}:to;
   const origin=from&&Number.isFinite(from.x)&&Number.isFinite(from.y)?{x:Number(from.x),y:Number(from.y)}:null;
   if(!origin)return nearestWalkable(map,to,{padding})||to;
-  if(!isWalkablePoint(map,origin,{padding}))return nearestWalkable(map,to,{padding})||to;
+  if(!isWalkablePoint(map,origin,{padding}))return nearestWalkable(map,to,{padding})||nearestWalkable(map,origin,{padding})||origin;
   const distance=Math.hypot(to.x-origin.x,to.y-origin.y);
   const samples=Math.max(1,Math.ceil(distance/Math.max(2,Number(step)||6)));
   let last={...origin};
@@ -190,12 +224,18 @@ function stageConfig(value){
   const extraEnemy=secondRoute&&formation.length<5
     ? [{id:['onre','gotoku','yurei'][stage%3],x:stage%2?300:178,y:stage%2?292:286}]
     : [];
-  const enemies=[...formation,...extraEnemy].map((enemy,index)=>Object.freeze({
-    ...enemy,
-    name:`Road Rogue ${index+1}`,
-    mark:String(index+1),
-    stats:statsForEnemy(enemy.id,stage,elite)
-  }));
+  const rawEnemies=[...formation,...extraEnemy];
+  const enemies=rawEnemies.map((enemy,index)=>{
+    const authored=map.enemyAnchors?.[index%map.enemyAnchors.length]||null;
+    const desired=authored||{x:enemy.x,y:enemy.y};
+    const spawn=nearestWalkable(map,desired,{padding:22,maxRadius:200})||desired;
+    return Object.freeze({
+      ...enemy,x:spawn.x,y:spawn.y,
+      name:`Road Rogue ${index+1}`,
+      mark:String(index+1),
+      stats:statsForEnemy(enemy.id,stage,elite)
+    });
+  });
   return Object.freeze({
     stage,
     maxStage:MAX_STAGE,
@@ -220,6 +260,6 @@ function isFinalStage(stage){return stageNumber(stage)>=MAX_STAGE;}
 
 window.BlazingRoadContent=Object.freeze({
   MAX_STAGE,STAT_MAX,MAPS,BASE_ENEMY_STATS,stageNumber,stageConfig,mapForStage,isFinalStage,
-  isWalkablePoint,constrainMovementPoint
+  isWalkablePoint,nearestWalkable,constrainMovementPoint
 });
 })();
