@@ -17,7 +17,7 @@ assert(combat.computeScaledDamage(32,2.4)===77,'scaled Jutsu rounding changed');
 assert(combat.computeScaledDamage(132,1)===100,'Attack input must clamp to the 100-point stat ceiling');
 assert(combat.computeBuffedNormalDamage(40,0.25)===50,'linked normal damage rounding changed');
 assert(Math.abs(combat.defenseMitigation(50)-0.225)<1e-9,'50 Defense must mitigate 22.5% damage');
-assert(combat.defenseMitigation(100)===0.45,'100 Defense must cap at 45% mitigation');
+assert(Math.abs(combat.defenseMitigation(100)-0.45)<1e-9,'100 Defense must cap at 45% mitigation');
 
 const damageTarget={hp:100,maxHp:100,defense:50};
 const damageResult=combat.execute('damage_target',{target:damageTarget,damage:40});
