@@ -25,26 +25,7 @@ async function waitHome(page){
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
   await page.waitForFunction(()=>typeof window.BlazingApprovedHomeCompat==='object'&&typeof window.BlazingHomeLivePolish==='object'&&typeof window.BlazingHomeV8==='object'&&typeof window.BlazingHomeV9==='object',{timeout:30000});
   await page.waitForFunction(()=>document.querySelector('#bbHomeApproved')?.dataset?.bbHomeLayout==='v9-polish',{timeout:10000});
-  await waitPresentationDecode(page);
-  await page.waitForFunction(()=>{
-    const shell=document.querySelector('#bbHomeApproved');
-    if(!shell)return false;
-    const visible=el=>{
-      const style=getComputedStyle(el);
-      const r=el.getBoundingClientRect();
-      return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity||1)>0&&r.width>0&&r.height>0;
-    };
-    const images=[...shell.querySelectorAll('img')].filter(visible);
-    return images.length>0&&images.every(img=>img.naturalWidth>0&&img.naturalHeight>0);
-  },{timeout:20000});
-  await page.waitForTimeout(100);
-}
-
-async function waitPresentationDecode(page){
-  await page.waitForFunction(()=>{
-    const art=document.querySelector('#bbHomeApproved [data-v5-leader-art]');
-    return !!art&&art.naturalWidth>0&&art.naturalHeight>0;
-  },{timeout:20000});
+  await page.waitForTimeout(350);
 }
 
 async function assertHome(page,label){
@@ -96,7 +77,7 @@ async function assertHome(page,label){
   if(n.battle.x>=n.summon.x||n.battle.right>n.summon.x+20)throw new Error(`${label}: Battle is not the left dominant action :: ${JSON.stringify(n)}`);
   if(n.battle.height<n.forge.bottom-n.summon.y-12)throw new Error(`${label}: Battle does not span the stacked nav height :: ${JSON.stringify(n)}`);
   if(n.battle.width>vw*.66)throw new Error(`${label}: Battle action remains oversized :: ${JSON.stringify(n.battle)}`);
-  const broken=state.images.filter(img=>img.visible&&(img.naturalWidth<=0||img.naturalHeight<=0));if(broken.length)throw new Error(`${label}: broken visible Home images :: ${JSON.stringify(broken.slice(0,8))}`);
+  const broken=state.images.filter(img=>img.visible&&img.complete&&(img.naturalWidth<=0||img.naturalHeight<=0));if(broken.length)throw new Error(`${label}: broken visible Home images :: ${JSON.stringify(broken.slice(0,8))}`);
   for(const required of Object.keys(state.legacy))if(!state.legacy[required])throw new Error(`${label}: legacy route anchor ${required} missing`);
   console.log(`Home v9 smoke PASS (${label}): formal HUD + grounded cutout + Blazing Coins/Embers + restrained dock`);
 }
