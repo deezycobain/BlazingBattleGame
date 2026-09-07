@@ -15,5 +15,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Probe exact Road speed and enemy AI functions
+      - name: Build shell through Home finalizer
+        run: |
+          node scripts/build-cloudflare.mjs
+          node scripts/postprocess-build.mjs
+          node scripts/tyler-playable-postprocess.mjs
+          node scripts/ui-polish-postprocess.mjs
+          node scripts/postprocess-senku-retreat-cleanup.mjs
+          node scripts/static-hitbox-postprocess.mjs
+          node scripts/combat-polish-postprocess.mjs
+          node scripts/strict-attack-facing-postprocess.mjs
+          node scripts/subzero-freeze-alignment-postprocess.mjs
+          node scripts/ui-runtime-finalize.mjs
+          node scripts/progression-postprocess.mjs
+          node scripts/team-editor-route-postprocess.mjs
+          node scripts/browser-mouse-input-postprocess.mjs
+          node scripts/loading-screen-postprocess.mjs
+          node scripts/home-grid-finalize.mjs
+      - name: Probe postprocessed Road turn watchdog
         run: node scripts/probe-road-ai.mjs
