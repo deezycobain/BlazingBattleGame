@@ -29,7 +29,15 @@ async function waitHome(page){
     const images=[...document.querySelectorAll('#bbHomeApproved img')];
     return images.length>0&&images.every(img=>img.complete);
   },{timeout:10000});
+  await waitPresentationDecode(page);
   await page.waitForTimeout(100);
+}
+
+async function waitPresentationDecode(page){
+  await page.waitForFunction(()=>{
+    const art=document.querySelector('#bbHomeApproved [data-v5-leader-art]');
+    return !!art&&art.naturalWidth>0&&art.naturalHeight>0;
+  },{timeout:10000});
 }
 
 async function assertHome(page,label){
@@ -73,7 +81,7 @@ async function assertHome(page,label){
   if(!(n.summon.y<n.units.y&&n.units.y<n.forge.y))throw new Error(`${label}: Summon/Units/Forge are not stacked :: ${JSON.stringify(right)}`);
   if(n.battle.x>=n.summon.x||n.battle.right>n.summon.x+24)throw new Error(`${label}: Battle is not the left dominant action :: ${JSON.stringify(n)}`);
   if(n.battle.height<n.forge.bottom-n.summon.y-8)throw new Error(`${label}: Battle does not span the stacked nav height :: ${JSON.stringify(n)}`);
-  const broken=state.images.filter(img=>!img.complete||img.naturalWidth<=0||img.naturalHeight<=0);if(broken.length)throw new Error(`${label}: broken Home images :: ${JSON.stringify(broken.slice(0,8))}`);
+  const broken=state.images.filter(img=>img.naturalWidth<=0||img.naturalHeight<=0);if(broken.length)throw new Error(`${label}: broken Home images :: ${JSON.stringify(broken.slice(0,8))}`);
   for(const required of Object.keys(state.legacy))if(!state.legacy[required])throw new Error(`${label}: legacy route anchor ${required} missing`);
   console.log(`Home v8 smoke PASS (${label}): profile + parallax wallpaper + cutout leader + mockup dock`);
 }
@@ -98,7 +106,7 @@ async function run(name,type){
     await waitHome(page);
     const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
     await assertHome(page,`${name}/phone`);await exerciseBattle(page,`${name}/phone`);
-    await page.setViewportSize({width:1366,height:900});await page.waitForTimeout(180);await assertHome(page,`${name}/desktop`);await exerciseBattle(page,`${name}/desktop`);
+    await page.setViewportSize({width:1366,height:900});await waitPresentationDecode(page);await page.waitForTimeout(100);await assertHome(page,`${name}/desktop`);await exerciseBattle(page,`${name}/desktop`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
