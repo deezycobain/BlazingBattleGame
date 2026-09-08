@@ -93,7 +93,7 @@ async function run(name,type){
     if(home.livePolish!=='v7'||home.layout!=='v9-polish'||home.currencyMode!=='blazing-coins'||!home.centerHidden)throw new Error(`Home v9 live presentation missing: ${JSON.stringify(home)}`);
     if(home.roadState!=='fresh')throw new Error(`fresh Home Road state incorrect: ${home.roadState}`);
     if(!home.legacyHidden)throw new Error('legacy Home controls are still visually exposed behind approved shell');
-    for(const [key,file] of Object.entries({battle:'battle.webp',summon:'summon.webp',units:'units.webp',forge:'forge.webp'})){
+    for(const [key,file] of Object.entries({battle:'battle.png',summon:'summon.png',units:'units.png',forge:'forge.png'})){
       const item=home.nav[key];
       if(!item?.exists||!item.visible||!item.src.endsWith(`/navigation/${file}`))throw new Error(`approved ${key} navigation asset missing: ${JSON.stringify(item)}`);
     }
