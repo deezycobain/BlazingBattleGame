@@ -55,4 +55,20 @@ if(!(againstWall.x<100&&againstWall.y>135))throw new Error(`Road drag did not sl
 const aroundCorner=C.constrainMovementPoint(slideMap,{x:160,y:190},againstWall,{padding:0,step:6});
 if(!(aroundCorner.x>140&&aroundCorner.y>165))throw new Error(`Road drag could not steer around barrier corner: ${JSON.stringify({againstWall,aroundCorner})}`);
 
-console.log('Blazing Road content PASS: 10 stages, 5-map rotation, normalized enemy stats, elite checkpoints, evade tuning, edge-sliding terrain movement, and final-stage clamp verified.');
+// Player positions use a feet anchor, not a full-body collision disk. These points are
+// inside the authored Stage 1/2 lanes but the old 18px player halo rejected them as
+// invisible walls. A small 6px tolerance keeps actual terrain collision without shrinking
+// narrow walkable corridors away from the player.
+const laneEdgeCases=[
+ {name:'South Sac lower-left lane',map:C.mapForStage(1),point:{x:180,y:300}},
+ {name:'Moon Statue upper-left lane',map:C.mapForStage(2),point:{x:180,y:240}}
+];
+for(const test of laneEdgeCases){
+ if(!C.isWalkablePoint(test.map,test.point,{padding:6}))throw new Error(`${test.name} should remain walkable with foot-anchor clearance`);
+ if(C.isWalkablePoint(test.map,test.point,{padding:18}))throw new Error(`${test.name} no longer demonstrates the old ghost-padding regression`);
+}
+const terrainIntegration=await fs.readFile('scripts/road-terrain-postprocess.mjs','utf8');
+if(!terrainIntegration.includes('S.bbRoadContent?.map,legal,terrainFrom,{padding:6}'))throw new Error('Road player movement must use 6px foot-anchor terrain clearance');
+if(!terrainIntegration.includes('S.bbRoadContent?.map,desiredEvade,{x:e.x,y:e.y},{padding:18}'))throw new Error('Road enemy evasion should retain conservative 18px obstacle clearance');
+
+console.log('Blazing Road content PASS: 10 stages, 5-map rotation, normalized enemy stats, elite checkpoints, evade tuning, tight foot-anchor player clearance, edge-sliding terrain movement, and final-stage clamp verified.');
