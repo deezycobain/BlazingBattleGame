@@ -24,11 +24,22 @@ async function run(name,type){
   const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
   if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
 
-  await page.evaluate(()=>{window.BlazingUnitProgression.reset();window.BlazingEconomy.reset();window.BlazingEconomy.grantMarks(5000,'BROWSER_SMOKE')});
+  await page.evaluate(()=>{window.BlazingUnitProgression.reset();window.BlazingEconomy.reset()});
   await page.evaluate(()=>window.BlazingProgression.openForge('Lebee'));
   await page.locator('#resonanceScreen.active #bbLevelProgression').waitFor({state:'visible'});
   let panel=await page.locator('#bbLevelProgression').innerText();
   if(!/LV\.\s*1\s*\/\s*10/i.test(panel)||!/DUPLICATES\s*0/i.test(panel))throw new Error(`fresh progression panel incorrect: ${panel}`);
+
+  // An unaffordable purchase must show an explicit warning and must not mutate progression/economy.
+  const insufficientBefore=await page.evaluate(()=>({coins:window.BlazingEconomy.balance(),cost:window.BlazingUnitProgression.markCostToFinish('Lebee'),unit:window.BlazingUnitProgression.unit('Lebee')}));
+  await page.locator('#bbLevelProgression button[data-action="level"]').click();
+  const coinAlert=page.locator('#bbLevelProgression .bb-progression-alert--coins');
+  await coinAlert.waitFor({state:'visible',timeout:2000});
+  const coinAlertText=await coinAlert.innerText();
+  if(!/NOT ENOUGH BLAZING COINS/i.test(coinAlertText)||!coinAlertText.includes(String(insufficientBefore.cost)))throw new Error(`insufficient-coin alert incorrect: ${coinAlertText}`);
+  const insufficientAfter=await page.evaluate(()=>({coins:window.BlazingEconomy.balance(),unit:window.BlazingUnitProgression.unit('Lebee')}));
+  if(insufficientAfter.coins!==insufficientBefore.coins||insufficientAfter.unit.level!==insufficientBefore.unit.level||insufficientAfter.unit.xp!==insufficientBefore.unit.xp)throw new Error(`failed level purchase mutated state: ${JSON.stringify({insufficientBefore,insufficientAfter})}`);
+  await page.evaluate(()=>window.BlazingEconomy.grantMarks(5000,'BROWSER_SMOKE'));
 
   await page.evaluate(()=>window.BlazingUnitProgression.grantXp('Lebee',999999));
   await page.waitForFunction(()=>window.BlazingUnitProgression.unit('Lebee').level===10);
@@ -68,8 +79,9 @@ async function run(name,type){
   if(await page.locator('#bbLevelProgression button[data-action="max-level"]').count())throw new Error('MAX button should disappear at the Awakening gate');
   panel=await page.locator('#bbLevelProgression').innerText();if(!/LV\.\s*20\s*\/\s*20/i.test(panel)||!/AWAKEN TO CONTINUE/i.test(panel))throw new Error(`MAX gate UI incorrect: ${panel}`);
 
+  // A fresh fighter should gain several early levels from the first Road clear.
   const battleXp=await page.evaluate(()=>{const P=window.BlazingUnitProgression,before=P.unit('Tyler'),award=P.awardBattleXp({mode:'road',stage:1,names:['Tyler']}),after=P.unit('Tyler');return {before,award,after}});
-  if(battleXp.award?.amount!==180||battleXp.award?.units?.length!==1||battleXp.after.lifetimeXp-battleXp.before.lifetimeXp!==180)throw new Error(`battle XP regression after MAX work: ${JSON.stringify(battleXp)}`);
+  if(battleXp.award?.amount!==650||battleXp.award?.units?.length!==1||battleXp.after.lifetimeXp-battleXp.before.lifetimeXp!==650||battleXp.after.level!==5||battleXp.after.xp!==105)throw new Error(`early Road battle XP pacing regression: ${JSON.stringify(battleXp)}`);
 
   await page.locator('#forgeBack').click();await waitHome(page);await page.locator('#bbHomeApproved [data-nav="summon"]').click();
   await page.locator('#summonScreen.active #bbEmberExchange').waitFor({state:'visible'});
@@ -88,7 +100,7 @@ async function run(name,type){
 
   await page.evaluate(()=>{window.BlazingUnitProgression.reset();window.BlazingEconomy.reset()});
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Unit progression browser smoke PASS (${name}): single leveling, exact MAX TO AWAKENING, gate safety, battle XP, Awakening/Shiny, Ember exchange, and persistence verified.`);
+  console.log(`Unit progression browser smoke PASS (${name}): insufficient-coin feedback, single leveling, exact MAX TO AWAKENING, accelerated early Road XP, Awakening/Shiny, Ember exchange, and persistence verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
