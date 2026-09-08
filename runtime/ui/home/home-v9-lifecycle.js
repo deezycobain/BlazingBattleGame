@@ -113,6 +113,13 @@ function ensureStyle(){
 function currentLeader(){
  try{return window.BlazingApprovedHomeCompat?.leaderUnit?.()||null}catch(_){return null}
 }
+function playerIdentity(){
+ try{
+  const profile=window.BlazingHomeV8?.loadProfile?.();
+  if(profile?.username)return {username:String(profile.username).trim().slice(0,16)};
+ }catch(_){ }
+ return null;
+}
 function expectedCutout(){
  const unit=currentLeader();
  const id=norm(unit?.id||unit?.display_name||unit?.name||'');
@@ -131,6 +138,7 @@ function syncLeader(shell=document.getElementById(SHELL_ID)){
 
 function profileSnapshot(){
  const unit=currentLeader();
+ const identity=playerIdentity();
  const leaderName=unit?.display_name||unit?.name||unit?.id||'Current Fighter';
  const progressionApi=window.BlazingUnitProgression;
  let progression={totalBattleXp:0,units:{}};
@@ -154,6 +162,7 @@ function profileSnapshot(){
  const roadFighters=Array.isArray(road?.fighters)?road.fighters:[];
  const living=roadFighters.filter(fighter=>(Number(fighter?.hp)||0)>0).length;
  return {
+  playerName:identity?.username||'',
   leaderName,
   leaderLevel:leaderProgress?.level||1,
   leaderAwakening:leaderProgress?.awakening||0,
@@ -190,7 +199,7 @@ function renderProfile(panel=document.getElementById(PROFILE_ID)){
  const fighterRows=snapshot.fighters.map(fighter=>`<div class="bb-player-profile-fighter" data-profile-fighter="${esc(norm(fighter.name))}"><strong>${esc(fighter.name)}</strong><span><b>LV. ${format(fighter.level)}</b><em>${fighter.shiny?'SHINY':`AWAKENING ${format(fighter.awakening)} / 5`}</em></span></div>`).join('');
  card.innerHTML=`
   <header class="bb-player-profile-head">
-   <div><small>PLAYER PROFILE</small><h2 id="bbPlayerProfileTitle">${esc(snapshot.leaderName)}</h2><p>CURRENT LEADER · LV. ${format(snapshot.leaderLevel)} · ${esc(rank)}</p></div>
+   <div><small>PLAYER PROFILE</small><h2 id="bbPlayerProfileTitle">${snapshot.playerName?esc(snapshot.playerName):'PLAYER PROFILE'}</h2><p>CURRENT LEADER · ${esc(snapshot.leaderName)} · LV. ${format(snapshot.leaderLevel)} · ${esc(rank)}</p></div>
    <button class="bb-player-profile-close" type="button" data-profile-close aria-label="Close player profile">×</button>
   </header>
   <section class="bb-player-profile-stats" aria-label="Saved player statistics">
@@ -207,8 +216,9 @@ function renderProfile(panel=document.getElementById(PROFILE_ID)){
    <span class="bb-player-profile-road-badge">${esc(road.badge)}</span>
   </section>
   <section class="bb-player-profile-fighters"><span class="bb-player-profile-section-title">FIGHTER PROGRESSION</span><div class="bb-player-profile-fighter-grid">${fighterRows}</div></section>
-  <p class="bb-player-profile-foot">Profile values come from saved fighter progression, economy records, and the current Blazing Road run on this device.</p>`;
+  <p class="bb-player-profile-foot">Profile values come from saved player identity, fighter progression, economy records, and the current Blazing Road run on this device.</p>`;
  panel.dataset.bbProfileSignature=signature;
+ panel.dataset.bbProfilePlayer=norm(snapshot.playerName);
  panel.dataset.bbProfileLeader=norm(snapshot.leaderName);
  panel.dataset.bbProfileRoad=road.badge.toLowerCase();
  return snapshot;
@@ -223,9 +233,8 @@ function ensureProfile(shell=document.getElementById(SHELL_ID)){
   trigger.setAttribute('tabindex','0');
   trigger.setAttribute('aria-controls',PROFILE_ID);
   if(!trigger.hasAttribute('aria-expanded'))trigger.setAttribute('aria-expanded','false');
-  const leader=currentLeader();
-  const name=leader?.display_name||leader?.name||leader?.id||'current leader';
-  trigger.setAttribute('aria-label',`Open player profile for ${name}`);
+  const identity=playerIdentity();
+  trigger.setAttribute('aria-label',identity?.username?`Open player profile for ${identity.username}`:'Open player profile');
   trigger.setAttribute('title','Open Player Profile');
  }
  let panel=document.getElementById(PROFILE_ID);
@@ -302,6 +311,7 @@ function schedule(delay=0){
 for(const delay of [0,80,180,360,720,1400,2800,4800])schedule(delay);
 window.addEventListener('pageshow',()=>schedule(0));
 window.addEventListener('resize',()=>schedule(0),{passive:true});
+window.addEventListener('storage',()=>schedule(0));
 window.addEventListener('bb:unit-progression',()=>schedule(0));
 window.addEventListener('bb:economy',()=>schedule(0));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(0);});
