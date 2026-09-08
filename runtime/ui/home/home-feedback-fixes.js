@@ -13,7 +13,7 @@ const CSS=`
  padding:0 4px!important;
  transform:translateY(-26px)!important;
 }
-#bbHomeApproved.bb-home-v9 .bb-home-v4-nav{min-width:0!important;min-height:0!important;width:auto!important;height:auto!important;place-self:stretch!important}
+#bbHomeApproved.bb-home-v9 .bb-home-v4-nav{min-width:0!important;min-height:0!important;width:auto!important;height:100%!important;max-height:none!important;aspect-ratio:auto!important;place-self:stretch!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="battle"]{grid-column:1!important;grid-row:1!important;transform:rotate(-.7deg)!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="summon"]{grid-column:2!important;grid-row:1!important;transform:rotate(.35deg)!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="units"]{grid-column:1!important;grid-row:2!important;transform:rotate(-.2deg)!important}
