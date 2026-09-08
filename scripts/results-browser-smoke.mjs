@@ -104,13 +104,13 @@ async function run(name,type){
     await launchMode(page,'road');
     const road=await win(page);
     if(!road.victory||road.reward?.amount!==100||road.reward?.balance!==100||road.reward?.currency!=='BLAZING COINS')throw new Error(`Road reward incorrect: ${JSON.stringify(road)}`);
-    if(road.xp?.amount!==180||road.xp?.units?.length!==3)throw new Error(`Road Battle XP incorrect: ${JSON.stringify(road.xp)}`);
+    if(road.xp?.amount!==650||road.xp?.units?.length!==3)throw new Error(`Road Battle XP incorrect: ${JSON.stringify(road.xp)}`);
     await page.locator('#bbMatchResults.active').waitFor({state:'visible',timeout:5000});
     const roadResult=await page.locator('#bbMatchResults').innerText();
-    if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BLAZING COINS/.test(roadResult)||!/\+180 XP/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
+    if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BLAZING COINS/.test(roadResult)||!/\+650 XP/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
     const roadNames=road.xp.units.map(item=>item.name);
     const roadLevels=await page.evaluate(names=>Object.fromEntries(names.map(unit=>[unit,window.BlazingUnitProgression.unit(unit)])),roadNames);
-    if(Object.values(roadLevels).some(unit=>unit.level!==2||unit.xp!==80))throw new Error(`Road XP did not persist into deployed team levels: ${JSON.stringify(roadLevels)}`);
+    if(Object.values(roadLevels).some(unit=>unit.level!==5||unit.xp!==105))throw new Error(`Road XP did not accelerate fresh team to Lv5 + 105 XP: ${JSON.stringify(roadLevels)}`);
     await page.getByRole('button',{name:'MAIN MENU'}).click();
     await waitHome(page);
     const liveRoad=await page.evaluate(()=>{
@@ -126,10 +126,10 @@ async function run(name,type){
     await page.locator('#bbHomeApproved [data-mode="castle"]').click();await waitMode(page,'castle');
     const castle=await win(page);
     if(!castle.victory||castle.reward?.amount!==250||castle.reward?.balance!==350||castle.reward?.currency!=='BLAZING COINS')throw new Error(`Castle reward incorrect: ${JSON.stringify(castle)}`);
-    if(castle.xp?.amount!==450||castle.xp?.units?.length!==3)throw new Error(`Castle Battle XP incorrect: ${JSON.stringify(castle.xp)}`);
+    if(castle.xp?.amount!==900||castle.xp?.units?.length!==3)throw new Error(`Castle Battle XP incorrect: ${JSON.stringify(castle.xp)}`);
     await page.locator('#bbMatchResults.active').waitFor({state:'visible',timeout:5000});
     const castleResult=await page.locator('#bbMatchResults').innerText();
-    if(!/250/.test(castleResult)||!/350/.test(castleResult)||!/BLAZING COINS/.test(castleResult)||!/\+450 XP/.test(castleResult)||!/RETURN TO MENU/.test(castleResult))throw new Error(`Castle results content incorrect: ${castleResult}`);
+    if(!/250/.test(castleResult)||!/350/.test(castleResult)||!/BLAZING COINS/.test(castleResult)||!/\+900 XP/.test(castleResult)||!/RETURN TO MENU/.test(castleResult))throw new Error(`Castle results content incorrect: ${castleResult}`);
     await page.getByRole('button',{name:'RETURN TO MENU'}).click();
     await waitHome(page);
     const hud=await page.locator('#bbHomeApproved [data-v9-currency="blazing-coins"] [data-v5-marks]').innerText();
@@ -143,7 +143,7 @@ async function run(name,type){
     if(JSON.stringify(progressionAfterReload)!==JSON.stringify(progressionBeforeReload))throw new Error('Battle XP progression did not persist after reload');
     await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset()});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Results browser smoke PASS (${name}): Home v9, live Blazing Coins/Embers HUD, approved routes, Road/Castle rewards, Battle XP, Stage 2 menu return, and persistent progression verified.`);
+    console.log(`Results browser smoke PASS (${name}): Home v9, live Blazing Coins/Embers HUD, approved routes, accelerated Road/Castle Battle XP, Stage 2 menu return, and persistent progression verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
