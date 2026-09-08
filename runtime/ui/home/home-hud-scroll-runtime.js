@@ -91,7 +91,7 @@ function ensureStyle(){
   color:#1c1715!important;
   text-shadow:0 1px rgba(255,255,255,.34)!important;
 }
-#${SHELL_ID}.bb-home-v9 .bb-home-v5-profile-metak
+#${SHELL_ID}.bb-home-v9 .bb-home-v5-profile-meta{
   gap:5px!important;
   margin-top:4px!important;
   font:800 5.5px/1 ui-sans-serif,system-ui,sans-serif!important;
@@ -207,8 +207,20 @@ function syncSource(img,src){
  return true;
 }
 
+function pinBackground(el,src){
+ if(!el)return false;
+ const image=`url("${src}")`;
+ el.style.setProperty('background','transparent '+image+' center / 100% 100% no-repeat','important');
+ el.style.setProperty('background-image',image,'important');
+ el.style.setProperty('background-position','center','important');
+ el.style.setProperty('background-size','100% 100%','important');
+ el.style.setProperty('background-repeat','no-repeat','important');
+ return true;
+}
+
 function syncAssets(shell){
  if(!shell)return false;
+ const profileCard=shell.querySelector('.bb-home-v5-profile');
  const profile=shell.querySelector('.bb-home-v5-profile-texture');
  const coins=currency(shell,'coins');
  const embers=currency(shell,'embers');
@@ -217,6 +229,9 @@ function syncAssets(shell){
  syncSource(profile,ASSETS.profile);
  syncSource(coinImg,ASSETS.coins);
  syncSource(emberImg,ASSETS.embers);
+ pinBackground(profileCard,ASSETS.profile);
+ pinBackground(coins,ASSETS.coins);
+ pinBackground(embers,ASSETS.embers);
  if(coins){
   coins.dataset.v5Currency='blazing-coins';
   coins.dataset.v9Currency='blazing-coins';
@@ -230,7 +245,7 @@ function syncAssets(shell){
  }
  shell.dataset.bbHudSkin='scroll-red-black';
  shell.dataset.bbHudAssets='approved-runtime';
- return !!(profile&&coinImg&&emberImg);
+ return !!(profile&&coinImg&&emberImg&&profileCard&&coins&&embers);
 }
 
 function apply(){
