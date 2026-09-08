@@ -18,8 +18,12 @@ assert(JSON.stringify(P.CAPS)==='[10,20,30,40,50,50]','level caps must be 10/20/
 assert(P.xpForNextLevel(1)===100,'Lv1 XP requirement must start at 100');
 assert(P.xpForNextLevel(49)>P.xpForNextLevel(9),'late levels must require more XP');
 
-let xp=P.grantXp('Lebee',180);
-assert(xp.level===2&&xp.xp===80,'Road Stage 1 scale should move fresh Lebee to Lv2 with 80 XP carried');
+const road1=P.battleXpFor({mode:'road',stage:1});
+const road2=P.battleXpFor({mode:'road',stage:2});
+assert(road1===650,'Road Stage 1 must award 650 XP for fast onboarding progression');
+assert(road2===710,'Road Stage 2 must award 710 XP');
+let xp=P.grantXp('Lebee',road1);
+assert(xp.level===5&&xp.xp===105&&xp.levelsGained===4,'Road Stage 1 should move a fresh Lebee to Lv5 with 105 XP carried');
 P.grantXp('Lebee',999999);
 let lebee=P.unit('Lebee');
 assert(lebee.level===10&&lebee.xp===0,'XP must hard-stop at Lv10 before Awakening I');
@@ -46,13 +50,17 @@ const growth=P.statMultipliers(P.unit('Lebee'));
 assert(growth.coreGrowth>=.219&&growth.coreGrowth<=.221,'level + Awakening core growth should cap near 22%');
 assert(growth.speedGrowth<=.051,'speed progression must remain deliberately restrained');
 
-P.reset();E.reset();E.grantMarks(1000,'VALIDATION');
+P.reset();E.reset();
+const insufficient=P.buyLevel('Tyler');
+assert(!insufficient.ok&&insufficient.reason==='INSUFFICIENT_MARKS','zero-coin level purchase must report insufficient coins');
+assert(P.unit('Tyler').level===1&&P.unit('Tyler').xp===0,'failed coin purchase must not mutate unit progression');
+E.grantMarks(1000,'VALIDATION');
 P.grantXp('Tyler',50);
 const full=P.fullMarkCost(1),finish=P.markCostToFinish('Tyler');
-assert(finish<full&&finish>=15,'partial XP should reduce Battle Mark finish cost');
+assert(finish<full&&finish>=15,'partial XP should reduce Blazing Coin finish cost');
 const before=E.balance(),bought=P.buyLevel('Tyler');
-assert(bought.ok&&bought.level===2,'Battle Marks should finish the current level');
-assert(E.balance()===before-bought.cost,'level purchase must deduct exact Battle Marks');
+assert(bought.ok&&bought.level===2,'Blazing Coins should finish the current level');
+assert(E.balance()===before-bought.cost,'level purchase must deduct exact Blazing Coins');
 
 E.reset();E.grantMarks(E.EMBER_COST*12,'VALIDATION');
 for(let i=0;i<E.EMBER_WEEKLY_CAP;i++)assert(E.purchaseEmber().ok,`Ember purchase ${i+1} should succeed`);
@@ -60,4 +68,4 @@ const capped=E.purchaseEmber();
 assert(!capped.ok&&capped.reason==='WEEKLY_CAP','Ember exchange must stop at weekly cap');
 assert(E.emberBalance()===E.EMBER_WEEKLY_CAP,'Ember bank should equal purchased weekly cap');
 
-console.log('Unit progression PASS: XP bands, 1/1/1/1/2 duplicate gates, Lv50 Shiny cap, ~22% core growth, Battle Mark leveling, and weekly Ember exchange verified.');
+console.log('Unit progression PASS: accelerated early Road XP, Awakening gates, Lv50 Shiny cap, ~22% core growth, insufficient-coin safety, Blazing Coin leveling, and weekly Ember exchange verified.');
