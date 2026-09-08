@@ -8,24 +8,51 @@ const marker='bb-home-v8-build-final';
 html=html.replace(new RegExp(`<style\\b[^>]*id=["']${oldMarker}["'][^>]*>[\\s\\S]*?<\\/style>`,'gi'),'');
 html=html.replace(new RegExp(`<style\\b[^>]*id=["']${marker}["'][^>]*>[\\s\\S]*?<\\/style>`,'gi'),'');
 const css=`<style id="${marker}">
-html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav="battle"]{
- height:100%!important;
- min-height:0!important;
- align-self:stretch!important;
- place-self:stretch!important;
+html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-dock{
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;
 }
-html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav="battle"] img{
+html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav]{
+ min-width:0!important;
+ min-height:0!important;
+ width:auto!important;
  height:100%!important;
  max-height:none!important;
- object-fit:contain!important;
+ aspect-ratio:auto!important;
+ align-self:stretch!important;
+ justify-self:stretch!important;
+ place-self:stretch!important;
 }
-@media(max-width:620px){
-html body #bbHomeApproved.bb-home-v8 .bb-home-v4-dock{width:calc(100vw - 8px)!important;max-width:calc(100vw - 8px)!important}
-html body #bbHomeApproved.bb-home-v8 .bb-home-v4-center{width:48vw!important}
+html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav="battle"]{
+ grid-column:1!important;
+ grid-row:1!important;
+ transform:rotate(-.7deg)!important;
+}
+html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav="summon"]{
+ grid-column:2!important;
+ grid-row:1!important;
+ transform:rotate(.35deg)!important;
+}
+html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav="units"]{
+ grid-column:1!important;
+ grid-row:2!important;
+ transform:rotate(-.2deg)!important;
+}
+html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav="forge"]{
+ grid-column:2!important;
+ grid-row:2!important;
+ transform:rotate(.3deg)!important;
+}
+html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav] img{
+ width:100%!important;
+ height:100%!important;
+ max-width:100%!important;
+ max-height:100%!important;
+ object-fit:contain!important;
 }
 </style>`;
 if(!html.includes('</head>'))throw new Error('Home v8 finalize: missing </head>');
 html=html.replace('</head>',`${css}</head>`);
-for(const required of [marker,'calc(100vw - 8px)','bb-home-live-v7.bb-home-v8','height:100%!important'])if(!html.includes(required))throw new Error(`Home v8 finalize: missing ${required}`);
+for(const required of [marker,'grid-template-columns:repeat(2','grid-template-rows:repeat(2','bb-home-v4-nav[data-nav]','aspect-ratio:auto!important'])if(!html.includes(required))throw new Error(`Home v8 finalize: missing ${required}`);
 await fs.writeFile(file,html);
-console.log('Home v8 finalize PASS: Battle spans the three-button stack and the mockup dock remains viewport-safe.');
+console.log('Home v8 finalize PASS: equal 2x2 Home action cells normalized without legacy Battle-span or viewport-width overrides.');
