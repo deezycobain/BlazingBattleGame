@@ -205,12 +205,24 @@ function constrainMovementPoint(mapOrKey,destination,from=null,{padding=14,step=
   if(!isWalkablePoint(map,origin,{padding}))return nearestWalkable(map,to,{padding})||nearestWalkable(map,origin,{padding})||origin;
   const distance=Math.hypot(to.x-origin.x,to.y-origin.y);
   const samples=Math.max(1,Math.ceil(distance/Math.max(2,Number(step)||6)));
+  const stepX=(to.x-origin.x)/samples,stepY=(to.y-origin.y)/samples;
   let last={...origin};
-  for(let i=1;i<=samples;i++){
-    const t=i/samples;
-    const candidate={x:origin.x+(to.x-origin.x)*t,y:origin.y+(to.y-origin.y)*t};
-    if(!isWalkablePoint(map,candidate,{padding}))return last;
-    last=candidate;
+  for(let i=0;i<samples;i++){
+    const candidate={x:last.x+stepX,y:last.y+stepY};
+    if(isWalkablePoint(map,candidate,{padding})){
+      last=candidate;
+      continue;
+    }
+    // A diagonal finger drag should glide along a barrier instead of freezing at the
+    // first blocked sample. Try each axis independently and keep the legal move that
+    // still makes the most progress toward the pointer destination.
+    const slides=[
+      {x:last.x+stepX,y:last.y},
+      {x:last.x,y:last.y+stepY}
+    ].filter(point=>isWalkablePoint(map,point,{padding}));
+    if(!slides.length)return last;
+    slides.sort((a,b)=>Math.hypot(to.x-a.x,to.y-a.y)-Math.hypot(to.x-b.x,to.y-b.y));
+    last=slides[0];
   }
   return last;
 }
