@@ -3,6 +3,9 @@
 
 const MAX_STAGE=10;
 const STAT_MAX=100;
+const PLAYER_FOOT_PADDING=4;
+const ENEMY_TERRAIN_PADDING=18;
+const PLAYABLE_FLOOR=Object.freeze({x:18,y:96,w:444,h:468});
 const clampStat=value=>Math.max(1,Math.min(STAT_MAX,Math.round(Number(value)||1)));
 const point=(x,y)=>Object.freeze({x,y});
 const polygon=(...points)=>Object.freeze({type:'polygon',points:Object.freeze(points.map(([x,y])=>point(x,y)))});
@@ -10,40 +13,46 @@ const rect=(x,y,w,h)=>Object.freeze({type:'rect',x,y,w,h});
 const ellipse=(x,y,rx,ry)=>Object.freeze({type:'ellipse',x,y,rx,ry});
 const terrain=({allowed=[],blocked=[]}={})=>Object.freeze({allowed:Object.freeze(allowed),blocked:Object.freeze(blocked)});
 const anchors=(...points)=>Object.freeze(points.map(([x,y])=>point(x,y)));
-const presentation=(scale=1,position='center center')=>Object.freeze({scale,position});
+const presentation=(combatScale=1.12,position='center 53%')=>Object.freeze({
+  introScale:1,
+  combatScale,
+  scale:combatScale,
+  position,
+  introHoldMs:520,
+  transitionMs:620
+});
+const broadFloor=()=>[rect(PLAYABLE_FLOOR.x,PLAYABLE_FLOOR.y,PLAYABLE_FLOOR.w,PLAYABLE_FLOOR.h)];
 
 const MAPS=Object.freeze([
   Object.freeze({
     key:'south-sac',name:'South Sac Approach',src:'assets/maps/blazing-road/stage-01-south-sac.webp',
-    presentation:presentation(1.10,'center 53%'),
+    presentation:presentation(1.14,'center 54%'),
     enemyAnchors:anchors([200,260],[280,274],[240,340],[315,382],[176,386]),
     movement:terrain({
-      allowed:[polygon([194,216],[286,216],[315,300],[355,410],[411,560],[69,560],[125,410],[165,300])],
+      allowed:broadFloor(),
       blocked:[
-        polygon([0,94],[150,94],[166,206],[146,294],[115,410],[70,548],[0,560]),
-        polygon([330,94],[480,94],[480,560],[410,548],[365,410],[334,294],[314,206]),
-        rect(0,548,78,92),rect(402,548,78,92)
+        polygon([0,92],[62,92],[76,170],[78,260],[72,350],[60,455],[48,570],[0,570]),
+        polygon([418,92],[480,92],[480,570],[432,570],[420,455],[408,350],[402,260],[404,170])
       ]
     })
   }),
   Object.freeze({
     key:'moon-statue-garden',name:'Moon Statue Garden',src:'assets/maps/blazing-road/stage-02-moon-statue-garden.webp',
-    presentation:presentation(1.08,'center 52%'),
+    presentation:presentation(1.13,'center 53%'),
     enemyAnchors:anchors([205,220],[275,232],[210,315],[290,362],[242,276]),
     movement:terrain({
-      allowed:[polygon([190,172],[290,172],[312,240],[336,332],[376,456],[420,560],[60,560],[104,456],[144,332],[168,240])],
+      allowed:broadFloor(),
       blocked:[
-        polygon([0,105],[150,105],[168,205],[146,326],[105,455],[60,548],[0,560]),
-        polygon([330,104],[480,104],[480,560],[420,548],[375,455],[334,326],[312,205]),
-        ellipse(239,145,65,52),
-        rect(0,536,72,104),
-        rect(408,540,72,100)
+        polygon([0,98],[62,98],[78,180],[80,280],[72,390],[58,500],[46,570],[0,570]),
+        polygon([418,98],[480,98],[480,570],[434,570],[422,500],[408,390],[400,280],[402,180]),
+        ellipse(239,145,50,36)
       ]
     })
   }),
   Object.freeze({
     key:'lantern-garden',name:'Lantern Garden',src:'assets/maps/blazing-road/stage-03-lantern-garden.webp',
-    movement:terrain({blocked:[
+    presentation:presentation(1.12,'center 53%'),
+    movement:terrain({allowed:broadFloor(),blocked:[
       polygon([0,86],[54,86],[66,150],[70,230],[64,325],[70,430],[58,535],[0,560]),
       polygon([430,86],[480,86],[480,562],[426,535],[419,438],[422,335],[416,238],[422,150]),
       polygon([135,86],[345,86],[337,137],[320,157],[160,157],[143,136]),
@@ -53,14 +62,16 @@ const MAPS=Object.freeze([
   }),
   Object.freeze({
     key:'shinobi-overlook',name:'Shinobi Overlook',src:'assets/maps/blazing-road/stage-04-shinobi-overlook.webp',
-    movement:terrain({blocked:[
+    presentation:presentation(1.11,'center 52%'),
+    movement:terrain({allowed:broadFloor(),blocked:[
       polygon([0,90],[52,90],[58,170],[56,270],[52,380],[58,520],[0,548]),
       polygon([428,90],[480,90],[480,548],[424,520],[422,410],[426,300],[422,190])
     ]})
   }),
   Object.freeze({
     key:'training-grounds',name:'Training Grounds',src:'assets/maps/blazing-road/stage-05-training-grounds.webp',
-    movement:terrain({blocked:[
+    presentation:presentation(1.10,'center 52%'),
+    movement:terrain({allowed:broadFloor(),blocked:[
       polygon([0,95],[50,95],[58,180],[54,285],[60,400],[55,530],[0,560]),
       polygon([432,95],[480,95],[480,560],[426,530],[422,410],[430,292],[426,180])
     ]})
@@ -172,7 +183,7 @@ function pointBlockedBy(shape,p,padding=0){
   return false;
 }
 
-function isWalkablePoint(mapOrKey,p,{padding=14}={}){
+function isWalkablePoint(mapOrKey,p,{padding=PLAYER_FOOT_PADDING}={}){
   if(!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return false;
   const map=mapFrom(mapOrKey);
   const allowed=map?.movement?.allowed||[];
@@ -181,7 +192,7 @@ function isWalkablePoint(mapOrKey,p,{padding=14}={}){
   return !blocked.some(shape=>pointBlockedBy(shape,p,padding));
 }
 
-function nearestWalkable(mapOrKey,p,{padding=14,maxRadius=180}={}){
+function nearestWalkable(mapOrKey,p,{padding=PLAYER_FOOT_PADDING,maxRadius=180}={}){
   const map=mapFrom(mapOrKey);
   if(isWalkablePoint(map,p,{padding}))return {x:p.x,y:p.y};
   for(let radius=8;radius<=maxRadius;radius+=8){
@@ -194,7 +205,7 @@ function nearestWalkable(mapOrKey,p,{padding=14,maxRadius=180}={}){
   return null;
 }
 
-function constrainMovementPoint(mapOrKey,destination,from=null,{padding=14,step=6}={}){
+function constrainMovementPoint(mapOrKey,destination,from=null,{padding=PLAYER_FOOT_PADDING,step=6}={}){
   const map=mapFrom(mapOrKey);
   const hasTerrain=!!((map?.movement?.allowed?.length||0)+(map?.movement?.blocked?.length||0));
   if(!hasTerrain)return {x:destination.x,y:destination.y};
@@ -213,9 +224,6 @@ function constrainMovementPoint(mapOrKey,destination,from=null,{padding=14,step=
       last=candidate;
       continue;
     }
-    // A diagonal finger drag should glide along a barrier instead of freezing at the
-    // first blocked sample. Try each axis independently and keep the legal move that
-    // still makes the most progress toward the pointer destination.
     const slides=[
       {x:last.x+stepX,y:last.y},
       {x:last.x,y:last.y+stepY}
@@ -240,7 +248,7 @@ function stageConfig(value){
   const enemies=rawEnemies.map((enemy,index)=>{
     const authored=map.enemyAnchors?.[index%map.enemyAnchors.length]||null;
     const desired=authored||{x:enemy.x,y:enemy.y};
-    const spawn=nearestWalkable(map,desired,{padding:22,maxRadius:200})||desired;
+    const spawn=nearestWalkable(map,desired,{padding:ENEMY_TERRAIN_PADDING,maxRadius:200})||desired;
     return Object.freeze({
       ...enemy,x:spawn.x,y:spawn.y,
       name:`Road Rogue ${index+1}`,
@@ -271,7 +279,7 @@ function mapForStage(stage){return stageConfig(stage).map;}
 function isFinalStage(stage){return stageNumber(stage)>=MAX_STAGE;}
 
 window.BlazingRoadContent=Object.freeze({
-  MAX_STAGE,STAT_MAX,MAPS,BASE_ENEMY_STATS,stageNumber,stageConfig,mapForStage,isFinalStage,
-  isWalkablePoint,nearestWalkable,constrainMovementPoint
+  MAX_STAGE,STAT_MAX,PLAYER_FOOT_PADDING,ENEMY_TERRAIN_PADDING,PLAYABLE_FLOOR,MAPS,BASE_ENEMY_STATS,
+  stageNumber,stageConfig,mapForStage,isFinalStage,isWalkablePoint,nearestWalkable,constrainMovementPoint
 });
 })();
