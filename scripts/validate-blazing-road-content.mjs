@@ -48,4 +48,11 @@ for(let i=0;i<5;i++){
 if(!C.isFinalStage(10)||!C.isFinalStage(99)||C.isFinalStage(9))throw new Error('Final-stage detection is incorrect');
 if(C.stageConfig(11).stage!==10)throw new Error('Road content must clamp beyond Stage 10');
 
-console.log('Blazing Road content PASS: 10 stages, 5-map rotation, normalized 1-100 enemy stats, elite checkpoints, evade tuning, and final-stage clamp verified.');
+// Terrain collisions should guide a drag along a barrier instead of freezing the fighter.
+const slideMap={movement:{allowed:[],blocked:[{type:'rect',x:100,y:80,w:40,h:80}]}};
+const againstWall=C.constrainMovementPoint(slideMap,{x:160,y:150},{x:80,y:100},{padding:0,step:6});
+if(!(againstWall.x<100&&againstWall.y>135))throw new Error(`Road drag did not slide along barrier edge: ${JSON.stringify(againstWall)}`);
+const aroundCorner=C.constrainMovementPoint(slideMap,{x:160,y:190},againstWall,{padding:0,step:6});
+if(!(aroundCorner.x>140&&aroundCorner.y>165))throw new Error(`Road drag could not steer around barrier corner: ${JSON.stringify({againstWall,aroundCorner})}`);
+
+console.log('Blazing Road content PASS: 10 stages, 5-map rotation, normalized enemy stats, elite checkpoints, evade tuning, edge-sliding terrain movement, and final-stage clamp verified.');
