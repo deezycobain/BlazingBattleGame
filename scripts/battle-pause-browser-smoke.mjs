@@ -17,6 +17,9 @@ async function enterRoad(page){
  await page.locator('#bbHomeApproved [data-mode="road"]').click();
  await page.waitForFunction(()=>{try{const s=globalThis.eval('S');return document.getElementById('battleScreen')?.classList.contains('active')&&s?.bbRunMode==='road'}catch{return false}},{timeout:15000});
 }
+async function waitRoadCombatReady(page){
+ await page.waitForFunction(()=>!window.BlazingRoadCamera?.isCombatLocked?.(),null,{timeout:12000});
+}
 async function run(name,type){
  let browser;
  try{
@@ -42,6 +45,10 @@ async function run(name,type){
   const placement=await page.evaluate(()=>{const battle=document.getElementById('battleScreen'),pause=document.getElementById('bbBattlePauseButton'),reset=[...battle.querySelectorAll('button')].find(button=>/^\s*reset\s*$/i.test(button.textContent||''));const rect=el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height}};return {battle:rect(battle),pause:rect(pause),reset:rect(reset)}});
   if(placement.pause.top<placement.reset.bottom-1||placement.pause.right>placement.battle.right+1||placement.pause.width>48)throw new Error(`Pause control placement is not below the battle toolbar: ${JSON.stringify(placement)}`);
 
+  // Road now intentionally freezes the combat tick through the 3-2-1-FIGHT/camera intro.
+  // Wait for that independent presentation lock to clear before testing Pause/Resume itself.
+  await waitRoadCombatReady(page);
+
   await page.locator('#bbBattlePauseButton').click();await page.locator('#bbBattlePause.active').waitFor({state:'visible',timeout:3000});
   if(!(await page.evaluate(()=>window.BlazingBattlePause.isPaused())))throw new Error('pause API did not enter paused state');
   const frozenA=await page.evaluate(()=>{const s=globalThis.eval('S');return [...s.pairs.map(p=>p.gauge),...s.enemies.map(e=>e.gauge)]});
@@ -63,7 +70,7 @@ async function run(name,type){
   if(exitState.feedback!=='r1')throw new Error(`Home feedback layer missing after Exit: ${JSON.stringify(exitState)}`);
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Battle pause smoke PASS (${name}): Reset preserves Road stage/map, Pause freezes/resumes correctly, Exit keeps Road state, and the Home leader presentation stays hidden.`);
+  console.log(`Battle pause smoke PASS (${name}): Reset preserves Road stage/map, Pause freezes/resumes correctly after the Road intro lock, Exit keeps Road state, and the Home leader presentation stays hidden.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
