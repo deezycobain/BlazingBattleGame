@@ -3,9 +3,9 @@
 
 const DEFAULT_COMBAT_SCALE=1.12;
 const DEFAULT_POSITION='center 53%';
-const DEFAULT_COUNTDOWN_STEP_MS=520;
-const DEFAULT_FIGHT_HOLD_MS=680;
-const DEFAULT_TRANSITION_MS=760;
+const DEFAULT_COUNTDOWN_STEP_MS=720;
+const DEFAULT_FIGHT_HOLD_MS=900;
+const DEFAULT_TRANSITION_MS=1450;
 const OVERLAY_ID='bbRoadFightIntro';
 const STYLE_ID='bb-road-fight-intro-style';
 let activeKey='';
@@ -19,6 +19,9 @@ let currentCanvas=null;
 let combatLocked=false;
 let overlayWord='';
 let timer=0;
+let activeCountdownStepMs=DEFAULT_COUNTDOWN_STEP_MS;
+let activeFightHoldMs=DEFAULT_FIGHT_HOLD_MS;
+let activeTransitionMs=DEFAULT_TRANSITION_MS;
 const originalStyles=new WeakMap();
 
 function liveState(){try{return globalThis.eval('S')}catch{return null}}
@@ -47,11 +50,12 @@ function ensureIntroUi(){
     style.textContent=`
 #${OVERLAY_ID}{position:fixed;inset:0;z-index:12000;display:none;place-items:center;pointer-events:none;background:transparent;contain:layout paint}
 #${OVERLAY_ID}.active{display:grid}
-#${OVERLAY_ID} .bb-road-fight-word{font-family:'AnimeAce2','Arial Black',Impact,sans-serif;font-size:clamp(78px,22vw,170px);font-weight:900;line-height:.82;letter-spacing:.03em;color:#fff7df;-webkit-text-stroke:clamp(2px,.7vw,5px) #121016;text-shadow:0 .055em 0 #a50f19,0 .11em .10em rgba(0,0,0,.56),0 0 .18em rgba(255,191,73,.42);transform:rotate(-4deg) scale(.72);opacity:0;filter:drop-shadow(0 .08em .06em rgba(0,0,0,.58));user-select:none}
-#${OVERLAY_ID}[data-word='FIGHT'] .bb-road-fight-word{font-size:clamp(72px,20vw,156px);color:#ffd34f;-webkit-text-stroke-color:#1b1113;text-shadow:0 .06em 0 #c51c17,0 .12em .10em rgba(0,0,0,.62),0 0 .22em rgba(255,86,36,.48)}
-#${OVERLAY_ID} .bb-road-fight-word.pop{animation:bbRoadFightPop .52s cubic-bezier(.18,.78,.17,1) both}
-#${OVERLAY_ID}[data-word='FIGHT'] .bb-road-fight-word.pop{animation-duration:.72s}
-@keyframes bbRoadFightPop{0%{opacity:0;transform:rotate(-7deg) scale(.54)}28%{opacity:1;transform:rotate(-2deg) scale(1.08)}68%{opacity:1;transform:rotate(-3deg) scale(.99)}100%{opacity:0;transform:rotate(-2deg) scale(1.07)}}
+#${OVERLAY_ID} .bb-road-fight-word{font-family:'AnimeAce2',Impact,'Arial Black',sans-serif;font-size:clamp(82px,23vw,176px);font-style:italic;font-weight:900;font-stretch:condensed;line-height:.78;letter-spacing:-.035em;color:#fff7df;-webkit-text-stroke:clamp(2px,.72vw,5px) #121016;paint-order:stroke fill;text-shadow:.025em .025em 0 #2a1517,0 .065em 0 #a50f19,0 .13em .11em rgba(0,0,0,.62),0 0 .19em rgba(255,191,73,.46);transform-origin:50% 56%;transform:rotate(-6deg) skewX(-6deg) scale(.62);opacity:0;filter:drop-shadow(0 .09em .07em rgba(0,0,0,.62));user-select:none}
+#${OVERLAY_ID}[data-word='FIGHT'] .bb-road-fight-word{font-size:clamp(76px,21vw,164px);letter-spacing:-.055em;color:#ffd34f;-webkit-text-stroke-color:#1b1113;text-shadow:.025em .025em 0 #321417,0 .065em 0 #c51c17,0 .13em .11em rgba(0,0,0,.66),0 0 .24em rgba(255,86,36,.54)}
+#${OVERLAY_ID} .bb-road-fight-word.pop{animation:bbRoadFightPop .68s cubic-bezier(.16,.84,.18,1) both}
+#${OVERLAY_ID}[data-word='FIGHT'] .bb-road-fight-word.pop{animation-name:bbRoadFightStrike;animation-duration:.98s;animation-timing-function:cubic-bezier(.12,.86,.16,1)}
+@keyframes bbRoadFightPop{0%{opacity:0;transform:translateY(.06em) rotate(-11deg) skewX(-10deg) scale(.34);filter:blur(1.5px) drop-shadow(0 .09em .07em rgba(0,0,0,.62))}22%{opacity:1;transform:translateY(0) rotate(-4deg) skewX(-6deg) scale(1.16);filter:blur(0) drop-shadow(0 .09em .07em rgba(0,0,0,.62))}44%{opacity:1;transform:rotate(-6deg) skewX(-5deg) scale(.96)}67%{opacity:1;transform:rotate(-4deg) skewX(-5deg) scale(1.035)}82%{opacity:1;transform:rotate(-5deg) skewX(-5deg) scale(1)}100%{opacity:0;transform:translateY(-.045em) rotate(-3deg) skewX(-4deg) scale(1.09)}}
+@keyframes bbRoadFightStrike{0%{opacity:0;transform:translateX(-.11em) rotate(-12deg) skewX(-12deg) scale(.42);filter:blur(2px) drop-shadow(0 .09em .07em rgba(0,0,0,.62))}18%{opacity:1;transform:translateX(0) rotate(-3deg) skewX(-7deg) scale(1.22);filter:blur(0) drop-shadow(0 .09em .07em rgba(0,0,0,.62))}40%{opacity:1;transform:rotate(-6deg) skewX(-5deg) scale(.98)}63%{opacity:1;transform:rotate(-3deg) skewX(-5deg) scale(1.055)}78%{opacity:1;transform:rotate(-4deg) skewX(-5deg) scale(1.015)}100%{opacity:0;transform:translateX(.055em) translateY(-.035em) rotate(-2deg) skewX(-4deg) scale(1.12)}}
 @media(prefers-reduced-motion:reduce){#${OVERLAY_ID} .bb-road-fight-word.pop{animation:none;opacity:1;transform:none}}
 `;
     document.head.appendChild(style);
@@ -115,11 +119,12 @@ function applyCamera(canvas,scale,position,transitionMs){
   const value=Math.max(1,Number(scale)||1);
   canvas.style.transformOrigin=position||DEFAULT_POSITION;
   canvas.style.willChange='scale';
+  const easing='cubic-bezier(.16,.82,.18,1)';
   if('scale' in canvas.style){
-    canvas.style.transition=`scale ${Math.max(0,transitionMs)}ms cubic-bezier(.2,.72,.2,1)`;
+    canvas.style.transition=`scale ${Math.max(0,transitionMs)}ms ${easing}`;
     canvas.style.scale=String(value);
   }else{
-    canvas.style.transition=`transform ${Math.max(0,transitionMs)}ms cubic-bezier(.2,.72,.2,1)`;
+    canvas.style.transition=`transform ${Math.max(0,transitionMs)}ms ${easing}`;
     canvas.style.transform=`scale(${value})`;
   }
   targetScale=value;
@@ -156,6 +161,9 @@ function reset(){
   targetScale=1;
   targetPosition=DEFAULT_POSITION;
   combatLocked=false;
+  activeCountdownStepMs=DEFAULT_COUNTDOWN_STEP_MS;
+  activeFightHoldMs=DEFAULT_FIGHT_HOLD_MS;
+  activeTransitionMs=DEFAULT_TRANSITION_MS;
   showWord('');
 }
 function sync(now=performance.now()){
@@ -173,9 +181,12 @@ function sync(now=performance.now()){
   const introScale=Number(presentation.introScale)||1;
   const combatScale=Math.max(1,Number(presentation.combatScale??presentation.scale??DEFAULT_COMBAT_SCALE)||DEFAULT_COMBAT_SCALE);
   const position=String(presentation.position||DEFAULT_POSITION);
-  const transitionMs=Math.max(0,Number(presentation.transitionMs)||DEFAULT_TRANSITION_MS);
-  const stepMs=Math.max(260,Number(presentation.countdownStepMs)||DEFAULT_COUNTDOWN_STEP_MS);
-  const fightHoldMs=Math.max(360,Number(presentation.fightHoldMs)||DEFAULT_FIGHT_HOLD_MS);
+  const transitionMs=Math.max(DEFAULT_TRANSITION_MS,Number(presentation.transitionMs)||DEFAULT_TRANSITION_MS);
+  const stepMs=Math.max(DEFAULT_COUNTDOWN_STEP_MS,Number(presentation.countdownStepMs)||DEFAULT_COUNTDOWN_STEP_MS);
+  const fightHoldMs=Math.max(DEFAULT_FIGHT_HOLD_MS,Number(presentation.fightHoldMs)||DEFAULT_FIGHT_HOLD_MS);
+  activeCountdownStepMs=stepMs;
+  activeFightHoldMs=fightHoldMs;
+  activeTransitionMs=transitionMs;
 
   if(key!==activeKey){
     activeKey=key;
@@ -245,6 +256,7 @@ function snapshot(){
   const state=liveState();
   const map=mapFor(state);
   const rect=currentCanvas?.getBoundingClientRect?.()||null;
+  const now=performance.now();
   return Object.freeze({
     active:!!currentCanvas,
     mode,
@@ -257,6 +269,11 @@ function snapshot(){
     combatScale:Number(map?.presentation?.combatScale??map?.presentation?.scale)||DEFAULT_COMBAT_SCALE,
     targetScale,
     position:targetPosition,
+    countdownStepMs:activeCountdownStepMs,
+    fightHoldMs:activeFightHoldMs,
+    transitionMs:activeTransitionMs,
+    introElapsedMs:introStartedAt?Math.max(0,now-introStartedAt):0,
+    fightElapsedMs:fightStartedAt?Math.max(0,now-fightStartedAt):0,
     canvasId:currentCanvas?.id||null,
     rect:rect?Object.freeze({left:rect.left,top:rect.top,width:rect.width,height:rect.height}):null
   });
