@@ -215,10 +215,10 @@ function ensureShell(root){
   </aside>
 
   <nav class="bb-home-v4-dock" aria-label="Main menu">
-   ${navButton('battle','Battle','navigation/battle.webp')}
-   ${navButton('summon','Summon','navigation/summon.webp')}
-   ${navButton('units','Units','navigation/units.webp')}
-   ${navButton('forge','Forge','navigation/forge.webp')}
+   ${navButton('battle','Battle','navigation/battle.png')}
+   ${navButton('summon','Summon','navigation/summon.png')}
+   ${navButton('units','Units','navigation/units.png')}
+   ${navButton('forge','Forge','navigation/forge.png')}
   </nav>
 
   <section class="bb-home-v4-battle" hidden aria-label="Battle modes">

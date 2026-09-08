@@ -176,7 +176,7 @@ async function runBrowser(name,type){
     const homeRuntimeMatch=rootText.match(/<script id="bb-home-wallpaper-runtime">([\s\S]*?)<\/script>/i);
     if(!homeRuntimeMatch)throw new Error('Home runtime script missing from built root');
     const homeRuntimeText=homeRuntimeMatch[1];
-    for(const marker of ['bbHomeApproved','approved-v4','navigation/battle.webp','navigation/summon.webp','navigation/units.webp','navigation/forge.webp']){
+    for(const marker of ['bbHomeApproved','approved-v4','navigation/battle.png','navigation/summon.png','navigation/units.png','navigation/forge.png']){
       if(!homeRuntimeText.includes(marker))throw new Error(`approved Home runtime missing ${marker}`);
     }
     for(const marker of ['home-wallpaper-hq.png','shiny_foreground_cutout_v1.webp','bb-home-live-v7-style']){

@@ -3,32 +3,32 @@
   "branch": "dev-next-2026-09-01",
   "assets": [
     {
-      "path": "assets/ui/home/navigation/battle.webp",
-      "source": "battle_arena_crossed_swords_button.png",
-      "width": 600,
-      "height": 200,
-      "bytes": 35798
+      "path": "assets/ui/home/navigation/battle.png",
+      "source": "battle-button-scroll.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 1662889
     },
     {
-      "path": "assets/ui/home/navigation/summon.webp",
-      "source": "summon_meet_new_allies.png",
-      "width": 600,
-      "height": 200,
-      "bytes": 35330
+      "path": "assets/ui/home/navigation/summon.png",
+      "source": "summon-button-scroll.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 1752992
     },
     {
-      "path": "assets/ui/home/navigation/units.webp",
-      "source": "anime_game_ui_units_banner.png",
-      "width": 600,
-      "height": 200,
-      "bytes": 34782
+      "path": "assets/ui/home/navigation/units.png",
+      "source": "units-button-scroll.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 1752828
     },
     {
-      "path": "assets/ui/home/navigation/forge.webp",
-      "source": "forge_upgrade_evolve.png",
-      "width": 600,
-      "height": 200,
-      "bytes": 35110
+      "path": "assets/ui/home/navigation/forge.png",
+      "source": "forge-button-scroll.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 1800442
     },
     {
       "path": "assets/ui/home/utility/missions.webp",
@@ -230,6 +230,7 @@
   "notes": {
     "dimensions": "width/height record optimized runtime WebP dimensions",
     "reference_assets": "reference/ files are design targets and should not be loaded by the runtime",
-    "background_status": "backgrounds are approved concepts; select one during Home-screen implementation"
+    "background_status": "backgrounds are approved concepts; select one during Home-screen implementation",
+    "navigation_status": "Approved parchment scroll main-menu buttons; canonical runtime assets are PNG and legacy WebP navigation buttons were removed."
   }
 }
