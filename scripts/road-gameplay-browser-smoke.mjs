@@ -53,7 +53,7 @@ async function dragLebeeAcrossOpenLane(page){
   if(!lebee)return {error:'Lebee could not become the active pair fighter',roster};
   if(!C.isWalkablePoint(s.bbRoadContent?.map,start,{padding})||!C.isWalkablePoint(s.bbRoadContent?.map,end,{padding}))return {error:'authored Stage 1 lane endpoints are not walkable',start,end,padding};
   lebee.hp=Math.max(1,Number(lebee.hp)||Number(lebee.maxHp)||1);
-  lebee.x=start.x;lebee.y=start.y;
+  pair.x=start.x;pair.y=start.y;
   s.pairs.forEach(candidate=>{
    candidate.gauge=0;
    const active=front(candidate);
@@ -63,7 +63,7 @@ async function dragLebeeAcrossOpenLane(page){
   s.anim=null;s.drag=false;s.dragOrigin=null;s.dragVisual=null;s.dragGrabOffset=null;
   s.phase='charge';s.ready=null;s._chargeSince=performance.now();
   for(let i=0;i<80&&s.phase==='charge';i++)tick();
-  const readyShape={phase:s.phase,kind:s.ready?.kind||null,refIsPair:s.ready?.ref===pair,refIsLebee:s.ready?.ref===lebee};
+  const readyShape={phase:s.phase,kind:s.ready?.kind||null,refIsPair:s.ready?.ref===pair,refIsLebee:s.ready?.ref===lebee,pairX:pair.x,pairY:pair.y};
   if(s.phase!=='player'||s.ready?.kind!=='pair'||s.ready?.ref!==pair)return {error:'engine did not produce Lebee player-ready pair',roster,readyShape};
 
   const cvs=document.getElementById('game');
@@ -98,7 +98,7 @@ async function dragLebeeAcrossOpenLane(page){
   for(let i=1;i<=30;i++){
    const t=i/30,point={x:start.x+(end.x-start.x)*t,y:start.y+(end.y-start.y)*t};
    dispatch('pointermove',point,1);
-   if(i%5===0)samples.push({x:lebee.x,y:lebee.y});
+   if(i%5===0)samples.push({x:pair.x,y:pair.y});
    await new Promise(resolve=>setTimeout(resolve,6));
   }
   const endClient=dispatch('pointerup',end,0);
@@ -108,8 +108,8 @@ async function dragLebeeAcrossOpenLane(page){
   }
   return {
    name:lebee.name,start,end,startClient,endClient,logicalTL,logicalBR,readyShape,dragStarted,dragEnded:s.drag===false,
-   final:{x:lebee.x,y:lebee.y},samples,padding,
-   endpointWalkable:C.isWalkablePoint(s.bbRoadContent?.map,{x:lebee.x,y:lebee.y},{padding})
+   final:{x:pair.x,y:pair.y},samples,padding,
+   endpointWalkable:C.isWalkablePoint(s.bbRoadContent?.map,{x:pair.x,y:pair.y},{padding})
   };
  });
 }
