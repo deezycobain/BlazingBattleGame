@@ -20,6 +20,13 @@ async function enterRoad(page){
  await page.locator('#bbBattlePauseButton.visible').waitFor({state:'visible',timeout:5000});
  await page.waitForFunction(()=>!window.BlazingRoadCamera?.isCombatLocked?.(),null,{timeout:12000});
 }
+async function controlDiagnostics(page){
+ return page.evaluate(()=>{
+  const read=name=>{try{const el=globalThis.eval(name);if(!(el instanceof Element))return {value:typeof el};const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {id:el.id||null,text:(el.textContent||'').replace(/\s+/g,' ').trim(),display:s.display,visibility:s.visibility,disabled:!!el.disabled,rect:{left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height}}}catch(error){return {error:String(error?.message||error)}}};
+  const root=document.getElementById('battleScreen');
+  return {snapshot:window.BlazingBattleMobileControls?.snapshot?.()||null,refs:{normalBtn:read('normalBtn'),jutsuBtn:read('jutsuBtn')},buttons:[...(root?.querySelectorAll('button')||[])].map(el=>({id:el.id||null,text:(el.textContent||'').replace(/\s+/g,' ').trim(),className:el.className,display:getComputedStyle(el).display,visibility:getComputedStyle(el).visibility}))};
+ });
+}
 async function forcePlayerControls(page){
  await page.evaluate(()=>{
   const s=globalThis.eval('S'),front=globalThis.eval('front'),updateUI=globalThis.eval('updateUI');
@@ -29,10 +36,15 @@ async function forcePlayerControls(page){
   s.phase='player';s.ready={kind:'pair',ref:pair,g:100};s.anim=null;s.drag=false;
   updateUI();window.BlazingBattleMobileControls.sync();
  });
- await page.waitForFunction(()=>{
-  const controls=window.BlazingBattleMobileControls?.snapshot?.().controls||{};
-  return ['reset','basic','jutsu','pause'].every(kind=>controls[kind]?.visible);
- },null,{timeout:5000});
+ try{
+  await page.waitForFunction(()=>{
+   const controls=window.BlazingBattleMobileControls?.snapshot?.().controls||{};
+   return ['reset','basic','jutsu','pause'].every(kind=>controls[kind]?.visible);
+  },null,{timeout:5000});
+ }catch(error){
+  const diagnostic=await controlDiagnostics(page);
+  throw new Error(`battle controls did not all become visible :: ${JSON.stringify(diagnostic)} :: ${error.message}`);
+ }
 }
 async function inspect(page,safeOverride=null){
  return page.evaluate(async safe=>{
@@ -54,13 +66,15 @@ async function inspect(page,safeOverride=null){
    if(!el){controls[kind]=null;continue}
    const r=el.getBoundingClientRect(),cx=Math.min(innerWidth-1,Math.max(0,r.left+r.width/2)),cy=Math.min(innerHeight-1,Math.max(0,r.top+r.height/2));
    const hit=document.elementFromPoint(cx,cy);
-   controls[kind]={rect:{left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height},position:getComputedStyle(el).position,hit:hit===el||el.contains(hit),disabled:!!el.disabled,text:(el.textContent||'').replace(/\s+/g,' ').trim()};
+   controls[kind]={rect:{left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height},position:getComputedStyle(el).position,hit:hit===el||el.contains(hit),disabled:!!el.disabled,text:(el.textContent||'').replace(/\s+/g,' ').trim(),id:el.id||null};
   }
   const style=document.getElementById('bb-battle-mobile-controls-style')?.textContent||'';
-  const canvas=document.getElementById(window.BlazingRoadCamera.snapshot().canvasId||'game');
+  const camera=window.BlazingRoadCamera.snapshot();
+  const canvas=document.getElementById(camera.canvasId||'game')||[...root.querySelectorAll('canvas')].sort((a,b)=>{const ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();return br.width*br.height-ar.width*ar.height})[0]||null;
   const before=Object.fromEntries(Object.entries(controls).map(([kind,value])=>[kind,value?.rect||null]));
   const oldScale=canvas?.style.scale||'',oldTransform=canvas?.style.transform||'';
   if(canvas){if('scale' in canvas.style)canvas.style.scale='1.28';else canvas.style.transform='scale(1.28)'}
+  await new Promise(resolve=>requestAnimationFrame(resolve));
   const after={};
   for(const kind of ['reset','basic','jutsu','pause']){
    const selector=kind==='pause'?'#bbBattlePauseButton':`.bb-battle-control-${kind}`;
@@ -68,9 +82,10 @@ async function inspect(page,safeOverride=null){
    if(!el){after[kind]=null;continue}const r=el.getBoundingClientRect();after[kind]={left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};
   }
   if(canvas){canvas.style.scale=oldScale;canvas.style.transform=oldTransform}
-  return {snap,controls,style,before,after,camera:window.BlazingRoadCamera.snapshot(),safe:safe||{top:0,right:0,bottom:0,left:0}};
+  return {snap,controls,style,before,after,camera,safe:safe||{top:0,right:0,bottom:0,left:0}};
  },safeOverride);
 }
+function overlaps(a,b){return a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1}
 function assertGeometry(result,label){
  const {snap,controls,safe}=result,v=snap.viewport;
  const right=v.left+v.width,bottom=v.top+v.height;
@@ -84,6 +99,8 @@ function assertGeometry(result,label){
   const a=result.before[kind],b=result.after[kind];
   if(!a||!b||Math.abs(a.left-b.left)>.6||Math.abs(a.top-b.top)>.6||Math.abs(a.width-b.width)>.6||Math.abs(a.height-b.height)>.6)throw new Error(`${label}: ${kind} moved/scaled with Road canvas :: ${JSON.stringify({before:a,after:b})}`);
  }
+ if(overlaps(controls.reset.rect,controls.pause.rect))throw new Error(`${label}: Reset overlaps Pause`);
+ if(overlaps(controls.basic.rect,controls.jutsu.rect))throw new Error(`${label}: Basic overlaps Jutsu`);
 }
 async function run(name,type){
  let browser;

@@ -3,13 +3,10 @@
 if(window.BlazingBattleMobileControls)return;
 
 const STYLE_ID='bb-battle-mobile-controls-style';
-const VERSION='v1';
+const VERSION='v2';
 const CONTROL_CLASS='bb-battle-mobile-control';
-const MATCHERS=Object.freeze({
- reset:/^reset$/i,
- basic:/\bbasic\b/i,
- jutsu:/\bjutsu\b/i
-});
+const SHELL_REFS=Object.freeze({basic:'normalBtn',jutsu:'jutsuBtn'});
+const MATCHERS=Object.freeze({reset:/^reset$/i,basic:/\bbasic\b/i,jutsu:/\bjutsu\b/i});
 const CSS=`
 @media(max-width:700px){
  #battleScreen{
@@ -66,6 +63,12 @@ const CSS=`
 
 function battle(){return document.getElementById('battleScreen')}
 function normalizeText(button){return String(button?.textContent||'').replace(/\s+/g,' ').trim()}
+function shellRef(name){
+ try{
+  const value=globalThis.eval(name);
+  return value instanceof Element?value:null;
+ }catch{return null}
+}
 function isRendered(button){
  if(!button)return false;
  const style=getComputedStyle(button),rect=button.getBoundingClientRect();
@@ -77,19 +80,28 @@ function ensureStyle(){
  if(style.textContent!==CSS)style.textContent=CSS;
  return style;
 }
+function tag(button,kind){
+ if(!button)return null;
+ button.classList.add(CONTROL_CLASS,`bb-battle-control-${kind}`);
+ button.dataset.bbBattleControl=kind;
+ return button;
+}
+function resolveControl(kind,root,buttons){
+ const shellName=SHELL_REFS[kind];
+ const direct=shellName?shellRef(shellName):null;
+ if(direct&&root.contains(direct))return direct;
+ const byId=document.getElementById(kind==='basic'?'normalBtn':kind==='jutsu'?'jutsuBtn':kind==='reset'?'resetBtn':'');
+ if(byId&&root.contains(byId))return byId;
+ const matcher=MATCHERS[kind];
+ const matches=matcher?buttons.filter(button=>matcher.test(normalizeText(button))):[];
+ return matches.find(isRendered)||matches[0]||null;
+}
 function tagControls(){
  const root=battle();
  if(!root)return {};
  const buttons=[...root.querySelectorAll('button')];
  const result={};
- for(const [kind,matcher] of Object.entries(MATCHERS)){
-  const matches=buttons.filter(button=>matcher.test(normalizeText(button)));
-  for(const button of matches){
-   button.classList.add(CONTROL_CLASS,`bb-battle-control-${kind}`);
-   button.dataset.bbBattleControl=kind;
-  }
-  result[kind]=matches.find(isRendered)||matches[0]||null;
- }
+ for(const kind of ['reset','basic','jutsu'])result[kind]=tag(resolveControl(kind,root,buttons),kind);
  const pause=document.getElementById('bbBattlePauseButton');
  if(pause&&root.contains(pause))pause.dataset.bbBattleControl='pause';
  return {...result,pause:pause&&root.contains(pause)?pause:null};
@@ -103,7 +115,7 @@ function snapshot(){
  const root=battle();
  const controls=tagControls();
  const rendered={};
- for(const [kind,button] of Object.entries(controls))rendered[kind]=button?{rect:rect(button),visible:isRendered(button),disabled:!!button.disabled,text:normalizeText(button)}:null;
+ for(const [kind,button] of Object.entries(controls))rendered[kind]=button?{rect:rect(button),visible:isRendered(button),disabled:!!button.disabled,text:normalizeText(button),id:button.id||null}:null;
  const viewport=window.visualViewport;
  return Object.freeze({
   version:VERSION,
