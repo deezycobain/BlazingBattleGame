@@ -45,7 +45,7 @@ function ensureIntroUi(){
     const style=document.createElement('style');
     style.id=STYLE_ID;
     style.textContent=`
-#${OVERLAY_ID}{position:fixed;inset:0;z-index:12000;display:none;place-items:center;pointer-events:auto;background:transparent;contain:layout paint}
+#${OVERLAY_ID}{position:fixed;inset:0;z-index:12000;display:none;place-items:center;pointer-events:none;background:transparent;contain:layout paint}
 #${OVERLAY_ID}.active{display:grid}
 #${OVERLAY_ID} .bb-road-fight-word{font-family:'AnimeAce2','Arial Black',Impact,sans-serif;font-size:clamp(78px,22vw,170px);font-weight:900;line-height:.82;letter-spacing:.03em;color:#fff7df;-webkit-text-stroke:clamp(2px,.7vw,5px) #121016;text-shadow:0 .055em 0 #a50f19,0 .11em .10em rgba(0,0,0,.56),0 0 .18em rgba(255,191,73,.42);transform:rotate(-4deg) scale(.72);opacity:0;filter:drop-shadow(0 .08em .06em rgba(0,0,0,.58));user-select:none}
 #${OVERLAY_ID}[data-word='FIGHT'] .bb-road-fight-word{font-size:clamp(72px,20vw,156px);color:#ffd34f;-webkit-text-stroke-color:#1b1113;text-shadow:0 .06em 0 #c51c17,0 .12em .10em rgba(0,0,0,.62),0 0 .22em rgba(255,86,36,.48)}
