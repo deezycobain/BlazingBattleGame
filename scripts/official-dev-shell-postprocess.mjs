@@ -42,14 +42,20 @@ const hits=html.split(anchor).length-1;
 if(hits!==1)throw new Error(`Official dev shell: expected one victory anchor, found ${hits}`);
 html=html.replace(anchor,replacement);
 
-// Presentation-only fighter enlargement. The small local Y translation follows the
-// scaled sprite transform so enlarged feet sit back on the existing actor contact point.
-// Actor radii, hitboxes, walkable geometry, targeting, movement and shadow logic stay unchanged.
-const spriteScaleAnchor='ctx.scale(directionalFlip*scale*activePulse,scale*activePulse);';
-const spriteScaleReplacement='ctx.scale(directionalFlip*scale*activePulse*1.15,scale*activePulse*1.15);ctx.translate(0,5);';
-const spriteScaleHits=html.split(spriteScaleAnchor).length-1;
-if(spriteScaleHits!==1)throw new Error(`Official dev shell: expected one battle sprite scale anchor, found ${spriteScaleHits}`);
-html=html.replace(spriteScaleAnchor,spriteScaleReplacement);
+// Presentation-only fighter enlargement. Road perspective may already have wrapped the final
+// sprite scale by the time this pass runs. Preserve that map-authored depth multiplier and
+// layer the existing dev-shell 1.15x enlargement on top. Actor radii, hitboxes, walkable
+// geometry, targeting, movement and shadow logic stay unchanged.
+const perspectiveSpriteScaleAnchor='ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale,scale*activePulse*bbRoadDepthScale);';
+const perspectiveSpriteScaleReplacement='ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale*1.15,scale*activePulse*bbRoadDepthScale*1.15);ctx.translate(0,5);';
+const legacySpriteScaleAnchor='ctx.scale(directionalFlip*scale*activePulse,scale*activePulse);';
+const legacySpriteScaleReplacement='ctx.scale(directionalFlip*scale*activePulse*1.15,scale*activePulse*1.15);ctx.translate(0,5);';
+const perspectiveScaleHits=html.split(perspectiveSpriteScaleAnchor).length-1;
+const legacyScaleHits=html.split(legacySpriteScaleAnchor).length-1;
+if(perspectiveScaleHits===1&&legacyScaleHits===0)html=html.replace(perspectiveSpriteScaleAnchor,perspectiveSpriteScaleReplacement);
+else if(perspectiveScaleHits===0&&legacyScaleHits===1)html=html.replace(legacySpriteScaleAnchor,legacySpriteScaleReplacement);
+else if(perspectiveScaleHits===0&&legacyScaleHits===0&&(html.includes(perspectiveSpriteScaleReplacement)||html.includes(legacySpriteScaleReplacement))){}
+else throw new Error(`Official dev shell: expected one battle sprite scale anchor, found perspective=${perspectiveScaleHits} legacy=${legacyScaleHits}`);
 
 const v8File=path.join(process.cwd(),'dist','runtime','ui','home','home-v8-runtime.js');
 let v8=await fs.readFile(v8File,'utf8');
@@ -77,7 +83,8 @@ const body=html.toLowerCase().lastIndexOf('</body>');
 if(body<0)throw new Error('Official dev shell: closing body missing');
 html=html.slice(0,body)+`<script id="${ECONOMY_ID}" src="runtime/modes/battle-economy.js"></script><script id="${RESULTS_ID}" src="runtime/ui/battle/match-results.js"></script><script id="${TERRAIN_DEBUG_ID}" src="runtime/ui/battle/road-terrain-debug.js"></script><script id="${ROAD_FEEDBACK_ID}" src="runtime/ui/battle/road-feedback-fixes.js"></script><script id="${HOME_COMPAT_ID}" src="runtime/ui/home/home-approved-compat.js"></script><script id="${HOME_LIVE_ID}" src="runtime/ui/home/home-live-polish.js"></script><script id="${HOME_V8_ID}" src="runtime/ui/home/home-v8-runtime.js"></script><script id="${HOME_V9_ID}" src="runtime/ui/home/home-v9-runtime.js"></script><script id="${HOME_V9_LIFECYCLE_ID}" src="runtime/ui/home/home-v9-lifecycle.js"></script><script id="${HOME_FEEDBACK_ID}" src="runtime/ui/home/home-feedback-fixes.js"></script>`+html.slice(body);
 
-for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,TERRAIN_DEBUG_ID,ROAD_FEEDBACK_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,HOME_FEEDBACK_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','road-terrain-debug.js','road-feedback-fixes.js','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js','home-feedback-fixes.js','activePulse*1.15','ctx.translate(0,5)'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
+for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,TERRAIN_DEBUG_ID,ROAD_FEEDBACK_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,HOME_FEEDBACK_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','road-terrain-debug.js','road-feedback-fixes.js','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js','home-feedback-fixes.js','*1.15','ctx.translate(0,5)'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
+if(html.includes('bbRoadDepthScale')&&!html.includes('bbRoadDepthScale*1.15'))throw new Error('Official dev shell: Road perspective scale did not retain dev fighter enlargement');
 if(!v9.includes(forgeTransformReplacement))throw new Error('Official dev shell: Home v9 Forge safe-area correction missing');
 await fs.writeFile(file,html);
-console.log('Official dev shell PASS: Home feedback is loaded with the leader presentation hidden and wider action spacing; enlarged fighter sprites are grounded visually without changing gameplay geometry; Lantern Garden feedback is loaded; Forge remains viewport-safe; live currencies, profile, parallax, Reset, Pause, and post-match return controls remain integrated.');
+console.log('Official dev shell PASS: Home feedback is loaded with the leader presentation hidden and wider action spacing; enlarged fighter sprites preserve map-authored Road depth without changing gameplay geometry; Lantern Garden feedback is loaded; Forge remains viewport-safe; live currencies, profile, parallax, Reset, Pause, and post-match return controls remain integrated.');
