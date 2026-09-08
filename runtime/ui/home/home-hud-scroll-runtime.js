@@ -1,11 +1,22 @@
 (()=>{
 'use strict';
+
+const VERSION='v2';
 const STYLE_ID='bb-home-scroll-hud-style';
 const SHELL_ID='bbHomeApproved';
-if(document.getElementById(STYLE_ID))return;
-const style=document.createElement('style');
-style.id=STYLE_ID;
-style.textContent=`
+const ASSETS=Object.freeze({
+ profile:'assets/ui/home/hud/player-profile-scroll.png',
+ coins:'assets/ui/home/hud/gold-currency-scroll.png',
+ embers:'assets/ui/home/hud/embers-currency-scroll.png'
+});
+let queued=false;
+
+function ensureStyle(){
+ let style=document.getElementById(STYLE_ID);
+ if(!style){
+  style=document.createElement('style');
+  style.id=STYLE_ID;
+  style.textContent=`
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-hud{
   top:max(6px,env(safe-area-inset-top))!important;
   left:max(6px,env(safe-area-inset-left))!important;
@@ -27,14 +38,14 @@ style.textContent=`
   overflow:visible!important;
   border:0!important;
   border-radius:0!important;
-  background:none!important;
+  background:transparent url("assets/ui/home/hud/player-profile-scroll.png") center/100% 100% no-repeat!important;
   clip-path:none!important;
   box-shadow:none!important;
   filter:drop-shadow(0 6px 8px rgba(0,0,0,.34))!important;
 }
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-profile:after{display:none!important}
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-profile-texture{
-  display:block!important;
+  display:none!important;
   position:absolute!important;
   inset:0!important;
   z-index:0!important;
@@ -69,8 +80,8 @@ style.textContent=`
   text-shadow:none!important;
 }
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-profile-copy small{
-  font:800 5px/1 ui-sans-serif,system-ui,sans-serif!important;
-  letter-spacing:.16em!important;
+  font:850 5.5px/1 ui-sans-serif,system-ui,sans-serif!important;
+  letter-spacing:.14em!important;
   color:#8c1f25!important;
 }
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-profile-copy strong{
@@ -83,8 +94,8 @@ style.textContent=`
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-profile-meta{
   gap:5px!important;
   margin-top:4px!important;
-  font:800 5px/1 ui-sans-serif,system-ui,sans-serif!important;
-  letter-spacing:.06em!important;
+  font:800 5.5px/1 ui-sans-serif,system-ui,sans-serif!important;
+  letter-spacing:.05em!important;
   color:#4e4037!important;
 }
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-profile-meta b{color:#9c252b!important}
@@ -111,18 +122,11 @@ style.textContent=`
   box-shadow:none!important;
   filter:drop-shadow(0 5px 7px rgba(0,0,0,.31))!important;
 }
-#${SHELL_ID}.bb-home-v9 .bb-home-v5-currency>img{
-  display:block!important;
-  position:absolute!important;
-  inset:0!important;
-  z-index:0!important;
-  width:100%!important;
-  height:100%!important;
-  object-fit:fill!important;
-  opacity:1!important;
-  filter:none!important;
-  pointer-events:none!important;
-}
+#${SHELL_ID}.bb-home-v9 .bb-home-v5-currency[data-v9-currency="blazing-coins"],
+#${SHELL_ID}.bb-home-v9 .bb-home-v5-currency[data-v5-currency="blazing-coins"]{background:transparent url("assets/ui/home/hud/gold-currency-scroll.png") center/100% 100% no-repeat!important}
+#${SHELL_ID}.bb-home-v9 .bb-home-v5-currency[data-v9-currency="embers"],
+#${SHELL_ID}.bb-home-v9 .bb-home-v5-currency[data-v5-currency="embers"]{background:transparent url("assets/ui/home/hud/embers-currency-scroll.png") center/100% 100% no-repeat!important}
+#${SHELL_ID}.bb-home-v9 .bb-home-v5-currency>img{display:none!important}
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-currency-icon{display:none!important}
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-currency-copy{
   position:absolute!important;
@@ -136,15 +140,15 @@ style.textContent=`
 }
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-currency-copy small{
   display:block!important;
-  font:900 4px/1 ui-sans-serif,system-ui,sans-serif!important;
-  letter-spacing:.14em!important;
+  font:900 5.5px/1 ui-sans-serif,system-ui,sans-serif!important;
+  letter-spacing:.11em!important;
   color:#8f2026!important;
   text-shadow:none!important;
 }
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-currency-copy strong{
   display:block!important;
   margin-top:2px!important;
-  font:900 clamp(9px,2.3vw,12px)/1 ui-sans-serif,system-ui,sans-serif!important;
+  font:900 clamp(10px,2.5vw,13px)/1 ui-sans-serif,system-ui,sans-serif!important;
   letter-spacing:.01em!important;
   color:#1d1715!important;
   text-shadow:0 1px rgba(255,255,255,.28)!important;
@@ -164,7 +168,7 @@ style.textContent=`
   #${SHELL_ID}.bb-home-v9 .bb-home-v5-profile{width:min(52vw,211px)!important}
   #${SHELL_ID}.bb-home-v9 .bb-home-v5-currency{width:min(38vw,154px)!important}
   #${SHELL_ID}.bb-home-v9 .bb-home-v5-profile-copy strong{font-size:12px!important}
-  #${SHELL_ID}.bb-home-v9 .bb-home-v5-currency-copy strong{font-size:10px!important}
+  #${SHELL_ID}.bb-home-v9 .bb-home-v5-currency-copy strong{font-size:10.5px!important}
   #${SHELL_ID} .bb-main-logo-slot{
     top:max(96px,calc(env(safe-area-inset-top) + 88px))!important;
     width:min(68vw,350px)!important;
@@ -177,8 +181,82 @@ style.textContent=`
   #${SHELL_ID} .bb-main-logo-slot{top:max(87px,calc(env(safe-area-inset-top) + 80px))!important;height:min(18vh,125px)!important}
 }
 `;
-document.head.appendChild(style);
-const shell=document.getElementById(SHELL_ID);
-if(shell)shell.dataset.bbHudSkin='scroll-red-black';
-window.BlazingHomeScrollHud=Object.freeze({styleId:STYLE_ID});
+  document.head.appendChild(style);
+ }
+ return style;
+}
+
+function currency(shell,key){
+ if(!shell)return null;
+ if(key==='coins')return shell.querySelector('[data-v9-currency="blazing-coins"],[data-v5-currency="blazing-coins"],[data-v5-currency="marks"]')||shell.querySelector('[data-v5-marks]')?.closest('.bb-home-v5-currency')||null;
+ return shell.querySelector('[data-v9-currency="embers"],[data-v5-currency="embers"]')||shell.querySelector('[data-v5-embers]')?.closest('.bb-home-v5-currency')||null;
+}
+
+function syncSource(img,src){
+ if(!img)return false;
+ if(img.getAttribute('src')!==src)img.setAttribute('src',src);
+ img.hidden=true;
+ img.setAttribute('hidden','');
+ img.setAttribute('aria-hidden','true');
+ img.setAttribute('alt','');
+ img.draggable=false;
+ img.dataset.bbHudSource='approved';
+ return true;
+}
+
+function syncAssets(shell){
+ if(!shell)return false;
+ const profile=shell.querySelector('.bb-home-v5-profile-texture');
+ const coins=currency(shell,'coins');
+ const embers=currency(shell,'embers');
+ const coinImg=coins?.querySelector(':scope>img')||null;
+ const emberImg=embers?.querySelector(':scope>img')||null;
+ syncSource(profile,ASSETS.profile);
+ syncSource(coinImg,ASSETS.coins);
+ syncSource(emberImg,ASSETS.embers);
+ if(coins){
+  coins.dataset.v5Currency='blazing-coins';
+  coins.dataset.v9Currency='blazing-coins';
+  const label=coins.querySelector('.bb-home-v5-currency-copy small');
+  if(label&&label.textContent!=='BLAZING COINS')label.textContent='BLAZING COINS';
+ }
+ if(embers){
+  embers.dataset.v9Currency='embers';
+  const label=embers.querySelector('.bb-home-v5-currency-copy small');
+  if(label&&label.textContent!=='EMBERS')label.textContent='EMBERS';
+ }
+ shell.dataset.bbHudSkin='scroll-red-black';
+ shell.dataset.bbHudAssets='approved-runtime';
+ return !!(profile&&coinImg&&emberImg);
+}
+
+function apply(){
+ ensureStyle();
+ const shell=document.getElementById(SHELL_ID);
+ if(!shell)return false;
+ return syncAssets(shell);
+}
+
+function schedule(){
+ if(queued)return;
+ queued=true;
+ requestAnimationFrame(()=>{queued=false;apply();});
+}
+
+for(const event of ['bb:economy','bb:player-profile','bb:unit-progression','pageshow'])window.addEventListener(event,schedule);
+window.addEventListener('resize',schedule,{passive:true});
+new MutationObserver(records=>{
+ const relevant=records.some(record=>{
+  const target=record.target;
+  if(record.type==='attributes')return target?.id===SHELL_ID;
+  if(record.type!=='childList')return false;
+  if(target?.id===SHELL_ID||target?.classList?.contains('bb-home-v5-hud'))return true;
+  return [...record.addedNodes].some(node=>node?.nodeType===1&&(node.id===SHELL_ID||node.matches?.('.bb-home-v5-hud')||node.querySelector?.('.bb-home-v5-hud')));
+ });
+ if(relevant)schedule();
+}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+setTimeout(apply,0);
+setTimeout(apply,260);
+setTimeout(apply,620);
+window.BlazingHomeScrollHud=Object.freeze({VERSION,ASSETS,apply,syncAssets,styleId:STYLE_ID});
 })();
