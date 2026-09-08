@@ -15,12 +15,18 @@ async function waitHome(page){
 
 async function assertProfile(page,label){
   const trigger=page.locator('#bbHomeApproved .bb-home-v5-profile[data-bb-home-action="player-profile"]');
-  const homeLeader=(await page.locator('#bbHomeApproved [data-v5-name]').innerText()).trim();
+  const expectedLeader=await page.evaluate(()=>{const unit=window.BlazingApprovedHomeCompat?.leaderUnit?.();return unit?.display_name||unit?.name||unit?.id||''});
+  if(!expectedLeader)throw new Error(`${label}: canonical Home leader unavailable`);
+  const triggerLabel=await trigger.getAttribute('aria-label');
+  if(!String(triggerLabel||'').includes(expectedLeader))throw new Error(`${label}: profile trigger does not identify canonical leader: ${JSON.stringify({expectedLeader,triggerLabel})}`);
   await trigger.click();
   const panel=page.locator('#bbHomePlayerProfile');
   await panel.waitFor({state:'visible',timeout:3000});
   const leader=(await panel.locator('#bbPlayerProfileTitle').innerText()).trim();
-  if(leader!==homeLeader)throw new Error(`${label}: profile leader mismatch: Home=${homeLeader}, profile=${leader}`);
+  if(leader!==expectedLeader)throw new Error(`${label}: profile leader mismatch: expected=${expectedLeader}, profile=${leader}`);
+
+  const stableDom=await panel.evaluate(async root=>{const close=root.querySelector('.bb-player-profile-close');await new Promise(resolve=>setTimeout(resolve,350));return !!close&&close===root.querySelector('.bb-player-profile-close')});
+  if(!stableDom)throw new Error(`${label}: open profile DOM was replaced without a saved-state change`);
 
   const values=await panel.evaluate(root=>{
     const read=key=>root.querySelector(`[data-stat="${key}"] strong`)?.textContent?.trim()||'';
@@ -42,7 +48,7 @@ async function assertProfile(page,label){
   if(!/Tyler/i.test(values.tyler)||!/LV\.\s*5/i.test(values.tyler)||!/AWAKENING\s*0\s*\/\s*5/i.test(values.tyler))throw new Error(`${label}: Tyler fighter progression incorrect: ${values.tyler}`);
   if(!/PLAYER PROFILE/i.test(values.text)||!/BLAZING COINS/i.test(values.text)||!/TOTAL BATTLE XP/i.test(values.text)||!/FIGHTER PROGRESSION/i.test(values.text))throw new Error(`${label}: profile sections missing: ${values.text}`);
 
-  await panel.locator('[data-profile-close]').last().click();
+  await panel.locator('.bb-player-profile-close').click();
   await panel.waitFor({state:'hidden',timeout:3000});
   const expanded=await trigger.getAttribute('aria-expanded');
   if(expanded!=='false')throw new Error(`${label}: profile trigger aria-expanded did not reset`);
@@ -91,7 +97,7 @@ async function run(name,type){
 
     await page.evaluate(()=>{window.BlazingHomeV9Lifecycle.closeProfile({restoreFocus:false});window.BlazingRoadRun.clearRun();window.BlazingUnitProgression.reset();window.BlazingEconomy.reset();});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Player profile browser smoke PASS (${name}): real leader, economy, battle XP, fighter progression, Road state, and reload persistence verified.`);
+    console.log(`Player profile browser smoke PASS (${name}): canonical leader, stable open DOM, economy, battle XP, fighter progression, Road state, and reload persistence verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
