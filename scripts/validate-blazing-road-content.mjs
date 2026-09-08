@@ -51,8 +51,8 @@ for(let i=0;i<5;i++){
 if(!C.isFinalStage(10)||!C.isFinalStage(99)||C.isFinalStage(9))throw new Error('Final-stage detection is incorrect');
 if(C.stageConfig(11).stage!==10)throw new Error('Road content must clamp beyond Stage 10');
 
-// Every Road map starts from one broad battlefield floor. Map-specific scenery may remove
-// portions of it, but it must not collapse the fight into a narrow corridor again.
+// Every Road map publishes one primary playable boundary. Stage 1/2 trace the visible
+// perspective floor directly; later maps retain the broad floor plus authored prop blockers.
 function walkableCoverage(map){
  const floor=C.PLAYABLE_FLOOR;
  let total=0,walkable=0;
@@ -65,7 +65,7 @@ function walkableCoverage(map){
  return total?walkable/total:0;
 }
 for(const map of C.MAPS){
- if(!Array.isArray(map.movement?.allowed)||map.movement.allowed.length!==1)throw new Error(`${map.key} must publish one broad playable-floor boundary`);
+ if(!Array.isArray(map.movement?.allowed)||map.movement.allowed.length!==1)throw new Error(`${map.key} must publish one primary playable boundary`);
  const p=map.presentation||{};
  if(Number(p.introScale)!==1)throw new Error(`${map.key} must begin/outro at full-map scale 1`);
  if(!(Number(p.combatScale)>1&&Number(p.combatScale)<=1.16))throw new Error(`${map.key} combat zoom must stay modest: ${p.combatScale}`);
@@ -73,23 +73,71 @@ for(const map of C.MAPS){
  const coverage=walkableCoverage(map);
  if(coverage<0.60)throw new Error(`${map.key} only leaves ${(coverage*100).toFixed(1)}% of the authored battlefield floor walkable`);
 }
-
-// Stage 1/2 used to double-restrict the floor with skinny allowed funnels plus broad side
-// blockers. These representative left/right positions must now be fluidly reachable.
-for(const [stage,points] of [
- [1,[{x:90,y:300},{x:240,y:300},{x:390,y:300}]],
- [2,[{x:92,y:300},{x:240,y:300},{x:388,y:300}]]
-]){
- const map=C.mapForStage(stage);
- for(const point of points)if(!C.isWalkablePoint(map,point,{padding:C.PLAYER_FOOT_PADDING}))throw new Error(`Stage ${stage} broad floor unexpectedly blocks ${JSON.stringify(point)}`);
+for(const stage of [1,2]){
+ const shape=C.mapForStage(stage).movement.allowed[0];
+ if(shape?.type!=='polygon'||!Array.isArray(shape.points)||shape.points.length<10)throw new Error(`Stage ${stage} must trace its visible floor with an explicit playable polygon`);
 }
 
-// Terrain collisions should guide a drag along a barrier instead of freezing the fighter.
+// Stage 1/2 used to double-restrict the floor with broad side blockers. Preserve the
+// central lanes and expose the visibly open foreground near both lower corners.
+for(const [stage,points] of [
+ [1,[{x:90,y:300},{x:240,y:300},{x:390,y:300},{x:40,y:530},{x:440,y:530}]],
+ [2,[{x:92,y:300},{x:240,y:300},{x:388,y:300},{x:40,y:530},{x:440,y:530}]]
+]){
+ const map=C.mapForStage(stage);
+ for(const point of points)if(!C.isWalkablePoint(map,point,{padding:C.PLAYER_FOOT_PADDING}))throw new Error(`Stage ${stage} playable floor unexpectedly blocks ${JSON.stringify(point)}`);
+}
+
+// Terrain collisions should project the remaining drag along the real edge, not fall back
+// to cardinal X/Y guesses. A drag can also round a rectangle corner in one continuous input.
 const slideMap={movement:{allowed:[],blocked:[{type:'rect',x:100,y:80,w:40,h:80}]}};
 const againstWall=C.constrainMovementPoint(slideMap,{x:160,y:150},{x:80,y:100},{padding:0,step:6});
-if(!(againstWall.x<100&&againstWall.y>135))throw new Error(`Road drag did not slide along barrier edge: ${JSON.stringify(againstWall)}`);
+if(!(againstWall.x<100.1&&againstWall.y>145))throw new Error(`Road drag did not slide along barrier edge: ${JSON.stringify(againstWall)}`);
 const aroundCorner=C.constrainMovementPoint(slideMap,{x:160,y:190},againstWall,{padding:0,step:6});
-if(!(aroundCorner.x>140&&aroundCorner.y>165))throw new Error(`Road drag could not steer around barrier corner: ${JSON.stringify({againstWall,aroundCorner})}`);
+if(!(aroundCorner.x>150&&aroundCorner.y>180))throw new Error(`Road drag could not round barrier corner: ${JSON.stringify({againstWall,aroundCorner})}`);
+
+// Reproduce the old diagonal-wall failure: both cardinal probes can be blocked while a
+// legal tangent path exists. Consecutive simulated pointer samples must keep moving.
+const slopedMap={movement:{
+ allowed:[{type:'rect',x:0,y:0,w:300,h:300}],
+ blocked:[{type:'polygon',points:[{x:120,y:40},{x:160,y:40},{x:220,y:220},{x:180,y:220}]}]
+}};
+let slopedPosition={x:80,y:80},slopedStalls=0,maxSlopedStalls=0;
+for(let i=0;i<20;i++){
+ const raw={x:180+i*2,y:90+i*7};
+ const next=C.constrainMovementPoint(slopedMap,raw,slopedPosition,{padding:0,step:6});
+ if(!Number.isFinite(next?.x)||!Number.isFinite(next?.y)||!C.isWalkablePoint(slopedMap,next,{padding:0}))throw new Error(`Sloped-edge drag escaped terrain at sample ${i}: ${JSON.stringify(next)}`);
+ const moved=Math.hypot(next.x-slopedPosition.x,next.y-slopedPosition.y)>.1;
+ slopedStalls=moved?0:slopedStalls+1;
+ maxSlopedStalls=Math.max(maxSlopedStalls,slopedStalls);
+ slopedPosition=next;
+}
+if(maxSlopedStalls>1)throw new Error(`Sloped-edge drag froze for ${maxSlopedStalls} consecutive samples`);
+
+// Scrape both real Stage 1/2 side boundaries from foreground toward the vanishing point.
+// The constrained fighter must stay legal, keep progressing, and remain close to the finger.
+for(const stage of [1,2]){
+ const map=C.mapForStage(stage);
+ for(const side of ['left','right']){
+  let position={x:side==='left'?100:380,y:520};
+  let previousY=position.y,stalls=0;
+  for(let rawY=500;rawY>=180;rawY-=20){
+   const raw={x:side==='left'?10:470,y:rawY};
+   const next=C.constrainMovementPoint(map,raw,position,{padding:C.PLAYER_FOOT_PADDING,step:6});
+   if(!Number.isFinite(next?.x)||!Number.isFinite(next?.y)||!C.isWalkablePoint(map,next,{padding:C.PLAYER_FOOT_PADDING}))throw new Error(`Stage ${stage} ${side} boundary scrape produced illegal position: ${JSON.stringify(next)}`);
+   if(next.y>previousY+2)throw new Error(`Stage ${stage} ${side} boundary scrape regressed: ${JSON.stringify({previousY,next,raw})}`);
+   const moved=Math.hypot(next.x-position.x,next.y-position.y)>.5;
+   stalls=moved?0:stalls+1;
+   if(stalls>1)throw new Error(`Stage ${stage} ${side} boundary scrape stuck for ${stalls} samples`);
+   if(Math.abs(next.y-rawY)>32)throw new Error(`Stage ${stage} ${side} boundary scrape lagged too far behind pointer: ${JSON.stringify({raw,next})}`);
+   position=next;
+   previousY=next.y;
+  }
+ }
+}
+
+const movementSource=String(C.constrainMovementPoint);
+if(/stepX|stepY|slides=\[/.test(movementSource))throw new Error('Legacy cardinal-axis terrain slide logic survived');
 
 const terrainIntegration=await fs.readFile('scripts/road-terrain-postprocess.mjs','utf8');
 if(!terrainIntegration.includes('PLAYER_FOOT_PADDING||4'))throw new Error('Road player movement must consume the roster-independent feet-anchor constant');
@@ -101,4 +149,4 @@ if(!cameraRuntime.includes("'scale' in canvas.style"))throw new Error('Road came
 const pkg=JSON.parse(await fs.readFile('package.json','utf8'));
 if(!pkg.scripts?.build?.includes('road-camera-postprocess.mjs'))throw new Error('Road camera postprocess is not wired into the build');
 
-console.log('Blazing Road content PASS: broad five-map playable floors, universal feet-anchor movement, authored blockers, edge sliding, intro/combat/outro camera framing, normalized enemies, and final-stage clamp verified.');
+console.log('Blazing Road content PASS: art-traced Stage 1/2 floors, tangent-projected edge sliding, continuous boundary scrapes, universal feet-anchor movement, camera framing, normalized enemies, and final-stage clamp verified.');
