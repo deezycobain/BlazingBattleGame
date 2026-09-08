@@ -34,6 +34,79 @@ async function waitCamera(page,mode,stage){
   return {...snap,inlineScale:canvas?.style?.scale||'',inlineTransform:canvas?.style?.transform||''};
  });
 }
+async function waitRoadCombatReady(page){
+ await page.waitForFunction(()=>!window.BlazingRoadCamera?.isCombatLocked?.(),null,{timeout:12000});
+}
+async function dragLebeeAcrossOpenLane(page){
+ await waitRoadCombatReady(page);
+ return page.evaluate(async()=>{
+  const s=globalThis.eval('S'),front=globalThis.eval('front'),inputPoint=globalThis.eval('inputPoint'),C=window.BlazingRoadContent;
+  const roster=s.pairs.flatMap(pair=>(pair.units||[]).filter(unit=>unit&&unit.name&&unit.name!=='—').map(unit=>unit.name));
+  let pair=null,index=-1;
+  for(const candidate of s.pairs){
+   const found=(candidate.units||[]).findIndex(unit=>unit?.name==='Lebee');
+   if(found>=0){pair=candidate;index=found;break;}
+  }
+  if(!pair)return {error:'Lebee is not present in the Road battle roster',roster};
+  pair.active=index;
+  const lebee=front(pair),start={x:90,y:300},end={x:390,y:300},padding=C.PLAYER_FOOT_PADDING;
+  if(!lebee)return {error:'Lebee could not become the active pair fighter',roster};
+  if(!C.isWalkablePoint(s.bbRoadContent?.map,start,{padding})||!C.isWalkablePoint(s.bbRoadContent?.map,end,{padding}))return {error:'authored Stage 1 lane endpoints are not walkable',start,end,padding};
+  lebee.hp=Math.max(1,Number(lebee.hp)||Number(lebee.maxHp)||1);
+  lebee.x=start.x;lebee.y=start.y;
+  s.pairs.forEach(candidate=>{candidate.gauge=0;});
+  s.enemies.forEach(enemy=>{enemy.gauge=0;});
+  pair.gauge=100;
+  s.anim=null;s.drag=false;s.dragOrigin=null;s.dragVisual=null;s.dragGrabOffset=null;
+  s.phase='ready';s.ready={kind:'player',ref:lebee,pair,g:100};
+
+  const cvs=document.getElementById('game');
+  if(!(cvs instanceof HTMLCanvasElement))return {error:'battle canvas #game missing'};
+  const rect=cvs.getBoundingClientRect();
+  if(!(rect.width>0&&rect.height>0))return {error:'battle canvas has no visible bounds',rect:{width:rect.width,height:rect.height}};
+  const logicalTL=inputPoint({clientX:rect.left,clientY:rect.top});
+  const logicalBR=inputPoint({clientX:rect.right,clientY:rect.bottom});
+  const spanX=logicalBR.x-logicalTL.x,spanY=logicalBR.y-logicalTL.y;
+  if(!(Math.abs(spanX)>1&&Math.abs(spanY)>1))return {error:'inputPoint transform is degenerate',logicalTL,logicalBR};
+  const toClient=point=>({
+   x:rect.left+(point.x-logicalTL.x)/spanX*rect.width,
+   y:rect.top+(point.y-logicalTL.y)/spanY*rect.height
+  });
+  const pointerId=731;
+  const dispatch=(type,point,buttons)=>{
+   const client=toClient(point);
+   const event=new PointerEvent(type,{bubbles:true,cancelable:true,composed:true,pointerId,pointerType:'touch',isPrimary:true,width:10,height:10,pressure:buttons?0.5:0,button:0,buttons,clientX:client.x,clientY:client.y});
+   cvs.dispatchEvent(event);
+   return client;
+  };
+  let captureShim=false;
+  try{
+   Object.defineProperty(cvs,'setPointerCapture',{configurable:true,value:()=>{}});
+   Object.defineProperty(cvs,'releasePointerCapture',{configurable:true,value:()=>{}});
+   Object.defineProperty(cvs,'hasPointerCapture',{configurable:true,value:()=>false});
+   captureShim=true;
+  }catch(_){}
+  const startClient=dispatch('pointerdown',start,1);
+  const dragStarted=s.drag===true&&s.ready?.ref===lebee;
+  const samples=[];
+  for(let i=1;i<=30;i++){
+   const t=i/30,point={x:start.x+(end.x-start.x)*t,y:start.y+(end.y-start.y)*t};
+   dispatch('pointermove',point,1);
+   if(i%5===0)samples.push({x:lebee.x,y:lebee.y});
+   await new Promise(resolve=>setTimeout(resolve,6));
+  }
+  const endClient=dispatch('pointerup',end,0);
+  await new Promise(resolve=>setTimeout(resolve,20));
+  if(captureShim){
+   try{delete cvs.setPointerCapture;delete cvs.releasePointerCapture;delete cvs.hasPointerCapture}catch(_){}
+  }
+  return {
+   name:lebee.name,start,end,startClient,endClient,logicalTL,logicalBR,dragStarted,dragEnded:s.drag===false,
+   final:{x:lebee.x,y:lebee.y},samples,padding,
+   endpointWalkable:C.isWalkablePoint(s.bbRoadContent?.map,{x:lebee.x,y:lebee.y},{padding})
+  };
+ });
+}
 
 async function run(name,type){
  let browser;
@@ -56,6 +129,12 @@ async function run(name,type){
   if(!/center/i.test(camera1.position||''))throw new Error(`Stage 1 camera focus is not centered on playable floor: ${JSON.stringify(camera1)}`);
   if(!(camera1.inlineScale&&Number(camera1.inlineScale)>1.05)&&!/scale\(/.test(camera1.inlineTransform||''))throw new Error(`Stage 1 camera did not apply visual canvas zoom: ${JSON.stringify(camera1)}`);
 
+  const lebeeDrag=await dragLebeeAcrossOpenLane(page);
+  if(lebeeDrag.error)throw new Error(`Lebee touch drag setup failed: ${JSON.stringify(lebeeDrag)}`);
+  if(!lebeeDrag.dragStarted||!lebeeDrag.dragEnded)throw new Error(`Lebee native touch drag lifecycle failed: ${JSON.stringify(lebeeDrag)}`);
+  if(Math.hypot(lebeeDrag.final.x-lebeeDrag.end.x,lebeeDrag.final.y-lebeeDrag.end.y)>12)throw new Error(`Lebee hit an invisible blocker in the clear Stage 1 lane: ${JSON.stringify(lebeeDrag)}`);
+  if(!lebeeDrag.endpointWalkable)throw new Error(`Lebee finished outside authored walkable terrain: ${JSON.stringify(lebeeDrag)}`);
+
   const stage1=await page.evaluate(()=>{
    const s=globalThis.eval('S'),front=globalThis.eval('front'),tick=globalThis.eval('tick'),C=window.BlazingRoadContent;
    const players=s.pairs.filter(p=>p.units?.[p.active]?.name&&p.units[p.active].name!=='—').map(p=>front(p));
@@ -77,7 +156,7 @@ async function run(name,type){
   if(stage1.broadWalkable.some(value=>!value))throw new Error(`Stage 1 broad playable field regressed: ${JSON.stringify(stage1.broadWalkable)}`);
   if(stage1.speedWinner!=='enemy')throw new Error(`Speed meter did not allow faster enemy to win: ${stage1.speedWinner}`);
   if(/player control restored|fallback restored player control/i.test(stage1.tickSource))throw new Error('player-forcing speed fallback survived in tick()');
-  console.log(`Road gameplay smoke (${name}) Stage 1 map request: ${stage1.map}; fallback=${!!stage1.mapAudit?.fallback}; combatZoom=${camera1.targetScale}`);
+  console.log(`Road gameplay smoke (${name}) Stage 1 map request: ${stage1.map}; fallback=${!!stage1.mapAudit?.fallback}; combatZoom=${camera1.targetScale}; LebeeTouch=${JSON.stringify({start:lebeeDrag.start,final:lebeeDrag.final})}`);
 
   await page.evaluate(()=>window.BlazingMatchResults.returnHome());
   await page.reload({waitUntil:'domcontentloaded'});await waitHome(page);await enterRoad(page,1);
@@ -129,7 +208,7 @@ async function run(name,type){
 
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Road gameplay smoke PASS (${name}): broad roster-independent movement field, full-map intro/outro, combat zoom, real Speed ordering, enemy AI, map routing, and Stage 10 completion verified.`);
+  console.log(`Road gameplay smoke PASS (${name}): Lebee native touch drag crosses the clear Stage 1 lane under combat zoom; full-map intro/outro, real Speed ordering, enemy AI, map routing, and Stage 10 completion verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
