@@ -34,31 +34,34 @@ async function run(name,type){
   const state=await page.evaluate(()=>{
    let source='';
    try{source=globalThis.eval('resolvePlayer.toString()')}catch(error){return {error:String(error?.message||error)}}
+   const compact=source.replace(/\s+/g,' ');
+   const committedSquad=/let linkedMembers=\[\];[\s\S]*?comboMembers\(enemy,p\)\.forEach\(member=>\{[\s\S]*?if\(member!==p&&!linkedMembers\.includes\(member\)\)linkedMembers\.push\(member\);[\s\S]*?let committedAttackers=\[p,\.\.\.linkedMembers\];[\s\S]*?let anyCombo=committedAttackers\.length>1;[\s\S]*?let queue=targets\.map\(enemy=>\(\{enemy,attackers:\[\.\.\.committedAttackers\]\}\)\);/.test(source);
+   const legacyPerTarget=/let queue=\[\],anyCombo=false;\s*targets\.forEach\(enemy=>\{\s*let members=comboMembers\(enemy,p\),attackers=\[p,\.\.\.members\.filter\(x=>x!==p\)\]/.test(source);
    const targetMatch=/function\s+runTarget\s*\(\s*\)\s*\{/.exec(source);
    if(!targetMatch)return {error:'runTarget() missing from resolvePlayer source'};
    const tail=source.slice(targetMatch.index);
    const attackerMatch=/function\s+runAttacker\s*\(\s*\)\s*\{/.exec(tail);
    if(!attackerMatch)return {error:'runAttacker() missing after runTarget()'};
-   const targetHead=tail.slice(0,attackerMatch.index);
-   const enemyMatch=/(?:const|let)\s+enemy\s*=\s*targets\s*\[\s*targetIndex\+\+\s*\]\s*;?/.exec(targetHead);
-   if(!enemyMatch)return {error:'per-target enemy assignment missing'};
-   const afterEnemy=targetHead.slice(enemyMatch.index+enemyMatch[0].length);
-   const resetMatch=/^\s*attackIndex\s*=\s*0\s*;/.exec(afterEnemy);
+   const targetHead=tail.slice(0,attackerMatch.index).replace(/\s+/g,' ');
    const attackerTail=tail.slice(attackerMatch.index,Math.min(tail.length,attackerMatch.index+9000));
    return {
-    resetImmediately:!!resetMatch,
-    consumesAttackers:/attackIndex\+\+/.test(attackerTail),
+    committedSquad,
+    legacyPerTarget,
+    queueConsumesCommittedSquad:/let item=queue\[targetIndex\+\+\],enemy=item\.enemy,attackers=item\.attackers,attackIndex=0;/.test(targetHead),
+    consumesEveryAttacker:/attackIndex\+\+/.test(attackerTail),
     boundedBySquad:/attackIndex\s*>=\s*attackers\.length/.test(attackerTail),
-    koAbort:/enemy\.hp\s*<=\s*0\s*\|\|\s*attackIndex\s*>=\s*attackers\.length/.test(attackerTail)
+    koAbort:/enemy\.hp\s*<=\s*0\s*\|\|\s*attackIndex\s*>=\s*attackers\.length/.test(attackerTail),
+    hasMultipleTargetSupport:/targetIndex\s*>=\s*queue\.length/.test(targetHead),
+    sourceLength:compact.length
    };
   });
 
   if(state.error)throw new Error(state.error);
-  if(!state.resetImmediately||!state.consumesAttackers||!state.boundedBySquad||state.koAbort){
+  if(!state.committedSquad||state.legacyPerTarget||!state.queueConsumesCommittedSquad||!state.consumesEveryAttacker||!state.boundedBySquad||state.koAbort||!state.hasMultipleTargetSupport){
    throw new Error(`linked multi-target sequence invariant failed: ${JSON.stringify(state)}`);
   }
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Chain attack smoke PASS (${name}): each target gets a fresh linked attacker cursor and committed KO-safe sequencing.`);
+  console.log(`Chain attack smoke PASS (${name}): one committed linked squad is reused for every resolved Basic target and every member completes its sequence.`);
   await context.close();
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
