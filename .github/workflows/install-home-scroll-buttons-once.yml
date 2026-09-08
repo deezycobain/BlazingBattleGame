@@ -119,7 +119,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/ui/home/navigation assets/ui/home/ASSET_MANIFEST.json runtime/ui/home/home-skin.js scripts/browser-smoke.mjs blazing-battle-main-menu-scroll-buttons.zip
+          git add -A
           git diff --cached --quiet && exit 0
           git commit -m "Install approved parchment main menu buttons"
           git push origin HEAD:dev-next-2026-09-01
