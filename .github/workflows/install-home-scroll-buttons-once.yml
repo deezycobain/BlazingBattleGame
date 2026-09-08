@@ -1,0 +1,116 @@
+name: Install approved home scroll buttons once
+
+on:
+  push:
+    branches: [dev-next-2026-09-01]
+    paths:
+      - '.github/workflows/install-home-scroll-buttons-once.yml'
+      - 'blazing-battle-main-menu-scroll-buttons.zip'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    if: ${{ !contains(github.event.head_commit.message, 'Install approved parchment main menu buttons') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev-next-2026-09-01
+
+      - name: Install approved parchment menu buttons
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP='blazing-battle-main-menu-scroll-buttons.zip'
+          test -f "$ZIP"
+          rm -rf /tmp/bb-home-buttons
+          mkdir -p /tmp/bb-home-buttons assets/ui/home/navigation
+
+          unzip -j -o "$ZIP" '*/battle-button-scroll.png' '*/summon-button-scroll.png' '*/units-button-scroll.png' '*/forge-button-scroll.png' -d /tmp/bb-home-buttons
+
+          install -m 0644 /tmp/bb-home-buttons/battle-button-scroll.png assets/ui/home/navigation/battle.png
+          install -m 0644 /tmp/bb-home-buttons/summon-button-scroll.png assets/ui/home/navigation/summon.png
+          install -m 0644 /tmp/bb-home-buttons/units-button-scroll.png assets/ui/home/navigation/units.png
+          install -m 0644 /tmp/bb-home-buttons/forge-button-scroll.png assets/ui/home/navigation/forge.png
+
+          cat > /tmp/home-button-checksums <<'EOF'
+          8298e5ba4bd11b701062fe21258250d54da8b6dac7689808440e3d085de3176c  assets/ui/home/navigation/battle.png
+          4f823fb96d2cfb840955e8e04250c22e7c3b58791739f95bfdcf8d7b211016cd  assets/ui/home/navigation/summon.png
+          8a1920c04c569d57a64aa87fb40a4dadbaba32b89af72fdb630bbb2a5d5c11b8  assets/ui/home/navigation/units.png
+          5d6c1d9eb0eec68c23969f559eac8f0a6082a88259d10461e75ab7193181a251  assets/ui/home/navigation/forge.png
+          EOF
+          sha256sum -c /tmp/home-button-checksums
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, struct
+
+          names = ('battle', 'summon', 'units', 'forge')
+          nav = Path('assets/ui/home/navigation')
+          for name in names:
+              p = nav / f'{name}.png'
+              raw = p.read_bytes()
+              assert raw[:8] == b'\x89PNG\r\n\x1a\n', f'{p}: not PNG'
+              width, height = struct.unpack('>II', raw[16:24])
+              assert (width, height) == (2172, 724), f'{p}: unexpected {width}x{height}'
+
+          skin_path = Path('runtime/ui/home/home-skin.js')
+          skin = skin_path.read_text()
+          for name in names:
+              old = f'navigation/{name}.webp'
+              new = f'navigation/{name}.png'
+              assert old in skin, f'missing runtime reference: {old}'
+              skin = skin.replace(old, new)
+          skin_path.write_text(skin)
+
+          manifest_path = Path('assets/ui/home/ASSET_MANIFEST.json')
+          manifest = json.loads(manifest_path.read_text())
+          old_paths = {f'assets/ui/home/navigation/{name}.webp' for name in names}
+          remaining = [a for a in manifest['assets'] if a.get('path') not in old_paths]
+          new_assets = []
+          sources = {
+              'battle': 'battle-button-scroll.png',
+              'summon': 'summon-button-scroll.png',
+              'units': 'units-button-scroll.png',
+              'forge': 'forge-button-scroll.png',
+          }
+          for name in names:
+              p = nav / f'{name}.png'
+              new_assets.append({
+                  'path': str(p),
+                  'source': sources[name],
+                  'width': 2172,
+                  'height': 724,
+                  'bytes': p.stat().st_size,
+              })
+          manifest['assets'] = new_assets + remaining
+          manifest.setdefault('notes', {})['navigation_status'] = 'Approved parchment scroll main-menu buttons; canonical runtime assets are PNG and legacy WebP navigation buttons were removed.'
+          manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
+          PY
+
+          git rm -f assets/ui/home/navigation/battle.webp assets/ui/home/navigation/summon.webp assets/ui/home/navigation/units.webp assets/ui/home/navigation/forge.webp
+          git rm -f "$ZIP"
+
+          for f in battle summon units forge; do
+            test -f "assets/ui/home/navigation/$f.png"
+            test ! -e "assets/ui/home/navigation/$f.webp"
+          done
+
+          if git grep -n -E 'navigation/(battle|summon|units|forge)\.webp' -- ':!*.zip'; then
+            echo 'Legacy home navigation WebP reference remains.' >&2
+            exit 1
+          fi
+
+      - name: Commit clean replacement
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/ui/home/navigation assets/ui/home/ASSET_MANIFEST.json runtime/ui/home/home-skin.js blazing-battle-main-menu-scroll-buttons.zip
+          git diff --cached --quiet && exit 0
+          git commit -m "Install approved parchment main menu buttons"
+          git push origin HEAD:dev-next-2026-09-01
