@@ -57,26 +57,35 @@ jobs:
               width, height = struct.unpack('>II', raw[16:24])
               assert (width, height) == (2172, 724), f'{p}: unexpected {width}x{height}'
 
+          def replace_nav_refs(path):
+              text = path.read_text()
+              for name in names:
+                  old = f'navigation/{name}.webp'
+                  new = f'navigation/{name}.png'
+                  text = text.replace(old, new)
+              path.write_text(text)
+
           skin_path = Path('runtime/ui/home/home-skin.js')
-          skin = skin_path.read_text()
+          skin_before = skin_path.read_text()
           for name in names:
-              old = f'navigation/{name}.webp'
-              new = f'navigation/{name}.png'
-              assert old in skin, f'missing runtime reference: {old}'
-              skin = skin.replace(old, new)
-          skin_path.write_text(skin)
+              assert f'navigation/{name}.webp' in skin_before, f'missing runtime reference for {name}'
+          replace_nav_refs(skin_path)
+
+          smoke_path = Path('scripts/browser-smoke.mjs')
+          if smoke_path.exists():
+              replace_nav_refs(smoke_path)
 
           manifest_path = Path('assets/ui/home/ASSET_MANIFEST.json')
           manifest = json.loads(manifest_path.read_text())
           old_paths = {f'assets/ui/home/navigation/{name}.webp' for name in names}
           remaining = [a for a in manifest['assets'] if a.get('path') not in old_paths]
-          new_assets = []
           sources = {
               'battle': 'battle-button-scroll.png',
               'summon': 'summon-button-scroll.png',
               'units': 'units-button-scroll.png',
               'forge': 'forge-button-scroll.png',
           }
+          new_assets = []
           for name in names:
               p = nav / f'{name}.png'
               new_assets.append({
@@ -99,7 +108,7 @@ jobs:
             test ! -e "assets/ui/home/navigation/$f.webp"
           done
 
-          if git grep -n -E 'navigation/(battle|summon|units|forge)\.webp' -- ':!*.zip'; then
+          if git grep -n -E 'navigation/(battle|summon|units|forge)\.webp' -- ':!*.zip' ':!.github/workflows/install-home-scroll-buttons-once.yml'; then
             echo 'Legacy home navigation WebP reference remains.' >&2
             exit 1
           fi
@@ -110,7 +119,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/ui/home/navigation assets/ui/home/ASSET_MANIFEST.json runtime/ui/home/home-skin.js blazing-battle-main-menu-scroll-buttons.zip
+          git add assets/ui/home/navigation assets/ui/home/ASSET_MANIFEST.json runtime/ui/home/home-skin.js scripts/browser-smoke.mjs blazing-battle-main-menu-scroll-buttons.zip
           git diff --cached --quiet && exit 0
           git commit -m "Install approved parchment main menu buttons"
           git push origin HEAD:dev-next-2026-09-01
