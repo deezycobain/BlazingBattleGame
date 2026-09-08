@@ -3,7 +3,7 @@
 const P=()=>window.BlazingUnitProgression;
 const E=()=>window.BlazingEconomy;
 const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler'];
-let current='Tyler',fxTimer=0;
+let current='Tyler',fxTimer=0,forgeStatus={name:'',message:'',tone:''};
 
 function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
 function roman(n){return ['I','II','III','IV','V'][Math.max(0,Math.min(4,n-1))]||String(n)}
@@ -13,8 +13,9 @@ function selectedName(){
  return found||current;
 }
 function refreshCombat(){try{window.BlazingProgression?.applyCombatBonuses?.()}catch{}}
+function clearForgeStatus(){forgeStatus={name:'',message:'',tone:''}}
 function reopen(name,message='',tone=''){
- current=name;refreshCombat();try{window.BlazingProgression?.openForge?.(name)}catch{}
+ current=name;forgeStatus={name,message,tone};refreshCombat();try{window.BlazingProgression?.openForge?.(name)}catch{}
  renderLevelPanel(message,tone);renderExchange();
 }
 
@@ -85,6 +86,8 @@ function ensureLevelPanel(){
 function renderLevelPanel(message='',tone=''){
  const box=ensureLevelPanel(),api=P();if(!box||!api)return;
  current=selectedName();
+ if(message)forgeStatus={name:current,message,tone};
+ else if(forgeStatus.name===current){message=forgeStatus.message;tone=forgeStatus.tone}
  const u=api.unit(current),cap=api.capForAwakening(u.awakening),xpNeed=u.level>=cap||u.level>=50?0:api.xpForNextLevel(u.level);
  const xpPct=xpNeed?Math.max(0,Math.min(100,(u.xp/xpNeed)*100)):100;
  const gate=api.canAwaken(current),markCost=api.markCostToFinish(current),gateCost=api.markCostToGate(current),atGate=api.isAtGate(u),balance=E()?.balance?.()??0;
@@ -127,7 +130,8 @@ function sync(){renderLevelPanel();renderExchange();rewriteSummonCopy();ensureFx
 
 window.addEventListener('bb:unit-progression',()=>{renderLevelPanel();refreshCombat()});
 window.addEventListener('bb:economy',()=>{renderLevelPanel();renderExchange()});
-document.getElementById('forgeRoster')?.addEventListener('click',event=>{const b=event.target.closest('[data-fighter]');if(b){current=b.dataset.fighter;setTimeout(()=>renderLevelPanel(),0)}});
+document.getElementById('forgeRoster')?.addEventListener('click',event=>{const b=event.target.closest('[data-fighter]');if(b){clearForgeStatus();current=b.dataset.fighter;setTimeout(()=>renderLevelPanel(),0)}});
+document.getElementById('forgeBack')?.addEventListener('click',clearForgeStatus);
 const nameEl=document.getElementById('forgeName');if(nameEl)new MutationObserver(()=>renderLevelPanel()).observe(nameEl,{childList:true,subtree:true,characterData:true});
 window.BlazingProgressionEconomyUI=Object.freeze({sync,renderLevelPanel,renderExchange,playFx});
 if(document.readyState==='loading')addEventListener('DOMContentLoaded',sync,{once:true});else sync();
