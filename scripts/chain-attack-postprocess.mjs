@@ -2,59 +2,44 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const file=path.join(process.cwd(),'dist','index.html');
-let html=await fs.readFile(file,'utf8');
+const html=await fs.readFile(file,'utf8');
 
-// A linked normal attack is a committed squad sequence for EACH resolved target.
-// The legacy engine keeps one attackIndex cursor while runTarget() advances through
-// multiple enemies. Without resetting that cursor, target one can consume the squad
-// and later targets receive no linked attackers. Reset only the attacker cursor here;
-// target selection, damage, animation drivers, and KO behavior stay unchanged.
 const targetMarker='function runTarget(){';
 const attackerMarker='function runAttacker(){';
 const targetAt=html.indexOf(targetMarker);
 const attackerAt=html.indexOf(attackerMarker,targetAt+targetMarker.length);
 if(targetAt<0||attackerAt<0||attackerAt<=targetAt){
- throw new Error('Chain attack pass: runTarget/runAttacker sequence not found');
+ throw new Error('Chain attack probe: runTarget/runAttacker sequence not found');
 }
 
-const targetHead=html.slice(targetAt,attackerAt);
-const enemyRx=/(?:const|let)\s+enemy\s*=\s*targets\s*\[\s*targetIndex\+\+\s*\]\s*;?/;
-const enemyMatch=enemyRx.exec(targetHead);
-if(!enemyMatch){
- const compact=s=>s.replace(/\s+/g,' ').trim();
- const probes=['targetIndex','targets','enemy','attackIndex'].map(token=>{
-  const idx=targetHead.indexOf(token);
-  if(idx<0)return `${token}:missing`;
-  return `${token}@${idx}: ${compact(targetHead.slice(Math.max(0,idx-220),Math.min(targetHead.length,idx+460)))}`;
- }).join(' || ');
- throw new Error(`Chain attack pass: per-target enemy assignment not found :: ${probes}`);
+// Current engine already resets attackIndex=0 for every queued target. The unresolved
+// multi-enemy symptom therefore lives upstream, where each queue item receives its
+// attackers array. Probe that construction compactly without dumping the monolithic shell.
+const targetHead=html.slice(targetAt,attackerAt).replace(/\s+/g,' ').trim();
+if(!/queue\s*\[\s*targetIndex\+\+\s*\]/.test(targetHead)||
+   !/enemy\s*=\s*item\.enemy/.test(targetHead)||
+   !/attackers\s*=\s*item\.attackers/.test(targetHead)||
+   !/attackIndex\s*=\s*0/.test(targetHead)){
+ throw new Error(`Chain attack probe: current per-target cursor shape changed :: ${targetHead.slice(0,900)}`);
 }
 
-const afterEnemy=targetHead.slice(enemyMatch.index+enemyMatch[0].length);
-if(!/\battackIndex\s*=\s*0\s*;/.test(afterEnemy)){
- const insertAt=targetAt+enemyMatch.index+enemyMatch[0].length;
- html=html.slice(0,insertAt)+'\n    attackIndex=0;'+html.slice(insertAt);
+const windowStart=Math.max(0,targetAt-10000);
+const before=html.slice(windowStart,targetAt);
+const compact=s=>s.replace(/\s+/g,' ').trim();
+const hits=[];
+for(const token of ['queue','attackers','combo','targets']){
+ let from=0;
+ while(true){
+  const idx=before.indexOf(token,from);
+  if(idx<0)break;
+  hits.push({token,idx});
+  from=idx+token.length;
+ }
 }
+hits.sort((a,b)=>a.idx-b.idx);
+const selected=hits.slice(-10).map(({token,idx})=>{
+ const start=Math.max(0,idx-320),end=Math.min(before.length,idx+620);
+ return `${token}@${idx}: ${compact(before.slice(start,end))}`;
+}).join(' || ');
 
-// Build-time regression guard: the reset must live after target selection and before
-// runAttacker(), and the historical KO-abort guard must remain removed so every linked
-// member still completes its committed animation sequence.
-const verifyTargetAt=html.indexOf(targetMarker);
-const verifyAttackerAt=html.indexOf(attackerMarker,verifyTargetAt+targetMarker.length);
-const verifyHead=html.slice(verifyTargetAt,verifyAttackerAt);
-const verifyEnemy=enemyRx.exec(verifyHead);
-if(!verifyEnemy)throw new Error('Chain attack pass: verification lost enemy assignment');
-const verifyAfterEnemy=verifyHead.slice(verifyEnemy.index+verifyEnemy[0].length);
-if(!/^\s*attackIndex\s*=\s*0\s*;/.test(verifyAfterEnemy)){
- throw new Error('Chain attack pass: attacker cursor is not reset immediately per target');
-}
-const attackerWindow=html.slice(verifyAttackerAt,Math.min(html.length,verifyAttackerAt+9000));
-if(!/attackIndex\+\+/.test(attackerWindow)||!/attackIndex\s*>=\s*attackers\.length/.test(attackerWindow)){
- throw new Error('Chain attack pass: linked attacker cursor loop changed unexpectedly');
-}
-if(/enemy\.hp\s*<=\s*0\s*\|\|\s*attackIndex\s*>=\s*attackers\.length/.test(attackerWindow)){
- throw new Error('Chain attack pass: KO-abort guard regressed and can truncate committed links');
-}
-
-await fs.writeFile(file,html);
-console.log('Chain attack pass: every resolved target resets the linked attacker cursor; committed KO-safe squad sequencing preserved.');
+throw new Error(`Chain attack queue probe :: ${selected||'no queue/attackers/combo/targets tokens found before runTarget'}`);
