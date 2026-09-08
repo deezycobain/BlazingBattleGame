@@ -19,9 +19,10 @@ const playerReplacement=` const grab=S.dragGrabOffset||{x:0,y:0};
   const terrainFrom=S.bbTerrainDragOrigin===S.dragOrigin&&S.bbTerrainLastLegal
    ? S.bbTerrainLastLegal
    : {x:p.x,y:p.y};
-  // Fighter movement is foot-anchored. Keep only a small tolerance around that anchor;
-  // the old 18px radius created invisible walls well inside narrow authored lanes.
-  legal=window.BlazingRoadContent.constrainMovementPoint(S.bbRoadContent?.map,legal,terrainFrom,{padding:6});
+  // Terrain collision is roster-agnostic: every playable fighter is represented only by
+  // the same tiny feet anchor. Body/targeting hitboxes never participate in map movement.
+  const footPadding=window.BlazingRoadContent.PLAYER_FOOT_PADDING||4;
+  legal=window.BlazingRoadContent.constrainMovementPoint(S.bbRoadContent?.map,legal,terrainFrom,{padding:footPadding});
   S.bbTerrainDragOrigin=S.dragOrigin;
   S.bbTerrainLastLegal={x:legal.x,y:legal.y};
  }`;
@@ -36,7 +37,8 @@ const evadeReplacement=`   let desiredEvade=clampToBattlefield({
     y:e.y+(uy+ux*side)*roadAi.evadeDistance
    });
    if(window.BlazingRoadContent?.constrainMovementPoint){
-    desiredEvade=window.BlazingRoadContent.constrainMovementPoint(S.bbRoadContent?.map,desiredEvade,{x:e.x,y:e.y},{padding:18});
+    const enemyPadding=window.BlazingRoadContent.ENEMY_TERRAIN_PADDING||18;
+    desiredEvade=window.BlazingRoadContent.constrainMovementPoint(S.bbRoadContent?.map,desiredEvade,{x:e.x,y:e.y},{padding:enemyPadding});
    }`;
 replaceUnique(evadeSource,evadeReplacement,'enemy Road evade movement anchor');
 
@@ -44,11 +46,11 @@ for(const marker of [
   "window.BlazingRoadContent?.constrainMovementPoint",
   "S.bbTerrainDragOrigin===S.dragOrigin",
   "S.bbTerrainLastLegal={x:legal.x,y:legal.y}",
-  "S.bbRoadContent?.map,legal,terrainFrom,{padding:6}",
-  "S.bbRoadContent?.map,desiredEvade,{x:e.x,y:e.y},{padding:18}"
+  "const footPadding=window.BlazingRoadContent.PLAYER_FOOT_PADDING||4",
+  "const enemyPadding=window.BlazingRoadContent.ENEMY_TERRAIN_PADDING||18"
 ]){
   if(!html.includes(marker))throw new Error(`Road terrain integration: built shell missing ${marker}`);
 }
 
 await fs.writeFile(file,html);
-console.log('Road terrain integration PASS: foot-anchored player drag uses tight terrain clearance and can steer around stage geometry while enemy evasion respects obstacles.');
+console.log('Road terrain integration PASS: all playable fighters use one tiny feet-anchor collision footprint while map boundaries and enemy clearance stay independent.');
