@@ -16,7 +16,12 @@ const playerSource=` const grab=S.dragGrabOffset||{x:0,y:0};
 const playerReplacement=` const grab=S.dragGrabOffset||{x:0,y:0};
  let legal=clampToBattlefield({x:pt.x+grab.x,y:pt.y+grab.y});
  if(S.bbRunMode==='road'&&window.BlazingRoadContent?.constrainMovementPoint){
-  legal=window.BlazingRoadContent.constrainMovementPoint(S.bbRoadContent?.map,legal,{x:p.x,y:p.y},{padding:18});
+  const terrainFrom=S.bbTerrainDragOrigin===S.dragOrigin&&S.bbTerrainLastLegal
+   ? S.bbTerrainLastLegal
+   : {x:p.x,y:p.y};
+  legal=window.BlazingRoadContent.constrainMovementPoint(S.bbRoadContent?.map,legal,terrainFrom,{padding:18});
+  S.bbTerrainDragOrigin=S.dragOrigin;
+  S.bbTerrainLastLegal={x:legal.x,y:legal.y};
  }`;
 replaceUnique(playerSource,playerReplacement,'player Road movement anchor');
 
@@ -35,11 +40,12 @@ replaceUnique(evadeSource,evadeReplacement,'enemy Road evade movement anchor');
 
 for(const marker of [
   "window.BlazingRoadContent?.constrainMovementPoint",
-  "S.bbRoadContent?.map,legal,{x:p.x,y:p.y},{padding:18}",
+  "S.bbTerrainDragOrigin===S.dragOrigin",
+  "S.bbTerrainLastLegal={x:legal.x,y:legal.y}",
   "S.bbRoadContent?.map,desiredEvade,{x:e.x,y:e.y},{padding:18}"
 ]){
   if(!html.includes(marker))throw new Error(`Road terrain integration: built shell missing ${marker}`);
 }
 
 await fs.writeFile(file,html);
-console.log('Road terrain integration PASS: player drag and Road enemy evasion respect stage obstacle geometry.');
+console.log('Road terrain integration PASS: player drag can steer around stage geometry while enemy evasion respects obstacles.');
