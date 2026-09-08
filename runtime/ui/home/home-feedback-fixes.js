@@ -5,13 +5,15 @@ const MARK='r1';
 const CSS=`
 #bbHomeApproved.bb-home-v9 .bb-home-v5-leader{display:none!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-dock{
+ position:relative!important;
  width:min(560px,calc(100vw - 28px))!important;
  height:clamp(118px,16.5vh,142px)!important;
  grid-template-columns:repeat(2,minmax(0,1fr))!important;
  grid-template-rows:repeat(2,minmax(0,1fr))!important;
  gap:6px 12px!important;
  padding:0 4px!important;
- transform:translateY(-26px)!important;
+ bottom:26px!important;
+ transform:none!important;
 }
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav{min-width:0!important;min-height:0!important;width:auto!important;height:100%!important;max-height:none!important;aspect-ratio:auto!important;place-self:stretch!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="battle"]{grid-column:1!important;grid-row:1!important;transform:rotate(-.7deg)!important}
@@ -26,12 +28,12 @@ const CSS=`
   height:118px!important;
   gap:4px 8px!important;
   padding:0 2px!important;
-  transform:translateY(-32px)!important;
+  bottom:32px!important;
  }
  #bbHomeApproved.bb-home-v9 .bb-home-v4-social{gap:9px!important}
 }
 @media(max-height:700px) and (max-width:620px){
- #bbHomeApproved.bb-home-v9 .bb-home-v4-dock{height:106px!important;transform:translateY(-24px)!important}
+ #bbHomeApproved.bb-home-v9 .bb-home-v4-dock{height:106px!important;bottom:24px!important}
 }
 `;
 const SKIP_TEXT=new Set(['SCRIPT','STYLE','PRE','CODE','TEXTAREA']);
