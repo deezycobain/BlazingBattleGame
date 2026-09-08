@@ -6,6 +6,8 @@ const STAT_MAX=100;
 const PLAYER_FOOT_PADDING=4;
 const ENEMY_TERRAIN_PADDING=18;
 const PLAYABLE_FLOOR=Object.freeze({x:18,y:96,w:444,h:468});
+const BOUNDARY_SEARCH_STEPS=9;
+const BOUNDARY_NUDGE=1.5;
 const clampStat=value=>Math.max(1,Math.min(STAT_MAX,Math.round(Number(value)||1)));
 const point=(x,y)=>Object.freeze({x,y});
 const polygon=(...points)=>Object.freeze({type:'polygon',points:Object.freeze(points.map(([x,y])=>point(x,y)))});
@@ -29,11 +31,12 @@ const MAPS=Object.freeze([
     presentation:presentation(1.14,'center 54%'),
     enemyAnchors:anchors([200,260],[280,274],[240,340],[315,382],[176,386]),
     movement:terrain({
-      allowed:broadFloor(),
-      blocked:[
-        polygon([0,92],[62,92],[76,170],[78,260],[72,350],[60,455],[48,570],[0,570]),
-        polygon([418,92],[480,92],[480,570],[432,570],[420,455],[408,350],[402,260],[404,170])
-      ]
+      // Trace the visible plaza instead of subtracting two tall invisible side walls.
+      // The floor deliberately opens toward the foreground to match the artwork's perspective.
+      allowed:[polygon(
+        [76,100],[404,100],[410,155],[414,220],[416,300],[420,380],[432,470],[452,560],
+        [28,560],[48,470],[60,380],[64,300],[66,220],[70,155]
+      )]
     })
   }),
   Object.freeze({
@@ -41,12 +44,12 @@ const MAPS=Object.freeze([
     presentation:presentation(1.13,'center 53%'),
     enemyAnchors:anchors([205,220],[275,232],[210,315],[290,362],[242,276]),
     movement:terrain({
-      allowed:broadFloor(),
-      blocked:[
-        polygon([0,98],[62,98],[78,180],[80,280],[72,390],[58,500],[46,570],[0,570]),
-        polygon([418,98],[480,98],[480,570],[434,570],[422,500],[408,390],[400,280],[402,180]),
-        ellipse(239,145,50,36)
-      ]
+      // The corridor widens toward the camera. Only the actual moon statue remains a blocker.
+      allowed:[polygon(
+        [80,102],[400,102],[406,160],[412,230],[416,310],[424,400],[438,490],[450,560],
+        [30,560],[42,490],[56,400],[64,310],[68,230],[74,160]
+      )],
+      blocked:[ellipse(239,145,50,36)]
     })
   }),
   Object.freeze({
@@ -205,34 +208,134 @@ function nearestWalkable(mapOrKey,p,{padding=PLAYER_FOOT_PADDING,maxRadius=180}=
   return null;
 }
 
+function shapeEdges(shape){
+  if(!shape)return [];
+  if(shape.type==='polygon'){
+    const points=shape.points||[];
+    return points.map((a,i)=>({a,b:points[(i+1)%points.length]})).filter(edge=>edge.a&&edge.b);
+  }
+  if(shape.type==='rect'){
+    const points=[
+      {x:shape.x,y:shape.y},{x:shape.x+shape.w,y:shape.y},
+      {x:shape.x+shape.w,y:shape.y+shape.h},{x:shape.x,y:shape.y+shape.h}
+    ];
+    return points.map((a,i)=>({a,b:points[(i+1)%points.length]}));
+  }
+  if(shape.type==='ellipse'){
+    const edges=[],segments=32;
+    for(let i=0;i<segments;i++){
+      const a=i*Math.PI*2/segments,b=(i+1)*Math.PI*2/segments;
+      edges.push({
+        a:{x:shape.x+Math.cos(a)*shape.rx,y:shape.y+Math.sin(a)*shape.ry},
+        b:{x:shape.x+Math.cos(b)*shape.rx,y:shape.y+Math.sin(b)*shape.ry}
+      });
+    }
+    return edges;
+  }
+  return [];
+}
+
+function closestPointOnSegment(p,a,b){
+  const dx=b.x-a.x,dy=b.y-a.y;
+  const denom=dx*dx+dy*dy;
+  const t=denom?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/denom)):0;
+  return {x:a.x+dx*t,y:a.y+dy*t};
+}
+
+function nearestEdge(mapOrKey,p){
+  const map=mapFrom(mapOrKey);
+  const shapes=[...(map?.movement?.allowed||[]),...(map?.movement?.blocked||[])];
+  let best=null,bestDistance=Infinity;
+  for(const shape of shapes){
+    for(const edge of shapeEdges(shape)){
+      const nearest=closestPointOnSegment(p,edge.a,edge.b);
+      const distance=Math.hypot(p.x-nearest.x,p.y-nearest.y);
+      if(distance<bestDistance){
+        bestDistance=distance;
+        best={...edge,nearest};
+      }
+    }
+  }
+  return best;
+}
+
+function segmentBoundary(map,from,to,padding,step){
+  const distance=Math.hypot(to.x-from.x,to.y-from.y);
+  const samples=Math.max(1,Math.ceil(distance/Math.max(2,Number(step)||6)));
+  let lastT=0;
+  for(let i=1;i<=samples;i++){
+    const t=i/samples;
+    const candidate={x:from.x+(to.x-from.x)*t,y:from.y+(to.y-from.y)*t};
+    if(isWalkablePoint(map,candidate,{padding})){
+      lastT=t;
+      continue;
+    }
+    let lo=lastT,hi=t;
+    for(let n=0;n<BOUNDARY_SEARCH_STEPS;n++){
+      const mid=(lo+hi)/2;
+      const probe={x:from.x+(to.x-from.x)*mid,y:from.y+(to.y-from.y)*mid};
+      if(isWalkablePoint(map,probe,{padding}))lo=mid;
+      else hi=mid;
+    }
+    return {
+      point:{x:from.x+(to.x-from.x)*lo,y:from.y+(to.y-from.y)*lo},
+      t:lo
+    };
+  }
+  return null;
+}
+
+function slideFromBoundary(map,boundary,to,{padding,step}){
+  const edge=nearestEdge(map,boundary);
+  if(!edge)return null;
+  const dx=edge.b.x-edge.a.x,dy=edge.b.y-edge.a.y,length=Math.hypot(dx,dy);
+  if(length<1e-6)return null;
+  const tangent={x:dx/length,y:dy/length};
+  const remaining={x:to.x-boundary.x,y:to.y-boundary.y};
+  const projected=remaining.x*tangent.x+remaining.y*tangent.y;
+  if(Math.abs(projected)<1e-4)return null;
+  const normal={x:-tangent.y,y:tangent.x};
+  const bases=[
+    {x:boundary.x+normal.x*BOUNDARY_NUDGE,y:boundary.y+normal.y*BOUNDARY_NUDGE},
+    {x:boundary.x-normal.x*BOUNDARY_NUDGE,y:boundary.y-normal.y*BOUNDARY_NUDGE},
+    boundary
+  ].filter(candidate=>isWalkablePoint(map,candidate,{padding}));
+  if(!bases.length)return null;
+  bases.sort((a,b)=>Math.hypot(a.x-boundary.x,a.y-boundary.y)-Math.hypot(b.x-boundary.x,b.y-boundary.y));
+  const base=bases[0];
+  const slideTarget={x:base.x+tangent.x*projected,y:base.y+tangent.y*projected};
+  const hit=segmentBoundary(map,base,slideTarget,padding,step);
+  return hit?.point||slideTarget;
+}
+
 function constrainMovementPoint(mapOrKey,destination,from=null,{padding=PLAYER_FOOT_PADDING,step=6}={}){
   const map=mapFrom(mapOrKey);
   const hasTerrain=!!((map?.movement?.allowed?.length||0)+(map?.movement?.blocked?.length||0));
   if(!hasTerrain)return {x:destination.x,y:destination.y};
   const to={x:Number(destination.x),y:Number(destination.y)};
   if(!Number.isFinite(to.x)||!Number.isFinite(to.y))return from&&Number.isFinite(from.x)&&Number.isFinite(from.y)?{x:from.x,y:from.y}:to;
-  const origin=from&&Number.isFinite(from.x)&&Number.isFinite(from.y)?{x:Number(from.x),y:Number(from.y)}:null;
-  if(!origin)return nearestWalkable(map,to,{padding})||to;
-  if(!isWalkablePoint(map,origin,{padding}))return nearestWalkable(map,to,{padding})||nearestWalkable(map,origin,{padding})||origin;
-  const distance=Math.hypot(to.x-origin.x,to.y-origin.y);
-  const samples=Math.max(1,Math.ceil(distance/Math.max(2,Number(step)||6)));
-  const stepX=(to.x-origin.x)/samples,stepY=(to.y-origin.y)/samples;
-  let last={...origin};
-  for(let i=0;i<samples;i++){
-    const candidate={x:last.x+stepX,y:last.y+stepY};
-    if(isWalkablePoint(map,candidate,{padding})){
-      last=candidate;
-      continue;
+  const rawOrigin=from&&Number.isFinite(from.x)&&Number.isFinite(from.y)?{x:Number(from.x),y:Number(from.y)}:null;
+  if(!rawOrigin)return nearestWalkable(map,to,{padding})||to;
+  const origin=isWalkablePoint(map,rawOrigin,{padding})
+    ? rawOrigin
+    : nearestWalkable(map,rawOrigin,{padding})||nearestWalkable(map,to,{padding})||rawOrigin;
+  if(!isWalkablePoint(map,origin,{padding}))return origin;
+  const hit=segmentBoundary(map,origin,to,padding,step);
+  if(!hit)return to;
+  const slid=slideFromBoundary(map,hit.point,to,{padding,step});
+  if(slid&&isWalkablePoint(map,slid,{padding})){
+    // If the first slide reaches a corner, spend the remaining drag vector once more.
+    // This lets a continuous pointer gesture round the corner instead of requiring a
+    // stationary extra frame, while the second boundary check still forbids tunnelling.
+    if(Math.hypot(slid.x-hit.point.x,slid.y-hit.point.y)>.25){
+      const turnHit=segmentBoundary(map,slid,to,padding,step);
+      if(!turnHit)return to;
+      const turned=slideFromBoundary(map,turnHit.point,to,{padding,step});
+      if(turned&&isWalkablePoint(map,turned,{padding})&&Math.hypot(turned.x-slid.x,turned.y-slid.y)>.25)return turned;
     }
-    const slides=[
-      {x:last.x+stepX,y:last.y},
-      {x:last.x,y:last.y+stepY}
-    ].filter(point=>isWalkablePoint(map,point,{padding}));
-    if(!slides.length)return last;
-    slides.sort((a,b)=>Math.hypot(to.x-a.x,to.y-a.y)-Math.hypot(to.x-b.x,to.y-b.y));
-    last=slides[0];
+    return slid;
   }
-  return last;
+  return nearestWalkable(map,hit.point,{padding,maxRadius:Math.max(24,padding*4)})||hit.point;
 }
 
 function stageConfig(value){
