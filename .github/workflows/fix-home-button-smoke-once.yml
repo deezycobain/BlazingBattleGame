@@ -1,0 +1,69 @@
+name: Fix home button smoke references once
+
+on:
+  push:
+    branches: [dev-next-2026-09-01]
+    paths:
+      - '.github/workflows/fix-home-button-smoke-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev-next-2026-09-01
+
+      - name: Replace stale legacy home button references
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          roots = [Path('scripts'), Path('runtime')]
+          replacements = {
+              'battle.webp': 'battle.png',
+              'summon.webp': 'summon.png',
+              'units.webp': 'units.png',
+              'forge.webp': 'forge.png',
+          }
+          changed = []
+          for root in roots:
+              if not root.exists():
+                  continue
+              for path in root.rglob('*'):
+                  if not path.is_file():
+                      continue
+                  try:
+                      text = path.read_text()
+                  except UnicodeDecodeError:
+                      continue
+                  new = text
+                  for old, replacement in replacements.items():
+                      new = new.replace(old, replacement)
+                  if new != text:
+                      path.write_text(new)
+                      changed.append(str(path))
+          print('updated:', ', '.join(changed) if changed else '(none)')
+          PY
+
+          if git grep -n -E '(battle|summon|units|forge)\.webp' -- scripts runtime; then
+            echo 'Stale legacy home button reference remains in scripts/runtime.' >&2
+            exit 1
+          fi
+
+      - name: Commit reference cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts runtime
+          git diff --cached --quiet && exit 0
+          git commit -m "Update home button smoke references"
+          git push origin HEAD:dev-next-2026-09-01
