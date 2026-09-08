@@ -92,14 +92,17 @@ async function run(name,type){
       const checkVictory=globalThis.eval('checkVictoryKillshot');
       const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
       if(fighters.length<3)throw new Error(`expected 3 Road fighters, found ${fighters.length}`);
+      if(fighters.some(unit=>!(Number(unit.maxChakra)>0)))throw new Error(`expected Road fighters to expose maxChakra: ${JSON.stringify(fighters.map(unit=>({name:unit.name,maxChakra:unit.maxChakra,chakra:unit.chakra})))}`);
       fighters[0].hp=Math.max(1,Math.floor(fighters[0].maxHp*0.53));
       fighters[1].hp=0;
       fighters[2].hp=Math.max(1,fighters[2].maxHp-11);
+      fighters.forEach((unit,index)=>{unit.chakra=Math.min(unit.maxChakra,2+index*2);});
       const expected=Object.fromEntries(fighters.map(unit=>[window.BlazingRoadRun.stateUnitId(unit),unit.hp]));
+      const expectedChakra=Object.fromEntries(fighters.map(unit=>[window.BlazingRoadRun.stateUnitId(unit),unit.chakra]));
       state.enemies.forEach(enemy=>{enemy.hp=0;});
       const victory=checkVictory();
       const run=window.BlazingRoadRun.loadRun();
-      return {victory,expected,run,battleMode:state.bbRunMode,stage:state.bbRoadStage,log:state.log};
+      return {victory,expected,expectedChakra,run,battleMode:state.bbRunMode,stage:state.bbRoadStage,log:state.log};
     });
 
     if(!first.victory)throw new Error('Road victory hook did not resolve');
@@ -107,6 +110,8 @@ async function run(name,type){
     if(first.run?.status!=='active'||first.run?.stage!==2)throw new Error(`Road run did not advance to active Stage 2: ${JSON.stringify(first.run)}`);
     const savedHp=Object.fromEntries(first.run.fighters.map(f=>[f.unit_id,f.hp]));
     if(!sameHpMap(savedHp,first.expected))throw new Error(`saved HP mismatch after victory: expected ${JSON.stringify(first.expected)}, got ${JSON.stringify(savedHp)}`);
+    const savedChakra=Object.fromEntries(first.run.fighters.map(f=>[f.unit_id,f.chakra]));
+    if(!sameHpMap(savedChakra,first.expectedChakra))throw new Error(`saved chakra mismatch after victory: expected ${JSON.stringify(first.expectedChakra)}, got ${JSON.stringify(savedChakra)}`);
     const defeated=first.run.fighters.filter(f=>f.defeated);
     if(defeated.length!==1||defeated[0].hp!==0)throw new Error(`expected exactly one persisted KO: ${JSON.stringify(first.run.fighters)}`);
 
@@ -122,11 +127,13 @@ async function run(name,type){
       return {
         stage:state.bbRoadStage,
         hp:Object.fromEntries(fighters.map(unit=>[window.BlazingRoadRun.stateUnitId(unit),unit.hp])),
+        chakra:Object.fromEntries(fighters.map(unit=>[window.BlazingRoadRun.stateUnitId(unit),unit.chakra])),
         defeated:fighters.filter(unit=>unit.hp<=0).map(unit=>window.BlazingRoadRun.stateUnitId(unit))
       };
     });
     if(resumed.stage!==2)throw new Error(`Road resumed wrong stage: ${resumed.stage}`);
     if(!sameHpMap(resumed.hp,first.expected))throw new Error(`live Stage 2 HP did not carry forward: expected ${JSON.stringify(first.expected)}, got ${JSON.stringify(resumed.hp)}`);
+    if(!sameHpMap(resumed.chakra,first.expectedChakra))throw new Error(`live Stage 2 chakra did not carry forward: expected ${JSON.stringify(first.expectedChakra)}, got ${JSON.stringify(resumed.chakra)}`);
     if(resumed.defeated.length!==1)throw new Error(`persisted KO was not preserved in live Stage 2 battle: ${JSON.stringify(resumed)}`);
 
     await page.reload({waitUntil:'domcontentloaded'});
@@ -140,15 +147,16 @@ async function run(name,type){
         fullHp:fighters.every(unit=>unit.hp===unit.maxHp),
         hp:Object.fromEntries(fighters.map(unit=>[window.BlazingRoadRun.stateUnitId(unit),unit.hp])),
         runStage:road?.stage,
-        runHp:road?Object.fromEntries(road.fighters.map(f=>[f.unit_id,f.hp])):{}
+        runHp:road?Object.fromEntries(road.fighters.map(f=>[f.unit_id,f.hp])):{},
+        runChakra:road?Object.fromEntries(road.fighters.map(f=>[f.unit_id,f.chakra])):{}
       };
     });
     if(!castle.fullHp)throw new Error(`Phantom Castle inherited Road damage: ${JSON.stringify(castle.hp)}`);
-    if(castle.runStage!==2||!sameHpMap(castle.runHp,first.expected))throw new Error(`Castle altered saved Road run: ${JSON.stringify(castle)}`);
+    if(castle.runStage!==2||!sameHpMap(castle.runHp,first.expected)||!sameHpMap(castle.runChakra,first.expectedChakra))throw new Error(`Castle altered saved Road run: ${JSON.stringify(castle)}`);
 
     await page.evaluate(()=>window.BlazingRoadRun.clearRun());
     if(pageErrors.length)throw new Error(`pageerror: ${pageErrors.join(' | ')}`);
-    console.log(`Road browser smoke PASS (${name}): approved Battle selector preserves Stage 1 damage + KO into Stage 2 after reload; Phantom Castle stayed full HP.`);
+    console.log(`Road browser smoke PASS (${name}): approved Battle selector preserves Stage 1 HP, KO, and chakra into Stage 2 after reload; Phantom Castle stayed isolated.`);
   }finally{
     if(browser)await browser.close().catch(()=>{});
   }

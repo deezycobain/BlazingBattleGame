@@ -29,13 +29,25 @@ function readHp(state,maxHp=readMaxHp(state)){
   return clamp(finite(state.hp,maxHp),0,maxHp);
 }
 
+function readMaxChakra(state){
+  if(!state||typeof state!=='object')return 0;
+  return Math.max(0,finite(state.max_chakra??state.maxChakra,0));
+}
+
+function readChakra(state,maxChakra=readMaxChakra(state)){
+  if(!state||typeof state!=='object')return 0;
+  return clamp(finite(state.chakra,0),0,maxChakra);
+}
+
 function normalizeFighter(input){
   const unit_id=stateUnitId(input);
   if(!unit_id)throw new Error('Blazing Road fighter requires a unit id');
   const max_hp=readMaxHp(input);
   if(max_hp<=0)throw new Error(`Blazing Road fighter ${unit_id} requires positive max HP`);
   const hp=readHp(input,max_hp);
-  return Object.freeze({unit_id,max_hp,hp,defeated:hp<=0});
+  const max_chakra=readMaxChakra(input);
+  const chakra=readChakra(input,max_chakra);
+  return Object.freeze({unit_id,max_hp,hp,defeated:hp<=0,max_chakra,chakra});
 }
 
 function cloneRun(run){
@@ -66,6 +78,10 @@ function validateRun(run){
     seen.add(normalized.unit_id);
     if(fighter.max_hp!==normalized.max_hp||fighter.hp!==normalized.hp||Boolean(fighter.defeated)!==normalized.defeated){
       throw new Error(`Invalid Blazing Road fighter state for ${normalized.unit_id}`);
+    }
+    const hasChakra=Object.prototype.hasOwnProperty.call(fighter,'chakra')||Object.prototype.hasOwnProperty.call(fighter,'max_chakra');
+    if(hasChakra&&(fighter.max_chakra!==normalized.max_chakra||fighter.chakra!==normalized.chakra)){
+      throw new Error(`Invalid Blazing Road chakra state for ${normalized.unit_id}`);
     }
   }
   if(run.status==='active'&&!run.fighters.some(f=>f.hp>0))throw new Error('Active Blazing Road run must have a living fighter');
@@ -110,6 +126,15 @@ function applyRunToBattle(run,battlers){
     if('max_hp' in state)state.max_hp=battleMax;
     if('maxHp' in state)state.maxHp=battleMax;
     state.bbRoadDefeated=carried<=0;
+
+    const battleMaxChakra=readMaxChakra(state)||Math.max(0,finite(fighter.max_chakra,0));
+    const hasPersistedChakra=Object.prototype.hasOwnProperty.call(fighter,'chakra');
+    const carriedChakra=hasPersistedChakra
+      ?clamp(finite(fighter.chakra,0),0,battleMaxChakra)
+      :readChakra(state,battleMaxChakra);
+    state.chakra=carriedChakra;
+    if('max_chakra' in state)state.max_chakra=battleMaxChakra;
+    if('maxChakra' in state||battleMaxChakra>0)state.maxChakra=battleMaxChakra;
   }
   return battlers;
 }
@@ -124,7 +149,9 @@ function recordBattleResult(run,battlers){
     if(!state)return {...fighter};
     const battleMax=readMaxHp(state)||fighter.max_hp;
     const hp=clamp(readHp(state,battleMax),0,fighter.max_hp);
-    return {...fighter,hp,defeated:hp<=0};
+    const max_chakra=readMaxChakra(state)||Math.max(0,finite(fighter.max_chakra,0));
+    const chakra=readChakra(state,max_chakra);
+    return {...fighter,hp,defeated:hp<=0,max_chakra,chakra};
   });
   if(!next.fighters.some(f=>f.hp>0))next.status='failed';
   next.updated_at=now();
