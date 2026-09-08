@@ -20,7 +20,15 @@ if(targetAt<0||attackerAt<0||attackerAt<=targetAt){
 const targetHead=html.slice(targetAt,attackerAt);
 const enemyRx=/(?:const|let)\s+enemy\s*=\s*targets\s*\[\s*targetIndex\+\+\s*\]\s*;?/;
 const enemyMatch=enemyRx.exec(targetHead);
-if(!enemyMatch)throw new Error('Chain attack pass: per-target enemy assignment not found');
+if(!enemyMatch){
+ const compact=s=>s.replace(/\s+/g,' ').trim();
+ const probes=['targetIndex','targets','enemy','attackIndex'].map(token=>{
+  const idx=targetHead.indexOf(token);
+  if(idx<0)return `${token}:missing`;
+  return `${token}@${idx}: ${compact(targetHead.slice(Math.max(0,idx-220),Math.min(targetHead.length,idx+460)))}`;
+ }).join(' || ');
+ throw new Error(`Chain attack pass: per-target enemy assignment not found :: ${probes}`);
+}
 
 const afterEnemy=targetHead.slice(enemyMatch.index+enemyMatch[0].length);
 if(!/\battackIndex\s*=\s*0\s*;/.test(afterEnemy)){
