@@ -21,14 +21,18 @@ const presentation=(combatScale=1.12,position='center 53%')=>Object.freeze({
   scale:combatScale,
   position,
   introHoldMs:520,
-  transitionMs:620
+  countdownStepMs:520,
+  fightHoldMs:680,
+  transitionMs:760
 });
+const perspective=(farY,nearY,farScale,nearScale,curve=1)=>Object.freeze({farY,nearY,farScale,nearScale,curve});
 const broadFloor=()=>[rect(PLAYABLE_FLOOR.x,PLAYABLE_FLOOR.y,PLAYABLE_FLOOR.w,PLAYABLE_FLOOR.h)];
 
 const MAPS=Object.freeze([
   Object.freeze({
     key:'south-sac',name:'South Sac Approach',src:'assets/maps/blazing-road/stage-01-south-sac.webp',
     presentation:presentation(1.14,'center 54%'),
+    perspective:perspective(150,540,.94,1.03,1.02),
     enemyAnchors:anchors([200,260],[280,274],[240,340],[315,382],[176,386]),
     movement:terrain({
       // Trace the visible plaza instead of subtracting two tall invisible side walls.
@@ -42,6 +46,7 @@ const MAPS=Object.freeze([
   Object.freeze({
     key:'moon-statue-garden',name:'Moon Statue Garden',src:'assets/maps/blazing-road/stage-02-moon-statue-garden.webp',
     presentation:presentation(1.13,'center 53%'),
+    perspective:perspective(135,545,.88,1.04,1.08),
     enemyAnchors:anchors([205,220],[275,232],[210,315],[290,362],[242,276]),
     movement:terrain({
       // The corridor widens toward the camera. Only the actual moon statue remains a blocker.
@@ -146,6 +151,19 @@ function mapFrom(value){
   if(typeof value==='string')return MAPS.find(map=>map.key===value)||null;
   if(value.key)return MAPS.find(map=>map.key===value.key)||value;
   return value;
+}
+
+function visualScaleForY(mapOrKey,y){
+  const map=mapFrom(mapOrKey);
+  const profile=map?.perspective;
+  if(!profile)return 1;
+  const farY=Number(profile.farY),nearY=Number(profile.nearY);
+  const farScale=Number(profile.farScale),nearScale=Number(profile.nearScale);
+  const curve=Math.max(.25,Number(profile.curve)||1);
+  const value=Number(y);
+  if(![farY,nearY,farScale,nearScale,value].every(Number.isFinite)||Math.abs(nearY-farY)<1e-6)return 1;
+  const t=Math.max(0,Math.min(1,(value-farY)/(nearY-farY)));
+  return farScale+(nearScale-farScale)*Math.pow(t,curve);
 }
 
 function pointInPolygon(p,points){
@@ -324,9 +342,6 @@ function constrainMovementPoint(mapOrKey,destination,from=null,{padding=PLAYER_F
   if(!hit)return to;
   const slid=slideFromBoundary(map,hit.point,to,{padding,step});
   if(slid&&isWalkablePoint(map,slid,{padding})){
-    // If the first slide reaches a corner, spend the remaining drag vector once more.
-    // This lets a continuous pointer gesture round the corner instead of requiring a
-    // stationary extra frame, while the second boundary check still forbids tunnelling.
     if(Math.hypot(slid.x-hit.point.x,slid.y-hit.point.y)>.25){
       const turnHit=segmentBoundary(map,slid,to,padding,step);
       if(!turnHit)return to;
@@ -383,6 +398,6 @@ function isFinalStage(stage){return stageNumber(stage)>=MAX_STAGE;}
 
 window.BlazingRoadContent=Object.freeze({
   MAX_STAGE,STAT_MAX,PLAYER_FOOT_PADDING,ENEMY_TERRAIN_PADDING,PLAYABLE_FLOOR,MAPS,BASE_ENEMY_STATS,
-  stageNumber,stageConfig,mapForStage,isFinalStage,isWalkablePoint,nearestWalkable,constrainMovementPoint
+  stageNumber,stageConfig,mapForStage,isFinalStage,visualScaleForY,isWalkablePoint,nearestWalkable,constrainMovementPoint
 });
 })();
