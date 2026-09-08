@@ -49,7 +49,7 @@ async function assertHome(page,label){
  const {width:vw,height:vh}=state.viewport,n=state.nav;
  if(state.layout!=='v9-polish'||state.feedback!=='r1')throw new Error(`${label}: Home feedback runtime missing :: ${JSON.stringify(state)}`);
  if(!state.profileReady||!state.gateHidden||state.profileKicker!=='PLAYER'||!state.profileName)throw new Error(`${label}: profile bootstrap failed :: ${JSON.stringify(state)}`);
- if(!/runtime\/ui\/home\/home-wallpaper-hq\.png/i.test(state.background))throw new Error(`${label}: original parallax wallpaper missing :: ${state.background}`);
+ if(!/assets\/ui\/home\/backgrounds\/home-wallpaper-v2\.png/i.test(state.background))throw new Error(`${label}: approved Home wallpaper missing :: ${state.background}`);
  if(!state.leaderHidden)throw new Error(`${label}: Home leader presentation should be hidden`);
  if(!state.centerHidden)throw new Error(`${label}: duplicate center battle CTA is visible`);
  if(!state.bakedHidden)throw new Error(`${label}: baked HUD textures are visible`);
@@ -65,7 +65,7 @@ async function assertHome(page,label){
  if(n.battle.width>vw*.66)throw new Error(`${label}: Battle action remains oversized :: ${JSON.stringify(n.battle)}`);
  const broken=state.images.filter(img=>img.visible&&img.complete&&(img.naturalWidth<=0||img.naturalHeight<=0));if(broken.length)throw new Error(`${label}: broken visible Home images :: ${JSON.stringify(broken.slice(0,8))}`);
  for(const required of Object.keys(state.legacy))if(!state.legacy[required])throw new Error(`${label}: legacy route anchor ${required} missing`);
- console.log(`Home v9 smoke PASS (${label}): leader hidden + spaced dock + Blazing Coins/Embers + parallax wallpaper`);
+ console.log(`Home v9 smoke PASS (${label}): leader hidden + spaced dock + Blazing Coins/Embers + approved Home wallpaper`);
 }
 async function exerciseBattle(page,label){
  await page.locator('#bbHomeApproved [data-nav="battle"]').click();const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');await panel.waitFor({state:'visible',timeout:5000});
