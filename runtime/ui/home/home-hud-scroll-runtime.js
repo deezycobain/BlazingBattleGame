@@ -91,7 +91,7 @@ function ensureStyle(){
   color:#1c1715!important;
   text-shadow:0 1px rgba(255,255,255,.34)!important;
 }
-#${SHELL_ID}.bb-home-v9 .bb-home-v5-profile-meta{
+#${SHELL_ID}.bb-home-v9 .bb-home-v5-profile-metak
   gap:5px!important;
   margin-top:4px!important;
   font:800 5.5px/1 ui-sans-serif,system-ui,sans-serif!important;
@@ -181,8 +181,11 @@ function ensureStyle(){
   #${SHELL_ID} .bb-main-logo-slot{top:max(87px,calc(env(safe-area-inset-top) + 80px))!important;height:min(18vh,125px)!important}
 }
 `;
-  document.head.appendChild(style);
  }
+ // Re-appending an existing style element moves it to the end of <head>. This
+ // keeps the approved parchment HUD above v9's dynamically installed !important
+ // rules regardless of browser/runtime execution order.
+ document.head.appendChild(style);
  return style;
 }
 
