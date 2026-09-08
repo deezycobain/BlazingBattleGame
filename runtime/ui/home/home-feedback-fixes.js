@@ -6,9 +6,9 @@ const CSS=`
 #bbHomeApproved.bb-home-v9 .bb-home-v5-leader{display:none!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-dock{row-gap:13px!important;transform:translateY(-17px)!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-social{gap:10px!important}
-#bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="summon"]{transform:rotate(.35deg) translate(-3px,-4px) scale(.90)!important}
+#bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="summon"]{transform:rotate(.35deg) translate(-3px,-8px) scale(.90)!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="units"]{transform:rotate(-.2deg) translateX(2px) scale(.90)!important}
-#bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="forge"]{transform:rotate(.3deg) translate(-1px,1px) scale(.90)!important}
+#bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="forge"]{transform:rotate(.3deg) translate(-1px,5px) scale(.90)!important}
 @media(max-width:430px){
  #bbHomeApproved.bb-home-v9 .bb-home-v4-dock{row-gap:11px!important;transform:translateY(-6px)!important}
  #bbHomeApproved.bb-home-v9 .bb-home-v4-social{gap:9px!important}
