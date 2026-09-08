@@ -19,7 +19,9 @@ const playerReplacement=` const grab=S.dragGrabOffset||{x:0,y:0};
   const terrainFrom=S.bbTerrainDragOrigin===S.dragOrigin&&S.bbTerrainLastLegal
    ? S.bbTerrainLastLegal
    : {x:p.x,y:p.y};
-  legal=window.BlazingRoadContent.constrainMovementPoint(S.bbRoadContent?.map,legal,terrainFrom,{padding:18});
+  // Fighter movement is foot-anchored. Keep only a small tolerance around that anchor;
+  // the old 18px radius created invisible walls well inside narrow authored lanes.
+  legal=window.BlazingRoadContent.constrainMovementPoint(S.bbRoadContent?.map,legal,terrainFrom,{padding:6});
   S.bbTerrainDragOrigin=S.dragOrigin;
   S.bbTerrainLastLegal={x:legal.x,y:legal.y};
  }`;
@@ -42,10 +44,11 @@ for(const marker of [
   "window.BlazingRoadContent?.constrainMovementPoint",
   "S.bbTerrainDragOrigin===S.dragOrigin",
   "S.bbTerrainLastLegal={x:legal.x,y:legal.y}",
+  "S.bbRoadContent?.map,legal,terrainFrom,{padding:6}",
   "S.bbRoadContent?.map,desiredEvade,{x:e.x,y:e.y},{padding:18}"
 ]){
   if(!html.includes(marker))throw new Error(`Road terrain integration: built shell missing ${marker}`);
 }
 
 await fs.writeFile(file,html);
-console.log('Road terrain integration PASS: player drag can steer around stage geometry while enemy evasion respects obstacles.');
+console.log('Road terrain integration PASS: foot-anchored player drag uses tight terrain clearance and can steer around stage geometry while enemy evasion respects obstacles.');
