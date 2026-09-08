@@ -13,7 +13,7 @@ const CUTOUTS=Object.freeze({
 });
 const norm=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');
 const format=value=>Math.max(0,Math.floor(Number(value)||0)).toLocaleString('en-US');
-const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));
+const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 let queued=false;
 let bootTimers=[];
 
