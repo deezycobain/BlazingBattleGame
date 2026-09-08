@@ -3,7 +3,7 @@
 if(window.BlazingBattleMobileControls)return;
 
 const STYLE_ID='bb-battle-mobile-controls-style';
-const VERSION='v3';
+const VERSION='v4';
 const CONTROL_CLASS='bb-battle-mobile-control';
 const SHELL_REFS=Object.freeze({basic:'normalBtn',jutsu:'jutsuBtn'});
 const MATCHERS=Object.freeze({reset:/^reset$/i,basic:/\bbasic\b/i,jutsu:/\bjutsu\b/i});
@@ -52,9 +52,13 @@ const CSS=`
  #battleScreen .bb-battle-control-jutsu{
   top:auto!important;
   bottom:var(--bb-battle-safe-bottom)!important;
+  width:clamp(104px,32vw,148px)!important;
   min-width:104px!important;
+  max-width:148px!important;
+  inline-size:clamp(104px,32vw,148px)!important;
+  min-inline-size:104px!important;
+  max-inline-size:148px!important;
   min-height:48px!important;
-  max-width:calc(50% - 22px)!important;
  }
  #battleScreen .bb-battle-control-basic{
   left:var(--bb-battle-safe-left)!important;
