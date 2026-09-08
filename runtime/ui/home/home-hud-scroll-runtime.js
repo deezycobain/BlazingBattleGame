@@ -4,11 +4,15 @@
 const VERSION='v2';
 const STYLE_ID='bb-home-scroll-hud-style';
 const SHELL_ID='bbHomeApproved';
+const PROFILE_KEY='bb_player_profile_v1';
 const ASSETS=Object.freeze({
  profile:'assets/ui/home/hud/player-profile-scroll.png',
  coins:'assets/ui/home/hud/gold-currency-scroll.png',
  embers:'assets/ui/home/hud/embers-currency-scroll.png'
 });
+const COIN_ICON='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 6v12M8.8 9.1h5a2.2 2.2 0 0 1 0 4.4h-5.6M9.2 13.5h5.3a2.2 2.2 0 0 1 0 4.4H9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+const EMBER_ICON='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.2 18 9.4 12 20.8 6 9.4 12 3.2Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m12 7 2.9 3.1-2.9 6-2.9-6L12 7Z" fill="currentColor"/></svg>';
+const format=value=>Math.max(0,Math.floor(Number(value)||0)).toLocaleString('en-US');
 let queued=false;
 
 function ensureStyle(){
@@ -182,9 +186,6 @@ function ensureStyle(){
 }
 `;
  }
- // Re-appending an existing style element moves it to the end of <head>. This
- // keeps the approved parchment HUD above v9's dynamically installed !important
- // rules regardless of browser/runtime execution order.
  document.head.appendChild(style);
  return style;
 }
@@ -218,6 +219,79 @@ function pinBackground(el,src){
  return true;
 }
 
+function loadPlayerProfile(){
+ try{
+  const profile=window.BlazingHomeV8?.loadProfile?.();
+  if(profile&&typeof profile.username==='string'&&profile.username.trim())return {username:profile.username.trim().slice(0,16),level:Math.max(1,Number(profile.level)||1)};
+ }catch{}
+ try{
+  const raw=localStorage.getItem(PROFILE_KEY);
+  const profile=raw?JSON.parse(raw):null;
+  if(profile&&typeof profile.username==='string'&&profile.username.trim())return {username:profile.username.trim().slice(0,16),level:Math.max(1,Number(profile.level)||1)};
+ }catch{}
+ return null;
+}
+
+function currentLeaderName(){
+ try{
+  const unit=window.BlazingApprovedHomeCompat?.leaderUnit?.();
+  return String(unit?.display_name||unit?.name||unit?.id||'').trim();
+ }catch{return ''}
+}
+
+function syncPlayerProfile(shell){
+ const profile=loadPlayerProfile();
+ if(!shell||!profile)return false;
+ const card=shell.querySelector('.bb-home-v5-profile');
+ const copy=card?.querySelector('.bb-home-v5-profile-copy');
+ const kicker=copy?.querySelector('small');
+ const name=copy?.querySelector('strong');
+ const meta=copy?.querySelector('.bb-home-v5-profile-meta');
+ const level=meta?.querySelector('b');
+ const rank=meta?.querySelector('span');
+ const leader=currentLeaderName();
+ if(kicker&&kicker.textContent!=='PLAYER')kicker.textContent='PLAYER';
+ if(name&&name.textContent!==profile.username)name.textContent=profile.username;
+ const levelText=`LV ${profile.level}`;
+ if(level&&level.textContent!==levelText)level.textContent=levelText;
+ const rankText=leader?`LEADER ${leader.toUpperCase()}`:'PLAYER PROFILE';
+ if(rank&&rank.textContent!==rankText)rank.textContent=rankText;
+ if(card)card.setAttribute('aria-label',`Player profile ${profile.username}`);
+ shell.dataset.bbPlayerProfile='ready';
+ return !!(card&&copy&&name&&level);
+}
+
+function ensureCurrencyIcon(el,key){
+ if(!el)return false;
+ let icon=el.querySelector('.bb-home-v5-currency-icon');
+ if(!icon){
+  icon=document.createElement('i');
+  icon.className='bb-home-v5-currency-icon';
+  const copy=el.querySelector('.bb-home-v5-currency-copy');
+  el.insertBefore(icon,copy||el.firstChild);
+ }
+ const expected=key==='coins'?COIN_ICON:EMBER_ICON;
+ const marker=key==='coins'?'coins':'embers';
+ if(icon.dataset.v9Icon!==marker||!icon.querySelector('svg')){
+  icon.innerHTML=expected;
+  icon.dataset.v9Icon=marker;
+ }
+ return !!icon.querySelector('svg');
+}
+
+function syncEconomy(coins,embers){
+ let state=null;
+ try{state=window.BlazingEconomy?.load?.()||null}catch{}
+ if(!state)return false;
+ const coinValue=coins?.querySelector('[data-v5-marks]');
+ const emberValue=embers?.querySelector('[data-v5-embers]');
+ const nextCoins=format(state.battleMarks);
+ const nextEmbers=format(state.embers);
+ if(coinValue&&coinValue.textContent!==nextCoins)coinValue.textContent=nextCoins;
+ if(emberValue&&emberValue.textContent!==nextEmbers)emberValue.textContent=nextEmbers;
+ return !!(coinValue&&emberValue);
+}
+
 function syncAssets(shell){
  if(!shell)return false;
  const profileCard=shell.querySelector('.bb-home-v5-profile');
@@ -237,12 +311,16 @@ function syncAssets(shell){
   coins.dataset.v9Currency='blazing-coins';
   const label=coins.querySelector('.bb-home-v5-currency-copy small');
   if(label&&label.textContent!=='BLAZING COINS')label.textContent='BLAZING COINS';
+  ensureCurrencyIcon(coins,'coins');
  }
  if(embers){
   embers.dataset.v9Currency='embers';
   const label=embers.querySelector('.bb-home-v5-currency-copy small');
   if(label&&label.textContent!=='EMBERS')label.textContent='EMBERS';
+  ensureCurrencyIcon(embers,'embers');
  }
+ syncEconomy(coins,embers);
+ syncPlayerProfile(shell);
  shell.dataset.bbHudSkin='scroll-red-black';
  shell.dataset.bbHudAssets='approved-runtime';
  return !!(profile&&coinImg&&emberImg&&profileCard&&coins&&embers);
@@ -261,14 +339,14 @@ function schedule(){
  requestAnimationFrame(()=>{queued=false;apply();});
 }
 
-for(const event of ['bb:economy','bb:player-profile','bb:unit-progression','pageshow'])window.addEventListener(event,schedule);
+for(const event of ['bb:economy','bb:player-profile','bb:unit-progression','pageshow','storage'])window.addEventListener(event,schedule);
 window.addEventListener('resize',schedule,{passive:true});
 new MutationObserver(records=>{
  const relevant=records.some(record=>{
   const target=record.target;
   if(record.type==='attributes')return target?.id===SHELL_ID;
   if(record.type!=='childList')return false;
-  if(target?.id===SHELL_ID||target?.classList?.contains('bb-home-v5-hud'))return true;
+  if(target?.id===SHELL_ID||target?.closest?.('.bb-home-v5-hud'))return true;
   return [...record.addedNodes].some(node=>node?.nodeType===1&&(node.id===SHELL_ID||node.matches?.('.bb-home-v5-hud')||node.querySelector?.('.bb-home-v5-hud')));
  });
  if(relevant)schedule();
