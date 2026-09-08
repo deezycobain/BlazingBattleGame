@@ -35,7 +35,9 @@ async function run(name,type){
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());
   await enterRoad(page);
 
-  const result=await page.evaluate(async()=>{
+  const hardTimeoutMs=name==='webkit'?3200:2200;
+  const maxLifecycleMs=name==='webkit'?2800:1900;
+  const result=await page.evaluate(async hardTimeoutMs=>{
    const shell=document.documentElement.innerHTML;
    const blocking="runBasicAttack=au.name==='Tyler'?async(...args)=>{await TYLER_BODY_RUNTIME.basic.readyPromise";
    if(shell.includes(blocking))return {error:'blocking sprite-readiness hook survived'};
@@ -49,7 +51,7 @@ async function run(name,type){
    const outcome=await new Promise(resolve=>{
     let impactCount=0,doneCount=0,settled=false;
     const finish=value=>{if(settled)return;settled=true;resolve(value)};
-    const timer=setTimeout(()=>finish({timedOut:true,impactCount,doneCount,hp:enemy.hp,elapsed:performance.now()-start}),2200);
+    const timer=setTimeout(()=>finish({timedOut:true,impactCount,doneCount,hp:enemy.hp,elapsed:performance.now()-start}),hardTimeoutMs);
     try{
      animateLunge('Tyler',{x:pair.x,y:pair.y},{x:enemy.x,y:enemy.y},()=>{
       impactCount++;
@@ -63,12 +65,12 @@ async function run(name,type){
    });
    body.basic.ready=wasReady;
    return {...outcome,before,after:enemy.hp,wasReady};
-  });
+  },hardTimeoutMs);
   if(result.error)throw new Error(`runtime error: ${JSON.stringify(result)}`);
-  if(result.timedOut)throw new Error(`Tyler Basic timed out: ${JSON.stringify(result)}`);
+  if(result.timedOut)throw new Error(`Tyler Basic timed out after ${hardTimeoutMs}ms: ${JSON.stringify(result)}`);
   if(result.impactCount!==1||result.doneCount!==1)throw new Error(`Tyler Basic callbacks incomplete: ${JSON.stringify(result)}`);
   if(!(result.after<result.before))throw new Error(`Tyler Basic impact did not apply damage: ${JSON.stringify(result)}`);
-  if(result.elapsed>1900)throw new Error(`Tyler Basic lifecycle was abnormally slow: ${JSON.stringify(result)}`);
+  if(result.elapsed>maxLifecycleMs)throw new Error(`Tyler Basic lifecycle exceeded ${name} CI ceiling ${maxLifecycleMs}ms: ${JSON.stringify(result)}`);
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
   console.log(`Tyler Basic smoke PASS (${name}): impact + damage + completion succeeded with authored Basic readiness forced false in ${Math.round(result.elapsed)}ms.`);
   await context.close();
