@@ -225,12 +225,20 @@
       "width": 360,
       "height": 640,
       "bytes": 52248
+    },
+    {
+      "path": "assets/ui/home/branding/blazing-battle-logo.webp",
+      "source": "blazing-battle-logo-master-4k.png",
+      "width": 4096,
+      "height": 2260,
+      "bytes": 2537118
     }
   ],
   "notes": {
     "dimensions": "width/height record optimized runtime WebP dimensions",
     "reference_assets": "reference/ files are design targets and should not be loaded by the runtime",
     "background_status": "backgrounds are approved concepts; select one during Home-screen implementation",
-    "navigation_status": "Approved parchment scroll main-menu buttons; canonical runtime assets are PNG and legacy WebP navigation buttons were removed."
+    "navigation_status": "Approved parchment scroll main-menu buttons; canonical runtime assets are PNG and legacy WebP navigation buttons were removed.",
+    "branding_status": "Approved ninja-scroll Blazing Battle logo. Runtime loads only branding/blazing-battle-logo.webp; 4K PNG master is archival."
   }
 }
