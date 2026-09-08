@@ -3,7 +3,7 @@
 if(window.BlazingBattleMobileControls)return;
 
 const STYLE_ID='bb-battle-mobile-controls-style';
-const VERSION='v2';
+const VERSION='v3';
 const CONTROL_CLASS='bb-battle-mobile-control';
 const SHELL_REFS=Object.freeze({basic:'normalBtn',jutsu:'jutsuBtn'});
 const MATCHERS=Object.freeze({reset:/^reset$/i,basic:/\bbasic\b/i,jutsu:/\bjutsu\b/i});
@@ -28,9 +28,15 @@ const CSS=`
   right:var(--bb-battle-safe-right)!important;
   bottom:auto!important;
   left:auto!important;
+  width:72px!important;
   min-width:72px!important;
+  max-width:72px!important;
+  inline-size:72px!important;
+  min-inline-size:72px!important;
+  max-inline-size:72px!important;
+  height:44px!important;
   min-height:44px!important;
-  max-width:34vw!important;
+  max-height:44px!important;
  }
  #battleScreen .bb-battle-pause-button{
   top:calc(var(--bb-battle-safe-top) + 52px)!important;
@@ -111,11 +117,32 @@ function rect(button){
  const r=button.getBoundingClientRect();
  return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};
 }
+function computed(button){
+ if(!button)return null;
+ const style=getComputedStyle(button);
+ const parent=button.parentElement?getComputedStyle(button.parentElement):null;
+ return {
+  width:style.width,
+  minWidth:style.minWidth,
+  maxWidth:style.maxWidth,
+  height:style.height,
+  minHeight:style.minHeight,
+  maxHeight:style.maxHeight,
+  inlineSize:style.inlineSize,
+  minInlineSize:style.minInlineSize,
+  maxInlineSize:style.maxInlineSize,
+  transform:style.transform,
+  position:style.position,
+  display:style.display,
+  visibility:style.visibility,
+  parentTransform:parent?.transform||null
+ };
+}
 function snapshot(){
  const root=battle();
  const controls=tagControls();
  const rendered={};
- for(const [kind,button] of Object.entries(controls))rendered[kind]=button?{rect:rect(button),visible:isRendered(button),disabled:!!button.disabled,text:normalizeText(button),id:button.id||null}:null;
+ for(const [kind,button] of Object.entries(controls))rendered[kind]=button?{rect:rect(button),style:computed(button),visible:isRendered(button),disabled:!!button.disabled,text:normalizeText(button),id:button.id||null}:null;
  const viewport=window.visualViewport;
  return Object.freeze({
   version:VERSION,
