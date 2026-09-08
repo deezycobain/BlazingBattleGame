@@ -9,6 +9,9 @@ const C=sandbox.window.BlazingRoadContent;
 if(!C)throw new Error('Blazing Road content runtime did not register');
 if(C.MAX_STAGE!==10)throw new Error(`Expected 10 Road stages, got ${C.MAX_STAGE}`);
 if(C.STAT_MAX!==100)throw new Error(`Expected Road stat ceiling 100, got ${C.STAT_MAX}`);
+if(C.PLAYER_FOOT_PADDING!==4)throw new Error(`Playable Road fighters must share the 4px feet-anchor footprint, got ${C.PLAYER_FOOT_PADDING}`);
+if(C.ENEMY_TERRAIN_PADDING!==18)throw new Error(`Road enemy terrain clearance changed unexpectedly: ${C.ENEMY_TERRAIN_PADDING}`);
+if(!C.PLAYABLE_FLOOR||C.PLAYABLE_FLOOR.w<400||C.PLAYABLE_FLOOR.h<440)throw new Error(`Road playable floor is too small: ${JSON.stringify(C.PLAYABLE_FLOOR)}`);
 if(!Array.isArray(C.MAPS)||C.MAPS.length!==5)throw new Error(`Expected 5 Road maps, got ${C.MAPS?.length}`);
 for(const [id,stats] of Object.entries(C.BASE_ENEMY_STATS||{})){
  for(const stat of ['hp','attack','defense','speed']){
@@ -48,6 +51,39 @@ for(let i=0;i<5;i++){
 if(!C.isFinalStage(10)||!C.isFinalStage(99)||C.isFinalStage(9))throw new Error('Final-stage detection is incorrect');
 if(C.stageConfig(11).stage!==10)throw new Error('Road content must clamp beyond Stage 10');
 
+// Every Road map starts from one broad battlefield floor. Map-specific scenery may remove
+// portions of it, but it must not collapse the fight into a narrow corridor again.
+function walkableCoverage(map){
+ const floor=C.PLAYABLE_FLOOR;
+ let total=0,walkable=0;
+ for(let y=floor.y+8;y<=floor.y+floor.h-8;y+=12){
+  for(let x=floor.x+8;x<=floor.x+floor.w-8;x+=12){
+   total++;
+   if(C.isWalkablePoint(map,{x,y},{padding:C.PLAYER_FOOT_PADDING}))walkable++;
+  }
+ }
+ return total?walkable/total:0;
+}
+for(const map of C.MAPS){
+ if(!Array.isArray(map.movement?.allowed)||map.movement.allowed.length!==1)throw new Error(`${map.key} must publish one broad playable-floor boundary`);
+ const p=map.presentation||{};
+ if(Number(p.introScale)!==1)throw new Error(`${map.key} must begin/outro at full-map scale 1`);
+ if(!(Number(p.combatScale)>1&&Number(p.combatScale)<=1.16))throw new Error(`${map.key} combat zoom must stay modest: ${p.combatScale}`);
+ if(!p.position||Number(p.transitionMs)<300||Number(p.transitionMs)>900)throw new Error(`${map.key} camera presentation is incomplete`);
+ const coverage=walkableCoverage(map);
+ if(coverage<0.60)throw new Error(`${map.key} only leaves ${(coverage*100).toFixed(1)}% of the authored battlefield floor walkable`);
+}
+
+// Stage 1/2 used to double-restrict the floor with skinny allowed funnels plus broad side
+// blockers. These representative left/right positions must now be fluidly reachable.
+for(const [stage,points] of [
+ [1,[{x:90,y:300},{x:240,y:300},{x:390,y:300}]],
+ [2,[{x:92,y:300},{x:240,y:300},{x:388,y:300}]]
+]){
+ const map=C.mapForStage(stage);
+ for(const point of points)if(!C.isWalkablePoint(map,point,{padding:C.PLAYER_FOOT_PADDING}))throw new Error(`Stage ${stage} broad floor unexpectedly blocks ${JSON.stringify(point)}`);
+}
+
 // Terrain collisions should guide a drag along a barrier instead of freezing the fighter.
 const slideMap={movement:{allowed:[],blocked:[{type:'rect',x:100,y:80,w:40,h:80}]}};
 const againstWall=C.constrainMovementPoint(slideMap,{x:160,y:150},{x:80,y:100},{padding:0,step:6});
@@ -55,20 +91,14 @@ if(!(againstWall.x<100&&againstWall.y>135))throw new Error(`Road drag did not sl
 const aroundCorner=C.constrainMovementPoint(slideMap,{x:160,y:190},againstWall,{padding:0,step:6});
 if(!(aroundCorner.x>140&&aroundCorner.y>165))throw new Error(`Road drag could not steer around barrier corner: ${JSON.stringify({againstWall,aroundCorner})}`);
 
-// Player positions use a feet anchor, not a full-body collision disk. These points are
-// inside the authored Stage 1/2 lanes but the old 18px player halo rejected them as
-// invisible walls. A small 6px tolerance keeps actual terrain collision without shrinking
-// narrow walkable corridors away from the player.
-const laneEdgeCases=[
- {name:'South Sac lower-left lane',map:C.mapForStage(1),point:{x:180,y:300}},
- {name:'Moon Statue upper-left lane',map:C.mapForStage(2),point:{x:180,y:240}}
-];
-for(const test of laneEdgeCases){
- if(!C.isWalkablePoint(test.map,test.point,{padding:6}))throw new Error(`${test.name} should remain walkable with foot-anchor clearance`);
- if(C.isWalkablePoint(test.map,test.point,{padding:18}))throw new Error(`${test.name} no longer demonstrates the old ghost-padding regression`);
-}
 const terrainIntegration=await fs.readFile('scripts/road-terrain-postprocess.mjs','utf8');
-if(!terrainIntegration.includes('S.bbRoadContent?.map,legal,terrainFrom,{padding:6}'))throw new Error('Road player movement must use 6px foot-anchor terrain clearance');
-if(!terrainIntegration.includes('S.bbRoadContent?.map,desiredEvade,{x:e.x,y:e.y},{padding:18}'))throw new Error('Road enemy evasion should retain conservative 18px obstacle clearance');
+if(!terrainIntegration.includes('PLAYER_FOOT_PADDING||4'))throw new Error('Road player movement must consume the roster-independent feet-anchor constant');
+if(!terrainIntegration.includes('ENEMY_TERRAIN_PADDING||18'))throw new Error('Road enemy movement must consume its independent terrain-clearance constant');
+if(/pickPlayerHit|pickEnemyHit|BODY_HITBOX/.test(terrainIntegration))throw new Error('Road terrain integration must not depend on combat targeting/body hitboxes');
+const cameraRuntime=await fs.readFile('runtime/modes/blazing-road-camera.js','utf8');
+if(!cameraRuntime.includes("mode='intro'")||!cameraRuntime.includes("mode='combat'")||!cameraRuntime.includes("mode='outro'"))throw new Error('Road camera must support intro, combat, and outro framing states');
+if(!cameraRuntime.includes("'scale' in canvas.style"))throw new Error('Road camera must use browser-native visual scaling without mutating world coordinates');
+const pkg=JSON.parse(await fs.readFile('package.json','utf8'));
+if(!pkg.scripts?.build?.includes('road-camera-postprocess.mjs'))throw new Error('Road camera postprocess is not wired into the build');
 
-console.log('Blazing Road content PASS: 10 stages, 5-map rotation, normalized enemy stats, elite checkpoints, evade tuning, tight foot-anchor player clearance, edge-sliding terrain movement, and final-stage clamp verified.');
+console.log('Blazing Road content PASS: broad five-map playable floors, universal feet-anchor movement, authored blockers, edge sliding, intro/combat/outro camera framing, normalized enemies, and final-stage clamp verified.');
