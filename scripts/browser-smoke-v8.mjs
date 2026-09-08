@@ -21,7 +21,7 @@ async function waitHome(page){
  await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
  const loading=page.locator('#bb-loading-screen');
  if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
- await page.waitForFunction(()=>typeof window.BlazingApprovedHomeCompat==='object'&&typeof window.BlazingHomeLivePolish==='object'&&typeof window.BlazingHomeV8==='object'&&typeof window.BlazingHomeV9==='object'&&typeof window.BlazingHomeFeedbackFixes==='object',{timeout:30000});
+ await page.waitForFunction(()=>typeof window.BlazingMobileShellFixes==='object'&&typeof window.BlazingApprovedHomeCompat==='object'&&typeof window.BlazingHomeLivePolish==='object'&&typeof window.BlazingHomeV8==='object'&&typeof window.BlazingHomeV9==='object'&&typeof window.BlazingHomeFeedbackFixes==='object',{timeout:30000});
  await page.waitForFunction(()=>document.querySelector('#bbHomeApproved')?.dataset?.bbHomeLayout==='v9-polish'&&document.querySelector('#bbHomeApproved')?.dataset?.bbHomeFeedback==='r1',{timeout:10000});
  await page.waitForTimeout(300);
 }
@@ -36,8 +36,19 @@ async function assertHome(page,label){
   const currencyState=el=>({label:el?.querySelector('.bb-home-v5-currency-copy small')?.textContent?.trim()||'',value:el?.querySelector('strong')?.textContent?.trim()||'',icon:!!el?.querySelector('.bb-home-v5-currency-icon svg')});
   const images=[...shell?.querySelectorAll('img')||[]].map(img=>({src:img.getAttribute('src')||'',complete:img.complete,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,visible:visible(img)}));
   const leader=shell?.querySelector('.bb-home-v5-leader');
+  const escapedText=[];
+  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  let textNode;
+  while((textNode=walker.nextNode())){
+   const tag=textNode.parentElement?.tagName||'';
+   if(['SCRIPT','STYLE','PRE','CODE','TEXTAREA'].includes(tag))continue;
+   const value=textNode.nodeValue||'';
+   if(value.includes('\\n')||/(^|\s)\/n(?=\s|$)/i.test(value))escapedText.push(value.trim().slice(0,80));
+  }
   return {
-   viewport:{width:innerWidth,height:innerHeight},dock:rect(shell?.querySelector('.bb-home-v4-dock')),leaderHidden:hidden(leader),nav,
+   viewport:{width:innerWidth,height:innerHeight},visualViewport:{width:visualViewport?.width||innerWidth,height:visualViewport?.height||innerHeight},
+   viewportMeta:document.querySelector('meta[name="viewport"]')?.getAttribute('content')||'',mobileRuntime:window.BlazingMobileShellFixes?.VERSION||'',mobileViewportHeight:Number(document.documentElement.dataset.bbMobileViewportHeight||0),
+   body:rect(document.body),menu:rect(root),dock:rect(shell?.querySelector('.bb-home-v4-dock')),leaderHidden:hidden(leader),nav,escapedText,
    layout:shell?.dataset?.bbHomeLayout||'',feedback:shell?.dataset?.bbHomeFeedback||'',currencyMode:shell?.dataset?.bbHomeCurrency||'',
    centerHidden:hidden(shell?.querySelector('.bb-home-v4-center')),profileReady:shell?.dataset?.bbPlayerProfile||'',gateHidden:hidden(shell?.querySelector('#bbHomeProfileGate')),
    profileName:shell?.querySelector('.bb-home-v5-profile-copy strong')?.textContent?.trim()||'',profileKicker:shell?.querySelector('.bb-home-v5-profile-copy small')?.textContent?.trim()||'',
@@ -47,7 +58,10 @@ async function assertHome(page,label){
   };
  });
  const {width:vw,height:vh}=state.viewport,n=state.nav;
+ const cx=r=>r.x+r.width/2,cy=r=>r.y+r.height/2;
  if(state.layout!=='v9-polish'||state.feedback!=='r1')throw new Error(`${label}: Home feedback runtime missing :: ${JSON.stringify(state)}`);
+ if(state.mobileRuntime!=='v1'||!/viewport-fit\s*=\s*cover/i.test(state.viewportMeta))throw new Error(`${label}: mobile viewport runtime/meta missing :: ${JSON.stringify({runtime:state.mobileRuntime,meta:state.viewportMeta})}`);
+ if(state.escapedText.length)throw new Error(`${label}: literal escaped newline text remains visible :: ${JSON.stringify(state.escapedText)}`);
  if(!state.profileReady||!state.gateHidden||state.profileKicker!=='PLAYER'||!state.profileName)throw new Error(`${label}: profile bootstrap failed :: ${JSON.stringify(state)}`);
  if(!/assets\/ui\/home\/backgrounds\/home-wallpaper-v2\.png/i.test(state.background))throw new Error(`${label}: approved Home wallpaper missing :: ${state.background}`);
  if(!state.leaderHidden)throw new Error(`${label}: Home leader presentation should be hidden`);
@@ -57,15 +71,23 @@ async function assertHome(page,label){
  if(state.embers.label!=='EMBERS'||!state.embers.icon)throw new Error(`${label}: Embers HUD incomplete :: ${JSON.stringify(state.embers)}`);
  if(!state.dock||state.dock.x<-1||state.dock.right>vw+1||state.dock.bottom>vh+1)throw new Error(`${label}: dock outside viewport :: ${JSON.stringify(state.dock)}`);
  for(const key of Object.keys(n)){const r=n[key];if(!r||r.width<58||r.height<30||r.x<-1||r.right>vw+1||r.y<-1||r.bottom>vh+1)throw new Error(`${label}: invalid ${key} target :: ${JSON.stringify(r)}`)}
- const right=[n.summon,n.units,n.forge];
- if(!(n.summon.y<n.units.y&&n.units.y<n.forge.y))throw new Error(`${label}: right actions are not stacked :: ${JSON.stringify(right)}`);
- if(n.units.y-n.summon.bottom<1||n.forge.y-n.units.bottom<1)throw new Error(`${label}: right actions remain cramped/overlapping :: ${JSON.stringify(right)}`);
- if(n.battle.x>=n.summon.x||n.battle.right>n.summon.x+20)throw new Error(`${label}: Battle is not the left dominant action :: ${JSON.stringify(n)}`);
- if(n.battle.height<n.forge.bottom-n.summon.y-12)throw new Error(`${label}: Battle does not span right action stack :: ${JSON.stringify(n)}`);
- if(n.battle.width>vw*.66)throw new Error(`${label}: Battle action remains oversized :: ${JSON.stringify(n.battle)}`);
+ const topY=(cy(n.battle)+cy(n.summon))/2,bottomY=(cy(n.units)+cy(n.forge))/2,leftX=(cx(n.battle)+cx(n.units))/2,rightX=(cx(n.summon)+cx(n.forge))/2;
+ if(Math.abs(cy(n.battle)-cy(n.summon))>12||Math.abs(cy(n.units)-cy(n.forge))>12)throw new Error(`${label}: Home actions are not aligned into two rows :: ${JSON.stringify(n)}`);
+ if(Math.abs(cx(n.battle)-cx(n.units))>14||Math.abs(cx(n.summon)-cx(n.forge))>14)throw new Error(`${label}: Home actions are not aligned into two columns :: ${JSON.stringify(n)}`);
+ if(!(leftX+30<rightX&&topY+24<bottomY))throw new Error(`${label}: Home 2x2 ordering collapsed :: ${JSON.stringify({leftX,rightX,topY,bottomY,n})}`);
+ if(n.battle.bottom>n.units.y+8||n.summon.bottom>n.forge.y+8)throw new Error(`${label}: Home 2x2 rows overlap :: ${JSON.stringify(n)}`);
+ const widths=Object.values(n).map(r=>r.width),heights=Object.values(n).map(r=>r.height);
+ if(Math.max(...widths)>Math.min(...widths)*1.18||Math.max(...heights)>Math.min(...heights)*1.28)throw new Error(`${label}: Home 2x2 cells are not evenly sized :: ${JSON.stringify(n)}`);
+ const bottomGap=vh-state.dock.bottom;if(bottomGap<(vw<=700?18:10))throw new Error(`${label}: Home dock was not raised enough :: ${JSON.stringify({bottomGap,dock:state.dock,viewport:state.viewport})}`);
+ if(vw<=700){
+  const visualH=state.visualViewport.height;
+  if(Math.abs(state.mobileViewportHeight-visualH)>2)throw new Error(`${label}: visual viewport CSS variable is stale :: ${JSON.stringify(state)}`);
+  if(!state.body||Math.abs(state.body.height-visualH)>2)throw new Error(`${label}: body does not fill the visible mobile viewport :: ${JSON.stringify({body:state.body,visualViewport:state.visualViewport})}`);
+  if(!state.menu||Math.abs(state.menu.height-visualH)>3)throw new Error(`${label}: Home screen does not fill the visible mobile viewport :: ${JSON.stringify({menu:state.menu,visualViewport:state.visualViewport})}`);
+ }
  const broken=state.images.filter(img=>img.visible&&img.complete&&(img.naturalWidth<=0||img.naturalHeight<=0));if(broken.length)throw new Error(`${label}: broken visible Home images :: ${JSON.stringify(broken.slice(0,8))}`);
  for(const required of Object.keys(state.legacy))if(!state.legacy[required])throw new Error(`${label}: legacy route anchor ${required} missing`);
- console.log(`Home v9 smoke PASS (${label}): leader hidden + spaced dock + Blazing Coins/Embers + approved Home wallpaper`);
+ console.log(`Home v9 smoke PASS (${label}): raised 2x2 parchment dock + mobile viewport fill + escaped-newline cleanup + Blazing Coins/Embers`);
 }
 async function exerciseBattle(page,label){
  await page.locator('#bbHomeApproved [data-nav="battle"]').click();const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');await panel.waitFor({state:'visible',timeout:5000});
