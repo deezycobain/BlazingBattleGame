@@ -40,7 +40,7 @@ async function waitRoadCombatReady(page){
 async function dragLebeeAcrossOpenLane(page){
  await waitRoadCombatReady(page);
  return page.evaluate(async()=>{
-  const s=globalThis.eval('S'),front=globalThis.eval('front'),inputPoint=globalThis.eval('inputPoint'),C=window.BlazingRoadContent;
+  const s=globalThis.eval('S'),front=globalThis.eval('front'),inputPoint=globalThis.eval('inputPoint'),tick=globalThis.eval('tick'),C=window.BlazingRoadContent;
   const roster=s.pairs.flatMap(pair=>(pair.units||[]).filter(unit=>unit&&unit.name&&unit.name!=='—').map(unit=>unit.name));
   let pair=null,index=-1;
   for(const candidate of s.pairs){
@@ -54,11 +54,17 @@ async function dragLebeeAcrossOpenLane(page){
   if(!C.isWalkablePoint(s.bbRoadContent?.map,start,{padding})||!C.isWalkablePoint(s.bbRoadContent?.map,end,{padding}))return {error:'authored Stage 1 lane endpoints are not walkable',start,end,padding};
   lebee.hp=Math.max(1,Number(lebee.hp)||Number(lebee.maxHp)||1);
   lebee.x=start.x;lebee.y=start.y;
-  s.pairs.forEach(candidate=>{candidate.gauge=0;});
-  s.enemies.forEach(enemy=>{enemy.gauge=0;});
-  pair.gauge=100;
+  s.pairs.forEach(candidate=>{
+   candidate.gauge=0;
+   const active=front(candidate);
+   if(active)active.speed=candidate===pair?100:1;
+  });
+  s.enemies.forEach(enemy=>{enemy.gauge=0;enemy.speed=1;});
   s.anim=null;s.drag=false;s.dragOrigin=null;s.dragVisual=null;s.dragGrabOffset=null;
-  s.phase='player';s.ready={kind:'player',ref:lebee,pair,g:100};
+  s.phase='charge';s.ready=null;s._chargeSince=performance.now();
+  for(let i=0;i<80&&s.phase==='charge';i++)tick();
+  const readyShape={phase:s.phase,kind:s.ready?.kind||null,refIsPair:s.ready?.ref===pair,refIsLebee:s.ready?.ref===lebee};
+  if(s.phase!=='player'||s.ready?.kind!=='pair'||s.ready?.ref!==pair)return {error:'engine did not produce Lebee player-ready pair',roster,readyShape};
 
   const cvs=document.getElementById('game');
   if(!(cvs instanceof HTMLCanvasElement))return {error:'battle canvas #game missing'};
@@ -87,7 +93,7 @@ async function dragLebeeAcrossOpenLane(page){
    captureShim=true;
   }catch(_){}
   const startClient=dispatch('pointerdown',start,1);
-  const dragStarted=s.drag===true&&s.ready?.ref===lebee;
+  const dragStarted=s.drag===true&&s.ready?.ref===pair;
   const samples=[];
   for(let i=1;i<=30;i++){
    const t=i/30,point={x:start.x+(end.x-start.x)*t,y:start.y+(end.y-start.y)*t};
@@ -101,7 +107,7 @@ async function dragLebeeAcrossOpenLane(page){
    try{delete cvs.setPointerCapture;delete cvs.releasePointerCapture;delete cvs.hasPointerCapture}catch(_){}
   }
   return {
-   name:lebee.name,start,end,startClient,endClient,logicalTL,logicalBR,dragStarted,dragEnded:s.drag===false,
+   name:lebee.name,start,end,startClient,endClient,logicalTL,logicalBR,readyShape,dragStarted,dragEnded:s.drag===false,
    final:{x:lebee.x,y:lebee.y},samples,padding,
    endpointWalkable:C.isWalkablePoint(s.bbRoadContent?.map,{x:lebee.x,y:lebee.y},{padding})
   };
@@ -156,7 +162,7 @@ async function run(name,type){
   if(stage1.broadWalkable.some(value=>!value))throw new Error(`Stage 1 broad playable field regressed: ${JSON.stringify(stage1.broadWalkable)}`);
   if(stage1.speedWinner!=='enemy')throw new Error(`Speed meter did not allow faster enemy to win: ${stage1.speedWinner}`);
   if(/player control restored|fallback restored player control/i.test(stage1.tickSource))throw new Error('player-forcing speed fallback survived in tick()');
-  console.log(`Road gameplay smoke (${name}) Stage 1 map request: ${stage1.map}; fallback=${!!stage1.mapAudit?.fallback}; combatZoom=${camera1.targetScale}; LebeeTouch=${JSON.stringify({start:lebeeDrag.start,final:lebeeDrag.final})}`);
+  console.log(`Road gameplay smoke (${name}) Stage 1 map request: ${stage1.map}; fallback=${!!stage1.mapAudit?.fallback}; combatZoom=${camera1.targetScale}; LebeeTouch=${JSON.stringify({start:lebeeDrag.start,final:lebeeDrag.final,ready:lebeeDrag.readyShape})}`);
 
   await page.evaluate(()=>window.BlazingMatchResults.returnHome());
   await page.reload({waitUntil:'domcontentloaded'});await waitHome(page);await enterRoad(page,1);
@@ -208,7 +214,7 @@ async function run(name,type){
 
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Road gameplay smoke PASS (${name}): Lebee native touch drag crosses the clear Stage 1 lane under combat zoom; full-map intro/outro, real Speed ordering, enemy AI, map routing, and Stage 10 completion verified.`);
+  console.log(`Road gameplay smoke PASS (${name}): Lebee native touch drag crosses the clear Stage 1 lane from an engine-generated player turn under combat zoom; full-map intro/outro, real Speed ordering, enemy AI, map routing, and Stage 10 completion verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
