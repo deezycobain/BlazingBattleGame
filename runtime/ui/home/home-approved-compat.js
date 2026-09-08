@@ -179,13 +179,13 @@ function ensureV5(shell){
   hud.setAttribute('aria-label','Live player and currency information');
   hud.innerHTML=`
    <section class="bb-home-v5-profile" aria-label="Team leader">
-    <img class="bb-home-v5-profile-texture" src="${HOME_ASSET}hud/player-profile.webp" alt="" draggable="false">
+    <img class="bb-home-v5-profile-texture" src="${HOME_ASSET}hud/player-profile-scroll.png" alt="" draggable="false">
     <span class="bb-home-v5-avatar"><img data-v5-avatar src="${FALLBACK_AVATAR}" alt="${FALLBACK_UNIT}" draggable="false"></span>
     <span class="bb-home-v5-profile-copy"><small>TEAM LEADER</small><strong data-v5-name>${FALLBACK_UNIT}</strong><span class="bb-home-v5-profile-meta"><b data-v5-level>LV 1</b><span data-v5-rank>AWAKENING 0</span></span><span class="bb-home-v5-xp" aria-hidden="true"><i data-v5-xp-fill></i></span></span>
    </section>
    <section class="bb-home-v5-currencies" aria-label="Currencies">
-    <span class="bb-home-v5-currency" data-v5-currency="marks"><img src="${HOME_ASSET}hud/gold-currency.webp" alt="" draggable="false"><i class="bb-home-v5-currency-icon">◈</i><span class="bb-home-v5-currency-copy"><small>BATTLE MARKS</small><strong data-v5-marks>0</strong></span></span>
-    <span class="bb-home-v5-currency" data-v5-currency="embers"><img src="${HOME_ASSET}hud/premium-currency.webp" alt="" draggable="false"><i class="bb-home-v5-currency-icon">✦</i><span class="bb-home-v5-currency-copy"><small>EMBERS</small><strong data-v5-embers>0</strong></span></span>
+    <span class="bb-home-v5-currency" data-v5-currency="marks"><img src="${HOME_ASSET}hud/gold-currency-scroll.png" alt="" draggable="false"><i class="bb-home-v5-currency-icon">◈</i><span class="bb-home-v5-currency-copy"><small>BATTLE MARKS</small><strong data-v5-marks>0</strong></span></span>
+    <span class="bb-home-v5-currency" data-v5-currency="embers"><img src="${HOME_ASSET}hud/embers-currency-scroll.png" alt="" draggable="false"><i class="bb-home-v5-currency-icon">✦</i><span class="bb-home-v5-currency-copy"><small>EMBERS</small><strong data-v5-embers>0</strong></span></span>
    </section>`;
   shell.appendChild(hud);
  }

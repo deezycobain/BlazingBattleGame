@@ -80,27 +80,6 @@
       "bytes": 12840
     },
     {
-      "path": "assets/ui/home/hud/player-profile.webp",
-      "source": "blazing_battle_player_profile_hud.png",
-      "width": 600,
-      "height": 200,
-      "bytes": 19022
-    },
-    {
-      "path": "assets/ui/home/hud/premium-currency.webp",
-      "source": "anime_style_red_crystal_currency_bar.png",
-      "width": 600,
-      "height": 200,
-      "bytes": 15450
-    },
-    {
-      "path": "assets/ui/home/hud/gold-currency.webp",
-      "source": "anime_style_gold_currency_hud_bar.png",
-      "width": 600,
-      "height": 200,
-      "bytes": 14264
-    },
-    {
       "path": "assets/ui/home/controls/carousel-frame.webp",
       "source": "angular_red_grunge_game_banner_frame.png",
       "width": 300,
@@ -232,6 +211,27 @@
       "width": 4096,
       "height": 2260,
       "bytes": 2537118
+    },
+    {
+      "path": "assets/ui/home/hud/player-profile-scroll.png",
+      "source": "player-profile-scroll.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 1897758
+    },
+    {
+      "path": "assets/ui/home/hud/embers-currency-scroll.png",
+      "source": "embers-currency-scroll.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 1779009
+    },
+    {
+      "path": "assets/ui/home/hud/gold-currency-scroll.png",
+      "source": "gold-currency-scroll.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 1918114
     }
   ],
   "notes": {
@@ -239,6 +239,7 @@
     "reference_assets": "reference/ files are design targets and should not be loaded by the runtime",
     "background_status": "backgrounds are approved concepts; select one during Home-screen implementation",
     "navigation_status": "Approved parchment scroll main-menu buttons; canonical runtime assets are PNG and legacy WebP navigation buttons were removed.",
-    "branding_status": "Approved ninja-scroll Blazing Battle logo. Runtime loads only branding/blazing-battle-logo.webp; 4K PNG master is archival."
+    "branding_status": "Approved ninja-scroll Blazing Battle logo. Runtime loads only branding/blazing-battle-logo.webp; 4K PNG master is archival.",
+    "hud_status": "Approved red/black/ivory ninja-scroll HUD. Profile, Embers, and Blazing Coins load only the canonical scroll PNG assets."
   }
 }

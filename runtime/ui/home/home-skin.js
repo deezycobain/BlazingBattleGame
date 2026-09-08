@@ -185,8 +185,8 @@ function ensureShell(root){
  shell.setAttribute('data-bb-home-version','approved-v4');
  shell.innerHTML=`
   <header class="bb-home-v4-top" aria-label="Player information">
-   <div class="bb-home-v4-profile"><img src="${ASSET}hud/player-profile.webp" alt="Player profile" draggable="false"></div>
-   <div class="bb-home-v4-money" aria-label="Currencies"><span><img src="${ASSET}hud/premium-currency.webp" alt="Premium currency" draggable="false"></span><span><img src="${ASSET}hud/gold-currency.webp" alt="Gold" draggable="false"></span></div>
+   <div class="bb-home-v4-profile"><img src="${ASSET}hud/player-profile-scroll.png" alt="Player profile" draggable="false"></div>
+   <div class="bb-home-v4-money" aria-label="Currencies"><span><img src="${ASSET}hud/embers-currency-scroll.png" alt="Premium currency" draggable="false"></span><span><img src="${ASSET}hud/gold-currency-scroll.png" alt="Gold" draggable="false"></span></div>
   </header>
 
   <main class="bb-home-v4-stage">
