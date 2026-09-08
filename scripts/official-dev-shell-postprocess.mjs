@@ -4,6 +4,7 @@ import path from 'node:path';
 const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
 const STYLE_ID='bb-official-dev-shell-style';
+const MOBILE_SHELL_ID='bb-mobile-shell-fixes-runtime';
 const ECONOMY_ID='bb-battle-economy-runtime';
 const RESULTS_ID='bb-match-results-runtime';
 const TERRAIN_DEBUG_ID='bb-road-terrain-debug-runtime';
@@ -17,6 +18,8 @@ const HOME_FEEDBACK_ID='bb-home-feedback-fixes-runtime';
 
 html=html
   .replace(new RegExp(`<link\\b[^>]*id=["']${STYLE_ID}["'][^>]*>`,'gi'),'')
+  .replace(new RegExp(`<script\\b[^>]*id=["']${MOBILE_SHELL_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
+  .replace(new RegExp(`<script\\b[^>]*id=["']${MOBILE_SHELL_ID}["'][^>]*/>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${ECONOMY_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${RESULTS_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
   .replace(new RegExp(`<script\\b[^>]*id=["']${TERRAIN_DEBUG_ID}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'')
@@ -76,15 +79,30 @@ if(forgeTransformHits!==1)throw new Error(`Official dev shell: expected one Home
 v9=v9.replace(forgeTransformAnchor,forgeTransformReplacement);
 await fs.writeFile(v9File,v9);
 
+// Preserve the existing mobile viewport contract while opting into iPhone safe-area coverage.
+const viewportMetaRe=/<meta\b[^>]*\bname=["']viewport["'][^>]*>/i;
+if(viewportMetaRe.test(html)){
+  html=html.replace(viewportMetaRe,tag=>{
+    const content=tag.match(/\bcontent=(["'])(.*?)\1/i);
+    if(!content)return tag.replace(/>$/, ' content="width=device-width,initial-scale=1,viewport-fit=cover">');
+    const parts=content[2].split(',').map(part=>part.trim()).filter(Boolean).filter(part=>!/^viewport-fit\s*=/i.test(part));
+    if(!parts.some(part=>/^width\s*=/i.test(part)))parts.unshift('width=device-width');
+    if(!parts.some(part=>/^initial-scale\s*=/i.test(part)))parts.push('initial-scale=1');
+    parts.push('viewport-fit=cover');
+    return tag.replace(content[0],`content=${content[1]}${parts.join(',')}${content[1]}`);
+  });
+}
+
 const head=html.toLowerCase().lastIndexOf('</head>');
 if(head<0)throw new Error('Official dev shell: closing head missing');
-html=html.slice(0,head)+`<link id="${STYLE_ID}" rel="stylesheet" href="runtime/ui/home/home-official-dev.css">`+html.slice(head);
+const viewportTag=viewportMetaRe.test(html)?'':'<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">';
+html=html.slice(0,head)+viewportTag+`<link id="${STYLE_ID}" rel="stylesheet" href="runtime/ui/home/home-official-dev.css">`+html.slice(head);
 const body=html.toLowerCase().lastIndexOf('</body>');
 if(body<0)throw new Error('Official dev shell: closing body missing');
-html=html.slice(0,body)+`<script id="${ECONOMY_ID}" src="runtime/modes/battle-economy.js"></script><script id="${RESULTS_ID}" src="runtime/ui/battle/match-results.js"></script><script id="${TERRAIN_DEBUG_ID}" src="runtime/ui/battle/road-terrain-debug.js"></script><script id="${ROAD_FEEDBACK_ID}" src="runtime/ui/battle/road-feedback-fixes.js"></script><script id="${HOME_COMPAT_ID}" src="runtime/ui/home/home-approved-compat.js"></script><script id="${HOME_LIVE_ID}" src="runtime/ui/home/home-live-polish.js"></script><script id="${HOME_V8_ID}" src="runtime/ui/home/home-v8-runtime.js"></script><script id="${HOME_V9_ID}" src="runtime/ui/home/home-v9-runtime.js"></script><script id="${HOME_V9_LIFECYCLE_ID}" src="runtime/ui/home/home-v9-lifecycle.js"></script><script id="${HOME_FEEDBACK_ID}" src="runtime/ui/home/home-feedback-fixes.js"></script>`+html.slice(body);
+html=html.slice(0,body)+`<script id="${MOBILE_SHELL_ID}" src="runtime/ui/mobile/mobile-shell-fixes.js"></script><script id="${ECONOMY_ID}" src="runtime/modes/battle-economy.js"></script><script id="${RESULTS_ID}" src="runtime/ui/battle/match-results.js"></script><script id="${TERRAIN_DEBUG_ID}" src="runtime/ui/battle/road-terrain-debug.js"></script><script id="${ROAD_FEEDBACK_ID}" src="runtime/ui/battle/road-feedback-fixes.js"></script><script id="${HOME_COMPAT_ID}" src="runtime/ui/home/home-approved-compat.js"></script><script id="${HOME_LIVE_ID}" src="runtime/ui/home/home-live-polish.js"></script><script id="${HOME_V8_ID}" src="runtime/ui/home/home-v8-runtime.js"></script><script id="${HOME_V9_ID}" src="runtime/ui/home/home-v9-runtime.js"></script><script id="${HOME_V9_LIFECYCLE_ID}" src="runtime/ui/home/home-v9-lifecycle.js"></script><script id="${HOME_FEEDBACK_ID}" src="runtime/ui/home/home-feedback-fixes.js"></script>`+html.slice(body);
 
-for(const marker of [STYLE_ID,ECONOMY_ID,RESULTS_ID,TERRAIN_DEBUG_ID,ROAD_FEEDBACK_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,HOME_FEEDBACK_ID,'S.bbVictoryReward','BlazingEconomy.awardVictory','road-terrain-debug.js','road-feedback-fixes.js','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js','home-feedback-fixes.js','*1.15','ctx.translate(0,5)'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
+for(const marker of [STYLE_ID,MOBILE_SHELL_ID,ECONOMY_ID,RESULTS_ID,TERRAIN_DEBUG_ID,ROAD_FEEDBACK_ID,HOME_COMPAT_ID,HOME_LIVE_ID,HOME_V8_ID,HOME_V9_ID,HOME_V9_LIFECYCLE_ID,HOME_FEEDBACK_ID,'viewport-fit=cover','mobile-shell-fixes.js','S.bbVictoryReward','BlazingEconomy.awardVictory','road-terrain-debug.js','road-feedback-fixes.js','home-approved-compat.js','home-live-polish.js','home-v8-runtime.js','home-v9-runtime.js','home-v9-lifecycle.js','home-feedback-fixes.js','*1.15','ctx.translate(0,5)'])if(!html.includes(marker))throw new Error(`Official dev shell: missing ${marker}`);
 if(html.includes('bbRoadDepthScale')&&!html.includes('bbRoadDepthScale*1.15'))throw new Error('Official dev shell: Road perspective scale did not retain dev fighter enlargement');
 if(!v9.includes(forgeTransformReplacement))throw new Error('Official dev shell: Home v9 Forge safe-area correction missing');
 await fs.writeFile(file,html);
-console.log('Official dev shell PASS: Home feedback is loaded with the leader presentation hidden and wider action spacing; enlarged fighter sprites preserve map-authored Road depth without changing gameplay geometry; Lantern Garden feedback is loaded; Forge remains viewport-safe; live currencies, profile, parallax, Reset, Pause, and post-match return controls remain integrated.');
+console.log('Official dev shell PASS: mobile visual viewport coverage, Home feedback, enlarged fighter sprites with map-authored Road depth, Lantern Garden feedback, Forge safety, live currencies, profile, parallax, Reset, Pause, and post-match controls are integrated.');
