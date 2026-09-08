@@ -13,7 +13,7 @@ const CUTOUTS=Object.freeze({
 });
 const norm=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');
 const format=value=>Math.max(0,Math.floor(Number(value)||0)).toLocaleString('en-US');
-const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));
 let queued=false;
 let bootTimers=[];
 
@@ -181,11 +181,13 @@ function roadCopy(snapshot){
 function renderProfile(panel=document.getElementById(PROFILE_ID)){
  if(!panel)return null;
  const snapshot=profileSnapshot();
+ const signature=JSON.stringify(snapshot);
  const road=roadCopy(snapshot);
- const rank=snapshot.leaderShiny?'SHINY':`AWAKENING ${snapshot.leaderAwakening} / 5`;
- const fighterRows=snapshot.fighters.map(fighter=>`<div class="bb-player-profile-fighter" data-profile-fighter="${esc(norm(fighter.name))}"><strong>${esc(fighter.name)}</strong><span><b>LV. ${format(fighter.level)}</b><em>${fighter.shiny?'SHINY':`AWAKENING ${format(fighter.awakening)} / 5`}</em></span></div>`).join('');
  const card=panel.querySelector('.bb-player-profile-card');
  if(!card)return snapshot;
+ if(panel.dataset.bbProfileSignature===signature&&card.querySelector('#bbPlayerProfileTitle'))return snapshot;
+ const rank=snapshot.leaderShiny?'SHINY':`AWAKENING ${snapshot.leaderAwakening} / 5`;
+ const fighterRows=snapshot.fighters.map(fighter=>`<div class="bb-player-profile-fighter" data-profile-fighter="${esc(norm(fighter.name))}"><strong>${esc(fighter.name)}</strong><span><b>LV. ${format(fighter.level)}</b><em>${fighter.shiny?'SHINY':`AWAKENING ${format(fighter.awakening)} / 5`}</em></span></div>`).join('');
  card.innerHTML=`
   <header class="bb-player-profile-head">
    <div><small>PLAYER PROFILE</small><h2 id="bbPlayerProfileTitle">${esc(snapshot.leaderName)}</h2><p>CURRENT LEADER · LV. ${format(snapshot.leaderLevel)} · ${esc(rank)}</p></div>
@@ -206,6 +208,7 @@ function renderProfile(panel=document.getElementById(PROFILE_ID)){
   </section>
   <section class="bb-player-profile-fighters"><span class="bb-player-profile-section-title">FIGHTER PROGRESSION</span><div class="bb-player-profile-fighter-grid">${fighterRows}</div></section>
   <p class="bb-player-profile-foot">Profile values come from saved fighter progression, economy records, and the current Blazing Road run on this device.</p>`;
+ panel.dataset.bbProfileSignature=signature;
  panel.dataset.bbProfileLeader=norm(snapshot.leaderName);
  panel.dataset.bbProfileRoad=road.badge.toLowerCase();
  return snapshot;
@@ -299,7 +302,6 @@ function schedule(delay=0){
 for(const delay of [0,80,180,360,720,1400,2800,4800])schedule(delay);
 window.addEventListener('pageshow',()=>schedule(0));
 window.addEventListener('resize',()=>schedule(0),{passive:true});
-window.addEventListener('bb:player-profile',()=>schedule(0));
 window.addEventListener('bb:unit-progression',()=>schedule(0));
 window.addEventListener('bb:economy',()=>schedule(0));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(0);});
