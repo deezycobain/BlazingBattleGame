@@ -58,7 +58,7 @@ async function dragLebeeAcrossOpenLane(page){
   s.enemies.forEach(enemy=>{enemy.gauge=0;});
   pair.gauge=100;
   s.anim=null;s.drag=false;s.dragOrigin=null;s.dragVisual=null;s.dragGrabOffset=null;
-  s.phase='ready';s.ready={kind:'player',ref:lebee,pair,g:100};
+  s.phase='player';s.ready={kind:'player',ref:lebee,pair,g:100};
 
   const cvs=document.getElementById('game');
   if(!(cvs instanceof HTMLCanvasElement))return {error:'battle canvas #game missing'};
