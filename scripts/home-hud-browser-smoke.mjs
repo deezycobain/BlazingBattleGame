@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium, webkit } from 'playwright';
+import { mkdir } from 'node:fs/promises';
 
 const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'');
 const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
@@ -71,10 +72,10 @@ async function snapshot(page,requests){
   const emberImg=embers?.querySelector(':scope>img');
   const profileCopy=shell?.querySelector('.bb-home-v5-profile-copy');
   const utility={};
-  for(const key of ['missions','inbox']){
+  for(const key of ['missions','inbox','shop','settings']){
    const button=shell?.querySelector(`[data-util="${key}"]`);
    const visibleCounts=button?[...button.querySelectorAll('[data-count],.badge,[class*="count" i],[class*="notification" i]')].filter(el=>!hidden(el)).map(el=>el.textContent?.trim()||''):[];
-   utility[key]={text:button?.innerText?.trim()||'',aria:button?.getAttribute('aria-label')||'',visibleCounts};
+   utility[key]={box:rect(button),text:button?.innerText?.trim()||'',aria:button?.getAttribute('aria-label')||'',visibleCounts};
   }
   const resourceUrls=[...performance.getEntriesByType('resource')].map(entry=>entry.name);
   const domUrls=[...document.querySelectorAll('[src],[href]')].flatMap(el=>[el.getAttribute('src'),el.getAttribute('href')]).filter(Boolean);
@@ -95,6 +96,7 @@ async function snapshot(page,requests){
    economy:{battleMarks:Number(economy.battleMarks)||0,embers:Number(economy.embers)||0,hasBattleMarks:Object.prototype.hasOwnProperty.call(economy,'battleMarks')},
    skin:shell?.dataset?.bbHudSkin||'',assetsMode:shell?.dataset?.bbHudAssets||'',layout:shell?.dataset?.bbHomeLayout||'',
    referenceUrls,utility,
+   socialHidden:hidden(shell?.querySelector('.bb-home-v4-social')),
    styleSafe:/safe-area-inset-top/.test(style)&&/safe-area-inset-left/.test(style)&&/safe-area-inset-right/.test(style),
    expected
   };
@@ -123,7 +125,17 @@ async function exercise(browser,name,label,contextOptions){
   const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
   if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
   await seedLiveData(page);
-  await page.waitForTimeout(180);
+  // Exercise the legacy writer repeatedly: player identity must never flicker
+  // back to fighter identity, even before the final HUD observer runs.
+  for(let i=0;i<4;i++){
+   const identity=await page.evaluate(()=>{
+    window.BlazingApprovedHomeCompat.apply();
+    const copy=document.querySelector('.bb-home-v5-profile-copy');
+    return {name:copy.querySelector('strong').textContent,level:copy.querySelector('b').textContent};
+   });
+   if(identity.name!==TEST_PROFILE.username||identity.level!==`LV ${TEST_PROFILE.level}`)throw new Error(`legacy writer changed player identity: ${JSON.stringify(identity)}`);
+   await page.waitForTimeout(100);
+  }
   const state=await snapshot(page,requests);
   assertAsset(`${name}/${label} profile`,state.profile,state.backgrounds.profile,EXPECTED.profile);
   assertAsset(`${name}/${label} Blazing Coins`,state.coins,state.backgrounds.coins,EXPECTED.coins);
@@ -139,10 +151,17 @@ async function exercise(browser,name,label,contextOptions){
    if(!item||/\d/.test(`${item.text} ${item.aria}`)||item.visibleCounts.length)throw new Error(`${name}/${label}: fake ${key} count/badge present :: ${JSON.stringify(item)}`);
   }
   const vw=state.viewport.width,vh=state.viewport.height;
+  if(!state.socialHidden)throw new Error('unfinished social controls remain visible');
+  for(const [key,item] of Object.entries(state.utility)){
+   const r=item.box;
+   if(!r||r.left<0||r.right>vw||r.top<0||r.bottom>vh||r.width<44||r.height<44)throw new Error(`utility ${key} clipped or undersized: ${JSON.stringify(r)}`);
+  }
   for(const [key,r] of Object.entries({hud:state.hud,profile:state.profileBox,coins:state.coinsBox,embers:state.embersBox})){
    if(!r||r.left<-1||r.right>vw+1||r.top<-1||r.bottom>vh+1)throw new Error(`${name}/${label}: ${key} outside viewport :: ${JSON.stringify({r,viewport:state.viewport})}`);
   }
   if(errors.length)throw new Error(`${name}/${label}: pageerror: ${errors.join(' | ')}`);
+  await mkdir('test-artifacts',{recursive:true});
+  await page.screenshot({path:`test-artifacts/home-${name}-${label}.png`});
   console.log(`Home scroll HUD smoke PASS (${name}/${label}): approved 2172px parchment assets + real profile + battleMarks->Blazing Coins + no reference assets/fake counts`);
  }finally{await context.close().catch(()=>{})}
 }

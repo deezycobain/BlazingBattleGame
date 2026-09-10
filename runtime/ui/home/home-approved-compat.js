@@ -213,10 +213,15 @@ function syncV5(shell){
  const art=parts.leader.querySelector('[data-v5-leader-art]');
  const setText=(selector,value)=>{const el=shell.querySelector(selector);if(el&&el.textContent!==String(value))el.textContent=String(value);};
 
- setText('[data-v5-name]',name);
+ // Once the player-profile runtime is present, it owns these fields. Never
+ // briefly replace player identity with leader data between animation frames.
+ const playerOwned=!!window.BlazingHomeV8;
+ if(!playerOwned)setText('[data-v5-name]',name);
  setText('[data-v5-leader-name]',name);
- setText('[data-v5-level]',`LV ${prog.level}`);
- setText('[data-v5-rank]',title);
+ if(!playerOwned){
+  setText('[data-v5-level]',`LV ${prog.level}`);
+  setText('[data-v5-rank]',title);
+ }
  setText('[data-v5-marks]',format(cash.marks));
  setText('[data-v5-embers]',format(cash.embers));
 

@@ -30,6 +30,12 @@ jobs:
           exit 1
       - name: Chromium + WebKit local boot smoke
         run: npm run smoke:browser
+      - name: Save Home browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: home-browser-screenshots
+          path: test-artifacts/*.png
       - name: Chromium + WebKit local results and economy smoke
         run: node scripts/results-browser-smoke.mjs
       - name: Chromium + WebKit local unit progression smoke
