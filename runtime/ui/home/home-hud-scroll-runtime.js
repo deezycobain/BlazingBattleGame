@@ -152,11 +152,11 @@ function ensureStyle(){
   z-index:2!important;
   left:40%!important;
   right:16%!important;
-  top:43%!important;
+  top:45%!important;
   display:flex!important;
   flex-direction:column!important;
   justify-content:center!important;
-  gap:1px!important;
+  gap:0!important;
   min-width:0!important;
   transform:translateY(-50%)!important;
   text-align:center!important;
@@ -171,7 +171,7 @@ function ensureStyle(){
 #${SHELL_ID}.bb-home-v9 .bb-home-v5-currency-copy strong{
   display:block!important;
   margin:0!important;
-  font:900 clamp(10px,2.5vw,13px)/1 ui-sans-serif,system-ui,sans-serif!important;
+  font:900 10px/1 ui-sans-serif,system-ui,sans-serif!important;
   letter-spacing:.01em!important;
   color:#1d1715!important;
   text-shadow:0 1px rgba(255,255,255,.28)!important;
@@ -191,7 +191,7 @@ function ensureStyle(){
   #${SHELL_ID}.bb-home-v9 .bb-home-v5-profile{width:min(52vw,211px)!important}
   #${SHELL_ID}.bb-home-v9 .bb-home-v5-currency{width:min(38vw,154px)!important}
   #${SHELL_ID}.bb-home-v9 .bb-home-v5-profile-copy strong{font-size:12px!important}
-  #${SHELL_ID}.bb-home-v9 .bb-home-v5-currency-copy strong{font-size:10.5px!important}
+  #${SHELL_ID}.bb-home-v9 .bb-home-v5-currency-copy strong{font-size:10px!important}
   #${SHELL_ID} .bb-main-logo-slot{
     top:max(96px,calc(env(safe-area-inset-top) + 88px))!important;
     width:min(68vw,350px)!important;
