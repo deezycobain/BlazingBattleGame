@@ -70,9 +70,9 @@
 #summonPullScreen .pullScene.phase-reveal[data-bb-reveal-kind="shiny"] .summonedTradingCard{animation:bbCineShinyArtResolve .7s ease-out both!important}
 
 /* Results land as a fast binder cascade. */
-#summonPullScreen #pullResultsGrid .pullCard{animation:bbCineResultIn .34s cubic-bezier(.2,.78,.2,1) calc(var(--bb-result-index,0)*45ms) both!important}
+#summonPullScreen #pullResultsGrid .pullCard{animation:bbCineResultIn .34s cubic-bezier(.2,.78,.2,1) var(--bb-result-delay,0ms) both!important}
 #summonPullScreen #pullResultsGrid .bb-new-result-card{border-color:#5e8da7!important;box-shadow:inset 0 1px rgba(255,255,255,.68),0 5px 12px rgba(48,78,95,.18)!important}
-#summonPullScreen #pullResultsGrid .bb-shiny-result-card::after{content:'';position:absolute;inset:-30% -80%;pointer-events:none;background:linear-gradient(112deg,transparent 39%,rgba(255,249,210,.9) 49%,transparent 59%);transform:translateX(-42%);animation:bbCineResultShine .78s ease-out calc(.22s + var(--bb-result-index,0)*45ms) 1 both}
+#summonPullScreen #pullResultsGrid .bb-shiny-result-card::after{content:'';position:absolute;inset:-30% -80%;pointer-events:none;background:linear-gradient(112deg,transparent 39%,rgba(255,249,210,.9) 49%,transparent 59%);transform:translateX(-42%);animation:bbCineResultShine .78s ease-out var(--bb-result-shine-delay,220ms) 1 both}
 #summonPullScreen .resultsMode .bb-summon-cinematic{display:none!important}
 
 @keyframes bbCineVignetteIn{from{opacity:0}to{opacity:1}}
