@@ -131,7 +131,7 @@ async function run(name,type){
   const intro1=await waitCamera(page,'intro',1);
   if(intro1.mapKey!=='south-sac'||intro1.targetScale!==1)throw new Error(`Stage 1 intro camera should show full map: ${JSON.stringify(intro1)}`);
   const camera1=await waitCamera(page,'combat',1);
-  if(!(camera1.targetScale>1.05&&camera1.targetScale<=1.16)||camera1.combatScale!==camera1.targetScale)throw new Error(`Stage 1 combat camera zoom invalid: ${JSON.stringify(camera1)}`);
+  if(Math.abs(camera1.targetScale-1.18)>.001||camera1.combatScale!==camera1.targetScale||camera1.transitionMs!==1650)throw new Error(`Stage 1 combat camera zoom invalid: ${JSON.stringify(camera1)}`);
   if(!/center/i.test(camera1.position||''))throw new Error(`Stage 1 camera focus is not centered on playable floor: ${JSON.stringify(camera1)}`);
   if(!(camera1.inlineScale&&Number(camera1.inlineScale)>1.05)&&!/scale\(/.test(camera1.inlineTransform||''))throw new Error(`Stage 1 camera did not apply visual canvas zoom: ${JSON.stringify(camera1)}`);
 
