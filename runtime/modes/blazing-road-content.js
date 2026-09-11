@@ -17,8 +17,8 @@ const terrain=({allowed=[],blocked=[]}={})=>Object.freeze({allowed:Object.freeze
 const anchors=(...points)=>Object.freeze(points.map(([x,y])=>point(x,y)));
 const presentation=(combatScale=1.12,position='center 53%')=>Object.freeze({
   introScale:1,
-  combatScale,
-  scale:combatScale,
+  combatScale:combatScale+.04,
+  scale:combatScale+.04,
   position,
   introHoldMs:520,
   countdownStepMs:520,

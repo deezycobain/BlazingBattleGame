@@ -136,9 +136,37 @@ async function run(name,type){
     const combat=frames.find(frame=>frame.mode==='combat'&&!frame.locked);
     if(!combat)throw new Error(`combat never unlocked after intro: ${JSON.stringify(frames.slice(-8))}`);
     if(!(combat.targetScale>1.05&&Math.abs(combat.targetScale-combat.combatScale)<.001&&/center/i.test(combat.position)))throw new Error(`final combat framing invalid: ${JSON.stringify(combat)}`);
-    if(combat.wallMs-fightTime<1250)throw new Error(`combat unlocked before the slower camera arrived: ${JSON.stringify({fightTime,combatTime:combat.wallMs,transitionMs:combat.transitionMs})}`);
+    if(Math.abs(combat.targetScale-1.18)>.001||combat.transitionMs!==1650)throw new Error(`Road camera tuning incorrect: ${JSON.stringify(combat)}`);
+    if(combat.wallMs-fightTime<1450)throw new Error(`combat unlocked before the slower camera arrived: ${JSON.stringify({fightTime,combatTime:combat.wallMs,transitionMs:combat.transitionMs})}`);
     const countFrame=firstByWord(frames,'3');
     if(countFrame?.rect&&combat.rect&&!(combat.rect.width>countFrame.rect.width*1.05))throw new Error(`final framing did not complete the zoom: ${JSON.stringify({intro:countFrame.rect,combat:combat.rect})}`);
+
+    const sizing=await page.evaluate(()=>{
+      const state=globalThis.eval('S');
+      const source=String(globalThis.eval('drawUnit'));
+      const code=source.match(/const bbRoadCameraCompensation=[\s\S]*?ctx.translate\(0,5\);/)?.[0];
+      if(!code)throw new Error('final sprite renderer has no Road camera compensation');
+      const C=window.BlazingRoadContent;
+      const geometry=()=>JSON.stringify({
+        pairs:state.pairs.map(p=>({x:p.x,y:p.y,r:p.r,units:p.units.map(u=>({name:u.name,r:u.r,radius:u.radius,combat:u.combat}))})),
+        enemies:state.enemies.map(e=>({x:e.x,y:e.y,r:e.r,radius:e.radius})),
+        movement:state.bbRoadContent.map.movement,feet:C.PLAYER_FOOT_PADDING,enemyPadding:C.ENEMY_TERRAIN_PADDING
+      });
+      const before=geometry();
+      // Execute the exact final renderer expression with a recording canvas;
+      // exercise every map and several perspective depths without ticking combat.
+      const render=new Function('S','ctx','directionalFlip','scale','activePulse','bbRoadDepthScale',code);
+      let maxError=0;
+      for(const map of C.MAPS)for(const depth of [.82,1,1.1]){
+        let actual;
+        render({...state,bbRoadContent:{...state.bbRoadContent,map}},{scale:(x,y)=>{actual=y},translate:()=>{}},1,1,1,depth);
+        maxError=Math.max(maxError,Math.abs(actual*map.presentation.combatScale-1.15*depth));
+      }
+      let castle;
+      render({...state,bbRunMode:'castle'},{scale:(x,y)=>{castle=y},translate:()=>{}},1,1,1,1);
+      return {maxError,castle,unchanged:before===geometry(),feet:C.PLAYER_FOOT_PADDING,enemyPadding:C.ENEMY_TERRAIN_PADDING};
+    });
+    if(sizing.maxError>1e-9||Math.abs(sizing.castle-1.15)>1e-9||!sizing.unchanged||sizing.feet!==4||sizing.enemyPadding!==18)throw new Error(`sprite presentation/geometry separation failed: ${JSON.stringify(sizing)}`);
 
     const outro=await page.evaluate(()=>{
       const s=globalThis.eval('S');
@@ -149,7 +177,7 @@ async function run(name,type){
       return {...snap,inlineScale:canvas?.style?.scale||'',inlineTransform:canvas?.style?.transform||'',inlineTransition:canvas?.style?.transition||''};
     });
     if(outro.mode!=='outro'||outro.locked||Math.abs(outro.targetScale-1)>.001||outro.transitionMs<1400)throw new Error(`ending camera did not target the full-map outro: ${JSON.stringify(outro)}`);
-    if(!/1450ms|1\.45s/.test(outro.inlineTransition||''))throw new Error(`outro did not retain the slower eased transition: ${JSON.stringify(outro)}`);
+    if(!/1650ms|1\.65s/.test(outro.inlineTransition||''))throw new Error(`outro did not retain the slower eased transition: ${JSON.stringify(outro)}`);
     if(errors.length)throw new Error(`page errors: ${errors.join(' | ')}`);
 
     console.log(`Road intro smoke PASS (${name}): ${words.join('→')}; step=${fightFirst.countdownStepMs}ms; fightFade≈${Math.round(fadedFight.fightElapsedMs)}ms; camera=${fightFirst.transitionMs}ms; zoom=${combat.targetScale}; outro=${outro.targetScale}`);

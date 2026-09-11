@@ -149,7 +149,7 @@ function ensureStyle(){
   z-index:2!important;
   left:40%!important;
   right:16%!important;
-  top:46%!important;
+  top:53%!important;
   min-width:0!important;
   transform:translateY(-50%)!important;
   text-align:left!important;

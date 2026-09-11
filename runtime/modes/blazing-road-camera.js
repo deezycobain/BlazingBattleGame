@@ -1,11 +1,11 @@
 (()=>{
 'use strict';
 
-const DEFAULT_COMBAT_SCALE=1.12;
+const DEFAULT_COMBAT_SCALE=1.16;
 const DEFAULT_POSITION='center 53%';
 const DEFAULT_COUNTDOWN_STEP_MS=720;
 const DEFAULT_FIGHT_HOLD_MS=900;
-const DEFAULT_TRANSITION_MS=1450;
+const DEFAULT_TRANSITION_MS=1650;
 const OVERLAY_ID='bbRoadFightIntro';
 const STYLE_ID='bb-road-fight-intro-style';
 let activeKey='';

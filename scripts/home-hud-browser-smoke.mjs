@@ -161,6 +161,9 @@ async function exercise(browser,name,label,contextOptions){
   }
   if(errors.length)throw new Error(`${name}/${label}: pageerror: ${errors.join(' | ')}`);
   await mkdir('test-artifacts',{recursive:true});
+  await page.locator('.bb-home-v4-dock img').evaluateAll(async images=>{
+   await Promise.all(images.map(img=>img.decode()));
+  });
   await page.screenshot({path:`test-artifacts/home-${name}-${label}.png`});
   console.log(`Home scroll HUD smoke PASS (${name}/${label}): approved 2172px parchment assets + real profile + battleMarks->Blazing Coins + no reference assets/fake counts`);
  }finally{await context.close().catch(()=>{})}

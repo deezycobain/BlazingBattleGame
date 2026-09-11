@@ -68,7 +68,7 @@ for(const map of C.MAPS){
  if(!Array.isArray(map.movement?.allowed)||map.movement.allowed.length!==1)throw new Error(`${map.key} must publish one primary playable boundary`);
  const p=map.presentation||{};
  if(Number(p.introScale)!==1)throw new Error(`${map.key} must begin/outro at full-map scale 1`);
- if(!(Number(p.combatScale)>1&&Number(p.combatScale)<=1.16))throw new Error(`${map.key} combat zoom must stay modest: ${p.combatScale}`);
+ if(!(Number(p.combatScale)>1&&Number(p.combatScale)<=1.18))throw new Error(`${map.key} combat zoom must stay modest: ${p.combatScale}`);
  if(!p.position||Number(p.transitionMs)<300||Number(p.transitionMs)>900)throw new Error(`${map.key} camera presentation is incomplete`);
  const coverage=walkableCoverage(map);
  if(coverage<0.60)throw new Error(`${map.key} only leaves ${(coverage*100).toFixed(1)}% of the authored battlefield floor walkable`);

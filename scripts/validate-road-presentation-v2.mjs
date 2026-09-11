@@ -16,7 +16,7 @@ for(const stage of [1,2]){
 for(const stage of [3,4,5])if(C.visualScaleForY(C.mapForStage(stage),300)!==1)throw new Error(`Road presentation v2: Stage ${stage} should remain perspective-neutral until explicitly authored`);
 
 const camera=await fs.readFile('runtime/modes/blazing-road-camera.js','utf8');
-for(const marker of ["showWord('3')","showWord('2')","showWord('1')","showWord('FIGHT')",'isCombatLocked','sessionStorage',"introPhase='fight'",'AnimeAce2','bbRoadFightStrike','DEFAULT_COUNTDOWN_STEP_MS=720','DEFAULT_FIGHT_HOLD_MS=900','DEFAULT_TRANSITION_MS=1450','cubic-bezier(.16,.82,.18,1)','fightElapsedMs']){
+for(const marker of ["showWord('3')","showWord('2')","showWord('1')","showWord('FIGHT')",'isCombatLocked','sessionStorage',"introPhase='fight'",'AnimeAce2','bbRoadFightStrike','DEFAULT_COUNTDOWN_STEP_MS=720','DEFAULT_FIGHT_HOLD_MS=900','DEFAULT_TRANSITION_MS=1650','cubic-bezier(.16,.82,.18,1)','fightElapsedMs']){
  if(!camera.includes(marker))throw new Error(`Road presentation v2: camera missing ${marker}`);
 }
 if(!camera.includes('applyCamera(canvas,combatScale,position,transitionMs)'))throw new Error('Road presentation v2: FIGHT must begin the combat camera transition');

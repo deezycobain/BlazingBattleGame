@@ -47,10 +47,11 @@ html=html.replace(anchor,replacement);
 
 // Presentation-only fighter enlargement. Road perspective may already have wrapped the final
 // sprite scale by the time this pass runs. Preserve that map-authored depth multiplier and
-// layer the existing dev-shell 1.15x enlargement on top. Actor radii, hitboxes, walkable
+// retain the pre-camera 1.15x size, dividing Road sprites by the authored camera
+// target so their final screen size remains unchanged. Actor radii, hitboxes, walkable
 // geometry, targeting, movement and shadow logic stay unchanged.
 const perspectiveSpriteScaleAnchor='ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale,scale*activePulse*bbRoadDepthScale);';
-const perspectiveSpriteScaleReplacement='ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale*1.15,scale*activePulse*bbRoadDepthScale*1.15);ctx.translate(0,5);';
+const perspectiveSpriteScaleReplacement='const bbRoadCameraCompensation=S.bbRunMode===\'road\'?1/Math.max(1,Number(S.bbRoadContent?.map?.presentation?.combatScale)||1.16):1;ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation,scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation);ctx.translate(0,5);';
 const legacySpriteScaleAnchor='ctx.scale(directionalFlip*scale*activePulse,scale*activePulse);';
 const legacySpriteScaleReplacement='ctx.scale(directionalFlip*scale*activePulse*1.15,scale*activePulse*1.15);ctx.translate(0,5);';
 const perspectiveScaleHits=html.split(perspectiveSpriteScaleAnchor).length-1;
