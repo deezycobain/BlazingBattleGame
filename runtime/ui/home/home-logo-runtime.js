@@ -6,9 +6,9 @@ const SLOT_CLASS='bb-main-logo-slot';
 const ART=Object.freeze({
   logo:'assets/ui/home/branding/blazing-battle-logo-v2.png',
   wallpaper:'assets/ui/home/backgrounds/home-wallpaper-v2.png',
-  battle:'assets/ui/home/navigation/battle-scroll-v2.png',
+  battle:'assets/ui/home/navigation/battle.png',
   summon:'assets/ui/home/navigation/summon-scroll-v2.png',
-  units:'assets/ui/home/navigation/units-scroll-v2.png',
+  units:'assets/ui/home/navigation/units.png',
   forge:'assets/ui/home/navigation/forge-scroll-v2.png'
 });
 const LOGO=ART.logo;
