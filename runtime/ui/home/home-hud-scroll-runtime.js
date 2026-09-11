@@ -153,7 +153,7 @@ function ensureStyle(){
   left:40%!important;
   right:16%!important;
   top:31%!important;
-  height:31%!important;
+  height:30%!important;
   display:grid!important;
   grid-template-rows:36% 64%!important;
   align-items:center!important;
