@@ -37,13 +37,14 @@ async function run(name,type){
 
   const before=await page.evaluate(()=>{const s=globalThis.eval('S');return {stage:s.bbRoadStage,map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,gauges:[...s.pairs.map(p=>p.gauge),...s.enemies.map(e=>e.gauge)],reward:window.BlazingEconomy?.balance?.()??0}});
   const reset=page.getByRole('button',{name:/^Reset$/i});
+  await page.locator('#bbBattlePauseButton').click();
   await reset.waitFor({state:'visible',timeout:5000});await reset.click();
   await page.waitForFunction(stage=>{try{const s=globalThis.eval('S'),run=window.BlazingRoadRun.loadRun();return s?.bbRunMode==='road'&&s?.bbRoadStage===stage&&run?.stage===stage&&s?.bbRoadContent?.map?.src&&s.bbRoadMapSource===s.bbRoadContent.map.src}catch{return false}},before.stage,{timeout:5000});
   const afterReset=await page.evaluate(()=>{const s=globalThis.eval('S'),run=window.BlazingRoadRun.loadRun();return {stage:s.bbRoadStage,map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,runStage:run?.stage,runStatus:run?.status}});
   if(afterReset.stage!==before.stage||afterReset.runStage!==before.stage||afterReset.runStatus!=='active'||afterReset.mapSource!==afterReset.map)throw new Error(`Reset did not preserve Road stage/map: ${JSON.stringify({before,afterReset})}`);
 
-  const placement=await page.evaluate(()=>{const battle=document.getElementById('battleScreen'),pause=document.getElementById('bbBattlePauseButton'),reset=[...battle.querySelectorAll('button')].find(button=>/^\s*reset\s*$/i.test(button.textContent||''));const rect=el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height}};return {battle:rect(battle),pause:rect(pause),reset:rect(reset)}});
-  if(placement.pause.top<placement.reset.bottom-1||placement.pause.right>placement.battle.right+1||placement.pause.width>48)throw new Error(`Pause control placement is not below the battle toolbar: ${JSON.stringify(placement)}`);
+  if(await page.locator('#battleScreen #reset').isVisible())throw new Error('Reset leaked onto battlefield');
+  if(!(await page.locator('#bbBattleDock #bbBattlePauseButton').isVisible()))throw new Error('Pause missing from bottom dock');
 
   // Road now intentionally freezes the combat tick through the 3-2-1-FIGHT/camera intro.
   // Wait for that independent presentation lock to clear before testing Pause/Resume itself.

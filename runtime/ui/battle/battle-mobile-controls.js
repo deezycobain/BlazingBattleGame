@@ -3,73 +3,11 @@
 if(window.BlazingBattleMobileControls)return;
 
 const STYLE_ID='bb-battle-mobile-controls-style';
-const VERSION='v4';
+const VERSION='v5';
 const CONTROL_CLASS='bb-battle-mobile-control';
 const SHELL_REFS=Object.freeze({basic:'normalBtn',jutsu:'jutsuBtn'});
 const MATCHERS=Object.freeze({reset:/^reset$/i,basic:/\bbasic\b/i,jutsu:/\bjutsu\b/i});
-const CSS=`
-@media(max-width:700px){
- #battleScreen{
-  --bb-battle-safe-top:max(10px,env(safe-area-inset-top));
-  --bb-battle-safe-right:max(10px,env(safe-area-inset-right));
-  --bb-battle-safe-bottom:max(12px,env(safe-area-inset-bottom));
-  --bb-battle-safe-left:max(10px,env(safe-area-inset-left));
- }
- #battleScreen .${CONTROL_CLASS},
- #battleScreen .bb-battle-pause-button{
-  position:absolute!important;
-  z-index:9300!important;
-  box-sizing:border-box!important;
-  touch-action:manipulation!important;
-  -webkit-tap-highlight-color:transparent;
- }
- #battleScreen .bb-battle-control-reset{
-  top:var(--bb-battle-safe-top)!important;
-  right:var(--bb-battle-safe-right)!important;
-  bottom:auto!important;
-  left:auto!important;
-  width:72px!important;
-  min-width:72px!important;
-  max-width:72px!important;
-  inline-size:72px!important;
-  min-inline-size:72px!important;
-  max-inline-size:72px!important;
-  height:44px!important;
-  min-height:44px!important;
-  max-height:44px!important;
- }
- #battleScreen .bb-battle-pause-button{
-  top:calc(var(--bb-battle-safe-top) + 52px)!important;
-  right:var(--bb-battle-safe-right)!important;
-  bottom:auto!important;
-  left:auto!important;
-  width:44px!important;
-  height:44px!important;
-  min-width:44px!important;
-  min-height:44px!important;
- }
- #battleScreen .bb-battle-control-basic,
- #battleScreen .bb-battle-control-jutsu{
-  top:auto!important;
-  bottom:var(--bb-battle-safe-bottom)!important;
-  width:clamp(104px,32vw,148px)!important;
-  min-width:104px!important;
-  max-width:148px!important;
-  inline-size:clamp(104px,32vw,148px)!important;
-  min-inline-size:104px!important;
-  max-inline-size:148px!important;
-  min-height:48px!important;
- }
- #battleScreen .bb-battle-control-basic{
-  left:var(--bb-battle-safe-left)!important;
-  right:auto!important;
- }
- #battleScreen .bb-battle-control-jutsu{
-  right:var(--bb-battle-safe-right)!important;
-  left:auto!important;
- }
-}
-`;
+const CSS=``;
 
 function battle(){return document.getElementById('battleScreen')}
 function normalizeText(button){return String(button?.textContent||'').replace(/\s+/g,' ').trim()}

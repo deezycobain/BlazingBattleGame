@@ -137,6 +137,15 @@ async function exercise(browser,name,label,contextOptions){
    await page.waitForTimeout(100);
   }
   const state=await snapshot(page,requests);
+  await page.evaluate(()=>{
+   for(const card of document.querySelectorAll('.bb-home-v5-currency,.bb-home-v5-profile')){
+    const parent=card.getBoundingClientRect(),currency=card.classList.contains('bb-home-v5-currency');
+    for(const el of card.querySelectorAll(currency?'.bb-home-v5-currency-copy small,.bb-home-v5-currency-copy strong':'.bb-home-v5-profile-copy small,.bb-home-v5-profile-copy strong')){
+     const range=document.createRange();range.selectNodeContents(el);const r=range.getBoundingClientRect();
+     if(r.left<parent.left+parent.width*.37||r.right>parent.left+parent.width*.87||r.top<parent.top+parent.height*.20||r.bottom>parent.top+parent.height*.63)throw new Error(`Text outside authored parchment region: ${el.textContent} ${JSON.stringify({parent:parent.toJSON(),text:r.toJSON()})}`);
+    }
+   }
+  });
   assertAsset(`${name}/${label} profile`,state.profile,state.backgrounds.profile,EXPECTED.profile);
   assertAsset(`${name}/${label} Blazing Coins`,state.coins,state.backgrounds.coins,EXPECTED.coins);
   assertAsset(`${name}/${label} Embers`,state.embers,state.backgrounds.embers,EXPECTED.embers);

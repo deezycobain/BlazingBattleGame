@@ -1,4 +1,5 @@
 import { chromium, webkit } from 'playwright';
+import fs from 'node:fs/promises';
 
 const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'');
 const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
@@ -39,7 +40,7 @@ async function forcePlayerControls(page){
  try{
   await page.waitForFunction(()=>{
    const controls=window.BlazingBattleMobileControls?.snapshot?.().controls||{};
-   return ['reset','basic','jutsu','pause'].every(kind=>controls[kind]?.visible);
+   return ['basic','jutsu','pause'].every(kind=>controls[kind]?.visible);
   },null,{timeout:5000});
  }catch(error){
   const diagnostic=await controlDiagnostics(page);
@@ -55,11 +56,11 @@ async function inspect(page,safeOverride=null){
    root.style.setProperty('--bb-battle-safe-bottom',`${safe.bottom}px`);
    root.style.setProperty('--bb-battle-safe-left',`${safe.left}px`);
   }
-  window.BlazingBattleMobileControls.sync();
+  window.BlazingBattleMobileControls.sync();window.BlazingBattleDock.sync();
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const snap=window.BlazingBattleMobileControls.snapshot();
   const controls={};
-  for(const kind of ['reset','basic','jutsu','pause']){
+  for(const kind of ['basic','jutsu','pause']){
    const selector=kind==='pause'?'#bbBattlePauseButton':`.bb-battle-control-${kind}`;
    const candidates=[...document.querySelectorAll(`#battleScreen ${selector}`)];
    const el=candidates.find(node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return s.display!=='none'&&s.visibility!=='hidden'&&r.width>0&&r.height>0})||candidates[0];
@@ -68,7 +69,7 @@ async function inspect(page,safeOverride=null){
    const hit=document.elementFromPoint(cx,cy);
    controls[kind]={rect:{left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height},position:getComputedStyle(el).position,hit:hit===el||el.contains(hit),disabled:!!el.disabled,text:(el.textContent||'').replace(/\s+/g,' ').trim(),id:el.id||null};
   }
-  const style=document.getElementById('bb-battle-mobile-controls-style')?.textContent||'';
+  const style=await (await fetch('runtime/ui/battle/battle-dock.css')).text();
   const camera=window.BlazingRoadCamera.snapshot();
   const canvas=document.getElementById(camera.canvasId||'game')||[...root.querySelectorAll('canvas')].sort((a,b)=>{const ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();return br.width*br.height-ar.width*ar.height})[0]||null;
   const before=Object.fromEntries(Object.entries(controls).map(([kind,value])=>[kind,value?.rect||null]));
@@ -76,7 +77,7 @@ async function inspect(page,safeOverride=null){
   if(canvas){if('scale' in canvas.style)canvas.style.scale='1.28';else canvas.style.transform='scale(1.28)'}
   await new Promise(resolve=>requestAnimationFrame(resolve));
   const after={};
-  for(const kind of ['reset','basic','jutsu','pause']){
+  for(const kind of ['basic','jutsu','pause']){
    const selector=kind==='pause'?'#bbBattlePauseButton':`.bb-battle-control-${kind}`;
    const el=[...document.querySelectorAll(`#battleScreen ${selector}`)].find(node=>getComputedStyle(node).display!=='none'&&node.getBoundingClientRect().width>0);
    if(!el){after[kind]=null;continue}const r=el.getBoundingClientRect();after[kind]={left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};
@@ -86,12 +87,31 @@ async function inspect(page,safeOverride=null){
  },safeOverride);
 }
 function overlaps(a,b){return a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1}
+async function assertDock(page){
+ const result=await page.evaluate(()=>{
+  const s=globalThis.eval('S');window.BlazingBattleDock.sync();
+  const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}};
+  const units=s.pairs.flatMap(p=>p.units).filter(u=>u.name&&u.name!=='—'&&u.maxHp>0),health=document.querySelector('.bb-team-health');
+  return {field:rect('bbBattleField'),dock:rect('bbBattleDock'),meter:rect('meter'),pause:rect('bbBattlePauseButton'),hp:+health.getAttribute('aria-valuenow'),max:+health.getAttribute('aria-valuemax'),expectedHp:units.reduce((n,u)=>n+Math.max(0,u.hp),0),expectedMax:units.reduce((n,u)=>n+u.maxHp,0),resetVisible:!!document.getElementById('reset').getClientRects().length,portraits:[...document.querySelectorAll('.bb-dock-portrait img')].every(img=>img.complete&&img.naturalWidth>0)};
+ });
+ if(result.field.bottom>result.dock.top+1||overlaps(result.meter,result.pause))throw new Error(`Dock overlaps field/meter: ${JSON.stringify(result)}`);
+ if(result.meter.height<30||result.meter.top<result.dock.top||result.meter.bottom>result.dock.bottom)throw new Error('Turn meter is not contained in bottom dock');
+ if(result.hp!==result.expectedHp||result.max!==result.expectedMax||result.resetVisible||!result.portraits)throw new Error(`Dock live-data/visibility failed: ${JSON.stringify(result)}`);
+ await page.evaluate(()=>{
+  const s=globalThis.eval('S'),mode=s.bbRunMode;s.bbRunMode='castle';window.BlazingBattleDock.sync();
+  const hidden=document.querySelector('.bb-team-health').hidden;s.bbRunMode=mode;window.BlazingBattleDock.sync();if(!hidden)throw new Error('Shared HP leaked into Castle');
+  const renderer=window.BlazingBattlefieldRenderer.drawPlayerResources,calls=[];
+  const ctx=new Proxy({},{get:(_,key)=>()=>calls.push(key),set:()=>true});
+  renderer(ctx,{x:0,y:0,hp:10,maxHp:20,chakra:0,maxChakra:0,showHealth:false});if(calls.includes('fillRect'))throw new Error('Road individual HP still drawn');
+  renderer(ctx,{x:0,y:0,hp:10,maxHp:20,chakra:0,maxChakra:0});if(!calls.includes('fillRect'))throw new Error('Other mode HP missing');
+ });
+}
 function assertGeometry(result,label){
  const {snap,controls,safe}=result,v=snap.viewport;
  const right=v.left+v.width,bottom=v.top+v.height;
  if(!/safe-area-inset-top/.test(result.style)||!/safe-area-inset-bottom/.test(result.style)||!/safe-area-inset-left/.test(result.style)||!/safe-area-inset-right/.test(result.style))throw new Error(`${label}: safe-area CSS contract missing`);
  if(!(result.camera?.targetScale>1.05))throw new Error(`${label}: Road camera was not zoomed during HUD assertion :: ${JSON.stringify(result.camera)}`);
- for(const kind of ['reset','basic','jutsu','pause']){
+ for(const kind of ['basic','jutsu','pause']){
   const c=controls[kind];if(!c)throw new Error(`${label}: ${kind} control missing`);
   const r=c.rect;if(r.width<44||r.height<44)throw new Error(`${label}: ${kind} touch target too small :: ${JSON.stringify(r)}`);
   if(r.left<v.left+safe.left-1||r.top<v.top+safe.top-1||r.right>right-safe.right+1||r.bottom>bottom-safe.bottom+1)throw new Error(`${label}: ${kind} outside visible/safe viewport :: ${JSON.stringify({rect:r,viewport:v,safe})}`);
@@ -99,7 +119,7 @@ function assertGeometry(result,label){
   const a=result.before[kind],b=result.after[kind];
   if(!a||!b||Math.abs(a.left-b.left)>.6||Math.abs(a.top-b.top)>.6||Math.abs(a.width-b.width)>.6||Math.abs(a.height-b.height)>.6)throw new Error(`${label}: ${kind} moved/scaled with Road canvas :: ${JSON.stringify({before:a,after:b})}`);
  }
- if(overlaps(controls.reset.rect,controls.pause.rect))throw new Error(`${label}: Reset overlaps Pause`);
+
  if(overlaps(controls.basic.rect,controls.jutsu.rect))throw new Error(`${label}: Basic overlaps Jutsu`);
 }
 async function run(name,type){
@@ -117,8 +137,16 @@ async function run(name,type){
   const normal=await inspect(page);assertGeometry(normal,`${name}/phone`);
   const simulated={top:26,right:18,bottom:30,left:18};
   const safe=await inspect(page,simulated);assertGeometry(safe,`${name}/phone-safe-area`);
+  await assertDock(page);
+  await fs.mkdir('test-artifacts',{recursive:true});
+  await page.screenshot({path:`test-artifacts/road-dock-${name}.png`});
+  await page.setViewportSize({width:1366,height:900});
+  await page.waitForTimeout(250);
+  await forcePlayerControls(page);
+  assertGeometry(await inspect(page),`${name}/desktop`);
+  await assertDock(page);
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Battle controls smoke PASS (${name}): Reset/Basic/Jutsu/Pause stay tappable inside phone safe bounds and independent of Road canvas zoom.`);
+  console.log(`Battle controls smoke PASS (${name}): Bottom dock, Normal/Jutsu/Pause stay tappable inside phone safe bounds and independent of Road canvas zoom.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 

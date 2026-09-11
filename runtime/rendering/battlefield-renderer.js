@@ -216,16 +216,18 @@
     ctx.restore();
   }
 
-  function drawPlayerResources(ctx,{x,y,hp,maxHp,chakra,maxChakra,linked=false,linkStrength=0,spriteTop=null,now=performance.now()}){
+  function drawPlayerResources(ctx,{x,y,hp,maxHp,chakra,maxChakra,linked=false,linkStrength=0,spriteTop=null,now=performance.now(),showHealth=true}){
     if(linked&&Number.isFinite(spriteTop))drawOverheadLinkIcon(ctx,{x,y:spriteTop-10,strength:linkStrength,now});
     const hpY=y+19,hpW=52,hpH=4;
     const hpRatio=clamp(hp/maxHp,0,1);
     ctx.save();
+    if(showHealth){
     ctx.fillStyle='rgba(4,9,13,.72)';ctx.fillRect(x-hpW/2,hpY,hpW,hpH);
     ctx.strokeStyle='rgba(255,255,255,.34)';ctx.lineWidth=.55;
     ctx.strokeRect(x-hpW/2+.25,hpY+.25,hpW-.5,hpH-.5);
     ctx.fillStyle=hpRatio>.5?'#53dc72':hpRatio>.25?'#ffbd4a':'#ff616a';
     ctx.fillRect(x-hpW/2,hpY,hpW*hpRatio,hpH);
+    }
     const pipW=5,pipH=4,gap=2,total=maxChakra;
     const chakraY=hpY+8;
     const start=x-((pipW+gap)*total-gap)/2;

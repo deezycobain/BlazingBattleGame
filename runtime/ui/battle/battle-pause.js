@@ -15,6 +15,8 @@ function syncHome(){setTimeout(()=>{try{window.BlazingHomeV9Lifecycle?.schedule?
 
 function positionButton(button){
  const root=battle();if(!root||!button)return;
+ const dock=document.querySelector('#bbBattleDock .bb-dock-timeline');
+ if(dock){if(button.parentElement!==dock)dock.appendChild(button);return}
  if(button.parentElement!==root)root.appendChild(button);
  const reset=resetButton();
  if(reset){
@@ -41,10 +43,18 @@ function ensure(){
    const action=event.target.closest('[data-pause-action]')?.dataset.pauseAction;
    if(action==='resume')setPaused(false);
    if(action==='exit')exitBattle();
+   if(action==='reset'&&devResetEnabled()){setPaused(false);resetButton()?.click();}
   });
  }
+ let reset=root.querySelector('[data-pause-action="reset"]');
+ if(!reset){reset=document.createElement('button');reset.type='button';reset.dataset.pauseAction='reset';reset.textContent='Reset';root.querySelector('.bb-pause-actions').appendChild(reset)}
+ reset.hidden=!devResetEnabled();
+ reset.style.display=reset.hidden?'none':'';
+ reset.title='Dev testing: restart the current encounter';
  return {button,root};
 }
+
+function devResetEnabled(){return window.BB_DEV_CONFIG?.enabled===true&&window.BB_BUILD_META?.environment!=='production'}
 
 function setPaused(next){
  const ui=ensure();next=!!next;
