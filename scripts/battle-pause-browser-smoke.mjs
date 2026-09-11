@@ -62,8 +62,14 @@ async function run(name,type){
 
   await page.locator('#bbBattlePauseButton').click();await page.getByRole('button',{name:'EXIT TO MAIN MENU'}).click();await waitHome(page);
   await page.waitForFunction(()=>!document.getElementById('battleScreen')?.classList.contains('active'));
-  await page.waitForFunction(()=>{const leader=document.querySelector('#bbHomeApproved .bb-home-v5-leader');return !leader||getComputedStyle(leader).display==='none'||getComputedStyle(leader).visibility==='hidden'||leader.getBoundingClientRect().width===0},{timeout:5000});
-  const exitState=await page.evaluate(()=>{const leader=document.querySelector('#bbHomeApproved .bb-home-v5-leader');return {run:window.BlazingRoadRun.loadRun(),reward:window.BlazingEconomy?.balance?.()??0,paused:window.BlazingBattlePause.isPaused(),leaderDisplay:leader?getComputedStyle(leader).display:'missing',feedback:document.querySelector('#bbHomeApproved')?.dataset?.bbHomeFeedback||''}});
+  // Return Home can replace the shell. Missing DOM is not a completed hidden
+  // presentation; capture the finished shell and its state in the same poll.
+  const exitHandle=await page.waitForFunction(()=>{
+   const shell=document.querySelector('#bbHomeApproved'),leader=shell?.querySelector('.bb-home-v5-leader');
+   if(!leader||shell.dataset.bbHomeFeedback!=='r1'||getComputedStyle(leader).display!=='none')return false;
+   return {run:window.BlazingRoadRun.loadRun(),reward:window.BlazingEconomy?.balance?.()??0,paused:window.BlazingBattlePause.isPaused(),leaderDisplay:getComputedStyle(leader).display,feedback:shell.dataset.bbHomeFeedback};
+  },null,{timeout:5000});
+  const exitState=await exitHandle.jsonValue();await exitHandle.dispose();
   if(exitState.paused)throw new Error('pause state survived Exit');
   if(exitState.run?.status!=='active'||exitState.run?.stage!==before.stage)throw new Error(`Exit mutated Road stage/status: ${JSON.stringify(exitState.run)}`);
   if(exitState.reward!==before.reward)throw new Error(`Exit awarded currency: before ${before.reward}, after ${exitState.reward}`);
