@@ -60,7 +60,8 @@ function decorateResults(pulls){
  const cards=[...document.querySelectorAll('#pullResultsGrid .pullCard')];
  cards.forEach((card,index)=>{
   const pull=pulls?.[index];
-  card.style.setProperty('--bb-result-index',String(index));
+  card.style.setProperty('--bb-result-delay',`${index*45}ms`);
+  card.style.setProperty('--bb-result-shine-delay',`${220+index*45}ms`);
   card.classList.toggle('bb-new-result-card',!!pull?.isNew);
   card.classList.toggle('bb-resonance-result-card',!!pull&&!pull.isNew&&!pull.shinyUnlock);
   card.dataset.bbRevealKind=pull?revealKind(pull):'resonance';
@@ -82,5 +83,5 @@ function install(){
 }
 
 install();
-window.BlazingSummonCinematic=Object.freeze({version:'1.0.0',refresh:ensureCinematic});
+window.BlazingSummonCinematic=Object.freeze({version:'1.0.1',refresh:ensureCinematic});
 })();
