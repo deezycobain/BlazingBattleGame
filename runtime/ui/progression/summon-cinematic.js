@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const VERSION='2.1.0';
+const VERSION='2.2.0';
 const VFX_ROOT='assets/vfx/summon/reveal-brush';
 const CARD_BACK_SRC='assets/ui/summon/reveal/summon_reveal_card_back.png';
 const CARD_FRONT_FRAME_SRC='assets/ui/summon/reveal/summon_reveal_card_front_frame.png';
@@ -13,13 +13,10 @@ const VFX=Object.freeze({
  secondary:`${VFX_ROOT}/brush-stroke-05.png`,
  finisher:`${VFX_ROOT}/brush-stroke-06.png`
 });
-const TIMELINE=Object.freeze({
- paint1:280,
- paint2:1080,
- charge:1880,
- flip:2160,
- resolve:2510,
- done:3010
+const TIMELINES=Object.freeze({
+ resonance:Object.freeze({flip:610,resolve:805,done:1015}),
+ new:Object.freeze({flip:650,resolve:845,done:1065}),
+ shiny:Object.freeze({flip:760,resolve:955,done:1200})
 });
 let cinematicRun=0;
 let timelineTimers=[];
@@ -36,28 +33,30 @@ function img(src,className,alt=''){
  return node;
 }
 
-function clearTimeline(){
- timelineTimers.forEach(clearTimeout);
- timelineTimers=[];
-}
-
+function clearTimeline(){timelineTimers.forEach(clearTimeout);timelineTimers=[]}
 function schedule(scene,run,delay,fn){
- const timer=setTimeout(()=>{
-  if(Number(scene.dataset.bbRevealRun)!==run)return;
-  fn();
- },delay);
+ const timer=setTimeout(()=>{if(Number(scene.dataset.bbRevealRun)!==run)return;fn()},delay);
  timelineTimers.push(timer);
 }
+function setStage(scene,stage){scene.dataset.bbPaintStage=stage}
 
-function setStage(scene,stage){
- scene.dataset.bbPaintStage=stage;
+function ensureCardLabels(front){
+ let name=front.querySelector('.bb-card-nameplate');
+ if(!name){name=document.createElement('div');name.className='bb-card-nameplate';name.setAttribute('aria-hidden','true');front.append(name)}
+ let rarity=front.querySelector('.bb-card-rarityplate');
+ if(!rarity){rarity=document.createElement('div');rarity.className='bb-card-rarityplate';rarity.setAttribute('aria-hidden','true');front.append(rarity)}
+ return {name,rarity};
 }
 
 function ensurePhysicalCard(){
  const wrap=document.getElementById('pullCardWrap');
  if(!wrap)return null;
  let flipper=wrap.querySelector('.bb-card-flipper');
- if(flipper)return {wrap,flipper,front:flipper.querySelector('.bb-card-front'),back:flipper.querySelector('.bb-card-back'),fx:wrap.querySelector('.bb-card-reveal-vfx')};
+ if(flipper){
+  const front=flipper.querySelector('.bb-card-front');
+  const labels=front?ensureCardLabels(front):{};
+  return {wrap,flipper,front,back:flipper.querySelector('.bb-card-back'),fx:wrap.querySelector('.bb-card-reveal-vfx'),...labels};
+ }
  const front=wrap.querySelector('.showcaseCard.pullHoloCard');
  if(!front)return null;
 
@@ -86,31 +85,33 @@ function ensurePhysicalCard(){
  frame.addEventListener('load',()=>{frame.hidden=false;front.classList.add('bb-has-card-frame')},{once:true});
  frame.addEventListener('error',()=>frame.remove(),{once:true});
  front.append(frame);
- return {wrap,flipper,front,back,fx};
+ const labels=ensureCardLabels(front);
+ return {wrap,flipper,front,back,fx,...labels};
+}
+
+function syncCardLabels(refs,pull){
+ if(refs.name)refs.name.textContent=String(pull?.name||'').toUpperCase();
+ if(refs.rarity){
+  const rarity=String(pull?.rarity||'rare').toLowerCase();
+  refs.rarity.textContent=rarity==='legendary'?'LEGENDARY':rarity==='super'?'SUPER RARE':rarity.toUpperCase();
+ }
 }
 
 function startPaintTimeline(scene,pull,run){
  clearTimeline();
+ const kind=revealKind(pull),timeline=TIMELINES[kind]||TIMELINES.resonance;
  scene.classList.add('bb-cinematic-running');
- setStage(scene,'enter');
+ setStage(scene,'paint');
 
  const message=document.getElementById('pullMessage');
  const finalMessage=pull.shinyUnlock?'SHINY AWAKENING!':pull.isNew?'NEW FIGHTER!':pull.progress||'RESONANCE';
- if(message){
-  message.dataset.bbFinalMessage=finalMessage;
-  message.textContent='';
- }
+ if(message){message.dataset.bbFinalMessage=finalMessage;message.textContent=''}
 
- schedule(scene,run,TIMELINE.paint1,()=>setStage(scene,'paint-1'));
- schedule(scene,run,TIMELINE.paint2,()=>setStage(scene,'paint-2'));
- schedule(scene,run,TIMELINE.charge,()=>setStage(scene,'charge'));
- schedule(scene,run,TIMELINE.flip,()=>setStage(scene,'flip'));
- schedule(scene,run,TIMELINE.resolve,()=>{
-  setStage(scene,'resolve');
-  if(message)message.textContent=message.dataset.bbFinalMessage||finalMessage;
- });
- schedule(scene,run,TIMELINE.done,()=>{
+ schedule(scene,run,timeline.flip,()=>setStage(scene,'flip'));
+ schedule(scene,run,timeline.resolve,()=>setStage(scene,'resolve'));
+ schedule(scene,run,timeline.done,()=>{
   setStage(scene,'done');
+  if(message)message.textContent=message.dataset.bbFinalMessage||finalMessage;
   scene.classList.remove('bb-cinematic-running');
  });
 }
@@ -120,9 +121,10 @@ function syncPhysicalCard(pull,index,total){
  const scene=document.getElementById('pullScene')||document.querySelector('#summonPullScreen .pullScene');
  if(!refs||!scene||!pull)return;
  const kind=revealKind(pull),rarity=String(pull.rarity||'rare').toLowerCase(),run=++cinematicRun;
- scene.dataset.bbCinematic='v2.1';scene.dataset.bbRevealKind=kind;scene.dataset.bbCinematicRarity=rarity;scene.dataset.bbRevealRun=String(run);
+ scene.dataset.bbCinematic='v2.2';scene.dataset.bbRevealKind=kind;scene.dataset.bbCinematicRarity=rarity;scene.dataset.bbRevealRun=String(run);
  refs.wrap.dataset.bbRevealKind=kind;refs.wrap.dataset.bbRevealRun=String(run);refs.wrap.style.setProperty('--bb-pull-index',String(index||0));
  refs.fx.dataset.bbRevealKind=kind;refs.fx.dataset.bbCinematicRarity=rarity;
+ syncCardLabels(refs,pull);
  const badge=document.getElementById('pullNewBadge');
  if(badge)badge.textContent=pull.shinyUnlock?'SHINY AWAKENED':pull.isNew?'NEW FIGHTER':pull.progress||'RESONANCE';
  const counter=document.getElementById('pullCounter')||document.querySelector('#summonPullScreen .largePullCounter');
@@ -135,19 +137,14 @@ function decorateResults(pulls){
  const cards=[...document.querySelectorAll('#pullResultsGrid .pullCard')];
  cards.forEach((card,index)=>{
   const pull=pulls?.[index];
-  card.style.setProperty('--bb-result-delay',`${index*45}ms`);
-  card.style.setProperty('--bb-result-shine-delay',`${220+index*45}ms`);
+  card.style.setProperty('--bb-result-delay',`${index*38}ms`);
+  card.style.setProperty('--bb-result-shine-delay',`${180+index*38}ms`);
   card.classList.toggle('bb-new-result-card',!!pull?.isNew);
   card.classList.toggle('bb-resonance-result-card',!!pull&&!pull.isNew&&!pull.shinyUnlock);
   card.dataset.bbRevealKind=pull?revealKind(pull):'resonance';
  });
  const scene=document.getElementById('pullScene')||document.querySelector('#summonPullScreen .pullScene');
- if(scene){
-  scene.classList.remove('bb-cinematic-running');
-  scene.removeAttribute('data-bb-paint-stage');
-  scene.removeAttribute('data-bb-reveal-kind');
-  scene.removeAttribute('data-bb-cinematic-rarity');
- }
+ if(scene){scene.classList.remove('bb-cinematic-running');scene.removeAttribute('data-bb-paint-stage');scene.removeAttribute('data-bb-reveal-kind');scene.removeAttribute('data-bb-cinematic-rarity')}
 }
 
 function installTapGuard(){
@@ -162,8 +159,7 @@ function installTapGuard(){
 }
 
 function install(){
- ensurePhysicalCard();
- installTapGuard();
+ ensurePhysicalCard();installTapGuard();
  if(typeof setupPullCard==='function'){
   const previousSetup=setupPullCard;
   setupPullCard=function(pull,index,total){previousSetup(pull,index,total);syncPhysicalCard(pull,index,total)};
@@ -175,5 +171,5 @@ function install(){
 }
 
 install();
-window.BlazingSummonCinematic=Object.freeze({version:VERSION,refresh:ensurePhysicalCard,vfx:VFX,timeline:TIMELINE,cardBack:CARD_BACK_SRC,cardFrontFrame:CARD_FRONT_FRAME_SRC});
+window.BlazingSummonCinematic=Object.freeze({version:VERSION,refresh:ensurePhysicalCard,vfx:VFX,timeline:TIMELINES,cardBack:CARD_BACK_SRC,cardFrontFrame:CARD_FRONT_FRAME_SRC});
 })();
