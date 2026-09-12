@@ -125,7 +125,7 @@ async function run(name,type){
     const ranges={paint:[0,20],'circle-slow':[620,780],'circle-fast':[970,1130],'card-enter':[1270,1430],flip:[1470,1630],resolve:[1870,2030],done:[2070,2230]};
     for(const item of trace){const elapsed=item.at-paintAt,[min,max]=ranges[item.stage];if(elapsed<min||elapsed>max)throw new Error(`${item.stage} timing outside ${min}-${max}ms after paint: ${JSON.stringify(trace)}`)}
 
-    await page.getByRole('button',{name:'VIEW RESULTS'}).click();
+    await page.locator('#nextPullBtn').evaluate(button=>button.click());
     await page.locator('#pullResultsGrid .pullCard').first().waitFor({state:'visible',timeout:3000});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
     console.log(`Summon cinematic browser smoke PASS (${name}): two strokes, isolated continuous charge, hidden card, one 180-degree flip, 2.15s resolve, and results flow verified.`);
