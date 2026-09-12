@@ -1,8 +1,9 @@
 {
-  "version": 2,
+  "version": 3,
   "family": "Blazing Brush",
   "format": "transparent raster glyphs",
   "sourceBackground": "parchment",
+  "layout": "hand-authored irregular rows",
   "glyphs": {
     "A": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/A.png",
@@ -16,23 +17,23 @@
       "grid": {
         "row": 0,
         "column": 0,
-        "rows": 5,
-        "columns": 6
+        "rowCharacters": "ABCDE",
+        "columnsInRow": 5
       },
       "cell": [
         0,
         0,
-        187,
-        280
+        254,
+        328
       ],
       "contentInCell": [
-        0,
-        5,
-        187,
-        280
+        6,
+        12,
+        254,
+        327
       ],
-      "width": 187,
-      "height": 275
+      "width": 248,
+      "height": 315
     },
     "B": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/B.png",
@@ -46,23 +47,23 @@
       "grid": {
         "row": 0,
         "column": 1,
-        "rows": 5,
-        "columns": 6
+        "rowCharacters": "ABCDE",
+        "columnsInRow": 5
       },
       "cell": [
-        187,
+        254,
         0,
-        374,
-        280
+        465,
+        328
       ],
       "contentInCell": [
         0,
-        74,
-        187,
-        280
+        76,
+        196,
+        314
       ],
-      "width": 187,
-      "height": 206
+      "width": 196,
+      "height": 238
     },
     "C": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/C.png",
@@ -76,23 +77,23 @@
       "grid": {
         "row": 0,
         "column": 2,
-        "rows": 5,
-        "columns": 6
+        "rowCharacters": "ABCDE",
+        "columnsInRow": 5
       },
       "cell": [
-        374,
+        465,
         0,
-        561,
-        280
+        679,
+        328
       ],
       "contentInCell": [
-        0,
-        70,
-        187,
-        280
+        16,
+        63,
+        214,
+        304
       ],
-      "width": 187,
-      "height": 210
+      "width": 198,
+      "height": 241
     },
     "D": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/D.png",
@@ -106,23 +107,23 @@
       "grid": {
         "row": 0,
         "column": 3,
-        "rows": 5,
-        "columns": 6
+        "rowCharacters": "ABCDE",
+        "columnsInRow": 5
       },
       "cell": [
-        561,
+        679,
         0,
-        748,
-        280
+        897,
+        328
       ],
       "contentInCell": [
         0,
-        0,
-        187,
-        280
+        75,
+        200,
+        307
       ],
-      "width": 187,
-      "height": 280
+      "width": 200,
+      "height": 232
     },
     "E": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/E.png",
@@ -136,23 +137,23 @@
       "grid": {
         "row": 0,
         "column": 4,
-        "rows": 5,
-        "columns": 6
+        "rowCharacters": "ABCDE",
+        "columnsInRow": 5
       },
       "cell": [
-        748,
+        897,
         0,
-        935,
-        280
+        1122,
+        328
       ],
       "contentInCell": [
-        0,
+        17,
         69,
-        187,
-        280
+        207,
+        309
       ],
-      "width": 187,
-      "height": 211
+      "width": 190,
+      "height": 240
     },
     "F": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/F.png",
@@ -164,25 +165,25 @@
         223
       ],
       "grid": {
-        "row": 0,
-        "column": 5,
-        "rows": 5,
-        "columns": 6
+        "row": 1,
+        "column": 0,
+        "rowCharacters": "FGHIJK",
+        "columnsInRow": 6
       },
       "cell": [
-        935,
         0,
-        1122,
-        280
+        328,
+        193,
+        609
       ],
       "contentInCell": [
-        0,
-        0,
-        175,
-        280
+        32,
+        18,
+        193,
+        281
       ],
-      "width": 175,
-      "height": 280
+      "width": 161,
+      "height": 263
     },
     "G": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/G.png",
@@ -195,24 +196,24 @@
       ],
       "grid": {
         "row": 1,
-        "column": 0,
-        "rows": 5,
-        "columns": 6
+        "column": 1,
+        "rowCharacters": "FGHIJK",
+        "columnsInRow": 6
       },
       "cell": [
-        0,
-        280,
-        187,
-        561
+        193,
+        328,
+        394,
+        609
       ],
       "contentInCell": [
-        9,
         0,
-        187,
+        19,
+        200,
         281
       ],
-      "width": 178,
-      "height": 281
+      "width": 200,
+      "height": 262
     },
     "H": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/H.png",
@@ -225,24 +226,24 @@
       ],
       "grid": {
         "row": 1,
-        "column": 1,
-        "rows": 5,
-        "columns": 6
+        "column": 2,
+        "rowCharacters": "FGHIJK",
+        "columnsInRow": 6
       },
       "cell": [
-        187,
-        280,
-        374,
-        561
+        394,
+        328,
+        601,
+        609
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        281
+        10,
+        2,
+        207,
+        270
       ],
-      "width": 187,
-      "height": 281
+      "width": 197,
+      "height": 268
     },
     "I": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/I.png",
@@ -255,24 +256,24 @@
       ],
       "grid": {
         "row": 1,
-        "column": 2,
-        "rows": 5,
-        "columns": 6
+        "column": 3,
+        "rowCharacters": "FGHIJK",
+        "columnsInRow": 6
       },
       "cell": [
-        374,
-        280,
-        561,
-        561
+        601,
+        328,
+        708,
+        609
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        281
+        10,
+        17,
+        95,
+        272
       ],
-      "width": 187,
-      "height": 281
+      "width": 85,
+      "height": 255
     },
     "J": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/J.png",
@@ -285,24 +286,24 @@
       ],
       "grid": {
         "row": 1,
-        "column": 3,
-        "rows": 5,
-        "columns": 6
+        "column": 4,
+        "rowCharacters": "FGHIJK",
+        "columnsInRow": 6
       },
       "cell": [
-        561,
-        280,
-        748,
-        561
+        708,
+        328,
+        917,
+        609
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        281
+        14,
+        19,
+        209,
+        263
       ],
-      "width": 187,
-      "height": 281
+      "width": 195,
+      "height": 244
     },
     "K": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/K.png",
@@ -315,24 +316,24 @@
       ],
       "grid": {
         "row": 1,
-        "column": 4,
-        "rows": 5,
-        "columns": 6
+        "column": 5,
+        "rowCharacters": "FGHIJK",
+        "columnsInRow": 6
       },
       "cell": [
-        748,
-        280,
-        935,
-        561
+        917,
+        328,
+        1122,
+        609
       ],
       "contentInCell": [
         0,
-        0,
-        187,
-        281
+        20,
+        190,
+        272
       ],
-      "width": 187,
-      "height": 281
+      "width": 190,
+      "height": 252
     },
     "L": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/L.png",
@@ -344,25 +345,25 @@
         223
       ],
       "grid": {
-        "row": 1,
-        "column": 5,
-        "rows": 5,
-        "columns": 6
+        "row": 2,
+        "column": 0,
+        "rowCharacters": "LMNOP",
+        "columnsInRow": 5
       },
       "cell": [
-        935,
-        280,
-        1122,
-        561
+        0,
+        609,
+        229,
+        895
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        281
+        35,
+        31,
+        229,
+        256
       ],
-      "width": 187,
-      "height": 281
+      "width": 194,
+      "height": 225
     },
     "M": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/M.png",
@@ -375,24 +376,24 @@
       ],
       "grid": {
         "row": 2,
-        "column": 0,
-        "rows": 5,
-        "columns": 6
+        "column": 1,
+        "rowCharacters": "LMNOP",
+        "columnsInRow": 5
       },
       "cell": [
-        0,
-        561,
-        187,
-        841
+        229,
+        609,
+        469,
+        895
       ],
       "contentInCell": [
-        29,
         0,
-        187,
-        280
+        17,
+        240,
+        271
       ],
-      "width": 158,
-      "height": 280
+      "width": 240,
+      "height": 254
     },
     "N": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/N.png",
@@ -405,24 +406,24 @@
       ],
       "grid": {
         "row": 2,
-        "column": 1,
-        "rows": 5,
-        "columns": 6
+        "column": 2,
+        "rowCharacters": "LMNOP",
+        "columnsInRow": 5
       },
       "cell": [
-        187,
-        561,
-        374,
-        841
+        469,
+        609,
+        691,
+        895
       ],
       "contentInCell": [
+        8,
         0,
-        0,
-        187,
-        280
+        222,
+        257
       ],
-      "width": 187,
-      "height": 280
+      "width": 214,
+      "height": 257
     },
     "O": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/O.png",
@@ -435,24 +436,24 @@
       ],
       "grid": {
         "row": 2,
-        "column": 2,
-        "rows": 5,
-        "columns": 6
+        "column": 3,
+        "rowCharacters": "LMNOP",
+        "columnsInRow": 5
       },
       "cell": [
-        374,
-        561,
-        561,
-        841
+        691,
+        609,
+        906,
+        895
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        280
+        5,
+        29,
+        200,
+        248
       ],
-      "width": 187,
-      "height": 280
+      "width": 195,
+      "height": 219
     },
     "P": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/P.png",
@@ -465,24 +466,24 @@
       ],
       "grid": {
         "row": 2,
-        "column": 3,
-        "rows": 5,
-        "columns": 6
+        "column": 4,
+        "rowCharacters": "LMNOP",
+        "columnsInRow": 5
       },
       "cell": [
-        561,
-        561,
-        748,
-        841
+        906,
+        609,
+        1122,
+        895
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        280
+        4,
+        23,
+        194,
+        286
       ],
-      "width": 187,
-      "height": 280
+      "width": 190,
+      "height": 263
     },
     "Q": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/Q.png",
@@ -494,25 +495,25 @@
         223
       ],
       "grid": {
-        "row": 2,
-        "column": 4,
-        "rows": 5,
-        "columns": 6
+        "row": 3,
+        "column": 0,
+        "rowCharacters": "QRSTU",
+        "columnsInRow": 5
       },
       "cell": [
-        748,
-        561,
-        935,
-        841
+        0,
+        895,
+        262,
+        1122
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        280
+        27,
+        11,
+        259,
+        227
       ],
-      "width": 187,
-      "height": 280
+      "width": 232,
+      "height": 216
     },
     "R": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/R.png",
@@ -524,25 +525,25 @@
         223
       ],
       "grid": {
-        "row": 2,
-        "column": 5,
-        "rows": 5,
-        "columns": 6
+        "row": 3,
+        "column": 1,
+        "rowCharacters": "QRSTU",
+        "columnsInRow": 5
       },
       "cell": [
-        935,
-        561,
-        1122,
-        841
+        262,
+        895,
+        482,
+        1122
       ],
       "contentInCell": [
-        0,
-        0,
-        178,
-        280
+        9,
+        20,
+        217,
+        227
       ],
-      "width": 178,
-      "height": 280
+      "width": 208,
+      "height": 207
     },
     "S": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/S.png",
@@ -555,24 +556,24 @@
       ],
       "grid": {
         "row": 3,
-        "column": 0,
-        "rows": 5,
-        "columns": 6
+        "column": 2,
+        "rowCharacters": "QRSTU",
+        "columnsInRow": 5
       },
       "cell": [
-        0,
-        841,
-        187,
+        482,
+        895,
+        664,
         1122
       ],
       "contentInCell": [
-        21,
+        2,
         0,
-        187,
-        279
+        182,
+        227
       ],
-      "width": 166,
-      "height": 279
+      "width": 180,
+      "height": 227
     },
     "T": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/T.png",
@@ -585,24 +586,24 @@
       ],
       "grid": {
         "row": 3,
-        "column": 1,
-        "rows": 5,
-        "columns": 6
+        "column": 3,
+        "rowCharacters": "QRSTU",
+        "columnsInRow": 5
       },
       "cell": [
-        187,
-        841,
-        374,
+        664,
+        895,
+        888,
         1122
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        281
+        13,
+        14,
+        224,
+        227
       ],
-      "width": 187,
-      "height": 281
+      "width": 211,
+      "height": 213
     },
     "U": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/U.png",
@@ -615,24 +616,24 @@
       ],
       "grid": {
         "row": 3,
-        "column": 2,
-        "rows": 5,
-        "columns": 6
+        "column": 4,
+        "rowCharacters": "QRSTU",
+        "columnsInRow": 5
       },
       "cell": [
-        374,
-        841,
-        561,
+        888,
+        895,
+        1122,
         1122
       ],
       "contentInCell": [
+        18,
         0,
-        0,
-        187,
-        281
+        210,
+        227
       ],
-      "width": 187,
-      "height": 281
+      "width": 192,
+      "height": 227
     },
     "V": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/V.png",
@@ -644,25 +645,25 @@
         223
       ],
       "grid": {
-        "row": 3,
-        "column": 3,
-        "rows": 5,
-        "columns": 6
+        "row": 4,
+        "column": 0,
+        "rowCharacters": "VWXYZ",
+        "columnsInRow": 5
       },
       "cell": [
-        561,
-        841,
-        748,
-        1122
+        0,
+        1122,
+        221,
+        1402
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        279
+        34,
+        14,
+        221,
+        235
       ],
       "width": 187,
-      "height": 279
+      "height": 221
     },
     "W": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/W.png",
@@ -674,25 +675,25 @@
         223
       ],
       "grid": {
-        "row": 3,
-        "column": 4,
-        "rows": 5,
-        "columns": 6
+        "row": 4,
+        "column": 1,
+        "rowCharacters": "VWXYZ",
+        "columnsInRow": 5
       },
       "cell": [
-        748,
-        841,
-        935,
-        1122
+        221,
+        1122,
+        454,
+        1402
       ],
       "contentInCell": [
+        2,
         0,
-        0,
-        187,
-        281
+        233,
+        234
       ],
-      "width": 187,
-      "height": 281
+      "width": 231,
+      "height": 234
     },
     "X": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/X.png",
@@ -704,25 +705,25 @@
         223
       ],
       "grid": {
-        "row": 3,
-        "column": 5,
-        "rows": 5,
-        "columns": 6
+        "row": 4,
+        "column": 2,
+        "rowCharacters": "VWXYZ",
+        "columnsInRow": 5
       },
       "cell": [
-        935,
-        841,
+        454,
         1122,
-        1122
+        653,
+        1402
       ],
       "contentInCell": [
         0,
         0,
-        169,
-        281
+        195,
+        253
       ],
-      "width": 169,
-      "height": 281
+      "width": 195,
+      "height": 253
     },
     "Y": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/Y.png",
@@ -735,24 +736,24 @@
       ],
       "grid": {
         "row": 4,
-        "column": 0,
-        "rows": 5,
-        "columns": 6
+        "column": 3,
+        "rowCharacters": "VWXYZ",
+        "columnsInRow": 5
       },
       "cell": [
-        0,
+        653,
         1122,
-        187,
+        851,
         1402
       ],
       "contentInCell": [
-        28,
-        35,
-        187,
-        242
+        1,
+        0,
+        193,
+        269
       ],
-      "width": 159,
-      "height": 207
+      "width": 192,
+      "height": 269
     },
     "Z": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/Z.png",
@@ -765,24 +766,24 @@
       ],
       "grid": {
         "row": 4,
-        "column": 1,
-        "rows": 5,
-        "columns": 6
+        "column": 4,
+        "rowCharacters": "VWXYZ",
+        "columnsInRow": 5
       },
       "cell": [
-        187,
+        851,
         1122,
-        374,
+        1122,
         1402
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        240
+        7,
+        29,
+        259,
+        235
       ],
-      "width": 187,
-      "height": 240
+      "width": 252,
+      "height": 206
     },
     "a": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/a.png",
@@ -796,23 +797,23 @@
       "grid": {
         "row": 0,
         "column": 0,
-        "rows": 5,
-        "columns": 6
+        "rowCharacters": "abcde",
+        "columnsInRow": 5
       },
       "cell": [
         0,
         0,
-        187,
-        280
+        254,
+        328
       ],
       "contentInCell": [
-        29,
-        126,
-        187,
-        280
+        35,
+        132,
+        254,
+        299
       ],
-      "width": 158,
-      "height": 154
+      "width": 219,
+      "height": 167
     },
     "b": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/b.png",
@@ -826,23 +827,23 @@
       "grid": {
         "row": 0,
         "column": 1,
-        "rows": 5,
-        "columns": 6
+        "rowCharacters": "abcde",
+        "columnsInRow": 5
       },
       "cell": [
-        187,
+        254,
         0,
-        374,
-        280
+        465,
+        328
       ],
       "contentInCell": [
-        0,
-        53,
-        187,
-        280
+        14,
+        59,
+        194,
+        315
       ],
-      "width": 187,
-      "height": 227
+      "width": 180,
+      "height": 256
     },
     "c": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/c.png",
@@ -856,23 +857,23 @@
       "grid": {
         "row": 0,
         "column": 2,
-        "rows": 5,
-        "columns": 6
+        "rowCharacters": "abcde",
+        "columnsInRow": 5
       },
       "cell": [
-        374,
+        465,
         0,
-        561,
-        280
+        679,
+        328
       ],
       "contentInCell": [
-        0,
-        57,
-        187,
-        280
+        12,
+        120,
+        194,
+        302
       ],
-      "width": 187,
-      "height": 223
+      "width": 182,
+      "height": 182
     },
     "d": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/d.png",
@@ -886,23 +887,23 @@
       "grid": {
         "row": 0,
         "column": 3,
-        "rows": 5,
-        "columns": 6
+        "rowCharacters": "abcde",
+        "columnsInRow": 5
       },
       "cell": [
-        561,
+        679,
         0,
-        748,
-        280
+        897,
+        328
       ],
       "contentInCell": [
         0,
-        114,
-        187,
-        280
+        29,
+        190,
+        309
       ],
-      "width": 187,
-      "height": 166
+      "width": 190,
+      "height": 280
     },
     "e": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/e.png",
@@ -916,23 +917,23 @@
       "grid": {
         "row": 0,
         "column": 4,
-        "rows": 5,
-        "columns": 6
+        "rowCharacters": "abcde",
+        "columnsInRow": 5
       },
       "cell": [
-        748,
+        897,
         0,
-        935,
-        280
+        1122,
+        328
       ],
       "contentInCell": [
         0,
-        23,
-        187,
-        280
+        124,
+        206,
+        300
       ],
-      "width": 187,
-      "height": 257
+      "width": 206,
+      "height": 176
     },
     "f": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/f.png",
@@ -944,25 +945,25 @@
         226
       ],
       "grid": {
-        "row": 0,
-        "column": 5,
-        "rows": 5,
-        "columns": 6
+        "row": 1,
+        "column": 0,
+        "rowCharacters": "fghijk",
+        "columnsInRow": 6
       },
       "cell": [
-        935,
         0,
-        1122,
-        280
+        328,
+        193,
+        609
       ],
       "contentInCell": [
+        26,
         0,
-        118,
-        174,
+        193,
         280
       ],
-      "width": 174,
-      "height": 162
+      "width": 167,
+      "height": 280
     },
     "g": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/g.png",
@@ -975,23 +976,23 @@
       ],
       "grid": {
         "row": 1,
-        "column": 0,
-        "rows": 5,
-        "columns": 6
+        "column": 1,
+        "rowCharacters": "fghijk",
+        "columnsInRow": 6
       },
       "cell": [
-        0,
-        280,
-        187,
-        561
+        193,
+        328,
+        394,
+        609
       ],
       "contentInCell": [
-        20,
         0,
-        187,
+        0,
+        201,
         281
       ],
-      "width": 167,
+      "width": 201,
       "height": 281
     },
     "h": {
@@ -1005,24 +1006,24 @@
       ],
       "grid": {
         "row": 1,
-        "column": 1,
-        "rows": 5,
-        "columns": 6
+        "column": 2,
+        "rowCharacters": "fghijk",
+        "columnsInRow": 6
       },
       "cell": [
-        187,
-        280,
-        374,
-        561
+        394,
+        328,
+        601,
+        609
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        281
+        10,
+        16,
+        207,
+        266
       ],
-      "width": 187,
-      "height": 281
+      "width": 197,
+      "height": 250
     },
     "i": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/i.png",
@@ -1035,24 +1036,24 @@
       ],
       "grid": {
         "row": 1,
-        "column": 2,
-        "rows": 5,
-        "columns": 6
+        "column": 3,
+        "rowCharacters": "fghijk",
+        "columnsInRow": 6
       },
       "cell": [
-        374,
-        280,
-        561,
-        561
+        601,
+        328,
+        708,
+        609
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        281
+        21,
+        12,
+        105,
+        273
       ],
-      "width": 187,
-      "height": 281
+      "width": 84,
+      "height": 261
     },
     "j": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/j.png",
@@ -1065,24 +1066,24 @@
       ],
       "grid": {
         "row": 1,
-        "column": 3,
-        "rows": 5,
-        "columns": 6
+        "column": 4,
+        "rowCharacters": "fghijk",
+        "columnsInRow": 6
       },
       "cell": [
-        561,
-        280,
-        748,
-        561
+        708,
+        328,
+        917,
+        609
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
+        4,
+        3,
+        180,
         281
       ],
-      "width": 187,
-      "height": 281
+      "width": 176,
+      "height": 278
     },
     "k": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/k.png",
@@ -1095,24 +1096,24 @@
       ],
       "grid": {
         "row": 1,
-        "column": 4,
-        "rows": 5,
-        "columns": 6
+        "column": 5,
+        "rowCharacters": "fghijk",
+        "columnsInRow": 6
       },
       "cell": [
-        748,
-        280,
-        935,
-        561
+        917,
+        328,
+        1122,
+        609
       ],
       "contentInCell": [
-        0,
-        0,
-        146,
-        281
+        5,
+        16,
+        197,
+        275
       ],
-      "width": 146,
-      "height": 281
+      "width": 192,
+      "height": 259
     },
     "l": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/l.png",
@@ -1124,25 +1125,25 @@
         226
       ],
       "grid": {
-        "row": 1,
-        "column": 5,
-        "rows": 5,
-        "columns": 6
+        "row": 2,
+        "column": 0,
+        "rowCharacters": "lmnop",
+        "columnsInRow": 5
       },
       "cell": [
-        935,
-        280,
-        1122,
-        561
+        0,
+        609,
+        229,
+        895
       ],
       "contentInCell": [
+        42,
         0,
-        0,
-        173,
-        281
+        229,
+        261
       ],
-      "width": 173,
-      "height": 281
+      "width": 187,
+      "height": 261
     },
     "m": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/m.png",
@@ -1155,24 +1156,24 @@
       ],
       "grid": {
         "row": 2,
-        "column": 0,
-        "rows": 5,
-        "columns": 6
+        "column": 1,
+        "rowCharacters": "lmnop",
+        "columnsInRow": 5
       },
       "cell": [
-        0,
-        561,
-        187,
-        841
+        229,
+        609,
+        469,
+        895
       ],
       "contentInCell": [
-        36,
         0,
-        187,
-        280
+        60,
+        236,
+        271
       ],
-      "width": 151,
-      "height": 280
+      "width": 236,
+      "height": 211
     },
     "n": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/n.png",
@@ -1185,24 +1186,24 @@
       ],
       "grid": {
         "row": 2,
-        "column": 1,
-        "rows": 5,
-        "columns": 6
+        "column": 2,
+        "rowCharacters": "lmnop",
+        "columnsInRow": 5
       },
       "cell": [
-        187,
-        561,
-        374,
-        841
+        469,
+        609,
+        691,
+        895
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        280
+        1,
+        59,
+        218,
+        286
       ],
-      "width": 187,
-      "height": 280
+      "width": 217,
+      "height": 227
     },
     "o": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/o.png",
@@ -1215,24 +1216,24 @@
       ],
       "grid": {
         "row": 2,
-        "column": 2,
-        "rows": 5,
-        "columns": 6
+        "column": 3,
+        "rowCharacters": "lmnop",
+        "columnsInRow": 5
       },
       "cell": [
-        374,
-        561,
-        561,
-        841
+        691,
+        609,
+        906,
+        895
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        280
+        1,
+        65,
+        189,
+        286
       ],
-      "width": 187,
-      "height": 280
+      "width": 188,
+      "height": 221
     },
     "p": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/p.png",
@@ -1245,24 +1246,24 @@
       ],
       "grid": {
         "row": 2,
-        "column": 3,
-        "rows": 5,
-        "columns": 6
+        "column": 4,
+        "rowCharacters": "lmnop",
+        "columnsInRow": 5
       },
       "cell": [
-        561,
-        561,
-        748,
-        841
+        906,
+        609,
+        1122,
+        895
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        280
+        10,
+        44,
+        189,
+        286
       ],
-      "width": 187,
-      "height": 280
+      "width": 179,
+      "height": 242
     },
     "q": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/q.png",
@@ -1274,25 +1275,25 @@
         226
       ],
       "grid": {
-        "row": 2,
-        "column": 4,
-        "rows": 5,
-        "columns": 6
+        "row": 3,
+        "column": 0,
+        "rowCharacters": "qrstu",
+        "columnsInRow": 5
       },
       "cell": [
-        748,
-        561,
-        935,
-        841
+        0,
+        895,
+        262,
+        1122
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        280
+        29,
+        18,
+        262,
+        227
       ],
-      "width": 187,
-      "height": 280
+      "width": 233,
+      "height": 209
     },
     "r": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/r.png",
@@ -1304,25 +1305,25 @@
         226
       ],
       "grid": {
-        "row": 2,
-        "column": 5,
-        "rows": 5,
-        "columns": 6
+        "row": 3,
+        "column": 1,
+        "rowCharacters": "qrstu",
+        "columnsInRow": 5
       },
       "cell": [
-        935,
-        561,
-        1122,
-        841
+        262,
+        895,
+        482,
+        1122
       ],
       "contentInCell": [
-        0,
-        0,
-        186,
-        280
+        14,
+        23,
+        220,
+        227
       ],
-      "width": 186,
-      "height": 280
+      "width": 206,
+      "height": 204
     },
     "s": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/s.png",
@@ -1335,24 +1336,24 @@
       ],
       "grid": {
         "row": 3,
-        "column": 0,
-        "rows": 5,
-        "columns": 6
+        "column": 2,
+        "rowCharacters": "qrstu",
+        "columnsInRow": 5
       },
       "cell": [
-        0,
-        841,
-        187,
+        482,
+        895,
+        664,
         1122
       ],
       "contentInCell": [
-        23,
         0,
-        187,
-        281
+        0,
+        176,
+        221
       ],
-      "width": 164,
-      "height": 281
+      "width": 176,
+      "height": 221
     },
     "t": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/t.png",
@@ -1365,24 +1366,24 @@
       ],
       "grid": {
         "row": 3,
-        "column": 1,
-        "rows": 5,
-        "columns": 6
+        "column": 3,
+        "rowCharacters": "qrstu",
+        "columnsInRow": 5
       },
       "cell": [
-        187,
-        841,
-        374,
+        664,
+        895,
+        888,
         1122
       ],
       "contentInCell": [
+        14,
         0,
-        0,
-        187,
-        281
+        224,
+        227
       ],
-      "width": 187,
-      "height": 281
+      "width": 210,
+      "height": 227
     },
     "u": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/u.png",
@@ -1395,24 +1396,24 @@
       ],
       "grid": {
         "row": 3,
-        "column": 2,
-        "rows": 5,
-        "columns": 6
+        "column": 4,
+        "rowCharacters": "qrstu",
+        "columnsInRow": 5
       },
       "cell": [
-        374,
-        841,
-        561,
+        888,
+        895,
+        1122,
         1122
       ],
       "contentInCell": [
+        15,
         0,
-        0,
-        187,
-        281
+        196,
+        219
       ],
-      "width": 187,
-      "height": 281
+      "width": 181,
+      "height": 219
     },
     "v": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/v.png",
@@ -1424,25 +1425,25 @@
         226
       ],
       "grid": {
-        "row": 3,
-        "column": 3,
-        "rows": 5,
-        "columns": 6
+        "row": 4,
+        "column": 0,
+        "rowCharacters": "vwxyz",
+        "columnsInRow": 5
       },
       "cell": [
-        561,
-        841,
-        748,
-        1122
+        0,
+        1122,
+        221,
+        1402
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        281
+        29,
+        9,
+        221,
+        223
       ],
-      "width": 187,
-      "height": 281
+      "width": 192,
+      "height": 214
     },
     "w": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/w.png",
@@ -1454,25 +1455,25 @@
         226
       ],
       "grid": {
-        "row": 3,
-        "column": 4,
-        "rows": 5,
-        "columns": 6
+        "row": 4,
+        "column": 1,
+        "rowCharacters": "vwxyz",
+        "columnsInRow": 5
       },
       "cell": [
-        748,
-        841,
-        935,
-        1122
+        221,
+        1122,
+        454,
+        1402
       ],
       "contentInCell": [
+        5,
         0,
-        0,
-        187,
-        281
+        233,
+        222
       ],
-      "width": 187,
-      "height": 281
+      "width": 228,
+      "height": 222
     },
     "x": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/x.png",
@@ -1484,25 +1485,25 @@
         226
       ],
       "grid": {
-        "row": 3,
-        "column": 5,
-        "rows": 5,
-        "columns": 6
+        "row": 4,
+        "column": 2,
+        "rowCharacters": "vwxyz",
+        "columnsInRow": 5
       },
       "cell": [
-        935,
-        841,
+        454,
         1122,
-        1122
+        653,
+        1402
       ],
       "contentInCell": [
         0,
-        0,
-        156,
-        279
+        2,
+        199,
+        239
       ],
-      "width": 156,
-      "height": 279
+      "width": 199,
+      "height": 237
     },
     "y": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/y.png",
@@ -1515,24 +1516,24 @@
       ],
       "grid": {
         "row": 4,
-        "column": 0,
-        "rows": 5,
-        "columns": 6
+        "column": 3,
+        "rowCharacters": "vwxyz",
+        "columnsInRow": 5
       },
       "cell": [
-        0,
+        653,
         1122,
-        187,
+        851,
         1402
       ],
       "contentInCell": [
-        23,
-        30,
-        187,
-        229
+        14,
+        0,
+        198,
+        265
       ],
-      "width": 164,
-      "height": 199
+      "width": 184,
+      "height": 265
     },
     "z": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/z.png",
@@ -1545,24 +1546,24 @@
       ],
       "grid": {
         "row": 4,
-        "column": 1,
-        "rows": 5,
-        "columns": 6
+        "column": 4,
+        "rowCharacters": "vwxyz",
+        "columnsInRow": 5
       },
       "cell": [
-        187,
+        851,
         1122,
-        374,
+        1122,
         1402
       ],
       "contentInCell": [
-        0,
-        0,
-        187,
-        228
+        18,
+        15,
+        265,
+        225
       ],
-      "width": 187,
-      "height": 228
+      "width": 247,
+      "height": 210
     },
     "0": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/0.png",
@@ -1576,23 +1577,23 @@
       "grid": {
         "row": 0,
         "column": 0,
-        "rows": 2,
-        "columns": 5
+        "rowCharacters": "01234",
+        "columnsInRow": 5
       },
       "cell": [
         0,
-        0,
-        224,
-        701
+        250,
+        266,
+        695
       ],
       "contentInCell": [
-        2,
-        5,
-        224,
-        650
+        14,
+        99,
+        253,
+        394
       ],
-      "width": 222,
-      "height": 645
+      "width": 239,
+      "height": 295
     },
     "1": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/1.png",
@@ -1606,23 +1607,23 @@
       "grid": {
         "row": 0,
         "column": 1,
-        "rows": 2,
-        "columns": 5
+        "rowCharacters": "01234",
+        "columnsInRow": 5
       },
       "cell": [
-        224,
-        0,
-        449,
-        701
+        266,
+        250,
+        408,
+        695
       ],
       "contentInCell": [
-        0,
-        40,
-        225,
-        673
+        13,
+        70,
+        133,
+        417
       ],
-      "width": 225,
-      "height": 633
+      "width": 120,
+      "height": 347
     },
     "2": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/2.png",
@@ -1636,23 +1637,23 @@
       "grid": {
         "row": 0,
         "column": 2,
-        "rows": 2,
-        "columns": 5
+        "rowCharacters": "01234",
+        "columnsInRow": 5
       },
       "cell": [
-        449,
-        0,
-        673,
-        701
+        408,
+        250,
+        649,
+        695
       ],
       "contentInCell": [
-        0,
-        91,
-        224,
-        656
+        4,
+        90,
+        241,
+        400
       ],
-      "width": 224,
-      "height": 565
+      "width": 237,
+      "height": 310
     },
     "3": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/3.png",
@@ -1666,23 +1667,23 @@
       "grid": {
         "row": 0,
         "column": 3,
-        "rows": 2,
-        "columns": 5
+        "rowCharacters": "01234",
+        "columnsInRow": 5
       },
       "cell": [
-        673,
-        0,
-        898,
-        701
+        649,
+        250,
+        867,
+        695
       ],
       "contentInCell": [
-        0,
-        0,
-        225,
-        671
+        2,
+        86,
+        218,
+        415
       ],
-      "width": 225,
-      "height": 671
+      "width": 216,
+      "height": 329
     },
     "4": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/4.png",
@@ -1696,23 +1697,23 @@
       "grid": {
         "row": 0,
         "column": 4,
-        "rows": 2,
-        "columns": 5
+        "rowCharacters": "01234",
+        "columnsInRow": 5
       },
       "cell": [
-        898,
-        0,
+        867,
+        250,
         1122,
-        701
+        695
       ],
       "contentInCell": [
         0,
-        6,
-        224,
-        671
+        85,
+        255,
+        415
       ],
-      "width": 224,
-      "height": 665
+      "width": 255,
+      "height": 330
     },
     "5": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/5.png",
@@ -1726,23 +1727,23 @@
       "grid": {
         "row": 1,
         "column": 0,
-        "rows": 2,
-        "columns": 5
+        "rowCharacters": "56789",
+        "columnsInRow": 5
       },
       "cell": [
         0,
-        701,
-        224,
-        1402
+        695,
+        245,
+        1120
       ],
       "contentInCell": [
-        1,
-        19,
-        224,
+        7,
+        31,
+        245,
         355
       ],
-      "width": 223,
-      "height": 336
+      "width": 238,
+      "height": 324
     },
     "6": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/6.png",
@@ -1756,23 +1757,23 @@
       "grid": {
         "row": 1,
         "column": 1,
-        "rows": 2,
-        "columns": 5
+        "rowCharacters": "56789",
+        "columnsInRow": 5
       },
       "cell": [
-        224,
-        701,
-        449,
-        1402
+        245,
+        695,
+        463,
+        1120
       ],
       "contentInCell": [
         0,
-        16,
-        225,
+        28,
+        218,
         350
       ],
-      "width": 225,
-      "height": 334
+      "width": 218,
+      "height": 322
     },
     "7": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/7.png",
@@ -1786,23 +1787,23 @@
       "grid": {
         "row": 1,
         "column": 2,
-        "rows": 2,
-        "columns": 5
+        "rowCharacters": "56789",
+        "columnsInRow": 5
       },
       "cell": [
-        449,
-        701,
-        673,
-        1402
+        463,
+        695,
+        674,
+        1120
       ],
       "contentInCell": [
         0,
-        25,
-        224,
-        661
+        37,
+        211,
+        372
       ],
-      "width": 224,
-      "height": 636
+      "width": 211,
+      "height": 335
     },
     "8": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/8.png",
@@ -1816,23 +1817,23 @@
       "grid": {
         "row": 1,
         "column": 3,
-        "rows": 2,
-        "columns": 5
+        "rowCharacters": "56789",
+        "columnsInRow": 5
       },
       "cell": [
-        673,
-        701,
-        898,
-        1402
+        674,
+        695,
+        892,
+        1120
       ],
       "contentInCell": [
         0,
-        21,
-        215,
-        621
+        33,
+        208,
+        353
       ],
-      "width": 215,
-      "height": 600
+      "width": 208,
+      "height": 320
     },
     "9": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/9.png",
@@ -1846,23 +1847,23 @@
       "grid": {
         "row": 1,
         "column": 4,
-        "rows": 2,
-        "columns": 5
+        "rowCharacters": "56789",
+        "columnsInRow": 5
       },
       "cell": [
-        898,
-        701,
+        892,
+        695,
         1122,
-        1402
+        1120
       ],
       "contentInCell": [
-        0,
-        24,
+        11,
+        37,
         224,
-        701
+        395
       ],
-      "width": 224,
-      "height": 677
+      "width": 213,
+      "height": 358
     }
   }
 }
