@@ -4,7 +4,8 @@ import path from 'node:path';
 const root=process.cwd();
 const fontDir=path.join(root,'assets','fonts','blazing-brush');
 const manifest=JSON.parse(await fs.readFile(path.join(fontDir,'glyph-manifest.json'),'utf8'));
-if(manifest.version<2)throw new Error(`Blazing Brush: expected manifest v2+, got ${manifest.version}`);
+if(manifest.version<3)throw new Error(`Blazing Brush: expected corrected manifest v3+, got ${manifest.version}`);
+if(manifest.layout!=='hand-authored irregular rows')throw new Error(`Blazing Brush: corrected irregular source layout missing`);
 const glyphs=manifest.glyphs||{};
 if(Object.keys(glyphs).length!==62)throw new Error(`Blazing Brush: expected 62 glyphs, got ${Object.keys(glyphs).length}`);
 
@@ -17,6 +18,20 @@ for(const [char,meta] of Object.entries(glyphs)){
   if(!(Number(meta.width)>8&&Number(meta.height)>8))throw new Error(`Blazing Brush: invalid dimensions for ${char}`);
 }
 for(const char of '123FIGHT')if(!glyphs[char])throw new Error(`Blazing Brush: countdown glyph missing ${char}`);
+
+// The generated alphabet art is intentionally irregular: A-E / F-K / L-P /
+// Q-U / V-Z. These assertions prevent a future equal-grid slicer from silently
+// mapping the wrong painted letter to a filename while still passing file checks.
+const expectedLayout={
+  F:['FGHIJK',0],G:['FGHIJK',1],H:['FGHIJK',2],I:['FGHIJK',3],
+  T:['QRSTU',3],3:['01234',3],2:['01234',2],1:['01234',1]
+};
+for(const [char,[rowChars,column]] of Object.entries(expectedLayout)){
+  const grid=glyphs[char]?.grid;
+  if(grid?.rowCharacters!==rowChars||Number(grid?.column)!==column){
+    throw new Error(`Blazing Brush: ${char} source mapping incorrect; got ${JSON.stringify(grid)}`);
+  }
+}
 for(const name of ['uppercase_alphabet.png','lowercase_alphabet.png','numbers_0_to_9.png']){
   await fs.access(path.join(fontDir,'source',name));
   try{await fs.access(path.join(fontDir,name));throw new Error(`Blazing Brush: duplicate legacy source remains at font root: ${name}`)}catch(error){
@@ -36,4 +51,4 @@ if(injection.indexOf('bb-blazing-brush-runtime')>injection.indexOf('bb-blazing-r
 const smoke=await fs.readFile(path.join(root,'scripts','brush-font-browser-smoke.mjs'),'utf8');
 for(const marker of ["inspectWord(page,'3',1)","inspectWord(page,'FIGHT',5)",'deviceScaleFactor:3','alphaStats','blazing-brush-fight-chromium.png'])if(!smoke.includes(marker))throw new Error(`Blazing Brush: browser smoke missing ${marker}`);
 
-console.log('Blazing Brush PASS: 62 raster glyphs, source organization, Road intro renderer, 3x-DPR browser quality smoke.');
+console.log('Blazing Brush PASS: corrected 5/6/5/5/5 mapping, 62 transparent raster glyphs, Road intro renderer, 3x-DPR browser quality smoke.');
