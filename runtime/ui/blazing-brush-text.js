@@ -5,6 +5,7 @@ const BASE='assets/fonts/blazing-brush/glyphs';
 const STYLE_ID='bb-brush-text-style';
 const cached=new Map();
 let observer=null;
+let bootstrapObserver=null;
 
 function groupFor(char){
   if(/[A-Z]/.test(char))return 'uppercase';
@@ -100,12 +101,25 @@ function syncFightIntro(){
   if(ok)overlay.dataset.brushReady='1';
   return ok;
 }
-function attachFightIntro(){
-  if(observer)return;
-  ensureStyles();
+function bindOverlay(){
+  const overlay=document.getElementById('bbRoadFightIntro');
+  if(!overlay)return false;
+  observer?.disconnect();
   observer=new MutationObserver(()=>syncFightIntro());
-  observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['data-word','class']});
+  observer.observe(overlay,{subtree:true,childList:true,attributes:true,attributeFilter:['data-word','class']});
   syncFightIntro();
+  return true;
+}
+function attachFightIntro(){
+  ensureStyles();
+  if(bindOverlay())return;
+  bootstrapObserver?.disconnect();
+  bootstrapObserver=new MutationObserver(()=>{
+    if(!bindOverlay())return;
+    bootstrapObserver?.disconnect();
+    bootstrapObserver=null;
+  });
+  bootstrapObserver.observe(document.body||document.documentElement,{subtree:true,childList:true});
 }
 
 preload();
