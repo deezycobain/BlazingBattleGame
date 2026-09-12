@@ -146,3 +146,10 @@
  #summonPullScreen .bb-card-flipper{animation:none!important;transform:rotateY(180deg)!important}
  #summonPullScreen .pullCardWrap,#summonPullScreen #pullResultsGrid .pullCard{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}
 }
+
+/* Defeat legacy phase opacity/transform rules from the old parchment reveal. */
+#summonPullScreen .pullScene.phase-build .pullCardWrap,
+#summonPullScreen .pullScene.phase-form .pullCardWrap,
+#summonPullScreen .pullScene.phase-pop .pullCardWrap,
+#summonPullScreen .pullScene.phase-reveal .pullCardWrap{opacity:1!important;transform:none!important;filter:none!important;animation:none!important}
+#summonPullScreen .showcaseCard.pullHoloCard.bb-card-front{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0!important;transform:rotateY(180deg)!important;backface-visibility:hidden!important;-webkit-backface-visibility:hidden!important}
