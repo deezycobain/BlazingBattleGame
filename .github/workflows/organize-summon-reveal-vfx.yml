@@ -1,0 +1,100 @@
+name: Organize summon reveal VFX
+
+on:
+  push:
+    branches:
+      - dev-next-2026-09-01
+    paths:
+      - blazing_battle_high_quality_brush_strokes.zip
+      - .github/workflows/organize-summon-reveal-vfx.yml
+
+permissions:
+  contents: write
+
+jobs:
+  organize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev-next-2026-09-01
+          fetch-depth: 0
+
+      - name: Extract and normalize brush strokes
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="blazing_battle_high_quality_brush_strokes.zip"
+          DEST="assets/vfx/summon/reveal-brush"
+          TMP="$(mktemp -d)"
+
+          if [[ ! -f "$ZIP" ]]; then
+            echo "No summon brush ZIP present; nothing to organize."
+            exit 0
+          fi
+
+          rm -rf "$DEST"
+          mkdir -p "$DEST"
+          unzip -q "$ZIP" -d "$TMP"
+
+          mapfile -t PNGS < <(find "$TMP" -type f -iname '*.png' | sort)
+          if [[ ${#PNGS[@]} -ne 6 ]]; then
+            echo "Expected exactly 6 PNG brush strokes, found ${#PNGS[@]}." >&2
+            printf '%s\n' "${PNGS[@]}" >&2
+            exit 1
+          fi
+
+          for i in "${!PNGS[@]}"; do
+            n=$(printf '%02d' $((i + 1)))
+            cp "${PNGS[$i]}" "$DEST/brush-stroke-${n}.png"
+          done
+
+          python3 - <<'PY'
+          import json, pathlib, struct
+          dest = pathlib.Path('assets/vfx/summon/reveal-brush')
+          items = []
+          for path in sorted(dest.glob('brush-stroke-*.png')):
+              data = path.read_bytes()
+              if data[:8] != b'\x89PNG\r\n\x1a\n':
+                  raise SystemExit(f'Not a PNG: {path}')
+              width, height = struct.unpack('>II', data[16:24])
+              items.append({
+                  'file': path.name,
+                  'path': str(path).replace('\\','/'),
+                  'width': width,
+                  'height': height,
+                  'role': 'unassigned'
+              })
+          manifest = {
+              'version': 1,
+              'purpose': 'Blazing Battle summon reveal brush-stroke VFX',
+              'count': len(items),
+              'assets': items
+          }
+          (dest / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+          PY
+
+          cat > "$DEST/README.md" <<'EOF'
+          # Summon Reveal Brush VFX
+
+          Six high-resolution transparent PNG brush strokes used by the summon card reveal.
+
+          Runtime assets are normalized to `brush-stroke-01.png` through `brush-stroke-06.png` so reveal choreography never depends on upload filenames. `manifest.json` records dimensions and is the place to assign semantic roles as the animation is tuned.
+          EOF
+
+          rm -f "$ZIP"
+
+      - name: Commit organized summon VFX
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A blazing_battle_high_quality_brush_strokes.zip assets/vfx/summon/reveal-brush
+          if git diff --cached --quiet; then
+            echo "No asset changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Organize summon reveal brush VFX"
+          git push origin HEAD:dev-next-2026-09-01
