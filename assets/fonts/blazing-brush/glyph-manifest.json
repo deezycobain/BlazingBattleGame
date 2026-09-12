@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "family": "Blazing Brush",
   "format": "transparent raster glyphs",
   "sourceBackground": "parchment",
@@ -8,6 +8,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/A.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 0,
         "column": 0,
@@ -22,17 +27,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        5,
         187,
         280
       ],
       "width": 187,
-      "height": 280
+      "height": 275
     },
     "B": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/B.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 0,
         "column": 1,
@@ -47,17 +57,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        74,
         187,
         280
       ],
       "width": 187,
-      "height": 280
+      "height": 206
     },
     "C": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/C.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 0,
         "column": 2,
@@ -72,17 +87,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        70,
         187,
         280
       ],
       "width": 187,
-      "height": 280
+      "height": 210
     },
     "D": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/D.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 0,
         "column": 3,
@@ -108,6 +128,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/E.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 0,
         "column": 4,
@@ -122,17 +147,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        69,
         187,
         280
       ],
       "width": 187,
-      "height": 280
+      "height": 211
     },
     "F": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/F.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 0,
         "column": 5,
@@ -148,16 +178,21 @@
       "contentInCell": [
         0,
         0,
-        187,
+        175,
         280
       ],
-      "width": 187,
+      "width": 175,
       "height": 280
     },
     "G": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/G.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 1,
         "column": 0,
@@ -171,18 +206,23 @@
         561
       ],
       "contentInCell": [
-        0,
+        9,
         0,
         187,
         281
       ],
-      "width": 187,
+      "width": 178,
       "height": 281
     },
     "H": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/H.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 1,
         "column": 1,
@@ -208,6 +248,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/I.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 1,
         "column": 2,
@@ -233,6 +278,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/J.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 1,
         "column": 3,
@@ -258,6 +308,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/K.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 1,
         "column": 4,
@@ -283,6 +338,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/L.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 1,
         "column": 5,
@@ -308,6 +368,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/M.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 2,
         "column": 0,
@@ -321,18 +386,23 @@
         841
       ],
       "contentInCell": [
-        0,
+        29,
         0,
         187,
         280
       ],
-      "width": 187,
+      "width": 158,
       "height": 280
     },
     "N": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/N.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 2,
         "column": 1,
@@ -358,6 +428,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/O.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 2,
         "column": 2,
@@ -383,6 +458,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/P.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 2,
         "column": 3,
@@ -408,6 +488,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/Q.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 2,
         "column": 4,
@@ -433,6 +518,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/R.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 2,
         "column": 5,
@@ -448,16 +538,21 @@
       "contentInCell": [
         0,
         0,
-        187,
+        178,
         280
       ],
-      "width": 187,
+      "width": 178,
       "height": 280
     },
     "S": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/S.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 3,
         "column": 0,
@@ -471,18 +566,23 @@
         1122
       ],
       "contentInCell": [
-        0,
+        21,
         0,
         187,
-        281
+        279
       ],
-      "width": 187,
-      "height": 281
+      "width": 166,
+      "height": 279
     },
     "T": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/T.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 3,
         "column": 1,
@@ -508,6 +608,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/U.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 3,
         "column": 2,
@@ -533,6 +638,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/V.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 3,
         "column": 3,
@@ -549,15 +659,20 @@
         0,
         0,
         187,
-        281
+        279
       ],
       "width": 187,
-      "height": 281
+      "height": 279
     },
     "W": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/W.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 3,
         "column": 4,
@@ -583,6 +698,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/X.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 3,
         "column": 5,
@@ -598,16 +718,21 @@
       "contentInCell": [
         0,
         0,
-        187,
+        169,
         281
       ],
-      "width": 187,
+      "width": 169,
       "height": 281
     },
     "Y": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/Y.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 4,
         "column": 0,
@@ -621,18 +746,23 @@
         1402
       ],
       "contentInCell": [
-        0,
-        0,
+        28,
+        35,
         187,
-        280
+        242
       ],
-      "width": 187,
-      "height": 280
+      "width": 159,
+      "height": 207
     },
     "Z": {
       "path": "assets/fonts/blazing-brush/glyphs/uppercase/Z.png",
       "group": "uppercase",
       "sheet": "uppercase_alphabet.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 4,
         "column": 1,
@@ -649,15 +779,20 @@
         0,
         0,
         187,
-        280
+        240
       ],
       "width": 187,
-      "height": 280
+      "height": 240
     },
     "a": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/a.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 0,
         "column": 0,
@@ -671,18 +806,23 @@
         280
       ],
       "contentInCell": [
-        0,
-        0,
+        29,
+        126,
         187,
         280
       ],
-      "width": 187,
-      "height": 280
+      "width": 158,
+      "height": 154
     },
     "b": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/b.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 0,
         "column": 1,
@@ -697,17 +837,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        53,
         187,
         280
       ],
       "width": 187,
-      "height": 280
+      "height": 227
     },
     "c": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/c.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 0,
         "column": 2,
@@ -722,17 +867,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        57,
         187,
         280
       ],
       "width": 187,
-      "height": 280
+      "height": 223
     },
     "d": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/d.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 0,
         "column": 3,
@@ -747,17 +897,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        114,
         187,
         280
       ],
       "width": 187,
-      "height": 280
+      "height": 166
     },
     "e": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/e.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 0,
         "column": 4,
@@ -772,17 +927,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        23,
         187,
         280
       ],
       "width": 187,
-      "height": 280
+      "height": 257
     },
     "f": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/f.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 0,
         "column": 5,
@@ -797,17 +957,22 @@
       ],
       "contentInCell": [
         0,
-        0,
-        187,
+        118,
+        174,
         280
       ],
-      "width": 187,
-      "height": 280
+      "width": 174,
+      "height": 162
     },
     "g": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/g.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 1,
         "column": 0,
@@ -821,18 +986,23 @@
         561
       ],
       "contentInCell": [
-        0,
+        20,
         0,
         187,
         281
       ],
-      "width": 187,
+      "width": 167,
       "height": 281
     },
     "h": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/h.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 1,
         "column": 1,
@@ -858,6 +1028,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/i.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 1,
         "column": 2,
@@ -883,6 +1058,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/j.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 1,
         "column": 3,
@@ -908,6 +1088,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/k.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 1,
         "column": 4,
@@ -923,16 +1108,21 @@
       "contentInCell": [
         0,
         0,
-        166,
+        146,
         281
       ],
-      "width": 166,
+      "width": 146,
       "height": 281
     },
     "l": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/l.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 1,
         "column": 5,
@@ -948,16 +1138,21 @@
       "contentInCell": [
         0,
         0,
-        187,
+        173,
         281
       ],
-      "width": 187,
+      "width": 173,
       "height": 281
     },
     "m": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/m.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 2,
         "column": 0,
@@ -971,18 +1166,23 @@
         841
       ],
       "contentInCell": [
-        0,
+        36,
         0,
         187,
         280
       ],
-      "width": 187,
+      "width": 151,
       "height": 280
     },
     "n": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/n.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 2,
         "column": 1,
@@ -1008,6 +1208,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/o.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 2,
         "column": 2,
@@ -1033,6 +1238,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/p.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 2,
         "column": 3,
@@ -1058,6 +1268,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/q.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 2,
         "column": 4,
@@ -1083,6 +1298,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/r.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 2,
         "column": 5,
@@ -1098,16 +1318,21 @@
       "contentInCell": [
         0,
         0,
-        187,
+        186,
         280
       ],
-      "width": 187,
+      "width": 186,
       "height": 280
     },
     "s": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/s.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 3,
         "column": 0,
@@ -1121,18 +1346,23 @@
         1122
       ],
       "contentInCell": [
-        0,
+        23,
         0,
         187,
-        279
+        281
       ],
-      "width": 187,
-      "height": 279
+      "width": 164,
+      "height": 281
     },
     "t": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/t.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 3,
         "column": 1,
@@ -1158,6 +1388,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/u.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 3,
         "column": 2,
@@ -1183,6 +1418,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/v.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 3,
         "column": 3,
@@ -1208,6 +1448,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/w.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 3,
         "column": 4,
@@ -1233,6 +1478,11 @@
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/x.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 3,
         "column": 5,
@@ -1248,16 +1498,21 @@
       "contentInCell": [
         0,
         0,
-        187,
-        281
+        156,
+        279
       ],
-      "width": 187,
-      "height": 281
+      "width": 156,
+      "height": 279
     },
     "y": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/y.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 4,
         "column": 0,
@@ -1271,18 +1526,23 @@
         1402
       ],
       "contentInCell": [
-        0,
-        5,
+        23,
+        30,
         187,
-        280
+        229
       ],
-      "width": 187,
-      "height": 275
+      "width": 164,
+      "height": 199
     },
     "z": {
       "path": "assets/fonts/blazing-brush/glyphs/lowercase/z.png",
       "group": "lowercase",
       "sheet": "lowercase_alphabet.png",
+      "backgroundRGB": [
+        243,
+        238,
+        226
+      ],
       "grid": {
         "row": 4,
         "column": 1,
@@ -1299,15 +1559,20 @@
         0,
         0,
         187,
-        280
+        228
       ],
       "width": 187,
-      "height": 280
+      "height": 228
     },
     "0": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/0.png",
       "group": "numbers",
       "sheet": "numbers_0_to_9.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 0,
         "column": 0,
@@ -1321,18 +1586,23 @@
         701
       ],
       "contentInCell": [
-        0,
-        0,
+        2,
+        5,
         224,
-        700
+        650
       ],
-      "width": 224,
-      "height": 700
+      "width": 222,
+      "height": 645
     },
     "1": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/1.png",
       "group": "numbers",
       "sheet": "numbers_0_to_9.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 0,
         "column": 1,
@@ -1347,17 +1617,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        40,
         225,
-        668
+        673
       ],
       "width": 225,
-      "height": 668
+      "height": 633
     },
     "2": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/2.png",
       "group": "numbers",
       "sheet": "numbers_0_to_9.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 0,
         "column": 2,
@@ -1372,17 +1647,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        91,
         224,
-        701
+        656
       ],
       "width": 224,
-      "height": 701
+      "height": 565
     },
     "3": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/3.png",
       "group": "numbers",
       "sheet": "numbers_0_to_9.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 0,
         "column": 3,
@@ -1399,15 +1679,20 @@
         0,
         0,
         225,
-        701
+        671
       ],
       "width": 225,
-      "height": 701
+      "height": 671
     },
     "4": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/4.png",
       "group": "numbers",
       "sheet": "numbers_0_to_9.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 0,
         "column": 4,
@@ -1422,17 +1707,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        6,
         224,
-        701
+        671
       ],
       "width": 224,
-      "height": 701
+      "height": 665
     },
     "5": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/5.png",
       "group": "numbers",
       "sheet": "numbers_0_to_9.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 1,
         "column": 0,
@@ -1446,18 +1736,23 @@
         1402
       ],
       "contentInCell": [
-        0,
-        0,
+        1,
+        19,
         224,
-        701
+        355
       ],
-      "width": 224,
-      "height": 701
+      "width": 223,
+      "height": 336
     },
     "6": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/6.png",
       "group": "numbers",
       "sheet": "numbers_0_to_9.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 1,
         "column": 1,
@@ -1474,15 +1769,20 @@
         0,
         16,
         225,
-        701
+        350
       ],
       "width": 225,
-      "height": 685
+      "height": 334
     },
     "7": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/7.png",
       "group": "numbers",
       "sheet": "numbers_0_to_9.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 1,
         "column": 2,
@@ -1497,17 +1797,22 @@
       ],
       "contentInCell": [
         0,
-        0,
+        25,
         224,
-        701
+        661
       ],
       "width": 224,
-      "height": 701
+      "height": 636
     },
     "8": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/8.png",
       "group": "numbers",
       "sheet": "numbers_0_to_9.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 1,
         "column": 3,
@@ -1522,17 +1827,22 @@
       ],
       "contentInCell": [
         0,
-        26,
-        223,
-        701
+        21,
+        215,
+        621
       ],
-      "width": 223,
-      "height": 675
+      "width": 215,
+      "height": 600
     },
     "9": {
       "path": "assets/fonts/blazing-brush/glyphs/numbers/9.png",
       "group": "numbers",
       "sheet": "numbers_0_to_9.png",
+      "backgroundRGB": [
+        242,
+        236,
+        223
+      ],
       "grid": {
         "row": 1,
         "column": 4,
@@ -1546,13 +1856,13 @@
         1402
       ],
       "contentInCell": [
-        3,
         0,
+        24,
         224,
         701
       ],
-      "width": 221,
-      "height": 701
+      "width": 224,
+      "height": 677
     }
   }
 }
