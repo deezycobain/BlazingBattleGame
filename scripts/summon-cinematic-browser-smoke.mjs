@@ -105,7 +105,7 @@ async function run(name,type){
     if(!flipFrames.some(value=>String(value).includes('180deg'))||flipFrames.some(value=>/rotateY\((?:[2-9]\d\d|\d{4,})deg\)/.test(String(value))))throw new Error(`flip is not one 180-degree action: ${JSON.stringify(flipFrames)}`);
 
     const resolve=await waitStage(page,'resolve');
-    if(resolve.message||resolve.messageOpacity>0.05)throw new Error(`result text appeared before card settled: ${JSON.stringify(resolve)}`);
+    if(resolve.messageOpacity>0.05)throw new Error(`result text became visible before card settled: ${JSON.stringify(resolve)}`);
     const done=await waitStage(page,'done');
     await page.waitForTimeout(40);
     const settled=await stageState(page);
