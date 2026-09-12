@@ -1,0 +1,60 @@
+name: Generate Blazing brush glyphs
+
+on:
+  push:
+    branches: [dev-next-2026-09-01]
+    paths:
+      - .github/workflows/generate-brush-glyphs.yml
+      - scripts/generate-brush-glyphs.py
+      - assets/fonts/blazing-brush/uppercase_alphabet.png
+      - assets/fonts/blazing-brush/lowercase_alphabet.png
+      - assets/fonts/blazing-brush/numbers_0_to_9.png
+      - assets/fonts/blazing-brush/source/*.png
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev-next-2026-09-01
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --quiet pillow
+      - name: Generate transparent glyph library
+        run: python scripts/generate-brush-glyphs.py
+      - name: Verify glyph count and transparency
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import json
+          root=Path('assets/fonts/blazing-brush')
+          manifest=json.loads((root/'glyph-manifest.json').read_text())
+          glyphs=manifest['glyphs']
+          assert len(glyphs)==62, len(glyphs)
+          for ch,meta in glyphs.items():
+              p=Path(meta['path'])
+              assert p.exists(), p
+              im=Image.open(p).convert('RGBA')
+              assert im.width>8 and im.height>8, (ch,im.size)
+              alpha=im.getchannel('A')
+              lo,hi=alpha.getextrema()
+              assert lo==0 and hi>200, (ch,(lo,hi))
+          for old in ['uppercase_alphabet.png','lowercase_alphabet.png','numbers_0_to_9.png']:
+              assert not (root/old).exists(), f'legacy duplicate remains: {old}'
+          print('Brush glyph verification PASS: 62 transparent glyphs, sources moved, no legacy duplicates')
+          PY
+      - name: Commit generated glyphs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/fonts/blazing-brush
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Generate transparent Blazing brush glyph library"
+          git push origin HEAD:dev-next-2026-09-01
