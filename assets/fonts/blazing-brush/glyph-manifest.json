@@ -1,0 +1,1558 @@
+{
+  "version": 1,
+  "family": "Blazing Brush",
+  "format": "transparent raster glyphs",
+  "sourceBackground": "parchment",
+  "glyphs": {
+    "A": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/A.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 0,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "B": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/B.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 1,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        187,
+        0,
+        374,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "C": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/C.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 2,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        374,
+        0,
+        561,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "D": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/D.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 3,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        561,
+        0,
+        748,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "E": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/E.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 4,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        748,
+        0,
+        935,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "F": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/F.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 5,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        935,
+        0,
+        1122,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "G": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/G.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 0,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        0,
+        280,
+        187,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "H": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/H.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 1,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        187,
+        280,
+        374,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "I": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/I.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 2,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        374,
+        280,
+        561,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "J": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/J.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 3,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        561,
+        280,
+        748,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "K": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/K.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 4,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        748,
+        280,
+        935,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "L": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/L.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 5,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        935,
+        280,
+        1122,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "M": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/M.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 0,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        0,
+        561,
+        187,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "N": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/N.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 1,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        187,
+        561,
+        374,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "O": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/O.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 2,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        374,
+        561,
+        561,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "P": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/P.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 3,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        561,
+        561,
+        748,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "Q": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/Q.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 4,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        748,
+        561,
+        935,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "R": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/R.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 5,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        935,
+        561,
+        1122,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "S": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/S.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 0,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        0,
+        841,
+        187,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "T": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/T.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 1,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        187,
+        841,
+        374,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "U": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/U.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 2,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        374,
+        841,
+        561,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "V": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/V.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 3,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        561,
+        841,
+        748,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "W": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/W.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 4,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        748,
+        841,
+        935,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "X": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/X.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 5,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        935,
+        841,
+        1122,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "Y": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/Y.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 4,
+        "column": 0,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        0,
+        1122,
+        187,
+        1402
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "Z": {
+      "path": "assets/fonts/blazing-brush/glyphs/uppercase/Z.png",
+      "group": "uppercase",
+      "sheet": "uppercase_alphabet.png",
+      "grid": {
+        "row": 4,
+        "column": 1,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        187,
+        1122,
+        374,
+        1402
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "a": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/a.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 0,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "b": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/b.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 1,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        187,
+        0,
+        374,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "c": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/c.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 2,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        374,
+        0,
+        561,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "d": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/d.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 3,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        561,
+        0,
+        748,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "e": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/e.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 4,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        748,
+        0,
+        935,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "f": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/f.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 0,
+        "column": 5,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        935,
+        0,
+        1122,
+        280
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "g": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/g.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 0,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        0,
+        280,
+        187,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "h": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/h.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 1,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        187,
+        280,
+        374,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "i": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/i.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 2,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        374,
+        280,
+        561,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "j": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/j.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 3,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        561,
+        280,
+        748,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "k": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/k.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 4,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        748,
+        280,
+        935,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        166,
+        281
+      ],
+      "width": 166,
+      "height": 281
+    },
+    "l": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/l.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 1,
+        "column": 5,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        935,
+        280,
+        1122,
+        561
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "m": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/m.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 0,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        0,
+        561,
+        187,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "n": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/n.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 1,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        187,
+        561,
+        374,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "o": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/o.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 2,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        374,
+        561,
+        561,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "p": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/p.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 3,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        561,
+        561,
+        748,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "q": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/q.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 4,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        748,
+        561,
+        935,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "r": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/r.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 2,
+        "column": 5,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        935,
+        561,
+        1122,
+        841
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "s": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/s.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 0,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        0,
+        841,
+        187,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        279
+      ],
+      "width": 187,
+      "height": 279
+    },
+    "t": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/t.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 1,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        187,
+        841,
+        374,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "u": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/u.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 2,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        374,
+        841,
+        561,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "v": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/v.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 3,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        561,
+        841,
+        748,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "w": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/w.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 4,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        748,
+        841,
+        935,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "x": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/x.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 3,
+        "column": 5,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        935,
+        841,
+        1122,
+        1122
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        281
+      ],
+      "width": 187,
+      "height": 281
+    },
+    "y": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/y.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 4,
+        "column": 0,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        0,
+        1122,
+        187,
+        1402
+      ],
+      "contentInCell": [
+        0,
+        5,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 275
+    },
+    "z": {
+      "path": "assets/fonts/blazing-brush/glyphs/lowercase/z.png",
+      "group": "lowercase",
+      "sheet": "lowercase_alphabet.png",
+      "grid": {
+        "row": 4,
+        "column": 1,
+        "rows": 5,
+        "columns": 6
+      },
+      "cell": [
+        187,
+        1122,
+        374,
+        1402
+      ],
+      "contentInCell": [
+        0,
+        0,
+        187,
+        280
+      ],
+      "width": 187,
+      "height": 280
+    },
+    "0": {
+      "path": "assets/fonts/blazing-brush/glyphs/numbers/0.png",
+      "group": "numbers",
+      "sheet": "numbers_0_to_9.png",
+      "grid": {
+        "row": 0,
+        "column": 0,
+        "rows": 2,
+        "columns": 5
+      },
+      "cell": [
+        0,
+        0,
+        224,
+        701
+      ],
+      "contentInCell": [
+        0,
+        0,
+        224,
+        700
+      ],
+      "width": 224,
+      "height": 700
+    },
+    "1": {
+      "path": "assets/fonts/blazing-brush/glyphs/numbers/1.png",
+      "group": "numbers",
+      "sheet": "numbers_0_to_9.png",
+      "grid": {
+        "row": 0,
+        "column": 1,
+        "rows": 2,
+        "columns": 5
+      },
+      "cell": [
+        224,
+        0,
+        449,
+        701
+      ],
+      "contentInCell": [
+        0,
+        0,
+        225,
+        668
+      ],
+      "width": 225,
+      "height": 668
+    },
+    "2": {
+      "path": "assets/fonts/blazing-brush/glyphs/numbers/2.png",
+      "group": "numbers",
+      "sheet": "numbers_0_to_9.png",
+      "grid": {
+        "row": 0,
+        "column": 2,
+        "rows": 2,
+        "columns": 5
+      },
+      "cell": [
+        449,
+        0,
+        673,
+        701
+      ],
+      "contentInCell": [
+        0,
+        0,
+        224,
+        701
+      ],
+      "width": 224,
+      "height": 701
+    },
+    "3": {
+      "path": "assets/fonts/blazing-brush/glyphs/numbers/3.png",
+      "group": "numbers",
+      "sheet": "numbers_0_to_9.png",
+      "grid": {
+        "row": 0,
+        "column": 3,
+        "rows": 2,
+        "columns": 5
+      },
+      "cell": [
+        673,
+        0,
+        898,
+        701
+      ],
+      "contentInCell": [
+        0,
+        0,
+        225,
+        701
+      ],
+      "width": 225,
+      "height": 701
+    },
+    "4": {
+      "path": "assets/fonts/blazing-brush/glyphs/numbers/4.png",
+      "group": "numbers",
+      "sheet": "numbers_0_to_9.png",
+      "grid": {
+        "row": 0,
+        "column": 4,
+        "rows": 2,
+        "columns": 5
+      },
+      "cell": [
+        898,
+        0,
+        1122,
+        701
+      ],
+      "contentInCell": [
+        0,
+        0,
+        224,
+        701
+      ],
+      "width": 224,
+      "height": 701
+    },
+    "5": {
+      "path": "assets/fonts/blazing-brush/glyphs/numbers/5.png",
+      "group": "numbers",
+      "sheet": "numbers_0_to_9.png",
+      "grid": {
+        "row": 1,
+        "column": 0,
+        "rows": 2,
+        "columns": 5
+      },
+      "cell": [
+        0,
+        701,
+        224,
+        1402
+      ],
+      "contentInCell": [
+        0,
+        0,
+        224,
+        701
+      ],
+      "width": 224,
+      "height": 701
+    },
+    "6": {
+      "path": "assets/fonts/blazing-brush/glyphs/numbers/6.png",
+      "group": "numbers",
+      "sheet": "numbers_0_to_9.png",
+      "grid": {
+        "row": 1,
+        "column": 1,
+        "rows": 2,
+        "columns": 5
+      },
+      "cell": [
+        224,
+        701,
+        449,
+        1402
+      ],
+      "contentInCell": [
+        0,
+        16,
+        225,
+        701
+      ],
+      "width": 225,
+      "height": 685
+    },
+    "7": {
+      "path": "assets/fonts/blazing-brush/glyphs/numbers/7.png",
+      "group": "numbers",
+      "sheet": "numbers_0_to_9.png",
+      "grid": {
+        "row": 1,
+        "column": 2,
+        "rows": 2,
+        "columns": 5
+      },
+      "cell": [
+        449,
+        701,
+        673,
+        1402
+      ],
+      "contentInCell": [
+        0,
+        0,
+        224,
+        701
+      ],
+      "width": 224,
+      "height": 701
+    },
+    "8": {
+      "path": "assets/fonts/blazing-brush/glyphs/numbers/8.png",
+      "group": "numbers",
+      "sheet": "numbers_0_to_9.png",
+      "grid": {
+        "row": 1,
+        "column": 3,
+        "rows": 2,
+        "columns": 5
+      },
+      "cell": [
+        673,
+        701,
+        898,
+        1402
+      ],
+      "contentInCell": [
+        0,
+        26,
+        223,
+        701
+      ],
+      "width": 223,
+      "height": 675
+    },
+    "9": {
+      "path": "assets/fonts/blazing-brush/glyphs/numbers/9.png",
+      "group": "numbers",
+      "sheet": "numbers_0_to_9.png",
+      "grid": {
+        "row": 1,
+        "column": 4,
+        "rows": 2,
+        "columns": 5
+      },
+      "cell": [
+        898,
+        701,
+        1122,
+        1402
+      ],
+      "contentInCell": [
+        3,
+        0,
+        224,
+        701
+      ],
+      "width": 221,
+      "height": 701
+    }
+  }
+}
