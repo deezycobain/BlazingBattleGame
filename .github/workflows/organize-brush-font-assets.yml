@@ -5,6 +5,7 @@ on:
     branches: [dev-next-2026-09-01]
     paths:
       - blazing_battle_brush_font_package.zip
+      - .github/workflows/organize-brush-font-assets.yml
 
 permissions:
   contents: write
@@ -26,11 +27,11 @@ jobs:
           ZIP="blazing_battle_brush_font_package.zip"
           TARGET="assets/fonts/blazing-brush"
           TMP="$(mktemp -d)"
+          test -f "$ZIP"
           unzip -q "$ZIP" -d "$TMP"
           rm -rf "$TARGET"
           mkdir -p "$TARGET"
 
-          # Flatten one redundant top-level directory when present, otherwise preserve package layout.
           entries=("$TMP"/*)
           if [ "${#entries[@]}" -eq 1 ] && [ -d "${entries[0]}" ]; then
             cp -a "${entries[0]}/." "$TARGET/"
