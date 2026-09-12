@@ -11,27 +11,40 @@ FONT = ROOT / "assets" / "fonts" / "blazing-brush"
 SOURCE = FONT / "source"
 GLYPHS = FONT / "glyphs"
 
+# These sheets are deliberately hand-composed rather than a uniform sprite grid.
+# The alphabet rows are 5 / 6 / 5 / 5 / 5 characters, with the second row carrying
+# F-K. Boundaries below sit in the visible whitespace between strokes so long brush
+# tails and ink flecks are preserved instead of being assigned to a neighboring glyph.
+ALPHABET_LAYOUT = [
+    {"chars": "ABCDE",  "y": (0, 328),    "x": (0, 254, 465, 679, 897, 1122)},
+    {"chars": "FGHIJK", "y": (328, 609),  "x": (0, 193, 394, 601, 708, 917, 1122)},
+    {"chars": "LMNOP",  "y": (609, 895),  "x": (0, 229, 469, 691, 906, 1122)},
+    {"chars": "QRSTU",  "y": (895, 1122), "x": (0, 262, 482, 664, 888, 1122)},
+    {"chars": "VWXYZ",  "y": (1122, 1402),"x": (0, 221, 454, 653, 851, 1122)},
+]
+NUMBER_LAYOUT = [
+    {"chars": "01234", "y": (250, 695),  "x": (0, 266, 408, 649, 867, 1122)},
+    {"chars": "56789", "y": (695, 1120), "x": (0, 245, 463, 674, 892, 1122)},
+]
+
 SHEETS = {
     "uppercase": {
         "legacy": FONT / "uppercase_alphabet.png",
         "source": SOURCE / "uppercase_alphabet.png",
-        "chars": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        "cols": 6,
-        "rows": 5,
+        "layout": ALPHABET_LAYOUT,
+        "transform": str.upper,
     },
     "lowercase": {
         "legacy": FONT / "lowercase_alphabet.png",
         "source": SOURCE / "lowercase_alphabet.png",
-        "chars": "abcdefghijklmnopqrstuvwxyz",
-        "cols": 6,
-        "rows": 5,
+        "layout": ALPHABET_LAYOUT,
+        "transform": str.lower,
     },
     "numbers": {
         "legacy": FONT / "numbers_0_to_9.png",
         "source": SOURCE / "numbers_0_to_9.png",
-        "chars": "0123456789",
-        "cols": 5,
-        "rows": 2,
+        "layout": NUMBER_LAYOUT,
+        "transform": lambda value: value,
     },
 }
 
@@ -98,19 +111,23 @@ def make_transparent(cell: Image.Image, background: tuple[int, int, int]) -> Ima
             lum = luminance((r, g, b))
             dist = math.sqrt((r - background[0]) ** 2 + (g - background[1]) ** 2 + (b - background[2]) ** 2)
             darkness = max(0.0, bg_luma - lum)
-            chroma = max(r, g, b) - min(r, g, b)
+            high = max(r, g, b)
+            low = min(r, g, b)
+            saturation = (high - low) / max(1, high)
 
-            # The paper is light, warm, and comparatively low-contrast. True ink is
-            # darker and/or substantially farther from the parchment color. Using a
-            # global parchment estimate avoids turning the paper grain into alpha.
-            alpha_distance = smoothstep(dist, 42, 102)
-            alpha_dark = smoothstep(darkness, 24, 84)
-            alpha_color = smoothstep(chroma, 48, 118) if lum < 218 else 0
-            alpha = max(alpha_distance, alpha_dark, alpha_color)
+            # Strong dark ink is retained directly. Gold brush color is retained only
+            # when it is both saturated and measurably displaced from the parchment.
+            # Requiring both properties strips the warm paper grain that caused a
+            # smoky rectangle around the first-generation glyphs.
+            alpha_dark = smoothstep(darkness, 42, 100)
+            alpha_distance = smoothstep(dist, 72, 130)
+            saturation_score = smoothstep(saturation, 0.15, 0.36)
+            color_distance = smoothstep(dist, 28, 85)
+            warm_ink = r > b + 12 and g > b + 6 and lum < 236
+            alpha_gold = min(saturation_score, color_distance) if warm_ink else 0
+            alpha = max(alpha_dark, alpha_distance, alpha_gold)
 
-            # Kill the remaining light paper texture aggressively. Brush antialiasing
-            # survives through the soft ramps above, while random parchment grain does not.
-            if lum > 215 and dist < 66 and darkness < 32:
+            if lum > 215 and saturation < 0.16 and dist < 75:
                 alpha = 0
             if alpha < 8:
                 alpha = 0
@@ -119,11 +136,9 @@ def make_transparent(cell: Image.Image, background: tuple[int, int, int]) -> Ima
     return out
 
 
-def tight_crop(image: Image.Image, pad: int = 18) -> tuple[Image.Image, list[int]]:
+def tight_crop(image: Image.Image, pad: int = 12) -> tuple[Image.Image, list[int]]:
     alpha = image.getchannel("A")
-    # Crop from confident ink rather than any faint surviving paper pixel. Padding
-    # around the confident ink preserves the softer tapered edge and nearby splatter.
-    core = alpha.point(lambda a: 255 if a >= 48 else 0)
+    core = alpha.point(lambda a: 255 if a >= 40 else 0)
     bbox = core.getbbox() or alpha.getbbox()
     if not bbox:
         raise RuntimeError("Generated empty glyph cell")
@@ -134,29 +149,45 @@ def tight_crop(image: Image.Image, pad: int = 18) -> tuple[Image.Image, list[int
     b = min(image.height, b + pad)
     cropped = image.crop((l, t, r, b))
 
-    # Remove weak alpha islands at the crop perimeter. This keeps the artistic ink
-    # flecks near the glyph while preventing full-cell parchment halos.
-    a = cropped.getchannel("A")
+    # Clean only weak pixels at the perimeter. Intentional splatter close to the
+    # brush stroke stays intact; pale paper crumbs at the crop edge do not.
     cp = cropped.load()
-    ap = a.load()
-    edge = 5
+    edge = 4
     for y in range(cropped.height):
         for x in range(cropped.width):
             if x < edge or y < edge or x >= cropped.width - edge or y >= cropped.height - edge:
-                if ap[x, y] < 40:
-                    rr, gg, bb, _ = cp[x, y]
+                rr, gg, bb, aa = cp[x, y]
+                if aa < 32:
                     cp[x, y] = (rr, gg, bb, 0)
     return cropped, [l, t, r, b]
+
+
+def iter_cells(meta: dict, sheet: Image.Image):
+    transform = meta["transform"]
+    for row_index, row in enumerate(meta["layout"]):
+        chars = transform(row["chars"])
+        x_bounds = row["x"]
+        y0, y1 = row["y"]
+        if len(x_bounds) != len(chars) + 1:
+            raise RuntimeError(f"Invalid brush row geometry for {chars}")
+        if not (0 <= y0 < y1 <= sheet.height):
+            raise RuntimeError(f"Invalid brush row y bounds for {chars}: {(y0, y1)}")
+        for column_index, char in enumerate(chars):
+            x0, x1 = x_bounds[column_index], x_bounds[column_index + 1]
+            if not (0 <= x0 < x1 <= sheet.width):
+                raise RuntimeError(f"Invalid brush column bounds for {char}: {(x0, x1)}")
+            yield row_index, column_index, chars, char, (x0, y0, x1, y1)
 
 
 def generate() -> dict:
     ensure_sources()
     GLYPHS.mkdir(parents=True, exist_ok=True)
     manifest = {
-        "version": 2,
+        "version": 3,
         "family": "Blazing Brush",
         "format": "transparent raster glyphs",
         "sourceBackground": "parchment",
+        "layout": "hand-authored irregular rows",
         "glyphs": {},
     }
 
@@ -164,51 +195,47 @@ def generate() -> dict:
         source_path: Path = meta["source"]
         sheet = Image.open(source_path).convert("RGB")
         background = estimate_background(sheet)
-        cols = int(meta["cols"])
-        rows = int(meta["rows"])
-        chars = str(meta["chars"])
         out_dir = GLYPHS / group
         out_dir.mkdir(parents=True, exist_ok=True)
 
-        for index, char in enumerate(chars):
-            row = index // cols
-            col = index % cols
-            if row >= rows:
-                raise RuntimeError(f"Grid overflow for {group} {char}")
-
-            x0 = round(col * sheet.width / cols)
-            x1 = round((col + 1) * sheet.width / cols)
-            y0 = round(row * sheet.height / rows)
-            y1 = round((row + 1) * sheet.height / rows)
-            cell = sheet.crop((x0, y0, x1, y1))
+        for row, column, row_chars, char, cell_box in iter_cells(meta, sheet):
+            x0, y0, x1, y1 = cell_box
+            cell = sheet.crop(cell_box)
             transparent = make_transparent(cell, background)
             glyph, inner_bbox = tight_crop(transparent)
 
-            name = f"{char}.png"
-            out_path = out_dir / name
+            out_path = out_dir / f"{char}.png"
             glyph.save(out_path, optimize=True)
             manifest["glyphs"][char] = {
                 "path": out_path.relative_to(ROOT).as_posix(),
                 "group": group,
                 "sheet": source_path.name,
                 "backgroundRGB": list(background),
-                "grid": {"row": row, "column": col, "rows": rows, "columns": cols},
+                "grid": {
+                    "row": row,
+                    "column": column,
+                    "rowCharacters": row_chars,
+                    "columnsInRow": len(row_chars),
+                },
                 "cell": [x0, y0, x1, y1],
                 "contentInCell": inner_bbox,
                 "width": glyph.width,
                 "height": glyph.height,
             }
 
-    expected = 26 + 26 + 10
-    if len(manifest["glyphs"]) != expected:
-        raise RuntimeError(f"Expected {expected} glyphs, got {len(manifest['glyphs'])}")
+    expected_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
+    actual_chars = set(manifest["glyphs"])
+    if actual_chars != expected_chars:
+        missing = "".join(sorted(expected_chars - actual_chars))
+        extra = "".join(sorted(actual_chars - expected_chars))
+        raise RuntimeError(f"Glyph set mismatch; missing={missing!r} extra={extra!r}")
 
     (FONT / "glyph-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     (FONT / "manifest.md").write_text(
         "# Blazing Brush\n\n"
         "Custom raster display lettering for cinematic UI. Source sheets live in `source/`; "
         "transparent per-character PNGs live in `glyphs/`. Generated by "
-        "`scripts/generate-brush-glyphs.py`.\n\n"
+        "`scripts/generate-brush-glyphs.py` using the hand-authored 5/6/5/5/5 alphabet row layout.\n\n"
         "Use for short dramatic display text such as 3-2-1-FIGHT, victory/defeat, boss, "
         "awakening and chapter splashes. Do not use for body copy or ordinary menu labels.\n",
         encoding="utf-8",
@@ -218,4 +245,4 @@ def generate() -> dict:
 
 if __name__ == "__main__":
     result = generate()
-    print(f"Generated {len(result['glyphs'])} Blazing Brush glyphs")
+    print(f"Generated {len(result['glyphs'])} correctly mapped Blazing Brush glyphs")
