@@ -121,8 +121,9 @@ async function run(name,type){
     const trace=await page.evaluate(()=>window.__bbSummonTrace);
     const expectedStages=['paint','circle-slow','circle-fast','card-enter','flip','resolve','done'];
     if(JSON.stringify(trace.map(item=>item.stage))!==JSON.stringify(expectedStages))throw new Error(`stage order changed: ${JSON.stringify(trace)}`);
-    const ranges={paint:[0,300],'circle-slow':[550,950],'circle-fast':[900,1250],'card-enter':[1200,1550],flip:[1400,1750],resolve:[1800,2150],done:[2000,2350]};
-    for(const item of trace){const [min,max]=ranges[item.stage];if(item.at<min||item.at>max)throw new Error(`${item.stage} timing outside ${min}-${max}ms: ${JSON.stringify(trace)}`)}
+    const paintAt=trace[0].at;
+    const ranges={paint:[0,20],'circle-slow':[620,780],'circle-fast':[970,1130],'card-enter':[1270,1430],flip:[1470,1630],resolve:[1870,2030],done:[2070,2230]};
+    for(const item of trace){const elapsed=item.at-paintAt,[min,max]=ranges[item.stage];if(elapsed<min||elapsed>max)throw new Error(`${item.stage} timing outside ${min}-${max}ms after paint: ${JSON.stringify(trace)}`)}
 
     await page.getByRole('button',{name:'VIEW RESULTS'}).click();
     await page.locator('#pullResultsGrid .pullCard').first().waitFor({state:'visible',timeout:3000});
