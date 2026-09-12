@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const VERSION='3.1.0';
+const VERSION='3.2.0';
 const BRUSH_ROOT='assets/vfx/summon/reveal-brush';
 const SPIN_ROOT='assets/vfx/summon/reveal-spin';
 const CARD_BACK_SRC='assets/ui/summon/reveal/summon_reveal_card_back.png';
@@ -21,9 +21,9 @@ const VFX=Object.freeze({
  resolveRing:`${SPIN_ROOT}/reveal-resolve-ring.png`
 });
 const TIMELINES=Object.freeze({
- resonance:Object.freeze({spin:1420,resolve:2300,done:2580}),
- new:Object.freeze({spin:1480,resolve:2380,done:2680}),
- shiny:Object.freeze({spin:1560,resolve:2480,done:2810})
+ resonance:Object.freeze({circleSlow:880,circleFast:1280,cardEnter:1540,spin:1810,resolve:2370,done:2660}),
+ new:Object.freeze({circleSlow:910,circleFast:1320,cardEnter:1590,spin:1870,resolve:2450,done:2760}),
+ shiny:Object.freeze({circleSlow:950,circleFast:1380,cardEnter:1660,spin:1950,resolve:2560,done:2890})
 });
 const REDUCED_MOTION=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
 let cinematicRun=0;
@@ -136,24 +136,24 @@ function syncCardLabels(refs,pull){
 }
 
 function setMotionVars(fx,n,direction,rng){
- const laneX=between(rng,-8.5,8.5),laneY=between(rng,-7,7);
- const scale=between(rng,.91,1.09),rot=between(rng,-4.4,4.4);
+ const laneX=between(rng,-3.8,3.8),laneY=between(rng,-3.6,3.6);
+ const scale=between(rng,.96,1.04),rot=between(rng,-2.5,2.5);
  const reverse=direction==='cross';
- const x0=(reverse?39:-39)+laneX;
- const y0=22+laneY;
- const xm=between(rng,-8,8)+laneX*.34;
- const ym=between(rng,-6,6)+laneY*.22;
- const x1=(reverse?-40:40)+laneX*.52;
- const y1=-23+laneY*.40;
+ const x0=(reverse?28:-28)+laneX;
+ const y0=16+laneY;
+ const xm=between(rng,-3.5,3.5)+laneX*.24;
+ const ym=between(rng,-2.8,2.8)+laneY*.18;
+ const x1=(reverse?-29:29)+laneX*.38;
+ const y1=-17+laneY*.28;
  fx.style.setProperty(`--s${n}-x0`,`${x0.toFixed(2)}vw`);
  fx.style.setProperty(`--s${n}-y0`,`${y0.toFixed(2)}vh`);
  fx.style.setProperty(`--s${n}-xm`,`${xm.toFixed(2)}vw`);
  fx.style.setProperty(`--s${n}-ym`,`${ym.toFixed(2)}vh`);
  fx.style.setProperty(`--s${n}-x1`,`${x1.toFixed(2)}vw`);
  fx.style.setProperty(`--s${n}-y1`,`${y1.toFixed(2)}vh`);
- fx.style.setProperty(`--s${n}-r0`,`${(rot+(reverse?2.8:-2.8)).toFixed(2)}deg`);
+ fx.style.setProperty(`--s${n}-r0`,`${(rot+(reverse?1.6:-1.6)).toFixed(2)}deg`);
  fx.style.setProperty(`--s${n}-rm`,`${rot.toFixed(2)}deg`);
- fx.style.setProperty(`--s${n}-r1`,`${(rot+(reverse?-1.8:1.8)).toFixed(2)}deg`);
+ fx.style.setProperty(`--s${n}-r1`,`${(rot+(reverse?-1.0:1.0)).toFixed(2)}deg`);
  fx.style.setProperty(`--s${n}-scale`,scale.toFixed(3));
  fx.dataset[`bbStroke${n}Direction`]=direction;
 }
@@ -169,10 +169,9 @@ function configureBrushes(refs,pull,index,run){
  const rng=seededRng(seed);
  const up1=pick(VFX.up,rng);
  const cross1=pick(VFX.cross,rng);
- const thirdDirection=rng()>.5?'up':'cross';
- const third=thirdDirection==='up'?pick(VFX.up,rng,up1):pick(VFX.cross,rng,cross1);
- const sources=[up1,cross1,third];
- const directions=['up','cross',thirdDirection];
+ const up2=pick(VFX.up,rng,up1);
+ const sources=[up1,cross1,up2];
+ const directions=['up','cross','up'];
  for(let n=1;n<=3;n++){
   const primary=refs.paintFx.querySelector(`.bb-paint-stroke-${n}:not(.bb-paint-stroke-echo)`);
   const echo=refs.paintFx.querySelector(`.bb-paint-stroke-${n}-echo`);
@@ -182,10 +181,10 @@ function configureBrushes(refs,pull,index,run){
   setStrokeDirection(echo,directions[n-1]);
   setMotionVars(refs.paintFx,n,directions[n-1],rng);
  }
- refs.paintFx.style.setProperty('--bb-accent-x',`${between(rng,-10,10).toFixed(2)}vw`);
- refs.paintFx.style.setProperty('--bb-accent-y',`${between(rng,-7,9).toFixed(2)}vh`);
- refs.paintFx.style.setProperty('--bb-accent-r',`${between(rng,-7,7).toFixed(2)}deg`);
- refs.paintFx.style.setProperty('--bb-accent-scale',between(rng,.88,1.08).toFixed(3));
+ refs.paintFx.style.setProperty('--bb-accent-x',`${between(rng,-4.5,4.5).toFixed(2)}vw`);
+ refs.paintFx.style.setProperty('--bb-accent-y',`${between(rng,-3.5,5).toFixed(2)}vh`);
+ refs.paintFx.style.setProperty('--bb-accent-r',`${between(rng,-3,3).toFixed(2)}deg`);
+ refs.paintFx.style.setProperty('--bb-accent-scale',between(rng,.94,1.04).toFixed(3));
 }
 
 function finishReveal(scene,message,finalMessage){
@@ -214,6 +213,9 @@ function startPaintTimeline(refs,pull,index,run){
   schedule(scene,run,90,()=>finishReveal(scene,message,finalMessage));
   return;
  }
+ schedule(scene,run,timeline.circleSlow,()=>setStage(scene,'circle-slow'));
+ schedule(scene,run,timeline.circleFast,()=>setStage(scene,'circle-fast'));
+ schedule(scene,run,timeline.cardEnter,()=>setStage(scene,'card-enter'));
  schedule(scene,run,timeline.spin,()=>setStage(scene,'spin'));
  schedule(scene,run,timeline.resolve,()=>setStage(scene,'resolve'));
  schedule(scene,run,timeline.done,()=>finishReveal(scene,message,finalMessage));
@@ -224,7 +226,7 @@ function syncPhysicalCard(pull,index,total){
  if(!refs||!pull)return;
  const {scene}=refs;
  const kind=revealKind(pull),rarity=String(pull.rarity||'rare').toLowerCase(),run=++cinematicRun;
- scene.dataset.bbCinematic='v3.1';scene.dataset.bbRevealKind=kind;scene.dataset.bbCinematicRarity=rarity;scene.dataset.bbRevealRun=String(run);
+ scene.dataset.bbCinematic='v3.2';scene.dataset.bbRevealKind=kind;scene.dataset.bbCinematicRarity=rarity;scene.dataset.bbRevealRun=String(run);
  refs.wrap.dataset.bbRevealKind=kind;refs.wrap.dataset.bbRevealRun=String(run);refs.wrap.style.setProperty('--bb-pull-index',String(index||0));
  refs.paintFx.dataset.bbRevealKind=kind;refs.spinFx.dataset.bbRevealKind=kind;
  syncCardLabels(refs,pull);
