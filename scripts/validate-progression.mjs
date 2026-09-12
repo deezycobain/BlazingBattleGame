@@ -8,9 +8,12 @@ const readBinary=rel=>fs.readFile(path.join(root,rel));
 const fail=msg=>{throw new Error(`Progression validation failed: ${msg}`)};
 const js=await read('runtime/ui/progression/progression.js');
 const css=await read('runtime/ui/progression/progression.css');
+const cinematicJs=await read('runtime/ui/progression/summon-cinematic.js');
+const cinematicCss=await read('runtime/ui/progression/summon-cinematic.css');
 const pkg=JSON.parse(await read('package.json'));
 
 try{new vm.Script(js)}catch(error){fail(`runtime syntax error: ${error.message}`)}
+try{new vm.Script(cinematicJs)}catch(error){fail(`summon cinematic syntax error: ${error.message}`)}
 
 const runtimeMarkers=[
  "KEY='blazing.progression.v1'",'MAX_RESONANCE=5','STAT_BUDGET=12',
@@ -89,4 +92,19 @@ for(const [rel,width,height,minBytes] of [
 }
 
 if(!pkg.scripts?.build?.includes('progression-postprocess.mjs'))fail('build chain missing progression postprocess');
-console.log('Progression PASS: canonical summon art, full-PNG Lebee/Senku foregrounds, unified foil silhouettes, and persistent Resonance rerolls are enforced.');
+for(const marker of [
+ "const VERSION='4.0.0'",'circleSlow:700','circleFast:1050','cardEnter:1350','flip:1550','resolve:1950','done:2150',
+ "setStage(scene,'paint')","setStage(scene,'circle-slow')","setStage(scene,'circle-fast')","setStage(scene,'card-enter')","setStage(scene,'flip')","setStage(scene,'resolve')",
+ 'bb-paint-stroke bb-paint-stroke-1 bb-paint-direction-up','bb-paint-stroke bb-paint-stroke-2 bb-paint-direction-counter',
+ 'bbCircleCharge .65s','bbPhysicalCardFlip .40s','rotateY(180deg)','@media(prefers-reduced-motion:reduce)'
+])if(!cinematicJs.includes(marker)&&!cinematicCss.includes(marker))fail(`summon cinematic missing ${marker}`);
+for(const removed of ['bb-paint-stroke-echo','bb-paint-accent','brush-stroke-06.png','bbBrushFinisher','bbBrushEcho','bbPaintAccentDrift','bbBrushPaintLTR','bbBrushPaintRTL','rotateY(540deg)','rotateY(720deg)']){
+ if(cinematicJs.includes(removed)||cinematicCss.includes(removed))fail(`busy summon effect survived: ${removed}`);
+}
+for(const expensive of ['clip-path:','mask-image:','-webkit-mask-image:','filter:blur(','will-change:']){
+ if(cinematicCss.includes(expensive))fail(`expensive summon animation primitive survived: ${expensive}`);
+}
+const strokeCreates=[...cinematicJs.matchAll(/img\('','bb-paint-stroke bb-paint-stroke-/g)].length;
+if(strokeCreates!==2)fail(`expected exactly two summon brush layers, found ${strokeCreates}`);
+if(!pkg.scripts?.['smoke:browser']?.includes('summon-cinematic-browser-smoke.mjs'))fail('summon cinematic browser smoke is not wired into smoke:browser');
+console.log('Progression PASS: canonical summon art, persistent Resonance rerolls, and the two-stroke 2.15s summon cinematic are enforced.');
