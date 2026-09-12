@@ -1,12 +1,13 @@
-/* Blazing Battle summon cinematic v2.2
-   Fast painterly passes + physical flip + named front-frame presentation. */
+/* Blazing Battle summon cinematic v3.0
+   Three free painterly sweeps + multi-spin card reveal + soft front resolve. */
 
-#summonPullScreen .pullHeroArea{isolation:isolate;perspective:1200px;overflow:visible!important}
+#summonPullScreen .pullScene{position:relative;overflow:visible!important}
+#summonPullScreen .pullHeroArea{isolation:isolate;perspective:1300px;overflow:visible!important}
 #summonPullScreen .pullCardWrap{
  position:relative!important;z-index:3!important;
  width:min(370px,82vw,45.75dvh)!important;height:auto!important;min-height:0!important;
  aspect-ratio:3/4!important;margin:0 auto!important;inset:auto!important;
- opacity:1!important;transform:none!important;filter:none!important;perspective:1200px!important;
+ opacity:1!important;transform:none!important;filter:none!important;perspective:1300px!important;
  overflow:visible!important;transition:none!important;animation:none!important;
 }
 #summonPullScreen .pullCardWrap::before{z-index:-1!important}
@@ -40,12 +41,12 @@
  border-radius:3px!important;object-fit:cover!important;
 }
 
-/* The ornate frame now has actual information hierarchy. */
+/* The authored frame owns fighter identity. */
 #summonPullScreen .bb-card-nameplate{
  position:absolute;z-index:18;left:19%;top:4.25%;width:62%;height:6.1%;
  display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:0 7%;
  color:#24334b;font-family:var(--bb-font-animeace,'AnimeAce2',sans-serif);font-size:clamp(12px,3.55vw,19px);
- line-height:1;letter-spacing:.055em;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ font-weight:700;line-height:1;letter-spacing:.055em;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
  text-shadow:0 1px rgba(255,255,255,.72);pointer-events:none;
 }
 #summonPullScreen .bb-card-rarityplate{
@@ -54,14 +55,14 @@
  color:#d9aa50;font:900 clamp(7px,2vw,10px)/1 system-ui,sans-serif;letter-spacing:.17em;text-transform:uppercase;
  text-shadow:0 1px 2px rgba(0,0,0,.8);pointer-events:none;
 }
-/* Retire the old metadata block and copy stamp from inside the artwork. */
 #summonPullScreen .bb-card-front.bb-has-card-frame .pullCardMeta,
-#summonPullScreen .bb-card-front.bb-has-card-frame .cardNew{display:none!important}
+#summonPullScreen .bb-card-front.bb-has-card-frame .cardNew,
+#summonPullScreen #pullNewBadge{display:none!important}
 
-/* Standardized summon crop. Full art elsewhere remains untouched. */
+/* Standardized summon crop. Full artwork elsewhere remains untouched. */
 #summonPullScreen .bb-card-front .summonedTradingCard{
  object-fit:cover!important;object-position:var(--bb-art-x,50%) var(--bb-art-y,45%)!important;
- opacity:0!important;transform:scale(1.018);transition:opacity .17s ease-out,transform .2s cubic-bezier(.2,.72,.2,1)!important;
+ opacity:0!important;transform:scale(1.025);transition:opacity .26s ease-out,transform .3s cubic-bezier(.18,.76,.2,1)!important;
 }
 #summonPullScreen .pullCardWrap[data-fighter="Crimson"]{--bb-art-x:50%;--bb-art-y:46%}
 #summonPullScreen .pullCardWrap[data-fighter="Sub-Zero"]{--bb-art-x:50%;--bb-art-y:44%}
@@ -69,54 +70,63 @@
 #summonPullScreen .pullCardWrap[data-fighter="Senku"]{--bb-art-x:50%;--bb-art-y:43%}
 #summonPullScreen .pullCardWrap[data-fighter="Tyler"]{--bb-art-x:50%;--bb-art-y:43%}
 
-/* VFX deliberately breathes outside the card. No card-frame clipping or masks. */
-#summonPullScreen .bb-card-reveal-vfx{
- position:absolute;z-index:8;inset:-22% -30%;pointer-events:none;overflow:visible!important;
+/* Screen-breathing brush stage. It is intentionally larger than the card and never clipped to it. */
+#summonPullScreen .bb-paint-stage-vfx{
+ position:absolute;z-index:8;left:50%;top:50%;width:140vw;height:92dvh;
+ transform:translate(-50%,-50%);pointer-events:none;overflow:visible!important;
  clip-path:none!important;mask:none!important;-webkit-mask:none!important;contain:layout style;
 }
-#summonPullScreen .bb-reveal-vfx-image{
- position:absolute;left:50%;top:50%;display:block;pointer-events:none;opacity:0;
- transform-origin:center;will-change:transform,opacity;
+#summonPullScreen .bb-paint-stroke,
+#summonPullScreen .bb-paint-accent{
+ position:absolute;left:50%;top:50%;display:block;max-width:none!important;height:auto;pointer-events:none;opacity:0;
+ transform-origin:center;will-change:transform,opacity;backface-visibility:hidden;-webkit-backface-visibility:hidden;
 }
-#summonPullScreen .bb-reveal-swipe{z-index:10;width:90%;height:auto;object-fit:contain}
-#summonPullScreen .bb-reveal-swipe-1{transform:translate(-58%,-54%) rotate(-14deg) scaleX(.62) scaleY(.96)}
-#summonPullScreen .bb-reveal-swipe-2{transform:translate(-42%,-47%) rotate(10deg) scaleX(.62) scaleY(.97)}
-#summonPullScreen .bb-reveal-swipe-3{transform:translate(-58%,-50%) rotate(-5deg) scaleX(.62) scaleY(.95)}
-#summonPullScreen .bb-reveal-curve{z-index:6;width:66%;height:66%;object-fit:contain;transform:translate(-50%,-50%) scale(.88)}
-#summonPullScreen .bb-reveal-halo{z-index:5;width:68%;height:68%;object-fit:contain;transform:translate(-50%,-50%) scale(.78)}
-#summonPullScreen .bb-reveal-impact{z-index:14;width:72%;height:72%;object-fit:contain;transform:translate(-50%,-50%) scale(.58)}
+#summonPullScreen .bb-paint-stroke{width:min(168vw,1080px);z-index:10}
+#summonPullScreen .bb-paint-stroke-echo{z-index:9;opacity:0}
+#summonPullScreen .bb-paint-stroke-3{width:min(156vw,1000px)}
+#summonPullScreen .bb-paint-accent{width:min(162vw,1040px);z-index:8}
+#summonPullScreen .bb-vfx-missing{display:none!important}
 
-/* One continuous gesture. The two main strokes overlap rather than waiting on each other. */
-#summonPullScreen .pullScene.bb-cinematic-running .bb-reveal-swipe-1{animation:bbBrushSwipeOne .32s cubic-bezier(.18,.72,.2,1) .12s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running .bb-reveal-swipe-2{animation:bbBrushSwipeTwo .33s cubic-bezier(.18,.72,.2,1) .30s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running[data-bb-reveal-kind="new"] .bb-reveal-curve{animation:bbCurveBuild .38s ease-out .30s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running[data-bb-reveal-kind="shiny"] .bb-reveal-curve{animation:bbCurveBuild .42s ease-out .29s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running[data-bb-reveal-kind="shiny"] .bb-reveal-halo{animation:bbHaloAnticipation .48s cubic-bezier(.18,.74,.2,1) .27s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running[data-bb-reveal-kind="shiny"] .bb-reveal-swipe-3{animation:bbBrushFinisher .30s cubic-bezier(.18,.72,.2,1) .48s both!important}
+/* The main brush head travels through space, while a softer echo lingers behind it like deposited paint. */
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-1:not(.bb-paint-stroke-echo){animation:bbBrushSwipeOne .56s cubic-bezier(.16,.68,.18,1) .12s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-1-echo{animation:bbBrushEchoOne .62s cubic-bezier(.16,.68,.18,1) .23s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-2:not(.bb-paint-stroke-echo){animation:bbBrushSwipeTwo .58s cubic-bezier(.16,.68,.18,1) .38s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-2-echo{animation:bbBrushEchoTwo .64s cubic-bezier(.16,.68,.18,1) .50s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-3:not(.bb-paint-stroke-echo){animation:bbBrushFinisher .52s cubic-bezier(.16,.68,.18,1) .67s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-3-echo{animation:bbBrushEchoThree .58s cubic-bezier(.16,.68,.18,1) .78s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-accent{animation:bbPaintAccentDrift .62s ease-out .59s both!important}
+#summonPullScreen .pullScene[data-bb-reveal-kind="shiny"].bb-cinematic-running .bb-paint-accent{animation-duration:.76s!important;opacity:.95}
 
-#summonPullScreen .pullScene[data-bb-paint-stage="paint"] .bb-card-flipper{animation:bbCardBackEnter .17s cubic-bezier(.2,.78,.22,1) both!important}
-#summonPullScreen .pullScene[data-bb-paint-stage="flip"] .bb-card-flipper{animation:bbPhysicalCardFlip .19s cubic-bezier(.2,.76,.18,1) both!important}
-#summonPullScreen .pullScene[data-bb-paint-stage="flip"] .bb-reveal-impact{animation:bbFlipImpact .18s ease-out .052s both!important}
+/* Card-local spin VFX is separate from the free paint stage. */
+#summonPullScreen .bb-card-spin-vfx{position:absolute;z-index:8;inset:-38%;pointer-events:none;overflow:visible}
+#summonPullScreen .bb-spin-orbit,#summonPullScreen .bb-resolve-ring{
+ position:absolute;left:50%;top:50%;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none;
+ transform:translate(-50%,-50%) scale(.82);will-change:transform,opacity;backface-visibility:hidden;
+}
+#summonPullScreen .pullScene[data-bb-paint-stage="spin"] .bb-spin-orbit{animation:bbSpinOrbit .74s cubic-bezier(.18,.65,.18,1) both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-resolve-ring{animation:bbResolveRing .48s ease-out both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="resolve"][data-bb-reveal-kind="new"] .bb-resolve-ring{animation-duration:.54s!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="resolve"][data-bb-reveal-kind="shiny"] .bb-resolve-ring{animation-duration:.64s!important}
 
+#summonPullScreen .pullScene[data-bb-paint-stage="paint"] .bb-card-flipper{animation:bbCardBackEnter .22s cubic-bezier(.18,.78,.2,1) both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="spin"] .bb-card-flipper{animation:bbPhysicalCardFlip .72s cubic-bezier(.22,.64,.16,1) both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="spin"] .bb-card-front .summonedTradingCard{opacity:.10!important;transition:none!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-card-flipper,
-#summonPullScreen .pullScene[data-bb-paint-stage="done"] .bb-card-flipper{transform:rotateY(180deg)!important}
-#summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-card-flipper{animation:bbFrontCardSettle .18s cubic-bezier(.18,.82,.22,1) both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="done"] .bb-card-flipper{transform:rotateY(540deg)!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-card-flipper{animation:bbFrontCardSettle .28s cubic-bezier(.16,.82,.2,1) both!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-card-front .summonedTradingCard,
 #summonPullScreen .pullScene[data-bb-paint-stage="done"] .bb-card-front .summonedTradingCard{opacity:1!important;transform:scale(1)!important}
-#summonPullScreen .pullScene[data-bb-paint-stage="resolve"][data-bb-reveal-kind="shiny"] .bb-reveal-halo{animation:bbShinyHaloHold .42s ease-out both!important}
 
-/* Hide status chrome until the card is readable. */
+/* Keep status chrome out of the way until the artwork has settled. */
 #summonPullScreen .pullScene.bb-cinematic-running .pullCardMeta,
 #summonPullScreen .pullScene.bb-cinematic-running .cardNew,
-#summonPullScreen .pullScene.bb-cinematic-running #pullNewBadge,
-#summonPullScreen .pullScene.bb-cinematic-running #pullMessage{opacity:0!important;transition:opacity .14s ease-out!important}
+#summonPullScreen .pullScene.bb-cinematic-running #pullMessage{opacity:0!important;transition:opacity .16s ease-out!important}
 #summonPullScreen .pullScene.bb-cinematic-running #pullTapArea::before,
 #summonPullScreen .pullScene.bb-cinematic-running #pullTapArea::after,
 #summonPullScreen .pullScene.bb-cinematic-running #pullTapArea .pullTapHint,
 #summonPullScreen .pullScene.bb-cinematic-running #pullTapArea .tapHint,
 #summonPullScreen .pullScene.bb-cinematic-running #pullTapArea .tapToContinue{opacity:0!important}
-#summonPullScreen .pullScene[data-bb-paint-stage="done"] #pullNewBadge,
-#summonPullScreen .pullScene[data-bb-paint-stage="done"] #pullMessage{opacity:1!important;animation:bbRevealMetaIn .18s ease-out both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="done"] #pullMessage{opacity:1!important;animation:bbRevealMetaIn .2s ease-out both!important}
 
 #summonPullScreen .pullScene[data-bb-reveal-kind="new"] .pullCardWrap::before{border-color:#5b91ad!important;box-shadow:0 0 0 2px rgba(111,174,205,.18),0 12px 25px rgba(54,39,24,.24),0 0 24px rgba(74,139,171,.19)!important}
 #summonPullScreen .pullScene[data-bb-reveal-kind="shiny"] .pullCardWrap::before{border-color:#e5b746!important;box-shadow:0 0 0 3px rgba(255,239,177,.4),0 0 30px rgba(222,167,53,.34),0 12px 28px rgba(69,45,13,.28)!important}
@@ -125,52 +135,101 @@
 #summonPullScreen #pullResultsGrid .pullCard{animation:bbCineResultIn .28s cubic-bezier(.2,.78,.2,1) var(--bb-result-delay,0ms) both!important}
 #summonPullScreen #pullResultsGrid .bb-new-result-card{border-color:#5e8da7!important;box-shadow:inset 0 1px rgba(255,255,255,.68),0 5px 12px rgba(48,78,95,.18)!important}
 #summonPullScreen #pullResultsGrid .bb-shiny-result-card::after{content:'';position:absolute;inset:-30% -80%;pointer-events:none;background:linear-gradient(112deg,transparent 39%,rgba(255,249,210,.9) 49%,transparent 59%);transform:translateX(-42%);animation:bbCineResultShine .62s ease-out var(--bb-result-shine-delay,180ms) 1 both}
-#summonPullScreen .resultsMode .bb-card-reveal-vfx{display:none!important}
+#summonPullScreen .resultsMode .bb-paint-stage-vfx,#summonPullScreen .resultsMode .bb-card-spin-vfx{display:none!important}
 
 @keyframes bbCardBackEnter{
- 0%{opacity:0;transform:translateY(8px) scale(.965) rotateZ(-1.2deg) rotateY(0deg)}
- 72%{opacity:1;transform:translateY(-1px) scale(1.006) rotateZ(.15deg) rotateY(0deg)}
+ 0%{opacity:0;transform:translateY(9px) scale(.958) rotateZ(-1.35deg) rotateY(0deg)}
+ 70%{opacity:1;transform:translateY(-1px) scale(1.008) rotateZ(.18deg) rotateY(0deg)}
  100%{opacity:1;transform:translateY(0) scale(1) rotateZ(0) rotateY(0deg)}
 }
 
-/* Transform + opacity only on the large alpha PNGs. This keeps iOS movement fluid. */
+/* Three crossing paint gestures. Transform and opacity only keeps the large alpha textures fluid on iOS. */
 @keyframes bbBrushSwipeOne{
- 0%{opacity:0;transform:translate(-61%,-56%) rotate(-14deg) scaleX(.54) scaleY(.94)}
- 18%{opacity:.48}
- 52%{opacity:.96;transform:translate(-53%,-52%) rotate(-14deg) scaleX(.88) scaleY(.99)}
- 76%{opacity:1;transform:translate(-49%,-50%) rotate(-14deg) scaleX(1) scaleY(1)}
- 100%{opacity:0;transform:translate(-45%,-48%) rotate(-13.5deg) scaleX(1.025) scaleY(1)}
+ 0%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s1-x0,-34vw),var(--s1-y0,18vh),0) rotate(var(--s1-r0,-2deg)) scale(calc(var(--s1-scale,1)*.94))}
+ 10%{opacity:.30}
+ 28%{opacity:.88}
+ 58%{opacity:1;transform:translate(-50%,-50%) translate3d(var(--s1-xm,0vw),var(--s1-ym,0vh),0) rotate(var(--s1-rm,0deg)) scale(var(--s1-scale,1))}
+ 82%{opacity:.86}
+ 100%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s1-x1,35vw),var(--s1-y1,-19vh),0) rotate(var(--s1-r1,1deg)) scale(calc(var(--s1-scale,1)*1.035))}
 }
 @keyframes bbBrushSwipeTwo{
- 0%{opacity:0;transform:translate(-39%,-45%) rotate(10deg) scaleX(.54) scaleY(.95)}
- 18%{opacity:.45}
- 52%{opacity:.94;transform:translate(-47%,-48%) rotate(10deg) scaleX(.88) scaleY(1)}
- 76%{opacity:1;transform:translate(-51%,-50%) rotate(10deg) scaleX(1) scaleY(1)}
- 100%{opacity:0;transform:translate(-55%,-52%) rotate(9.5deg) scaleX(1.025) scaleY(1)}
+ 0%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s2-x0,34vw),var(--s2-y0,18vh),0) rotate(var(--s2-r0,2deg)) scale(calc(var(--s2-scale,1)*.94))}
+ 10%{opacity:.28}
+ 28%{opacity:.90}
+ 58%{opacity:1;transform:translate(-50%,-50%) translate3d(var(--s2-xm,0vw),var(--s2-ym,0vh),0) rotate(var(--s2-rm,0deg)) scale(var(--s2-scale,1))}
+ 82%{opacity:.84}
+ 100%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s2-x1,-35vw),var(--s2-y1,-19vh),0) rotate(var(--s2-r1,-1deg)) scale(calc(var(--s2-scale,1)*1.035))}
 }
 @keyframes bbBrushFinisher{
- 0%{opacity:0;transform:translate(-61%,-52%) rotate(-5deg) scaleX(.52) scaleY(.95)}
- 22%{opacity:.55}
- 66%{opacity:1;transform:translate(-50%,-50%) rotate(-5deg) scaleX(1) scaleY(1)}
- 100%{opacity:0;transform:translate(-43%,-49%) rotate(-4.5deg) scaleX(1.04) scaleY(1)}
+ 0%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s3-x0,-34vw),var(--s3-y0,18vh),0) rotate(var(--s3-r0,-2deg)) scale(calc(var(--s3-scale,1)*.94))}
+ 11%{opacity:.30}
+ 30%{opacity:.92}
+ 59%{opacity:1;transform:translate(-50%,-50%) translate3d(var(--s3-xm,0vw),var(--s3-ym,0vh),0) rotate(var(--s3-rm,0deg)) scale(var(--s3-scale,1))}
+ 82%{opacity:.78}
+ 100%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s3-x1,35vw),var(--s3-y1,-19vh),0) rotate(var(--s3-r1,1deg)) scale(calc(var(--s3-scale,1)*1.04))}
 }
-@keyframes bbCurveBuild{0%{opacity:0;transform:translate(-50%,-50%) scale(.78) rotate(-7deg)}58%{opacity:.55}100%{opacity:.18;transform:translate(-50%,-50%) scale(1.01) rotate(5deg)}}
-@keyframes bbHaloAnticipation{0%{opacity:0;transform:translate(-50%,-50%) scale(.72)}60%{opacity:.68}100%{opacity:.3;transform:translate(-50%,-50%) scale(1)}}
-@keyframes bbPhysicalCardFlip{0%{transform:rotateY(0deg) scale(1)}45%{transform:rotateY(82deg) scale(1.018)}50%{transform:rotateY(90deg) scale(1.022)}55%{transform:rotateY(98deg) scale(1.018)}100%{transform:rotateY(180deg) scale(1)}}
-@keyframes bbFlipImpact{0%{opacity:0;transform:translate(-50%,-50%) scale(.52)}30%{opacity:.82}100%{opacity:0;transform:translate(-50%,-50%) scale(.98)}}
-@keyframes bbFrontCardSettle{0%{transform:rotateY(180deg) scale(1.022) translateY(-1px)}100%{transform:rotateY(180deg) scale(1) translateY(0)}}
-@keyframes bbShinyHaloHold{0%{opacity:.55;transform:translate(-50%,-50%) scale(.96)}100%{opacity:.12;transform:translate(-50%,-50%) scale(1.07)}}
+
+/* Echoes arrive after the brush head so painted color hangs in the air instead of blinking away. */
+@keyframes bbBrushEchoOne{
+ 0%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s1-xm,0vw),var(--s1-ym,0vh),0) rotate(var(--s1-rm,0deg)) scale(var(--s1-scale,1))}
+ 18%{opacity:.30}55%{opacity:.24}100%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s1-x1,35vw),var(--s1-y1,-19vh),0) rotate(var(--s1-r1,1deg)) scale(calc(var(--s1-scale,1)*1.025))}
+}
+@keyframes bbBrushEchoTwo{
+ 0%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s2-xm,0vw),var(--s2-ym,0vh),0) rotate(var(--s2-rm,0deg)) scale(var(--s2-scale,1))}
+ 18%{opacity:.28}55%{opacity:.22}100%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s2-x1,-35vw),var(--s2-y1,-19vh),0) rotate(var(--s2-r1,-1deg)) scale(calc(var(--s2-scale,1)*1.025))}
+}
+@keyframes bbBrushEchoThree{
+ 0%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s3-xm,0vw),var(--s3-ym,0vh),0) rotate(var(--s3-rm,0deg)) scale(var(--s3-scale,1))}
+ 18%{opacity:.25}55%{opacity:.18}100%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s3-x1,35vw),var(--s3-y1,-19vh),0) rotate(var(--s3-r1,1deg)) scale(calc(var(--s3-scale,1)*1.03))}
+}
+@keyframes bbPaintAccentDrift{
+ 0%{opacity:0;transform:translate(-50%,-50%) translate3d(calc(var(--bb-accent-x,0vw) - 8vw),calc(var(--bb-accent-y,0vh) + 5vh),0) rotate(var(--bb-accent-r,0deg)) scale(calc(var(--bb-accent-scale,1)*.92))}
+ 28%{opacity:.38}62%{opacity:.28;transform:translate(-50%,-50%) translate3d(var(--bb-accent-x,0vw),var(--bb-accent-y,0vh),0) rotate(var(--bb-accent-r,0deg)) scale(var(--bb-accent-scale,1))}
+ 100%{opacity:0;transform:translate(-50%,-50%) translate3d(calc(var(--bb-accent-x,0vw) + 7vw),calc(var(--bb-accent-y,0vh) - 5vh),0) rotate(var(--bb-accent-r,0deg)) scale(calc(var(--bb-accent-scale,1)*1.035))}
+}
+
+/* A 1.5-turn physical spin ends on the front face. */
+@keyframes bbPhysicalCardFlip{
+ 0%{transform:rotateY(0deg) rotateZ(0deg) scale(1)}
+ 16%{transform:rotateY(92deg) rotateZ(-.65deg) scale(.982)}
+ 32%{transform:rotateY(190deg) rotateZ(.55deg) scale(.965)}
+ 49%{transform:rotateY(286deg) rotateZ(-.45deg) scale(.975)}
+ 66%{transform:rotateY(382deg) rotateZ(.35deg) scale(1.012)}
+ 83%{transform:rotateY(478deg) rotateZ(-.18deg) scale(1.018)}
+ 100%{transform:rotateY(540deg) rotateZ(0deg) scale(1)}
+}
+@keyframes bbSpinOrbit{
+ 0%{opacity:0;transform:translate(-50%,-50%) rotate(-24deg) scale(.73)}
+ 14%{opacity:.52}
+ 45%{opacity:.92;transform:translate(-50%,-50%) rotate(82deg) scale(1.00)}
+ 76%{opacity:.68;transform:translate(-50%,-50%) rotate(166deg) scale(1.08)}
+ 100%{opacity:0;transform:translate(-50%,-50%) rotate(228deg) scale(1.16)}
+}
+@keyframes bbResolveRing{
+ 0%{opacity:0;transform:translate(-50%,-50%) scale(.72) rotate(-10deg)}
+ 24%{opacity:.82}
+ 58%{opacity:.66;transform:translate(-50%,-50%) scale(1.00) rotate(4deg)}
+ 100%{opacity:0;transform:translate(-50%,-50%) scale(1.14) rotate(10deg)}
+}
+@keyframes bbFrontCardSettle{
+ 0%{transform:rotateY(540deg) scale(1.032) translateY(-2px)}
+ 58%{transform:rotateY(540deg) scale(.994) translateY(1px)}
+ 100%{transform:rotateY(540deg) scale(1) translateY(0)}
+}
 @keyframes bbRevealMetaIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
 @keyframes bbCineResultIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes bbCineResultShine{0%{opacity:0;transform:translateX(-42%)}22%{opacity:1}100%{opacity:0;transform:translateX(42%)}}
 
 @media(max-width:520px){
  #summonPullScreen .pullCardWrap{width:min(86vw,44dvh)!important}
- #summonPullScreen .bb-card-reveal-vfx{inset:-20% -27%}
+ #summonPullScreen .bb-paint-stage-vfx{width:148vw;height:92dvh}
+ #summonPullScreen .bb-paint-stroke{width:min(176vw,760px)}
+ #summonPullScreen .bb-paint-stroke-3{width:min(164vw,720px)}
+ #summonPullScreen .bb-paint-accent{width:min(170vw,740px)}
  #summonPullScreen .bb-card-nameplate{font-size:clamp(11px,3.7vw,17px)}
 }
 @media(prefers-reduced-motion:reduce){
- #summonPullScreen .bb-card-reveal-vfx{display:none!important}
+ #summonPullScreen .bb-paint-stage-vfx,#summonPullScreen .bb-card-spin-vfx{display:none!important}
  #summonPullScreen .bb-card-flipper{animation:none!important;transform:rotateY(180deg)!important}
  #summonPullScreen .bb-card-front .summonedTradingCard{opacity:1!important;transform:none!important;transition:none!important}
  #summonPullScreen .pullCardWrap,#summonPullScreen #pullResultsGrid .pullCard{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}
