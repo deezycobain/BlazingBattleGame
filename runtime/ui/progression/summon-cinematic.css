@@ -1,114 +1,148 @@
-/* Blazing Battle summon cinematic v1.0
-   Phase-driven VFX layered over the cleaned parchment reveal. */
-#summonPullScreen .pullHeroArea{isolation:isolate;perspective:900px}
-#summonPullScreen .bb-summon-cinematic{--bb-cine-accent:#4f86a6;--bb-cine-accent-soft:#b9d9e8;--bb-cine-gold:#d0a14a;position:absolute;z-index:2;inset:18px 10px 14px;overflow:hidden;border-radius:16px 5px 16px 5px;pointer-events:none;contain:layout paint}
-#summonPullScreen .pullScene[data-bb-cinematic-rarity="legendary"] .bb-summon-cinematic{--bb-cine-accent:#c08a31;--bb-cine-accent-soft:#ffe6a4;--bb-cine-gold:#e2b854}
-#summonPullScreen .pullScene[data-bb-reveal-kind="new"] .bb-summon-cinematic{--bb-cine-accent:#4d8db0;--bb-cine-accent-soft:#d1efff}
-#summonPullScreen .pullScene[data-bb-reveal-kind="shiny"] .bb-summon-cinematic{--bb-cine-accent:#f1c85f;--bb-cine-accent-soft:#fff8ce;--bb-cine-gold:#ffd870}
-#summonPullScreen .bb-cine-vignette,#summonPullScreen .bb-cine-core,#summonPullScreen .bb-cine-ring,#summonPullScreen .bb-cine-rays,#summonPullScreen .bb-cine-impact,#summonPullScreen .bb-cine-shiny-halo,#summonPullScreen .bb-cine-streaks,#summonPullScreen .bb-cine-particles{position:absolute;inset:0;display:block;pointer-events:none}
-#summonPullScreen .bb-cine-vignette{z-index:0;background:radial-gradient(circle at 50% 43%,transparent 17%,rgba(69,48,29,.06) 40%,rgba(43,29,18,.34) 100%);opacity:0}
-#summonPullScreen .bb-cine-core{z-index:1;inset:auto;left:50%;top:43%;width:112px;height:112px;margin:-56px 0 0 -56px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.98) 0 5%,var(--bb-cine-accent-soft) 12%,color-mix(in srgb,var(--bb-cine-accent) 68%,transparent) 31%,transparent 70%);opacity:0;transform:scale(.2);will-change:transform,opacity}
-#summonPullScreen .bb-cine-ring{z-index:2;inset:auto;left:50%;top:43%;width:min(58vw,280px);height:min(58vw,280px);margin:0;translate:-50% -50%;border-radius:50%;opacity:0;will-change:transform,opacity}
-#summonPullScreen .bb-cine-ring-a{border:2px solid color-mix(in srgb,var(--bb-cine-accent) 82%,white);box-shadow:0 0 0 1px rgba(255,255,255,.18) inset,0 0 24px color-mix(in srgb,var(--bb-cine-accent) 35%,transparent)}
-#summonPullScreen .bb-cine-ring-b{width:min(43vw,210px);height:min(43vw,210px);margin:0;translate:-50% -50%;border:1px dashed color-mix(in srgb,var(--bb-cine-accent-soft) 75%,transparent)}
-#summonPullScreen .bb-cine-rays{z-index:1;inset:auto;left:50%;top:43%;width:min(104vw,580px);height:min(104vw,580px);margin:0;translate:-50% -50%;border-radius:50%;background:repeating-conic-gradient(from 4deg,color-mix(in srgb,var(--bb-cine-accent-soft) 34%,transparent) 0 2deg,transparent 2deg 14deg);opacity:0;transform:scale(.25);will-change:transform,opacity}
-#summonPullScreen .bb-cine-impact{z-index:5;background:radial-gradient(circle at 50% 43%,rgba(255,255,255,.98) 0 4%,color-mix(in srgb,var(--bb-cine-accent-soft) 82%,transparent) 16%,transparent 54%);opacity:0}
-#summonPullScreen .bb-cine-shiny-halo{z-index:3;inset:auto;left:50%;top:43%;width:min(72vw,350px);height:min(72vw,350px);margin:0;translate:-50% -50%;border:2px solid rgba(255,239,172,.82);border-radius:50%;box-shadow:0 0 35px rgba(255,215,92,.44),inset 0 0 26px rgba(255,245,199,.32);opacity:0;transform:scale(.45)}
-#summonPullScreen .bb-cine-particles{z-index:3;left:50%;top:43%;right:auto;bottom:auto;width:0;height:0}
-#summonPullScreen .bb-cine-particle{position:absolute;left:-2px;top:-2px;width:4px;height:4px;border-radius:50%;background:var(--bb-cine-accent-soft);box-shadow:0 0 7px var(--bb-cine-accent);opacity:0;transform-origin:2px 2px;will-change:transform,opacity}
-#summonPullScreen .bb-cine-streaks{z-index:4}
-#summonPullScreen .bb-cine-streak{position:absolute;left:50%;top:43%;width:72%;height:3px;margin-left:-36%;background:linear-gradient(90deg,transparent,var(--bb-cine-accent-soft) 22%,rgba(255,255,255,.92) 50%,var(--bb-cine-accent) 72%,transparent);opacity:0;transform-origin:center;will-change:transform,opacity}
-#summonPullScreen .bb-cine-streak-1{transform:rotate(-11deg) translateX(-68%)}
-#summonPullScreen .bb-cine-streak-2{transform:rotate(8deg) translateX(68%)}
-#summonPullScreen .bb-cine-streak-3{height:2px;transform:rotate(-3deg) translateX(-74%)}
-#summonPullScreen .bb-cine-streak-4{height:2px;transform:rotate(15deg) translateX(74%)}
+/* Blazing Battle summon cinematic v2.0
+   Physical trading-card reveal: back -> brush swipes -> snap flip -> impact -> front. */
 
-/* BUILD: dim the parchment stage and gather a restrained field toward center. */
-#summonPullScreen .pullScene.phase-build .bb-cine-vignette{animation:bbCineVignetteIn .42s ease-out both}
-#summonPullScreen .pullScene.phase-build .bb-cine-core{animation:bbCineCoreGather .66s cubic-bezier(.22,.8,.28,1) both}
-#summonPullScreen .pullScene.phase-build .bb-cine-ring-a{animation:bbCineRingGather .72s cubic-bezier(.2,.75,.2,1) both}
-#summonPullScreen .pullScene.phase-build .bb-cine-ring-b{animation:bbCineRingGatherReverse .76s cubic-bezier(.2,.75,.2,1) both}
-#summonPullScreen .pullScene.phase-build .bb-cine-particle{animation:bbCineParticleGather .72s cubic-bezier(.2,.72,.2,1) var(--bb-delay) both}
-#summonPullScreen .pullScene.phase-build .pullCardWrap{opacity:0!important;transform:translateY(18px) scale(.91)!important}
-#summonPullScreen .pullScene.phase-build .summonedTradingCard{filter:brightness(.28) saturate(.45) sepia(.28)!important}
+#summonPullScreen .pullHeroArea{isolation:isolate;perspective:1200px}
+#summonPullScreen .pullCardWrap{
+ position:relative!important;z-index:3!important;
+ width:min(370px,82vw,45.75dvh)!important;height:auto!important;min-height:0!important;
+ aspect-ratio:3/4!important;margin:0 auto!important;inset:auto!important;
+ opacity:1!important;transform:none!important;filter:none!important;perspective:1200px!important;
+ overflow:visible!important;transition:none!important;animation:none!important;
+}
+#summonPullScreen .pullCardWrap::before{z-index:-1!important}
 
-/* FORM: hold the silhouette, tighten the rings, and telegraph stronger pulls by color. */
-#summonPullScreen .pullScene.phase-form .bb-cine-vignette{opacity:1}
-#summonPullScreen .pullScene.phase-form .bb-cine-core{opacity:.88;transform:scale(.72);animation:bbCineCoreHold .52s ease-in-out infinite alternate}
-#summonPullScreen .pullScene.phase-form .bb-cine-ring-a{opacity:.82;transform:scale(.76);animation:bbCineRingSpin 2.4s linear infinite}
-#summonPullScreen .pullScene.phase-form .bb-cine-ring-b{opacity:.68;transform:scale(.88);animation:bbCineRingSpinReverse 3s linear infinite}
-#summonPullScreen .pullScene.phase-form .bb-cine-particle{opacity:.72;animation:bbCineParticleOrbit 1.45s ease-in-out var(--bb-delay) infinite alternate}
-#summonPullScreen .pullScene.phase-form .pullCardWrap{opacity:.16!important;transform:translateY(8px) scale(.94)!important}
-#summonPullScreen .pullScene.phase-form .summonedTradingCard{filter:brightness(.15) saturate(.2) sepia(.48) contrast(1.25)!important}
+#summonPullScreen .bb-card-flipper{
+ position:absolute;inset:0;z-index:4;transform-style:preserve-3d;transform:rotateY(0deg);
+ transform-origin:50% 50%;will-change:transform,filter;
+}
+#summonPullScreen .bb-card-face{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ backface-visibility:hidden!important;-webkit-backface-visibility:hidden!important;
+ transform-style:preserve-3d!important;overflow:hidden!important;
+ border-radius:12px 4px 12px 4px!important;
+}
+#summonPullScreen .bb-card-back{
+ z-index:2;transform:rotateY(0deg);display:block!important;
+ border:1px solid #5c452d;background:#102c58;
+ box-shadow:inset 0 0 0 2px rgba(255,234,177,.42),0 12px 28px rgba(48,34,22,.28);
+}
+#summonPullScreen .bb-card-back-art{display:block;width:100%;height:100%;object-fit:cover;border:0}
+#summonPullScreen .bb-card-back-fallback{
+ position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:2px;
+ color:#f4c95e;text-shadow:0 2px 0 #5a1d12,0 0 14px rgba(255,198,71,.24);
+ background:
+  radial-gradient(circle at 50% 50%,transparent 0 18%,rgba(243,154,42,.96) 19% 28%,rgba(9,63,129,.95) 29% 39%,rgba(207,55,31,.92) 40% 48%,rgba(7,46,103,.98) 49% 100%),
+  repeating-radial-gradient(circle at 50% 50%,rgba(255,215,104,.22) 0 2px,transparent 2px 9px);
+ font-family:var(--bb-font-animeace,'AnimeAce2',sans-serif);font-weight:900;letter-spacing:-.04em;
+}
+#summonPullScreen .bb-card-back-fallback span{font-size:clamp(26px,8vw,42px);color:#f59a2c;-webkit-text-stroke:2px #35160e}
+#summonPullScreen .bb-card-back-fallback b{font-size:clamp(23px,7vw,36px);color:#8dd6ff;-webkit-text-stroke:2px #091d39}
+#summonPullScreen .bb-card-back-loaded .bb-card-back-fallback{display:none}
 
-/* POP: one sharp anime impact, not a confetti shower. */
-#summonPullScreen .pullScene.phase-pop .bb-cine-impact{animation:bbCineImpact .34s ease-out both}
-#summonPullScreen .pullScene.phase-pop .bb-cine-rays{animation:bbCineRays .46s cubic-bezier(.12,.76,.2,1) both}
-#summonPullScreen .pullScene.phase-pop .bb-cine-ring-a{animation:bbCineRingBurst .48s ease-out both}
-#summonPullScreen .pullScene.phase-pop .bb-cine-ring-b{animation:bbCineRingBurst .42s ease-out .035s both}
-#summonPullScreen .pullScene.phase-pop .bb-cine-particle{animation:bbCineParticleBurst .48s cubic-bezier(.12,.74,.28,1) var(--bb-delay) both}
-#summonPullScreen .pullScene.phase-pop .bb-cine-streak-1{animation:bbCineSlashLeft .31s ease-out both}
-#summonPullScreen .pullScene.phase-pop .bb-cine-streak-2{animation:bbCineSlashRight .33s ease-out .025s both}
-#summonPullScreen .pullScene.phase-pop .bb-cine-streak-3{animation:bbCineSlashLeft .29s ease-out .055s both}
-#summonPullScreen .pullScene.phase-pop .bb-cine-streak-4{animation:bbCineSlashRight .3s ease-out .075s both}
-#summonPullScreen .pullScene.phase-pop .pullCardWrap{opacity:.48!important;transform:scale(.965)!important}
-#summonPullScreen .pullScene.phase-pop .summonedTradingCard{filter:brightness(.48) saturate(.55) contrast(1.14)!important}
+#summonPullScreen .bb-card-front{
+ z-index:1;transform:rotateY(180deg)!important;margin:0!important;
+ backface-visibility:hidden!important;-webkit-backface-visibility:hidden!important;
+}
+#summonPullScreen .bb-card-front-frame{position:absolute;z-index:12;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+#summonPullScreen .bb-card-front.bb-has-card-frame{border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important}
+#summonPullScreen .bb-card-front.bb-has-card-frame::before,#summonPullScreen .bb-card-front.bb-has-card-frame::after{display:none!important}
+#summonPullScreen .bb-card-front.bb-has-card-frame .summonedTradingCard{position:absolute!important;left:8%!important;top:12%!important;width:84%!important;height:66%!important;border-radius:3px!important;object-fit:cover!important}
 
-/* REVEAL: card owns the screen, effects fall behind it. */
-#summonPullScreen .pullScene.phase-reveal .bb-cine-vignette{animation:bbCineVignetteOut .62s ease-out both}
-#summonPullScreen .pullScene.phase-reveal .bb-cine-core{animation:bbCineCoreRelease .58s ease-out both}
-#summonPullScreen .pullScene.phase-reveal .bb-cine-rays{animation:bbCineRaysFade .62s ease-out both}
-#summonPullScreen .pullScene.phase-reveal .pullCardWrap{opacity:1!important;transform-style:preserve-3d!important;animation:bbCineCardReveal .62s cubic-bezier(.16,.84,.24,1.12) both!important}
-#summonPullScreen .pullScene.phase-reveal .summonedTradingCard{filter:none!important;animation:bbCineArtResolve .5s ease-out both!important}
-#summonPullScreen .pullScene.phase-reveal .pullCardMeta,#summonPullScreen .pullScene.phase-reveal .cardNew{animation:bbCineMetaIn .34s ease-out .25s both!important}
-#summonPullScreen .pullScene.phase-reveal #pullMessage{animation:bbCineMessageIn .34s ease-out .18s both!important}
+/* Standardized summon crop. Full art elsewhere remains untouched. */
+#summonPullScreen .bb-card-front .summonedTradingCard{object-fit:cover!important;object-position:var(--bb-art-x,50%) var(--bb-art-y,45%)!important;filter:none!important}
+#summonPullScreen .pullCardWrap[data-fighter="Crimson"]{--bb-art-x:50%;--bb-art-y:46%}
+#summonPullScreen .pullCardWrap[data-fighter="Sub-Zero"]{--bb-art-x:50%;--bb-art-y:44%}
+#summonPullScreen .pullCardWrap[data-fighter="Lebee"]{--bb-art-x:50%;--bb-art-y:45%}
+#summonPullScreen .pullCardWrap[data-fighter="Senku"]{--bb-art-x:50%;--bb-art-y:43%}
+#summonPullScreen .pullCardWrap[data-fighter="Tyler"]{--bb-art-x:50%;--bb-art-y:43%}
+
+/* Asset-backed reveal VFX. */
+#summonPullScreen .bb-card-reveal-vfx{position:absolute;z-index:8;inset:-22%;pointer-events:none;overflow:visible}
+#summonPullScreen .bb-reveal-vfx-image{position:absolute;left:50%;top:50%;display:block;pointer-events:none;opacity:0;transform-origin:center;will-change:transform,opacity,filter}
+#summonPullScreen .bb-reveal-swipe{width:145%;height:auto;filter:drop-shadow(0 0 9px rgba(28,74,130,.2))}
+#summonPullScreen .bb-reveal-swipe-1{transform:translate(-125%,-50%) rotate(-17deg) scale(.82)}
+#summonPullScreen .bb-reveal-swipe-2{transform:translate(25%,-50%) rotate(12deg) scale(.86)}
+#summonPullScreen .bb-reveal-swipe-3{transform:translate(-125%,-50%) rotate(-5deg) scale(.9)}
+#summonPullScreen .bb-reveal-curve{z-index:-1;width:132%;height:132%;object-fit:contain;transform:translate(-50%,-50%) scale(.76);filter:drop-shadow(0 0 12px rgba(35,97,158,.2))}
+#summonPullScreen .bb-reveal-halo{z-index:-2;width:136%;height:136%;object-fit:contain;transform:translate(-50%,-50%) scale(.66);filter:drop-shadow(0 0 18px rgba(218,166,51,.24))}
+#summonPullScreen .bb-reveal-impact{z-index:14;width:142%;height:142%;object-fit:contain;transform:translate(-50%,-50%) scale(.48)}
+
+/* Phase mapping. The existing summon engine remains the clock. */
+#summonPullScreen .pullScene.phase-build .bb-card-flipper{animation:bbCardBackEnter .34s cubic-bezier(.2,.8,.2,1) both}
+#summonPullScreen .pullScene.phase-build .bb-reveal-swipe-1{animation:bbBrushSwipeOne .36s cubic-bezier(.18,.82,.2,1) .16s both}
+#summonPullScreen .pullScene.phase-build #pullMessage{opacity:.76!important}
+
+#summonPullScreen .pullScene.phase-form .bb-card-flipper{transform:rotateY(0deg)}
+#summonPullScreen .pullScene.phase-form .bb-reveal-swipe-2{animation:bbBrushSwipeTwo .38s cubic-bezier(.18,.82,.2,1) .03s both}
+#summonPullScreen .pullScene.phase-form[data-bb-reveal-kind="new"] .bb-reveal-curve,
+#summonPullScreen .pullScene.phase-form[data-bb-reveal-kind="shiny"] .bb-reveal-curve{animation:bbCurveBuild .52s ease-out both}
+#summonPullScreen .pullScene.phase-form[data-bb-reveal-kind="shiny"] .bb-reveal-halo{animation:bbHaloAnticipation .58s cubic-bezier(.18,.78,.2,1) .02s both}
+
+#summonPullScreen .pullScene.phase-pop .bb-card-flipper{animation:bbPhysicalCardFlip .34s cubic-bezier(.18,.76,.18,1) both}
+#summonPullScreen .pullScene.phase-pop .bb-reveal-impact{animation:bbFlipImpact .28s ease-out .12s both}
+#summonPullScreen .pullScene.phase-pop[data-bb-reveal-kind="shiny"] .bb-reveal-swipe-3{animation:bbBrushFinisher .31s cubic-bezier(.14,.82,.2,1) .01s both}
+#summonPullScreen .pullScene.phase-pop[data-bb-reveal-kind="shiny"] .bb-reveal-impact{filter:drop-shadow(0 0 16px rgba(247,195,77,.42))}
+
+#summonPullScreen .pullScene.phase-reveal .bb-card-flipper{transform:rotateY(180deg);animation:bbFrontCardSettle .34s cubic-bezier(.16,.84,.22,1.12) both}
+#summonPullScreen .pullScene.phase-reveal .bb-reveal-impact{opacity:0}
+#summonPullScreen .pullScene.phase-reveal .pullCardMeta,
+#summonPullScreen .pullScene.phase-reveal .cardNew,
+#summonPullScreen .pullScene.phase-reveal #pullMessage{animation:bbRevealMetaIn .3s ease-out .13s both!important}
+#summonPullScreen .pullScene.phase-reveal[data-bb-reveal-kind="shiny"] .bb-reveal-halo{animation:bbShinyHaloHold .8s ease-out both}
 #summonPullScreen .pullScene.phase-reveal[data-bb-reveal-kind="new"] .pullCardWrap::before{border-color:#5b91ad!important;box-shadow:0 0 0 2px rgba(111,174,205,.18),0 12px 25px rgba(54,39,24,.24),0 0 24px rgba(74,139,171,.19)!important}
-#summonPullScreen .pullScene.phase-reveal[data-bb-reveal-kind="resonance"] .pullCardWrap::before{box-shadow:0 0 0 2px rgba(181,135,69,.12),0 12px 25px rgba(54,39,24,.24)!important}
-#summonPullScreen .pullScene.phase-reveal[data-bb-reveal-kind="shiny"] .bb-cine-shiny-halo{animation:bbCineShinyHalo 1.05s cubic-bezier(.16,.8,.22,1) .26s both}
-#summonPullScreen .pullScene.phase-reveal[data-bb-reveal-kind="shiny"] .pullCardWrap{animation:bbCineShinyCardReveal .78s cubic-bezier(.16,.84,.22,1.08) both!important}
 #summonPullScreen .pullScene.phase-reveal[data-bb-reveal-kind="shiny"] .pullCardWrap::before{border-color:#e5b746!important;box-shadow:0 0 0 3px rgba(255,239,177,.4),0 0 30px rgba(222,167,53,.34),0 12px 28px rgba(69,45,13,.28)!important}
-#summonPullScreen .pullScene.phase-reveal[data-bb-reveal-kind="shiny"] .summonedTradingCard{animation:bbCineShinyArtResolve .7s ease-out both!important}
 
-/* Results land as a fast binder cascade. */
+/* Result binder cascade remains quick after the physical reveal. */
 #summonPullScreen #pullResultsGrid .pullCard{animation:bbCineResultIn .34s cubic-bezier(.2,.78,.2,1) var(--bb-result-delay,0ms) both!important}
 #summonPullScreen #pullResultsGrid .bb-new-result-card{border-color:#5e8da7!important;box-shadow:inset 0 1px rgba(255,255,255,.68),0 5px 12px rgba(48,78,95,.18)!important}
 #summonPullScreen #pullResultsGrid .bb-shiny-result-card::after{content:'';position:absolute;inset:-30% -80%;pointer-events:none;background:linear-gradient(112deg,transparent 39%,rgba(255,249,210,.9) 49%,transparent 59%);transform:translateX(-42%);animation:bbCineResultShine .78s ease-out var(--bb-result-shine-delay,220ms) 1 both}
-#summonPullScreen .resultsMode .bb-summon-cinematic{display:none!important}
+#summonPullScreen .resultsMode .bb-card-reveal-vfx{display:none!important}
 
-@keyframes bbCineVignetteIn{from{opacity:0}to{opacity:1}}
-@keyframes bbCineVignetteOut{from{opacity:1}to{opacity:0}}
-@keyframes bbCineCoreGather{0%{opacity:0;transform:scale(.12)}55%{opacity:.9;transform:scale(.88)}100%{opacity:.72;transform:scale(.62)}}
-@keyframes bbCineCoreHold{from{transform:scale(.64);opacity:.7}to{transform:scale(.82);opacity:1}}
-@keyframes bbCineCoreRelease{0%{opacity:1;transform:scale(.72)}45%{opacity:.78;transform:scale(1.35)}100%{opacity:0;transform:scale(2.3)}}
-@keyframes bbCineRingGather{from{opacity:0;transform:scale(1.45) rotate(-24deg)}to{opacity:.7;transform:scale(.86) rotate(0)}}
-@keyframes bbCineRingGatherReverse{from{opacity:0;transform:scale(.38) rotate(35deg)}to{opacity:.62;transform:scale(.98) rotate(0)}}
-@keyframes bbCineRingSpin{to{transform:scale(.76) rotate(360deg)}}
-@keyframes bbCineRingSpinReverse{to{transform:scale(.88) rotate(-360deg)}}
-@keyframes bbCineRingBurst{0%{opacity:.95;transform:scale(.72)}100%{opacity:0;transform:scale(1.66)}}
-@keyframes bbCineRays{0%{opacity:0;transform:scale(.2) rotate(-7deg)}25%{opacity:.68}100%{opacity:0;transform:scale(1.34) rotate(8deg)}}
-@keyframes bbCineRaysFade{from{opacity:.16;transform:scale(1.08)}to{opacity:0;transform:scale(1.34)}}
-@keyframes bbCineImpact{0%{opacity:0}16%{opacity:1}100%{opacity:0}}
-@keyframes bbCineParticleGather{0%{opacity:0;transform:rotate(var(--bb-angle)) translateY(var(--bb-distance)) scale(.25)}55%{opacity:.8}100%{opacity:.56;transform:rotate(calc(var(--bb-angle) + 38deg)) translateY(-34px) scale(1)}}
-@keyframes bbCineParticleOrbit{from{transform:rotate(calc(var(--bb-angle) + 38deg)) translateY(-34px) scale(.8)}to{transform:rotate(calc(var(--bb-angle) + 58deg)) translateY(-47px) scale(1.2)}}
-@keyframes bbCineParticleBurst{0%{opacity:.9;transform:rotate(var(--bb-angle)) translateY(-31px) scale(1)}100%{opacity:0;transform:rotate(calc(var(--bb-angle) + 14deg)) translateY(var(--bb-burst-distance)) scale(.35)}}
-@keyframes bbCineSlashLeft{0%{opacity:0;transform:rotate(-11deg) translateX(-72%) scaleX(.5)}35%{opacity:.9}100%{opacity:0;transform:rotate(-11deg) translateX(72%) scaleX(1.06)}}
-@keyframes bbCineSlashRight{0%{opacity:0;transform:rotate(8deg) translateX(72%) scaleX(.5)}35%{opacity:.86}100%{opacity:0;transform:rotate(8deg) translateX(-72%) scaleX(1.06)}}
-@keyframes bbCineCardReveal{0%{opacity:.1;transform:translateY(24px) scale(.78) rotateX(10deg) rotateZ(-1.3deg)}64%{opacity:1;transform:translateY(-4px) scale(1.025) rotateX(0) rotateZ(.25deg)}100%{opacity:1;transform:none}}
-@keyframes bbCineShinyCardReveal{0%{opacity:.08;transform:translateY(31px) scale(.72) rotateX(13deg)}52%{opacity:1;transform:translateY(-7px) scale(1.045) rotateX(0)}72%{transform:translateY(1px) scale(.994)}100%{opacity:1;transform:none}}
-@keyframes bbCineArtResolve{0%{filter:brightness(2.15) saturate(.2);transform:scale(1.035)}100%{filter:none;transform:none}}
-@keyframes bbCineShinyArtResolve{0%{filter:brightness(2.55) saturate(.15);transform:scale(1.045)}48%{filter:brightness(1.18) saturate(1.18)}100%{filter:none;transform:none}}
-@keyframes bbCineMetaIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-@keyframes bbCineMessageIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-@keyframes bbCineShinyHalo{0%{opacity:0;transform:scale(.42)}34%{opacity:.92}100%{opacity:0;transform:scale(1.42)}}
-@keyframes bbCineResultIn{from{opacity:0;transform:translateY(10px) scale(.965)}to{opacity:1;transform:none}}
-@keyframes bbCineResultShine{from{opacity:0;transform:translateX(-48%)}35%{opacity:.8}to{opacity:0;transform:translateX(48%)}}
+@keyframes bbCardBackEnter{
+ 0%{opacity:0;transform:translateY(16px) scale(.9) rotateZ(-3deg) rotateY(0deg)}
+ 70%{opacity:1;transform:translateY(-2px) scale(1.015) rotateZ(.5deg) rotateY(0deg)}
+ 100%{opacity:1;transform:none}
+}
+@keyframes bbBrushSwipeOne{
+ 0%{opacity:0;transform:translate(-128%,-50%) rotate(-17deg) scale(.82)}
+ 18%{opacity:1}
+ 72%{opacity:1}
+ 100%{opacity:0;transform:translate(18%,-50%) rotate(-17deg) scale(1.02)}
+}
+@keyframes bbBrushSwipeTwo{
+ 0%{opacity:0;transform:translate(30%,-50%) rotate(12deg) scale(.86)}
+ 18%{opacity:1}
+ 72%{opacity:1}
+ 100%{opacity:0;transform:translate(-126%,-50%) rotate(12deg) scale(1.03)}
+}
+@keyframes bbBrushFinisher{
+ 0%{opacity:0;transform:translate(-126%,-50%) rotate(-5deg) scale(.9)}
+ 15%{opacity:1}
+ 66%{opacity:1;filter:brightness(1.18)}
+ 100%{opacity:0;transform:translate(14%,-50%) rotate(-5deg) scale(1.04);filter:brightness(1.35)}
+}
+@keyframes bbCurveBuild{0%{opacity:0;transform:translate(-50%,-50%) scale(.7) rotate(-10deg)}60%{opacity:.82}100%{opacity:.34;transform:translate(-50%,-50%) scale(1.01) rotate(7deg)}}
+@keyframes bbHaloAnticipation{0%{opacity:0;transform:translate(-50%,-50%) scale(.58)}65%{opacity:.9}100%{opacity:.5;transform:translate(-50%,-50%) scale(.98)}}
+@keyframes bbPhysicalCardFlip{
+ 0%{transform:rotateY(0deg) scale(1)}
+ 44%{transform:rotateY(78deg) scale(1.035)}
+ 50%{transform:rotateY(90deg) scale(1.045)}
+ 56%{transform:rotateY(102deg) scale(1.035)}
+ 100%{transform:rotateY(180deg) scale(1)}
+}
+@keyframes bbFlipImpact{0%{opacity:0;transform:translate(-50%,-50%) scale(.38)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.12)}}
+@keyframes bbFrontCardSettle{0%{transform:rotateY(180deg) scale(1.045) translateY(-2px)}100%{transform:rotateY(180deg) scale(1) translateY(0)}}
+@keyframes bbShinyHaloHold{0%{opacity:.9;transform:translate(-50%,-50%) scale(.9)}100%{opacity:.24;transform:translate(-50%,-50%) scale(1.13)}}
+@keyframes bbRevealMetaIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes bbCineResultIn{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes bbCineResultShine{0%{opacity:0;transform:translateX(-42%)}22%{opacity:1}100%{opacity:0;transform:translateX(42%)}}
 
-@media(max-width:430px){
- #summonPullScreen .bb-summon-cinematic{inset:10px 7px 10px}
- #summonPullScreen .bb-cine-ring{width:min(66vw,260px);height:min(66vw,260px);margin:0}
- #summonPullScreen .bb-cine-ring-b{width:min(49vw,195px);height:min(49vw,195px);margin:0}
+@media(max-width:520px){
+ #summonPullScreen .pullCardWrap{width:min(86vw,44dvh)!important}
+ #summonPullScreen .bb-card-reveal-vfx{inset:-18%}
 }
 @media(prefers-reduced-motion:reduce){
- #summonPullScreen .bb-summon-cinematic{display:none!important}
- #summonPullScreen .pullScene .pullCardWrap,#summonPullScreen .pullScene .summonedTradingCard,#summonPullScreen #pullResultsGrid .pullCard,#summonPullScreen #pullResultsGrid .bb-shiny-result-card::after{animation:none!important;transition:none!important;transform:none!important;filter:none!important;opacity:1!important}
+ #summonPullScreen .bb-card-reveal-vfx{display:none!important}
+ #summonPullScreen .bb-card-flipper{animation:none!important;transform:rotateY(180deg)!important}
+ #summonPullScreen .pullCardWrap,#summonPullScreen #pullResultsGrid .pullCard{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}
 }
