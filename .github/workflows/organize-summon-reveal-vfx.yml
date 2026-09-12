@@ -98,12 +98,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git add -A \
-            blazing_battle_high_quality_brush_strokes.zip \
-            blazing_battle_summon_vfx_replacement.zip \
-            assets/vfx/summon/reveal-brush \
-            assets/vfx/summon/reveal-spin \
-            assets/vfx/summon/reveal-vfx-manifest.json
+          git add -A
           if git diff --cached --quiet; then
             echo "No asset changes to commit."
             exit 0
