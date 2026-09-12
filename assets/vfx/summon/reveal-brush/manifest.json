@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "purpose": "Blazing Battle summon reveal brush-stroke VFX",
+  "count": 6,
+  "assets": [
+    {
+      "file": "brush-stroke-01.png",
+      "path": "assets/vfx/summon/reveal-brush/brush-stroke-01.png",
+      "width": 2172,
+      "height": 724,
+      "role": "unassigned"
+    },
+    {
+      "file": "brush-stroke-02.png",
+      "path": "assets/vfx/summon/reveal-brush/brush-stroke-02.png",
+      "width": 1536,
+      "height": 1024,
+      "role": "unassigned"
+    },
+    {
+      "file": "brush-stroke-03.png",
+      "path": "assets/vfx/summon/reveal-brush/brush-stroke-03.png",
+      "width": 1448,
+      "height": 1086,
+      "role": "unassigned"
+    },
+    {
+      "file": "brush-stroke-04.png",
+      "path": "assets/vfx/summon/reveal-brush/brush-stroke-04.png",
+      "width": 1254,
+      "height": 1254,
+      "role": "unassigned"
+    },
+    {
+      "file": "brush-stroke-05.png",
+      "path": "assets/vfx/summon/reveal-brush/brush-stroke-05.png",
+      "width": 2172,
+      "height": 724,
+      "role": "unassigned"
+    },
+    {
+      "file": "brush-stroke-06.png",
+      "path": "assets/vfx/summon/reveal-brush/brush-stroke-06.png",
+      "width": 2172,
+      "height": 724,
+      "role": "unassigned"
+    }
+  ]
+}
