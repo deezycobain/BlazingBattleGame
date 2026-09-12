@@ -1,0 +1,65 @@
+name: Organize summon reveal card assets
+
+on:
+  push:
+    branches: [dev-next-2026-09-01]
+    paths:
+      - blazing_battle_summon_reveal_card_assets.zip
+
+permissions:
+  contents: write
+
+jobs:
+  organize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev-next-2026-09-01
+          fetch-depth: 0
+
+      - name: Extract approved summon card assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="blazing_battle_summon_reveal_card_assets.zip"
+          TARGET="assets/ui/summon/reveal"
+          TMP="$(mktemp -d)"
+          unzip -q "$ZIP" -d "$TMP"
+          mkdir -p "$TARGET"
+
+          BACK="$(find "$TMP" -type f -iname 'summon_reveal_card_back.png' | head -n 1)"
+          FRONT="$(find "$TMP" -type f -iname 'summon_reveal_card_front_frame.png' | head -n 1)"
+          test -n "$BACK" && test -f "$BACK"
+          test -n "$FRONT" && test -f "$FRONT"
+
+          cp "$BACK" "$TARGET/summon_reveal_card_back.png"
+          cp "$FRONT" "$TARGET/summon_reveal_card_front_frame.png"
+          rm -f "$ZIP"
+
+          python - <<'PY'
+          from pathlib import Path
+          import struct
+          target=Path('assets/ui/summon/reveal')
+          for name in ['summon_reveal_card_back.png','summon_reveal_card_front_frame.png']:
+              p=target/name
+              b=p.read_bytes()
+              assert b[:8] == b'\x89PNG\r\n\x1a\n', f'{name} is not a PNG'
+              w,h=struct.unpack('>II',b[16:24])
+              print(f'{name}: {w}x{h}, {len(b)} bytes')
+          PY
+
+      - name: Commit organized summon card assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A blazing_battle_summon_reveal_card_assets.zip assets/ui/summon/reveal
+          if git diff --cached --quiet; then
+            echo "No asset changes to commit."
+            exit 0
+          fi
+          git commit -m "Organize approved summon reveal card assets"
+          git push origin HEAD:dev-next-2026-09-01
