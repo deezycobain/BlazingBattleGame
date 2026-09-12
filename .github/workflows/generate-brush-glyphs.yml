@@ -50,6 +50,11 @@ jobs:
               assert not (root/old).exists(), f'legacy duplicate remains: {old}'
           print('Brush glyph verification PASS: 62 transparent glyphs, sources moved, no legacy duplicates')
           PY
+      - name: Export source sheets for visual QA
+        uses: actions/upload-artifact@v4
+        with:
+          name: blazing-brush-source-sheets
+          path: assets/fonts/blazing-brush/source/*.png
       - name: Commit generated glyphs
         run: |
           git config user.name "github-actions[bot]"
