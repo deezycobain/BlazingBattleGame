@@ -6,7 +6,9 @@ on:
       - dev-next-2026-09-01
     paths:
       - blazing_battle_high_quality_brush_strokes.zip
+      - blazing_battle_summon_vfx_replacement.zip
       - .github/workflows/organize-summon-reveal-vfx.yml
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -21,80 +23,92 @@ jobs:
           ref: dev-next-2026-09-01
           fetch-depth: 0
 
-      - name: Extract and normalize brush strokes
+      - name: Install replacement summon VFX
         shell: bash
         run: |
           set -euo pipefail
-          ZIP="blazing_battle_high_quality_brush_strokes.zip"
-          DEST="assets/vfx/summon/reveal-brush"
+          NEW_ZIP="blazing_battle_summon_vfx_replacement.zip"
+          LEGACY_ZIP="blazing_battle_high_quality_brush_strokes.zip"
+          BRUSH_DEST="assets/vfx/summon/reveal-brush"
+          SPIN_DEST="assets/vfx/summon/reveal-spin"
+          MANIFEST_DEST="assets/vfx/summon/reveal-vfx-manifest.json"
           TMP="$(mktemp -d)"
 
-          if [[ ! -f "$ZIP" ]]; then
-            echo "No summon brush ZIP present; nothing to organize."
-            exit 0
-          fi
+          if [[ -f "$NEW_ZIP" ]]; then
+            echo "Installing full summon VFX replacement package."
+            unzip -q "$NEW_ZIP" -d "$TMP"
 
-          rm -rf "$DEST"
-          mkdir -p "$DEST"
-          unzip -q "$ZIP" -d "$TMP"
+            for n in 01 02 03 04 05 06; do
+              test -f "$TMP/assets/vfx/summon/reveal-brush/brush-stroke-${n}.png" || {
+                echo "Missing replacement brush-stroke-${n}.png" >&2
+                exit 1
+              }
+            done
+            test -f "$TMP/assets/vfx/summon/reveal-spin/card-spin-orbit.png" || { echo "Missing card-spin-orbit.png" >&2; exit 1; }
+            test -f "$TMP/assets/vfx/summon/reveal-spin/reveal-resolve-ring.png" || { echo "Missing reveal-resolve-ring.png" >&2; exit 1; }
 
-          mapfile -t PNGS < <(find "$TMP" -type f -iname '*.png' | sort)
-          if [[ ${#PNGS[@]} -ne 6 ]]; then
-            echo "Expected exactly 6 PNG brush strokes, found ${#PNGS[@]}." >&2
-            printf '%s\n' "${PNGS[@]}" >&2
-            exit 1
-          fi
+            rm -rf "$BRUSH_DEST" "$SPIN_DEST"
+            mkdir -p "$BRUSH_DEST" "$SPIN_DEST"
+            cp "$TMP"/assets/vfx/summon/reveal-brush/brush-stroke-*.png "$BRUSH_DEST"/
+            cp "$TMP"/assets/vfx/summon/reveal-spin/*.png "$SPIN_DEST"/
+            if [[ -f "$TMP/summon-vfx-manifest.json" ]]; then
+              cp "$TMP/summon-vfx-manifest.json" "$MANIFEST_DEST"
+            fi
 
-          for i in "${!PNGS[@]}"; do
-            n=$(printf '%02d' $((i + 1)))
-            cp "${PNGS[$i]}" "$DEST/brush-stroke-${n}.png"
-          done
-
-          python3 - <<'PY'
-          import json, pathlib, struct
-          dest = pathlib.Path('assets/vfx/summon/reveal-brush')
-          items = []
-          for path in sorted(dest.glob('brush-stroke-*.png')):
+            python3 - <<'PY'
+          from pathlib import Path
+          import struct
+          expected = [*(Path('assets/vfx/summon/reveal-brush').glob('brush-stroke-*.png')),
+                      *(Path('assets/vfx/summon/reveal-spin').glob('*.png'))]
+          if len(expected) != 8:
+              raise SystemExit(f'Expected 8 replacement PNGs, found {len(expected)}')
+          for path in sorted(expected):
               data = path.read_bytes()
               if data[:8] != b'\x89PNG\r\n\x1a\n':
                   raise SystemExit(f'Not a PNG: {path}')
-              width, height = struct.unpack('>II', data[16:24])
-              items.append({
-                  'file': path.name,
-                  'path': str(path).replace('\\','/'),
-                  'width': width,
-                  'height': height,
-                  'role': 'unassigned'
-              })
-          manifest = {
-              'version': 1,
-              'purpose': 'Blazing Battle summon reveal brush-stroke VFX',
-              'count': len(items),
-              'assets': items
-          }
-          (dest / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+              w, h = struct.unpack('>II', data[16:24])
+              print(f'{path}: {w}x{h}')
           PY
 
-          cat > "$DEST/README.md" <<'EOF'
-          # Summon Reveal Brush VFX
+            rm -f "$NEW_ZIP"
+            exit 0
+          fi
 
-          Six high-resolution transparent PNG brush strokes used by the summon card reveal.
+          if [[ -f "$LEGACY_ZIP" ]]; then
+            echo "Installing legacy six-brush package."
+            rm -rf "$BRUSH_DEST"
+            mkdir -p "$BRUSH_DEST"
+            unzip -q "$LEGACY_ZIP" -d "$TMP/legacy"
+            mapfile -t PNGS < <(find "$TMP/legacy" -type f -iname '*.png' | sort)
+            if [[ ${#PNGS[@]} -ne 6 ]]; then
+              echo "Expected exactly 6 PNG brush strokes, found ${#PNGS[@]}." >&2
+              exit 1
+            fi
+            for i in "${!PNGS[@]}"; do
+              n=$(printf '%02d' $((i + 1)))
+              cp "${PNGS[$i]}" "$BRUSH_DEST/brush-stroke-${n}.png"
+            done
+            rm -f "$LEGACY_ZIP"
+            exit 0
+          fi
 
-          Runtime assets are normalized to `brush-stroke-01.png` through `brush-stroke-06.png` so reveal choreography never depends on upload filenames. `manifest.json` records dimensions and is the place to assign semantic roles as the animation is tuned.
-          EOF
-
-          rm -f "$ZIP"
+          echo "No summon VFX ZIP present; nothing to organize."
 
       - name: Commit organized summon VFX
         shell: bash
         run: |
           set -euo pipefail
-          git add -A blazing_battle_high_quality_brush_strokes.zip assets/vfx/summon/reveal-brush
+          git add -A \
+            blazing_battle_high_quality_brush_strokes.zip \
+            blazing_battle_summon_vfx_replacement.zip \
+            assets/vfx/summon/reveal-brush \
+            assets/vfx/summon/reveal-spin \
+            assets/vfx/summon/reveal-vfx-manifest.json
           if git diff --cached --quiet; then
             echo "No asset changes to commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Organize summon reveal brush VFX"
+          git commit -m "Replace summon reveal VFX assets"
           git push origin HEAD:dev-next-2026-09-01
