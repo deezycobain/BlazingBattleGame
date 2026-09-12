@@ -1,0 +1,45 @@
+{
+  "package": "Blazing Battle summon VFX replacement",
+  "brushes": [
+    {
+      "file": "assets/vfx/summon/reveal-brush/brush-stroke-01.png",
+      "role": "Primary bottom-left to top-right swipe"
+    },
+    {
+      "file": "assets/vfx/summon/reveal-brush/brush-stroke-02.png",
+      "role": "Secondary curved bottom-left to top-right swipe"
+    },
+    {
+      "file": "assets/vfx/summon/reveal-brush/brush-stroke-03.png",
+      "role": "Primary bottom-right to top-left swipe"
+    },
+    {
+      "file": "assets/vfx/summon/reveal-brush/brush-stroke-04.png",
+      "role": "Lighter/free bottom-left to top-right swipe"
+    },
+    {
+      "file": "assets/vfx/summon/reveal-brush/brush-stroke-05.png",
+      "role": "Lighter/free bottom-right to top-left swipe"
+    },
+    {
+      "file": "assets/vfx/summon/reveal-brush/brush-stroke-06.png",
+      "role": "Free accent paint/splatter flourish"
+    }
+  ],
+  "spin_vfx": [
+    {
+      "file": "assets/vfx/summon/reveal-spin/card-spin-orbit.png",
+      "role": "Card spin orbit/trail overlay"
+    },
+    {
+      "file": "assets/vfx/summon/reveal-spin/reveal-resolve-ring.png",
+      "role": "Front-art resolve / reveal ring"
+    }
+  ],
+  "notes": [
+    "The six brush files intentionally reuse the existing brush-stroke-01.png through brush-stroke-06.png filenames so they can overwrite the old reveal brush set.",
+    "Brushes should animate beyond the card bounds and across a motion region slightly larger than the card.",
+    "Use alternating diagonals, slight position/scale/rotation variance per pull, and progressive opacity/translation so the strokes feel painted rather than flashed.",
+    "The spin assets are additive and should be wired during the slower multi-rotation card-flip phase."
+  ]
+}
