@@ -1,5 +1,5 @@
-/* Blazing Battle summon cinematic v3.1
-   Progressive painted sweeps + delayed weighted spin + soft front resolve. */
+/* Blazing Battle summon cinematic v3.2
+   Strong painted sweeps, staged slow-to-fast circle charge, delayed physical card reveal. */
 
 #summonPullScreen .pullScene{position:relative;overflow:visible!important}
 #summonPullScreen .pullHeroArea{isolation:isolate;perspective:1300px;overflow:visible!important}
@@ -14,7 +14,7 @@
 
 #summonPullScreen .bb-card-flipper{
  position:absolute;inset:0;z-index:4;transform-style:preserve-3d;transform:rotateY(0deg);
- transform-origin:50% 50%;will-change:transform;
+ transform-origin:50% 50%;will-change:transform,opacity;opacity:1;
 }
 #summonPullScreen .bb-card-face{
  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
@@ -41,7 +41,6 @@
  border-radius:3px!important;object-fit:cover!important;
 }
 
-/* The authored frame owns fighter identity. */
 #summonPullScreen .bb-card-nameplate{
  position:absolute;z-index:18;left:19%;top:4.25%;width:62%;height:6.1%;
  display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:0 7%;
@@ -59,7 +58,6 @@
 #summonPullScreen .bb-card-front.bb-has-card-frame .cardNew,
 #summonPullScreen #pullNewBadge{display:none!important}
 
-/* Standardized summon crop. Full artwork elsewhere remains untouched. */
 #summonPullScreen .bb-card-front .summonedTradingCard{
  object-fit:cover!important;object-position:var(--bb-art-x,50%) var(--bb-art-y,45%)!important;
  opacity:0!important;transform:scale(1.025);transition:opacity .30s ease-out,transform .34s cubic-bezier(.18,.76,.2,1)!important;
@@ -70,14 +68,28 @@
 #summonPullScreen .pullCardWrap[data-fighter="Senku"]{--bb-art-x:50%;--bb-art-y:43%}
 #summonPullScreen .pullCardWrap[data-fighter="Tyler"]{--bb-art-x:50%;--bb-art-y:43%}
 
-/* Free paint stage: larger than the card and never clipped to the card frame. */
+/* Paint owns the opening beat. The card is completely withheld until card-enter. */
+#summonPullScreen .pullScene[data-bb-paint-stage="paint"] .bb-card-flipper,
+#summonPullScreen .pullScene[data-bb-paint-stage="circle-slow"] .bb-card-flipper,
+#summonPullScreen .pullScene[data-bb-paint-stage="circle-fast"] .bb-card-flipper{opacity:0!important;animation:none!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="paint"] .pullCardWrap::before,
+#summonPullScreen .pullScene[data-bb-paint-stage="paint"] .pullCardWrap::after,
+#summonPullScreen .pullScene[data-bb-paint-stage="circle-slow"] .pullCardWrap::before,
+#summonPullScreen .pullScene[data-bb-paint-stage="circle-slow"] .pullCardWrap::after,
+#summonPullScreen .pullScene[data-bb-paint-stage="circle-fast"] .pullCardWrap::before,
+#summonPullScreen .pullScene[data-bb-paint-stage="circle-fast"] .pullCardWrap::after{opacity:0!important;animation:none!important}
+
+/* Deliberately composed paint region: free enough to breathe, tight enough to feel authored. */
 #summonPullScreen .bb-paint-stage-vfx{
- position:absolute;z-index:8;left:50%;top:50%;width:138vw;height:90dvh;
+ position:absolute;z-index:8;left:50%;top:50%;width:120vw;height:76dvh;
  transform:translate(-50%,-50%);pointer-events:none;overflow:visible!important;
  clip-path:none!important;mask:none!important;-webkit-mask:none!important;contain:layout style;
- opacity:1;transition:opacity .38s cubic-bezier(.2,.66,.2,1);
+ opacity:1;transition:opacity .24s cubic-bezier(.2,.66,.2,1);
 }
-#summonPullScreen .pullScene[data-bb-paint-stage="spin"] .bb-paint-stage-vfx{opacity:.46}
+#summonPullScreen .pullScene[data-bb-paint-stage="circle-slow"] .bb-paint-stage-vfx{opacity:.55}
+#summonPullScreen .pullScene[data-bb-paint-stage="circle-fast"] .bb-paint-stage-vfx{opacity:.14}
+#summonPullScreen .pullScene[data-bb-paint-stage="card-enter"] .bb-paint-stage-vfx,
+#summonPullScreen .pullScene[data-bb-paint-stage="spin"] .bb-paint-stage-vfx,
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-paint-stage-vfx,
 #summonPullScreen .pullScene[data-bb-paint-stage="done"] .bb-paint-stage-vfx{opacity:0}
 #summonPullScreen .bb-paint-stroke,
@@ -85,50 +97,49 @@
  position:absolute;left:50%;top:50%;display:block;max-width:none!important;height:auto;pointer-events:none;opacity:0;
  transform-origin:center;will-change:transform,opacity,clip-path;backface-visibility:hidden;-webkit-backface-visibility:hidden;
 }
-#summonPullScreen .bb-paint-stroke{width:min(164vw,1060px);z-index:10}
+#summonPullScreen .bb-paint-stroke{width:min(134vw,860px);z-index:10}
 #summonPullScreen .bb-paint-stroke.bb-paint-direction-up{clip-path:inset(0 100% 0 0)}
 #summonPullScreen .bb-paint-stroke.bb-paint-direction-cross{clip-path:inset(0 0 0 100%)}
 #summonPullScreen .bb-paint-stroke-echo{z-index:9;opacity:0;clip-path:none!important;will-change:transform,opacity}
-#summonPullScreen .bb-paint-stroke-3{width:min(154vw,990px)}
-#summonPullScreen .bb-paint-accent{width:min(158vw,1020px);z-index:8}
+#summonPullScreen .bb-paint-stroke-3{width:min(126vw,810px)}
+#summonPullScreen .bb-paint-accent{width:min(124vw,800px);z-index:8}
 #summonPullScreen .bb-vfx-missing{display:none!important}
 
-/* The stroke is now progressively uncovered from its brush origin while the whole gesture travels. */
-#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-1.bb-paint-direction-up:not(.bb-paint-stroke-echo){animation:bbBrushSwipeOne .76s cubic-bezier(.18,.58,.18,1) .10s both,bbBrushPaintLTR .76s linear .10s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-1.bb-paint-direction-cross:not(.bb-paint-stroke-echo){animation:bbBrushSwipeOne .76s cubic-bezier(.18,.58,.18,1) .10s both,bbBrushPaintRTL .76s linear .10s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-1-echo{animation:bbBrushEchoOne 1.08s cubic-bezier(.16,.66,.18,1) .42s both!important}
+/* Three strong strokes, BL to TR, BR to TL, then BL to TR. */
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-1.bb-paint-direction-up:not(.bb-paint-stroke-echo){animation:bbBrushSwipeOne .42s cubic-bezier(.18,.58,.18,1) .06s both,bbBrushPaintLTR .42s linear .06s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-1.bb-paint-direction-cross:not(.bb-paint-stroke-echo){animation:bbBrushSwipeOne .42s cubic-bezier(.18,.58,.18,1) .06s both,bbBrushPaintRTL .42s linear .06s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-1-echo{animation:bbBrushEchoOne .76s cubic-bezier(.16,.66,.18,1) .25s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-2.bb-paint-direction-up:not(.bb-paint-stroke-echo){animation:bbBrushSwipeTwo .43s cubic-bezier(.18,.58,.18,1) .24s both,bbBrushPaintLTR .43s linear .24s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-2.bb-paint-direction-cross:not(.bb-paint-stroke-echo){animation:bbBrushSwipeTwo .43s cubic-bezier(.18,.58,.18,1) .24s both,bbBrushPaintRTL .43s linear .24s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-2-echo{animation:bbBrushEchoTwo .72s cubic-bezier(.16,.66,.18,1) .46s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-3.bb-paint-direction-up:not(.bb-paint-stroke-echo){animation:bbBrushFinisher .40s cubic-bezier(.18,.58,.18,1) .48s both,bbBrushPaintLTR .40s linear .48s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-3.bb-paint-direction-cross:not(.bb-paint-stroke-echo){animation:bbBrushFinisher .40s cubic-bezier(.18,.58,.18,1) .48s both,bbBrushPaintRTL .40s linear .48s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-3-echo{animation:bbBrushEchoThree .62s cubic-bezier(.16,.66,.18,1) .68s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-accent{animation:bbPaintAccentDrift .64s ease-out .44s both!important}
 
-#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-2.bb-paint-direction-up:not(.bb-paint-stroke-echo){animation:bbBrushSwipeTwo .78s cubic-bezier(.18,.58,.18,1) .39s both,bbBrushPaintLTR .78s linear .39s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-2.bb-paint-direction-cross:not(.bb-paint-stroke-echo){animation:bbBrushSwipeTwo .78s cubic-bezier(.18,.58,.18,1) .39s both,bbBrushPaintRTL .78s linear .39s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-2-echo{animation:bbBrushEchoTwo 1.00s cubic-bezier(.16,.66,.18,1) .70s both!important}
-
-#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-3.bb-paint-direction-up:not(.bb-paint-stroke-echo){animation:bbBrushFinisher .72s cubic-bezier(.18,.58,.18,1) .72s both,bbBrushPaintLTR .72s linear .72s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-3.bb-paint-direction-cross:not(.bb-paint-stroke-echo){animation:bbBrushFinisher .72s cubic-bezier(.18,.58,.18,1) .72s both,bbBrushPaintRTL .72s linear .72s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-stroke-3-echo{animation:bbBrushEchoThree .90s cubic-bezier(.16,.66,.18,1) .98s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running .bb-paint-accent{animation:bbPaintAccentDrift 1.06s ease-out .58s both!important}
-#summonPullScreen .pullScene[data-bb-reveal-kind="shiny"].bb-cinematic-running .bb-paint-accent{animation-duration:1.18s!important}
-
-/* Card-local spin VFX starts after the paint has actually landed. */
+/* Circle has a separate slow charge, then an obvious fast acceleration before the card exists. */
 #summonPullScreen .bb-card-spin-vfx{position:absolute;z-index:8;inset:-40%;pointer-events:none;overflow:visible}
 #summonPullScreen .bb-spin-orbit,#summonPullScreen .bb-resolve-ring{
  position:absolute;left:50%;top:50%;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none;
  transform:translate(-50%,-50%) scale(.82);will-change:transform,opacity;backface-visibility:hidden;
 }
-#summonPullScreen .pullScene[data-bb-paint-stage="spin"] .bb-spin-orbit{animation:bbSpinOrbit .92s cubic-bezier(.18,.62,.16,1) both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="circle-slow"] .bb-spin-orbit{animation:bbCircleSlow .40s linear both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="circle-fast"] .bb-spin-orbit{animation:bbCircleFast .26s cubic-bezier(.55,.02,.15,1) both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="card-enter"] .bb-spin-orbit{animation:bbCircleCardArrival .27s cubic-bezier(.18,.68,.18,1) both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="spin"] .bb-spin-orbit{animation:bbSpinOrbit .56s cubic-bezier(.16,.62,.14,1) both!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-resolve-ring{animation:bbResolveRing .56s ease-out both!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"][data-bb-reveal-kind="new"] .bb-resolve-ring{animation-duration:.62s!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"][data-bb-reveal-kind="shiny"] .bb-resolve-ring{animation-duration:.70s!important}
 
-#summonPullScreen .pullScene[data-bb-paint-stage="paint"] .bb-card-flipper{animation:bbCardBackEnter .24s cubic-bezier(.18,.78,.2,1) both!important}
-#summonPullScreen .pullScene[data-bb-paint-stage="spin"] .bb-card-flipper{animation:bbPhysicalCardFlip .88s cubic-bezier(.22,.60,.14,1) both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="card-enter"] .bb-card-flipper{opacity:1!important;animation:bbCardBackEnter .27s cubic-bezier(.18,.78,.2,1) both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="spin"] .bb-card-flipper{opacity:1!important;animation:bbPhysicalCardFlip .56s cubic-bezier(.28,.06,.12,1) both!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="spin"] .bb-card-front .summonedTradingCard{opacity:0!important;transition:none!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-card-flipper,
-#summonPullScreen .pullScene[data-bb-paint-stage="done"] .bb-card-flipper{transform:rotateY(540deg)!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="done"] .bb-card-flipper{opacity:1!important;transform:rotateY(540deg)!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-card-flipper{animation:bbFrontCardSettle .32s cubic-bezier(.16,.82,.2,1) both!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-card-front .summonedTradingCard,
 #summonPullScreen .pullScene[data-bb-paint-stage="done"] .bb-card-front .summonedTradingCard{opacity:1!important;transform:scale(1)!important}
 
-/* Keep status chrome out of the way until the artwork has settled. */
 #summonPullScreen .pullScene.bb-cinematic-running .pullCardMeta,
 #summonPullScreen .pullScene.bb-cinematic-running .cardNew,
 #summonPullScreen .pullScene.bb-cinematic-running #pullMessage{opacity:0!important;transition:opacity .16s ease-out!important}
@@ -142,106 +153,112 @@
 #summonPullScreen .pullScene[data-bb-reveal-kind="new"] .pullCardWrap::before{border-color:#5b91ad!important;box-shadow:0 0 0 2px rgba(111,174,205,.18),0 12px 25px rgba(54,39,24,.24),0 0 24px rgba(74,139,171,.19)!important}
 #summonPullScreen .pullScene[data-bb-reveal-kind="shiny"] .pullCardWrap::before{border-color:#e5b746!important;box-shadow:0 0 0 3px rgba(255,239,177,.4),0 0 30px rgba(222,167,53,.34),0 12px 28px rgba(69,45,13,.28)!important}
 
-/* Result binder cascade stays quick. */
 #summonPullScreen #pullResultsGrid .pullCard{animation:bbCineResultIn .28s cubic-bezier(.2,.78,.2,1) var(--bb-result-delay,0ms) both!important}
 #summonPullScreen #pullResultsGrid .bb-new-result-card{border-color:#5e8da7!important;box-shadow:inset 0 1px rgba(255,255,255,.68),0 5px 12px rgba(48,78,95,.18)!important}
 #summonPullScreen #pullResultsGrid .bb-shiny-result-card::after{content:'';position:absolute;inset:-30% -80%;pointer-events:none;background:linear-gradient(112deg,transparent 39%,rgba(255,249,210,.9) 49%,transparent 59%);transform:translateX(-42%);animation:bbCineResultShine .62s ease-out var(--bb-result-shine-delay,180ms) 1 both}
 #summonPullScreen .resultsMode .bb-paint-stage-vfx,#summonPullScreen .resultsMode .bb-card-spin-vfx{display:none!important}
 
 @keyframes bbCardBackEnter{
- 0%{opacity:0;transform:translateY(9px) scale(.958) rotateZ(-1.35deg) rotateY(0deg)}
- 68%{opacity:1;transform:translateY(-1px) scale(1.008) rotateZ(.18deg) rotateY(0deg)}
+ 0%{opacity:0;transform:translateY(8px) scale(.86) rotateZ(-1.2deg) rotateY(0deg)}
+ 58%{opacity:1;transform:translateY(-1px) scale(1.02) rotateZ(.2deg) rotateY(0deg)}
  100%{opacity:1;transform:translateY(0) scale(1) rotateZ(0) rotateY(0deg)}
 }
 
-/* Reveal the image from the brush origin instead of flashing the completed stroke. */
 @keyframes bbBrushPaintLTR{
  0%{opacity:0;clip-path:inset(0 100% 0 0)}
- 8%{opacity:.62;clip-path:inset(0 92% 0 0)}
- 24%{opacity:1;clip-path:inset(0 67% 0 0)}
- 48%{opacity:1;clip-path:inset(0 32% 0 0)}
- 70%{opacity:1;clip-path:inset(0 0 0 0)}
- 90%{opacity:.96;clip-path:inset(0 0 0 0)}
- 100%{opacity:.32;clip-path:inset(0 0 0 0)}
+ 6%{opacity:.86;clip-path:inset(0 92% 0 0)}
+ 18%{opacity:1;clip-path:inset(0 68% 0 0)}
+ 42%{opacity:1;clip-path:inset(0 34% 0 0)}
+ 72%{opacity:1;clip-path:inset(0 0 0 0)}
+ 100%{opacity:.94;clip-path:inset(0 0 0 0)}
 }
 @keyframes bbBrushPaintRTL{
  0%{opacity:0;clip-path:inset(0 0 0 100%)}
- 8%{opacity:.62;clip-path:inset(0 0 0 92%)}
- 24%{opacity:1;clip-path:inset(0 0 0 67%)}
- 48%{opacity:1;clip-path:inset(0 0 0 32%)}
- 70%{opacity:1;clip-path:inset(0 0 0 0)}
- 90%{opacity:.96;clip-path:inset(0 0 0 0)}
- 100%{opacity:.32;clip-path:inset(0 0 0 0)}
+ 6%{opacity:.86;clip-path:inset(0 0 0 92%)}
+ 18%{opacity:1;clip-path:inset(0 0 0 68%)}
+ 42%{opacity:1;clip-path:inset(0 0 0 34%)}
+ 72%{opacity:1;clip-path:inset(0 0 0 0)}
+ 100%{opacity:.94;clip-path:inset(0 0 0 0)}
 }
 
-/* Motion is slower than the reveal so the painted mark visibly grows along the path. */
 @keyframes bbBrushSwipeOne{
- 0%{transform:translate(-50%,-50%) translate3d(var(--s1-x0,-39vw),var(--s1-y0,22vh),0) rotate(var(--s1-r0,-3deg)) scale(calc(var(--s1-scale,1)*.93))}
- 34%{transform:translate(-50%,-50%) translate3d(calc(var(--s1-xm,0vw) - 8vw),calc(var(--s1-ym,0vh) + 5vh),0) rotate(var(--s1-rm,0deg)) scale(calc(var(--s1-scale,1)*.975))}
- 68%{transform:translate(-50%,-50%) translate3d(calc(var(--s1-xm,0vw) + 7vw),calc(var(--s1-ym,0vh) - 5vh),0) rotate(var(--s1-rm,0deg)) scale(var(--s1-scale,1))}
- 100%{transform:translate(-50%,-50%) translate3d(var(--s1-x1,40vw),var(--s1-y1,-23vh),0) rotate(var(--s1-r1,2deg)) scale(calc(var(--s1-scale,1)*1.025))}
+ 0%{transform:translate(-50%,-50%) translate3d(var(--s1-x0,-28vw),var(--s1-y0,16vh),0) rotate(var(--s1-r0,-2deg)) scale(calc(var(--s1-scale,1)*.96))}
+ 45%{transform:translate(-50%,-50%) translate3d(calc(var(--s1-xm,0vw) - 3vw),calc(var(--s1-ym,0vh) + 2vh),0) rotate(var(--s1-rm,0deg)) scale(calc(var(--s1-scale,1)*.99))}
+ 78%{transform:translate(-50%,-50%) translate3d(calc(var(--s1-xm,0vw) + 3vw),calc(var(--s1-ym,0vh) - 2vh),0) rotate(var(--s1-rm,0deg)) scale(var(--s1-scale,1))}
+ 100%{transform:translate(-50%,-50%) translate3d(var(--s1-x1,29vw),var(--s1-y1,-17vh),0) rotate(var(--s1-r1,1deg)) scale(calc(var(--s1-scale,1)*1.015))}
 }
 @keyframes bbBrushSwipeTwo{
- 0%{transform:translate(-50%,-50%) translate3d(var(--s2-x0,39vw),var(--s2-y0,22vh),0) rotate(var(--s2-r0,3deg)) scale(calc(var(--s2-scale,1)*.93))}
- 34%{transform:translate(-50%,-50%) translate3d(calc(var(--s2-xm,0vw) + 8vw),calc(var(--s2-ym,0vh) + 5vh),0) rotate(var(--s2-rm,0deg)) scale(calc(var(--s2-scale,1)*.975))}
- 68%{transform:translate(-50%,-50%) translate3d(calc(var(--s2-xm,0vw) - 7vw),calc(var(--s2-ym,0vh) - 5vh),0) rotate(var(--s2-rm,0deg)) scale(var(--s2-scale,1))}
- 100%{transform:translate(-50%,-50%) translate3d(var(--s2-x1,-40vw),var(--s2-y1,-23vh),0) rotate(var(--s2-r1,-2deg)) scale(calc(var(--s2-scale,1)*1.025))}
+ 0%{transform:translate(-50%,-50%) translate3d(var(--s2-x0,28vw),var(--s2-y0,16vh),0) rotate(var(--s2-r0,2deg)) scale(calc(var(--s2-scale,1)*.96))}
+ 45%{transform:translate(-50%,-50%) translate3d(calc(var(--s2-xm,0vw) + 3vw),calc(var(--s2-ym,0vh) + 2vh),0) rotate(var(--s2-rm,0deg)) scale(calc(var(--s2-scale,1)*.99))}
+ 78%{transform:translate(-50%,-50%) translate3d(calc(var(--s2-xm,0vw) - 3vw),calc(var(--s2-ym,0vh) - 2vh),0) rotate(var(--s2-rm,0deg)) scale(var(--s2-scale,1))}
+ 100%{transform:translate(-50%,-50%) translate3d(var(--s2-x1,-29vw),var(--s2-y1,-17vh),0) rotate(var(--s2-r1,-1deg)) scale(calc(var(--s2-scale,1)*1.015))}
 }
 @keyframes bbBrushFinisher{
- 0%{transform:translate(-50%,-50%) translate3d(var(--s3-x0,-39vw),var(--s3-y0,22vh),0) rotate(var(--s3-r0,-3deg)) scale(calc(var(--s3-scale,1)*.94))}
- 36%{transform:translate(-50%,-50%) translate3d(calc(var(--s3-xm,0vw) - 6vw),calc(var(--s3-ym,0vh) + 4vh),0) rotate(var(--s3-rm,0deg)) scale(calc(var(--s3-scale,1)*.98))}
- 70%{transform:translate(-50%,-50%) translate3d(calc(var(--s3-xm,0vw) + 6vw),calc(var(--s3-ym,0vh) - 4vh),0) rotate(var(--s3-rm,0deg)) scale(var(--s3-scale,1))}
- 100%{transform:translate(-50%,-50%) translate3d(var(--s3-x1,40vw),var(--s3-y1,-23vh),0) rotate(var(--s3-r1,2deg)) scale(calc(var(--s3-scale,1)*1.03))}
+ 0%{transform:translate(-50%,-50%) translate3d(var(--s3-x0,-28vw),var(--s3-y0,16vh),0) rotate(var(--s3-r0,-2deg)) scale(calc(var(--s3-scale,1)*.97))}
+ 48%{transform:translate(-50%,-50%) translate3d(calc(var(--s3-xm,0vw) - 2.5vw),calc(var(--s3-ym,0vh) + 1.5vh),0) rotate(var(--s3-rm,0deg)) scale(calc(var(--s3-scale,1)*.995))}
+ 80%{transform:translate(-50%,-50%) translate3d(calc(var(--s3-xm,0vw) + 2.5vw),calc(var(--s3-ym,0vh) - 1.5vh),0) rotate(var(--s3-rm,0deg)) scale(var(--s3-scale,1))}
+ 100%{transform:translate(-50%,-50%) translate3d(var(--s3-x1,29vw),var(--s3-y1,-17vh),0) rotate(var(--s3-r1,1deg)) scale(calc(var(--s3-scale,1)*1.015))}
 }
 
-/* Deposited paint hangs behind the brush head long enough to read before the card starts moving. */
 @keyframes bbBrushEchoOne{
  0%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s1-xm,0vw),var(--s1-ym,0vh),0) rotate(var(--s1-rm,0deg)) scale(var(--s1-scale,1))}
- 10%{opacity:.38}
- 62%{opacity:.32;transform:translate(-50%,-50%) translate3d(calc(var(--s1-xm,0vw) + 5vw),calc(var(--s1-ym,0vh) - 3vh),0) rotate(var(--s1-rm,0deg)) scale(calc(var(--s1-scale,1)*1.008))}
- 86%{opacity:.24}
- 100%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s1-x1,40vw),var(--s1-y1,-23vh),0) rotate(var(--s1-r1,2deg)) scale(calc(var(--s1-scale,1)*1.025))}
+ 10%{opacity:.58}
+ 68%{opacity:.52;transform:translate(-50%,-50%) translate3d(calc(var(--s1-xm,0vw) + 3vw),calc(var(--s1-ym,0vh) - 2vh),0) rotate(var(--s1-rm,0deg)) scale(calc(var(--s1-scale,1)*1.006))}
+ 88%{opacity:.42}
+ 100%{opacity:.28;transform:translate(-50%,-50%) translate3d(var(--s1-x1,29vw),var(--s1-y1,-17vh),0) rotate(var(--s1-r1,1deg)) scale(calc(var(--s1-scale,1)*1.015))}
 }
 @keyframes bbBrushEchoTwo{
  0%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s2-xm,0vw),var(--s2-ym,0vh),0) rotate(var(--s2-rm,0deg)) scale(var(--s2-scale,1))}
- 10%{opacity:.36}
- 62%{opacity:.30;transform:translate(-50%,-50%) translate3d(calc(var(--s2-xm,0vw) - 5vw),calc(var(--s2-ym,0vh) - 3vh),0) rotate(var(--s2-rm,0deg)) scale(calc(var(--s2-scale,1)*1.008))}
- 86%{opacity:.22}
- 100%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s2-x1,-40vw),var(--s2-y1,-23vh),0) rotate(var(--s2-r1,-2deg)) scale(calc(var(--s2-scale,1)*1.025))}
+ 10%{opacity:.56}
+ 68%{opacity:.50;transform:translate(-50%,-50%) translate3d(calc(var(--s2-xm,0vw) - 3vw),calc(var(--s2-ym,0vh) - 2vh),0) rotate(var(--s2-rm,0deg)) scale(calc(var(--s2-scale,1)*1.006))}
+ 88%{opacity:.40}
+ 100%{opacity:.26;transform:translate(-50%,-50%) translate3d(var(--s2-x1,-29vw),var(--s2-y1,-17vh),0) rotate(var(--s2-r1,-1deg)) scale(calc(var(--s2-scale,1)*1.015))}
 }
 @keyframes bbBrushEchoThree{
  0%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s3-xm,0vw),var(--s3-ym,0vh),0) rotate(var(--s3-rm,0deg)) scale(var(--s3-scale,1))}
- 10%{opacity:.32}
- 62%{opacity:.27;transform:translate(-50%,-50%) translate3d(calc(var(--s3-xm,0vw) + 4vw),calc(var(--s3-ym,0vh) - 3vh),0) rotate(var(--s3-rm,0deg)) scale(calc(var(--s3-scale,1)*1.008))}
- 86%{opacity:.20}
- 100%{opacity:0;transform:translate(-50%,-50%) translate3d(var(--s3-x1,40vw),var(--s3-y1,-23vh),0) rotate(var(--s3-r1,2deg)) scale(calc(var(--s3-scale,1)*1.03))}
+ 10%{opacity:.52}
+ 68%{opacity:.46;transform:translate(-50%,-50%) translate3d(calc(var(--s3-xm,0vw) + 2.5vw),calc(var(--s3-ym,0vh) - 1.5vh),0) rotate(var(--s3-rm,0deg)) scale(calc(var(--s3-scale,1)*1.006))}
+ 88%{opacity:.36}
+ 100%{opacity:.24;transform:translate(-50%,-50%) translate3d(var(--s3-x1,29vw),var(--s3-y1,-17vh),0) rotate(var(--s3-r1,1deg)) scale(calc(var(--s3-scale,1)*1.015))}
 }
 @keyframes bbPaintAccentDrift{
- 0%{opacity:0;transform:translate(-50%,-50%) translate3d(calc(var(--bb-accent-x,0vw) - 9vw),calc(var(--bb-accent-y,0vh) + 6vh),0) rotate(var(--bb-accent-r,0deg)) scale(calc(var(--bb-accent-scale,1)*.92))}
- 20%{opacity:.34}
- 66%{opacity:.30;transform:translate(-50%,-50%) translate3d(var(--bb-accent-x,0vw),var(--bb-accent-y,0vh),0) rotate(var(--bb-accent-r,0deg)) scale(var(--bb-accent-scale,1))}
- 88%{opacity:.20}
- 100%{opacity:0;transform:translate(-50%,-50%) translate3d(calc(var(--bb-accent-x,0vw) + 8vw),calc(var(--bb-accent-y,0vh) - 6vh),0) rotate(var(--bb-accent-r,0deg)) scale(calc(var(--bb-accent-scale,1)*1.035))}
+ 0%{opacity:0;transform:translate(-50%,-50%) translate3d(calc(var(--bb-accent-x,0vw) - 4vw),calc(var(--bb-accent-y,0vh) + 3vh),0) rotate(var(--bb-accent-r,0deg)) scale(calc(var(--bb-accent-scale,1)*.96))}
+ 18%{opacity:.42}
+ 72%{opacity:.36;transform:translate(-50%,-50%) translate3d(var(--bb-accent-x,0vw),var(--bb-accent-y,0vh),0) rotate(var(--bb-accent-r,0deg)) scale(var(--bb-accent-scale,1))}
+ 100%{opacity:.20;transform:translate(-50%,-50%) translate3d(calc(var(--bb-accent-x,0vw) + 3vw),calc(var(--bb-accent-y,0vh) - 3vh),0) rotate(var(--bb-accent-r,0deg)) scale(calc(var(--bb-accent-scale,1)*1.02))}
 }
 
-/* 1.5 turns, but with a readable full-back beat before the final half-turn to the front. */
+@keyframes bbCircleSlow{
+ 0%{opacity:0;transform:translate(-50%,-50%) rotate(-20deg) scale(.78)}
+ 20%{opacity:.42}
+ 100%{opacity:.78;transform:translate(-50%,-50%) rotate(30deg) scale(.94)}
+}
+@keyframes bbCircleFast{
+ 0%{opacity:.78;transform:translate(-50%,-50%) rotate(30deg) scale(.94)}
+ 28%{opacity:.90;transform:translate(-50%,-50%) rotate(92deg) scale(.98)}
+ 64%{opacity:1;transform:translate(-50%,-50%) rotate(220deg) scale(1.03)}
+ 100%{opacity:.96;transform:translate(-50%,-50%) rotate(390deg) scale(1.06)}
+}
+@keyframes bbCircleCardArrival{
+ 0%{opacity:.96;transform:translate(-50%,-50%) rotate(390deg) scale(1.06)}
+ 48%{opacity:1;transform:translate(-50%,-50%) rotate(438deg) scale(1.12)}
+ 100%{opacity:.66;transform:translate(-50%,-50%) rotate(474deg) scale(1.05)}
+}
+
+/* The card is readable on its back first, then accelerates through a 1.5-turn physical flip. */
 @keyframes bbPhysicalCardFlip{
  0%{transform:rotateY(0deg) rotateZ(0deg) translateY(0) scale(1)}
- 12%{transform:rotateY(58deg) rotateZ(-.55deg) translateY(-1px) scale(.992)}
- 28%{transform:rotateY(170deg) rotateZ(.48deg) translateY(-2px) scale(.972)}
- 45%{transform:rotateY(285deg) rotateZ(-.36deg) translateY(-2px) scale(.968)}
- 58%{transform:rotateY(360deg) rotateZ(.18deg) translateY(-1px) scale(1.012)}
- 76%{transform:rotateY(438deg) rotateZ(-.28deg) translateY(-2px) scale(1.018)}
- 90%{transform:rotateY(505deg) rotateZ(.16deg) translateY(-1px) scale(1.010)}
+ 18%{transform:rotateY(35deg) rotateZ(-.35deg) translateY(-1px) scale(.997)}
+ 38%{transform:rotateY(120deg) rotateZ(.42deg) translateY(-2px) scale(.982)}
+ 60%{transform:rotateY(270deg) rotateZ(-.32deg) translateY(-2px) scale(.972)}
+ 78%{transform:rotateY(420deg) rotateZ(.22deg) translateY(-1px) scale(1.012)}
  100%{transform:rotateY(540deg) rotateZ(0deg) translateY(0) scale(1)}
 }
 @keyframes bbSpinOrbit{
- 0%{opacity:0;transform:translate(-50%,-50%) rotate(-28deg) scale(.70)}
- 10%{opacity:.58}
- 30%{opacity:.90;transform:translate(-50%,-50%) rotate(48deg) scale(.92)}
- 62%{opacity:.96;transform:translate(-50%,-50%) rotate(142deg) scale(1.06)}
- 84%{opacity:.74;transform:translate(-50%,-50%) rotate(214deg) scale(1.12)}
- 100%{opacity:0;transform:translate(-50%,-50%) rotate(260deg) scale(1.17)}
+ 0%{opacity:.66;transform:translate(-50%,-50%) rotate(474deg) scale(1.05)}
+ 30%{opacity:.90;transform:translate(-50%,-50%) rotate(560deg) scale(1.08)}
+ 68%{opacity:.96;transform:translate(-50%,-50%) rotate(704deg) scale(1.13)}
+ 100%{opacity:0;transform:translate(-50%,-50%) rotate(860deg) scale(1.18)}
 }
 @keyframes bbResolveRing{
  0%{opacity:0;transform:translate(-50%,-50%) scale(.70) rotate(-12deg)}
@@ -261,20 +278,20 @@
 
 @media(max-width:520px){
  #summonPullScreen .pullCardWrap{width:min(86vw,44dvh)!important}
- #summonPullScreen .bb-paint-stage-vfx{width:146vw;height:92dvh}
- #summonPullScreen .bb-paint-stroke{width:min(172vw,750px)}
- #summonPullScreen .bb-paint-stroke-3{width:min(162vw,710px)}
- #summonPullScreen .bb-paint-accent{width:min(166vw,730px)}
+ #summonPullScreen .bb-paint-stage-vfx{width:126vw;height:78dvh}
+ #summonPullScreen .bb-paint-stroke{width:min(140vw,710px)}
+ #summonPullScreen .bb-paint-stroke-3{width:min(132vw,680px)}
+ #summonPullScreen .bb-paint-accent{width:min(130vw,670px)}
  #summonPullScreen .bb-card-nameplate{font-size:clamp(11px,3.7vw,17px)}
 }
 @media(prefers-reduced-motion:reduce){
  #summonPullScreen .bb-paint-stage-vfx,#summonPullScreen .bb-card-spin-vfx{display:none!important}
- #summonPullScreen .bb-card-flipper{animation:none!important;transform:rotateY(180deg)!important}
+ #summonPullScreen .bb-card-flipper{animation:none!important;opacity:1!important;transform:rotateY(180deg)!important}
  #summonPullScreen .bb-card-front .summonedTradingCard{opacity:1!important;transform:none!important;transition:none!important}
  #summonPullScreen .pullCardWrap,#summonPullScreen #pullResultsGrid .pullCard{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}
 }
 
-/* Defeat legacy parchment phase opacity/transform/filter rules. */
+/* Defeat legacy phase opacity, transform and filter rules. */
 #summonPullScreen .pullScene.phase-build .pullCardWrap,
 #summonPullScreen .pullScene.phase-form .pullCardWrap,
 #summonPullScreen .pullScene.phase-pop .pullCardWrap,
