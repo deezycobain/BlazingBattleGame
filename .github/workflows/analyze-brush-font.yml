@@ -52,46 +52,47 @@ jobs:
           out={}
           for key,path in sheets.items():
               im=Image.open(path).convert('RGB')
-              w,h=im.size
-              pix=im.load()
-              # Border median-ish background estimate from most common quantized border color.
-              border=[]
-              step=max(1,min(w,h)//250)
+              w,h=im.size; pix=im.load()
+              border=[]; step=max(1,min(w,h)//250)
               for x in range(0,w,step): border.extend([pix[x,0],pix[x,h-1]])
               for y in range(0,h,step): border.extend([pix[0,y],pix[w-1,y]])
               q=lambda c: tuple((v//8)*8 for v in c)
-              common=Counter(q(c) for c in border).most_common(8)
-              bg=common[0][0]
-              analyses={}
-              for dist in (20,35,50,70,90):
-                  def active(x,y):
-                      c=pix[x,y]
-                      return math.sqrt(sum((c[i]-bg[i])**2 for i in range(3)))>=dist
-                  cols=[any(active(x,y) for y in range(0,h,2)) for x in range(w)]
-                  rows=[any(active(x,y) for x in range(0,w,2)) for y in range(h)]
-                  analyses[str(dist)]={'columns':bands(cols,5,3),'rows':bands(rows,5,3)}
-              # Coarse 8x10 occupancy map to reveal sheet layout without storing image copies.
-              grid=[]
-              gx,gy=8,10
-              for yy in range(gy):
-                  row=[]
-                  y0=yy*h//gy;y1=(yy+1)*h//gy
-                  for xx in range(gx):
-                      x0=xx*w//gx;x1=(xx+1)*w//gx
-                      total=0;hit=0
-                      for y in range(y0,y1,max(1,(y1-y0)//20)):
-                          for x in range(x0,x1,max(1,(x1-x0)//20)):
-                              total+=1
-                              c=pix[x,y]
-                              if math.sqrt(sum((c[i]-bg[i])**2 for i in range(3)))>=50: hit+=1
-                      row.append(round(hit/max(1,total),3))
-                  grid.append(row)
+              common=Counter(q(c) for c in border).most_common(8); bg=common[0][0]
+              def delta(c): return math.sqrt(sum((c[i]-bg[i])**2 for i in range(3)))
+              def active(x,y,t=70): return delta(pix[x,y])>=t
+
+              # Main horizontal ink bands.
+              row_mask=[any(active(x,y) for x in range(0,w,2)) for y in range(h)]
+              main_rows=[r for r in bands(row_mask,12,25) if r[1]-r[0]>=80]
+              row_columns=[]
+              for y0,y1 in main_rows:
+                  # A column counts when it contains enough non-background ink in this row.
+                  counts=[]
+                  for x in range(w):
+                      hit=sum(1 for y in range(y0,y1+1,2) if active(x,y))
+                      counts.append(hit)
+                  col_mask=[n>=3 for n in counts]
+                  cols=bands(col_mask,10,8)
+                  row_columns.append({'row':[y0,y1],'columns':cols,'count':len(cols)})
+
+              # Per-row occupancy in 10 equal candidate columns, useful for identifying regular grid cells.
+              candidate_grid=[]
+              for y0,y1 in main_rows:
+                  vals=[]
+                  for ci in range(10):
+                      x0=ci*w//10; x1=(ci+1)*w//10
+                      total=hit=0
+                      for y in range(y0,y1+1,max(1,(y1-y0)//35)):
+                          for x in range(x0,x1,max(1,(x1-x0)//18)):
+                              total+=1; hit+=1 if active(x,y) else 0
+                      vals.append(round(hit/max(total,1),3))
+                  candidate_grid.append(vals)
+
               out[key]={
-                'file':path.name,'width':w,'height':h,
-                'border_background_rgb':bg,
+                'file':path.name,'width':w,'height':h,'border_background_rgb':bg,
                 'border_common_quantized':[[list(c),n] for c,n in common],
-                'contrast_bands':analyses,
-                'coarse_occupancy_8x10':grid
+                'main_rows':main_rows,'row_columns':row_columns,
+                'row_candidate_10col_occupancy':candidate_grid
               }
           (root/'sheet-analysis.json').write_text(json.dumps(out,indent=2)+'\n',encoding='utf-8')
           PY
@@ -101,5 +102,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/fonts/blazing-brush/sheet-analysis.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Analyze Blazing brush sheet contrast"
+          git commit -m "Map Blazing brush glyph sheet rows"
           git push origin HEAD:dev-next-2026-09-01
