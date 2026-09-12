@@ -5,6 +5,7 @@ on:
     branches: [dev-next-2026-09-01]
     paths:
       - blazing_battle_summon_reveal_card_assets.zip
+      - .github/workflows/organize-summon-card-assets.yml
 
 permissions:
   contents: write
