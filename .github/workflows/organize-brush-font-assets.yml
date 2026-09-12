@@ -1,0 +1,69 @@
+name: Organize Blazing brush font assets
+
+on:
+  push:
+    branches: [dev-next-2026-09-01]
+    paths:
+      - blazing_battle_brush_font_package.zip
+
+permissions:
+  contents: write
+
+jobs:
+  organize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev-next-2026-09-01
+          fetch-depth: 0
+
+      - name: Extract brush font package
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="blazing_battle_brush_font_package.zip"
+          TARGET="assets/fonts/blazing-brush"
+          TMP="$(mktemp -d)"
+          unzip -q "$ZIP" -d "$TMP"
+          rm -rf "$TARGET"
+          mkdir -p "$TARGET"
+
+          # Flatten one redundant top-level directory when present, otherwise preserve package layout.
+          entries=("$TMP"/*)
+          if [ "${#entries[@]}" -eq 1 ] && [ -d "${entries[0]}" ]; then
+            cp -a "${entries[0]}/." "$TARGET/"
+          else
+            cp -a "$TMP/." "$TARGET/"
+          fi
+
+          rm -f "$ZIP"
+
+          python - <<'PY'
+          from pathlib import Path
+          target=Path('assets/fonts/blazing-brush')
+          files=sorted(p for p in target.rglob('*') if p.is_file())
+          if not files:
+              raise SystemExit('Font package extracted no files')
+          lines=['# Blazing Brush Font Package','']
+          for p in files:
+              rel=p.relative_to(target)
+              lines.append(f'- {rel} | {p.stat().st_size} bytes')
+          (target/'manifest.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          print('\n'.join(str(p.relative_to(target)) for p in files))
+          PY
+
+      - name: Commit organized brush font assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A blazing_battle_brush_font_package.zip assets/fonts/blazing-brush
+          if git diff --cached --quiet; then
+            echo "No font asset changes to commit."
+            exit 0
+          fi
+          git commit -m "Organize Blazing brush font package"
+          git push origin HEAD:dev-next-2026-09-01
