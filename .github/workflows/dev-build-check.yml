@@ -39,18 +39,25 @@ jobs:
           name: home-browser-screenshots
           path: test-artifacts/*.png
       - name: Chromium + WebKit local results and economy smoke
+        if: ${{ !cancelled() }}
         run: node scripts/results-browser-smoke.mjs
       - name: Chromium + WebKit local unit progression smoke
+        if: ${{ !cancelled() }}
         run: node scripts/unit-progression-browser-smoke.mjs
       - name: Chromium + WebKit local player profile smoke
+        if: ${{ !cancelled() }}
         run: node scripts/player-profile-browser-smoke.mjs
       - name: Chromium + WebKit local Blazing Road persistence smoke
+        if: ${{ !cancelled() }}
         run: node scripts/road-browser-smoke.mjs
       - name: Chromium + WebKit local Blazing Road gameplay smoke
+        if: ${{ !cancelled() }}
         run: node scripts/road-gameplay-browser-smoke.mjs
       - name: Chromium + WebKit local battle pause smoke
+        if: ${{ !cancelled() }}
         run: node scripts/battle-pause-browser-smoke.mjs
       - name: Chromium + WebKit local Retina display-quality smoke
+        if: ${{ !cancelled() }}
         run: node scripts/display-quality-smoke.mjs
       - name: Chromium + WebKit deployed dev smoke
         if: github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
@@ -150,7 +157,7 @@ jobs:
           exit 1
 
       - name: Chromium + WebKit deployed Sanctuary feature smoke
-        if: github.event_name == 'push' && github.ref_name == 'feature/sanctuary-first-bloom'
+        if: ${{ !cancelled() && github.event_name == 'push' && github.ref_name == 'feature/sanctuary-first-bloom' }}
         env:
           BB_SMOKE_URL: https://feature-sanctuary-first-bloom-blazing-battle-game.blazingbattle.workers.dev
         run: node scripts/sanctuary-browser-smoke.mjs
