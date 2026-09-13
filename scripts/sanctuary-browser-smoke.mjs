@@ -7,20 +7,19 @@ const EXPECTED_STAGE=[0,1,2,3,5,6,6];
 const EXPECTED_HARMONY=[0,0,20,60,80,100,100];
 
 async function run(name,type){
- let browser;
+ let browser,page,errors=[];
  try{
   console.log(`Sanctuary V3 smoke START (${name}) -> ${BASE}`);
   browser=await type.launch({headless:true,timeout:20000});
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:true});
-  const page=await context.newPage();
-  const errors=[];
+  page=await context.newPage();
   page.on('pageerror',e=>errors.push(e.message));
   page.on('console',m=>{if(m.type()==='error'&&!/favicon/i.test(m.text()))errors.push(m.text())});
   const state=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)||'null'),KEY);
   const harmony=s=>Object.values(s.gardenApplied||{}).filter(Boolean).length*20;
   const waitArt=()=>page.waitForFunction(()=>[...document.querySelectorAll('#sceneViewport img')].filter(x=>!x.hidden&&x.getAttribute('src')).every(x=>x.complete&&x.naturalWidth>0),null,{timeout:30000});
-  const openDev=async()=>{if(!(await page.locator('#devPanel').evaluate(el=>el.classList.contains('open')))){await page.locator('#devOpen').click();await page.waitForFunction(()=>document.getElementById('devPanel')?.classList.contains('open'));}};
-  const closeDev=async()=>{if(await page.locator('#devPanel').evaluate(el=>el.classList.contains('open'))){await page.locator('#devClose').click();await page.waitForFunction(()=>!document.getElementById('devPanel')?.classList.contains('open'));}};
+  const openDev=async()=>{if(!(await page.locator('#devPanel').evaluate(el=>el.classList.contains('open')))){await page.locator('#devOpen').click();await page.waitForFunction(()=>document.getElementById('devPanel')?.classList.contains('open'));await page.waitForTimeout(260);}};
+  const closeDev=async()=>{if(await page.locator('#devPanel').evaluate(el=>el.classList.contains('open'))){await page.locator('#devClose').click();await page.waitForFunction(()=>!document.getElementById('devPanel')?.classList.contains('open'));await page.waitForTimeout(300);}};
 
   await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});
   await page.locator('#bbHomeApproved [data-nav="sanctuary"]').waitFor({state:'visible',timeout:30000});
@@ -52,8 +51,6 @@ async function run(name,type){
    await openDev();
   }
 
-  // Preset 6 intentionally archives the current cultivation. Start a fresh cycle
-  // before normal interaction assertions so duplicate-award protection remains meaningful.
   await closeDev();
   await page.locator('[data-tab="cultivate"]').click();
   if(await page.locator('[data-action="new-cycle"]').count())await page.locator('[data-action="new-cycle"]').click();
@@ -102,7 +99,15 @@ async function run(name,type){
   await page.locator('#homeButton').click();await page.locator('#bbHomeApproved [data-nav="sanctuary"]').waitFor({state:'visible'});
   if(errors.length)throw new Error(`browser errors: ${errors.join(' | ')}`);
   await context.close();console.log(`Sanctuary V3 smoke PASS (${name}): canonical art, stage care, live Design preview/apply, ceremony, Grove, persistence, Seal summon`);return true;
- }catch(e){console.error(`Sanctuary V3 smoke FAIL (${name}):`,e);return false}finally{await browser?.close().catch(()=>{})}
+ }catch(e){
+  try{
+   await fs.mkdir('test-artifacts',{recursive:true});
+   await page?.screenshot({path:`test-artifacts/sanctuary-v3-${name}-FAIL.png`,fullPage:true});
+   const dump=await page?.evaluate(key=>({url:location.href,state:JSON.parse(localStorage.getItem(key)||'null'),rootSrc:document.getElementById('rootLayer')?.getAttribute('src')||null,devOpen:document.getElementById('devPanel')?.classList.contains('open')||false}),KEY).catch(()=>null);
+   await fs.writeFile(`test-artifacts/sanctuary-v3-${name}-FAIL.json`,JSON.stringify({error:String(e?.stack||e),browserErrors:errors,dump},null,2));
+  }catch{}
+  console.error(`Sanctuary V3 smoke FAIL (${name}):`,e);if(errors.length)console.error(`Sanctuary V3 browser errors (${name}): ${errors.join(' | ')}`);return false;
+ }finally{await browser?.close().catch(()=>{})}
 }
 
 let ok=true;
