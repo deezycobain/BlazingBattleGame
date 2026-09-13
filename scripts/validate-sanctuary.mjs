@@ -33,9 +33,10 @@ for(const item of sourceManifest.files||[])await fs.access(`assets/ui/sanctuary/
 if(runtimeManifest.version!==3||runtimeManifest.treeCanvas?.width!==1536||runtimeManifest.treeCanvas?.height!==1536||runtimeManifest.gardenCanvas?.width!==1536||runtimeManifest.gardenCanvas?.height!==1024)throw new Error('Sanctuary canonical runtime manifest dimensions/version invalid');
 if(runtimeManifest.potOwnership!=='integrated_garden_planter')throw new Error('Sanctuary runtime must use the integrated garden planter root island');
 if(!runtimeManifest.depthPass?.rootContactShadow||!runtimeManifest.depthPass?.trayInnerShade)throw new Error('Sanctuary runtime depth pass metadata missing');
+if(runtimeManifest.rakePass?.renderer!=='natural_groove_v1'||runtimeManifest.rakePass?.surfaceEdgeFadePx!==48)throw new Error('Sanctuary natural rake groove pass metadata missing');
 for(const file of [
  'tree/root_contact_shadow.png','tree/rootbase_01.png','tree/rootfront_04.png','tree/trunk_06.png','tree/canopy_green_04.png','tree/canopy_jade_04.png','tree/blossom_pink_03.png','tree/fx_pink_bloom_burst.png',
  'garden/sand_bed_base.png','garden/tray_inner_shade.png','garden/pattern_still_water.png','garden/pattern_spiral_wind.png','garden/motif_blazing_spiral.png','garden/name_straight.png','garden/stones_centered.png','garden/stones_riverbank.png','garden/stones_mountain.png'
 ])await fs.access(`assets/ui/sanctuary/first-bloom/runtime/${file}`);
 if(/assets\/ui\/sanctuary\/(?!first-bloom)/.test(js+html+home))throw new Error('Sanctuary runtime escaped the approved first-bloom folder');
-console.log(`Sanctuary validation PASS: integrated root island, locked scene proportions, dedicated grounding/depth layers, canonical compositor, schema V3 stage care, design-driven Harmony, sequenced ceremony FX, Grove showcase, and isolated Seal summon.`);
+console.log(`Sanctuary validation PASS: integrated root island, locked scene proportions, dedicated grounding/depth layers, natural rake grooves, canonical compositor, schema V3 stage care, design-driven Harmony, sequenced ceremony FX, Grove showcase, and isolated Seal summon.`);
