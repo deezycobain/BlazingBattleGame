@@ -1,26 +1,14 @@
 import fs from 'node:fs/promises';
-
-const html = await fs.readFile('sanctuary.html', 'utf8');
-const required = [
-  'bb:sanctuary:v1',
-  "const TREE=['Seedling','New Growth','Young Bonsai','Shaped Bonsai','Mature Bonsai','First Bloom']",
-  "const GARDEN=['Untouched','First Lines','Flow','Balance','Harmony','First Bloom Garden']",
-  "cycle:'first-bloom'",
-  'leafEssence',
-  'gardenStone',
-  'spiritWater',
-  'harmonySeals',
-  'treeShape',
-  'sandPattern',
-  'stoneLayout',
-  'completed:[]',
-  'Complete First Bloom',
-  'Sanctuary Summon'
-];
-for (const token of required) {
-  if (!html.includes(token)) throw new Error(`Sanctuary validation missing: ${token}`);
-}
-if ((html.match(/data-tab=/g) || []).length !== 5) throw new Error('Sanctuary must expose exactly five V1 tabs');
-if (!html.includes("localStorage.setItem(KEY,JSON.stringify(S))")) throw new Error('Sanctuary persistence write missing');
-if (!html.includes("localStorage.getItem(KEY)")) throw new Error('Sanctuary persistence read missing');
-console.log('Sanctuary validation PASS: First Bloom state, persistence, progression, Grove, and Harmony Seal loop are present.');
+const html=await fs.readFile('sanctuary.html','utf8');
+const js=await fs.readFile('runtime/ui/sanctuary/first-bloom.js','utf8');
+const css=await fs.readFile('runtime/ui/sanctuary/first-bloom.css','utf8');
+const home=await fs.readFile('runtime/ui/home/home-sanctuary-entry.js','utf8');
+const manifest=JSON.parse(await fs.readFile('assets/ui/sanctuary/first-bloom/ASSET_MANIFEST.json','utf8'));
+for(const token of ['gardenScene','bonsai-stack','garden-stack','devPanel','actionPanel','runtime/ui/sanctuary/first-bloom.js'])if(!html.includes(token))throw new Error(`Sanctuary HTML missing ${token}`);
+for(const token of ["bb:sanctuary:first-bloom:v2","SCHEMA=2","feature/sanctuary-first-bloom","e90a4e02d5645550a7d0c8d89277c0ade1b1ad7a","leafEssence:9999","gardenStone:9999","spiritWater:999","harmonySeals:10","applyPreset","completionClaimed","summonResults","addToGrove","structuredClone(S)","bonsai/trunks/trunk_0","sand/patterns/","sand/motifs/","sand/stones/"])if(!js.includes(token))throw new Error(`Sanctuary runtime missing ${token}`);
+for(const token of ['garden-layer','bonsai-layer','dev-panel','safe-area-inset','prefers-reduced-motion'])if(!css.includes(token))throw new Error(`Sanctuary CSS missing ${token}`);
+if(!home.includes('sanctuary_home_button.png')||!home.includes("location.href='sanctuary.html'"))throw new Error('Sanctuary Home route or approved button missing');
+if((manifest.files||[]).length<86)throw new Error(`Sanctuary production manifest unexpectedly contains only ${manifest.files?.length||0} files`);
+for(const item of manifest.files||[])await fs.access(`assets/ui/sanctuary/first-bloom/${item.file}`);
+if(/assets\/ui\/sanctuary\/(?!first-bloom)/.test(js+html+home))throw new Error('Sanctuary runtime escaped the approved first-bloom production folder');
+console.log(`Sanctuary validation PASS: ${manifest.files.length} production assets, layered V2 state, dev controls, Grove, and isolated Seal summon.`);
