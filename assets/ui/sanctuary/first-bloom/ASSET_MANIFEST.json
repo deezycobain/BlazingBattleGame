@@ -1,0 +1,521 @@
+{
+  "pack": "sanctuary-first-bloom-assets-v1",
+  "files": [
+    {
+      "file": "ui/home-button/sanctuary_home_button.png",
+      "role": "Home menu Sanctuary button",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "bonsai/pot/pot_base.png",
+      "role": "First Bloom pot base",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "bonsai/trunks/trunk_01.png",
+      "role": "Bonsai trunk growth stage 01",
+      "status": "approved-test",
+      "notes": "Prototype stage ordering; engine can retune ordering after visual test."
+    },
+    {
+      "file": "bonsai/trunks/trunk_02.png",
+      "role": "Bonsai trunk growth stage 02",
+      "status": "approved-test",
+      "notes": "Prototype stage ordering; engine can retune ordering after visual test."
+    },
+    {
+      "file": "bonsai/trunks/trunk_03.png",
+      "role": "Bonsai trunk growth stage 03",
+      "status": "approved-test",
+      "notes": "Prototype stage ordering; engine can retune ordering after visual test."
+    },
+    {
+      "file": "bonsai/trunks/trunk_04.png",
+      "role": "Bonsai trunk growth stage 04",
+      "status": "approved-test",
+      "notes": "Prototype stage ordering; engine can retune ordering after visual test."
+    },
+    {
+      "file": "bonsai/trunks/trunk_05.png",
+      "role": "Bonsai trunk growth stage 05",
+      "status": "approved-test",
+      "notes": "Prototype stage ordering; engine can retune ordering after visual test."
+    },
+    {
+      "file": "bonsai/trunks/trunk_06.png",
+      "role": "Bonsai trunk growth stage 06",
+      "status": "approved-test",
+      "notes": "Prototype stage ordering; engine can retune ordering after visual test."
+    },
+    {
+      "file": "bonsai/canopy/green/canopy_01.png",
+      "role": "Standard green canopy stage",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "bonsai/canopy/green/canopy_02.png",
+      "role": "Standard green canopy stage",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "bonsai/canopy/green/canopy_03.png",
+      "role": "Standard green canopy stage",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "bonsai/canopy/green/canopy_04.png",
+      "role": "Standard green canopy stage",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "bonsai/canopy/jade/canopy_01.png",
+      "role": "Jade canopy stage",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "bonsai/canopy/jade/canopy_02.png",
+      "role": "Jade canopy stage",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "bonsai/canopy/jade/canopy_03.png",
+      "role": "Jade canopy stage",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "bonsai/canopy/jade/canopy_04.png",
+      "role": "Jade canopy stage",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "bonsai/roots/rootbase_01.png",
+      "role": "Root/soil/moss stage 1",
+      "status": "approved-test",
+      "notes": "Split from approved 4-stage source sheet; includes matching pot geometry."
+    },
+    {
+      "file": "bonsai/roots/rootbase_02.png",
+      "role": "Root/soil/moss stage 2",
+      "status": "approved-test",
+      "notes": "Split from approved 4-stage source sheet; includes matching pot geometry."
+    },
+    {
+      "file": "bonsai/roots/rootbase_03.png",
+      "role": "Root/soil/moss stage 3",
+      "status": "approved-test",
+      "notes": "Split from approved 4-stage source sheet; includes matching pot geometry."
+    },
+    {
+      "file": "bonsai/roots/rootbase_04.png",
+      "role": "Root/soil/moss stage 4",
+      "status": "approved-test",
+      "notes": "Split from approved 4-stage source sheet; includes matching pot geometry."
+    },
+    {
+      "file": "bonsai/blossoms/pink/blossom_01.png",
+      "role": "Pink blossom overlay stage 1",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/pink/blossom_02.png",
+      "role": "Pink blossom overlay stage 2",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/pink/blossom_03.png",
+      "role": "Pink blossom overlay stage 3",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/blue/blossom_01.png",
+      "role": "Blue blossom overlay stage 1",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/blue/blossom_02.png",
+      "role": "Blue blossom overlay stage 2",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/blue/blossom_03.png",
+      "role": "Blue blossom overlay stage 3",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/orange/blossom_01.png",
+      "role": "Orange blossom overlay stage 1",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/orange/blossom_02.png",
+      "role": "Orange blossom overlay stage 2",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/orange/blossom_03.png",
+      "role": "Orange blossom overlay stage 3",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/red/blossom_01.png",
+      "role": "Red blossom overlay stage 1",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/red/blossom_02.png",
+      "role": "Red blossom overlay stage 2",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/red/blossom_03.png",
+      "role": "Red blossom overlay stage 3",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/ice/blossom_01.png",
+      "role": "Ice blossom overlay stage 1",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/ice/blossom_02.png",
+      "role": "Ice blossom overlay stage 2",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/ice/blossom_03.png",
+      "role": "Ice blossom overlay stage 3",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/fire/blossom_01.png",
+      "role": "Fire blossom overlay stage 1",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/fire/blossom_02.png",
+      "role": "Fire blossom overlay stage 2",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/blossoms/fire/blossom_03.png",
+      "role": "Fire blossom overlay stage 3",
+      "status": "approved-test",
+      "notes": "Split from corrected canopy-compatible blossom progression sheet."
+    },
+    {
+      "file": "bonsai/fx/pink/idle_drift.png",
+      "role": "Pink idle drift FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/pink/wind_ring.png",
+      "role": "Pink wind ring FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/pink/bloom_burst.png",
+      "role": "Pink bloom burst FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/pink/ground_scatter.png",
+      "role": "Pink ground scatter FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/blue/idle_drift.png",
+      "role": "Blue idle drift FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/blue/wind_ring.png",
+      "role": "Blue wind ring FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/blue/bloom_burst.png",
+      "role": "Blue bloom burst FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/blue/ground_scatter.png",
+      "role": "Blue ground scatter FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/orange/idle_drift.png",
+      "role": "Orange idle drift FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/orange/wind_ring.png",
+      "role": "Orange wind ring FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/orange/bloom_burst.png",
+      "role": "Orange bloom burst FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/orange/ground_scatter.png",
+      "role": "Orange ground scatter FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/red/idle_drift.png",
+      "role": "Red idle drift FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/red/wind_ring.png",
+      "role": "Red wind ring FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/red/bloom_burst.png",
+      "role": "Red bloom burst FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/red/ground_scatter.png",
+      "role": "Red ground scatter FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/ice/idle_drift.png",
+      "role": "Ice idle drift FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/ice/wind_ring.png",
+      "role": "Ice wind ring FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/ice/bloom_burst.png",
+      "role": "Ice bloom burst FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/ice/ground_scatter.png",
+      "role": "Ice ground scatter FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/fire/idle_drift.png",
+      "role": "Fire idle drift FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/fire/wind_ring.png",
+      "role": "Fire wind ring FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/fire/bloom_burst.png",
+      "role": "Fire bloom burst FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "bonsai/fx/fire/ground_scatter.png",
+      "role": "Fire ground scatter FX",
+      "status": "approved-test",
+      "notes": "Split from approved FX source sheet."
+    },
+    {
+      "file": "sand/base/sand_bed_base.png",
+      "role": "Clean untouched Sanctuary sand bed base",
+      "status": "approved-test",
+      "notes": "Step 11 base; no intended rake pattern."
+    },
+    {
+      "file": "sand/patterns/still_water.png",
+      "role": "Base rake pattern: still water",
+      "status": "approved-test",
+      "notes": "True groove-only overlay crop from Step 12 source."
+    },
+    {
+      "file": "sand/patterns/ripple_ring.png",
+      "role": "Base rake pattern: ripple ring",
+      "status": "approved-test",
+      "notes": "True groove-only overlay crop from Step 12 source."
+    },
+    {
+      "file": "sand/patterns/flowing_river.png",
+      "role": "Base rake pattern: flowing river",
+      "status": "approved-test",
+      "notes": "True groove-only overlay crop from Step 12 source."
+    },
+    {
+      "file": "sand/patterns/spiral_wind.png",
+      "role": "Base rake pattern: spiral wind",
+      "status": "approved-test",
+      "notes": "True groove-only overlay crop from Step 12 source."
+    },
+    {
+      "file": "sand/motifs/blazing_spiral.png",
+      "role": "Sand motif overlay: blazing spiral",
+      "status": "approved-test",
+      "notes": "Groove motif overlay; lotus included as bonus."
+    },
+    {
+      "file": "sand/motifs/akatsuki_cloud.png",
+      "role": "Sand motif overlay: akatsuki cloud",
+      "status": "approved-test",
+      "notes": "Groove motif overlay; lotus included as bonus."
+    },
+    {
+      "file": "sand/motifs/petal_drift.png",
+      "role": "Sand motif overlay: petal drift",
+      "status": "approved-test",
+      "notes": "Groove motif overlay; lotus included as bonus."
+    },
+    {
+      "file": "sand/motifs/lotus_bloom_bonus.png",
+      "role": "Sand motif overlay: lotus bloom bonus",
+      "status": "approved-test",
+      "notes": "Groove motif overlay; lotus included as bonus."
+    },
+    {
+      "file": "sand/motifs/ninja-bonus/shuriken_vortex.png",
+      "role": "Ninja-themed sand motif variant",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "sand/motifs/ninja-bonus/kunai_wind.png",
+      "role": "Ninja-themed sand motif variant",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "sand/motifs/ninja-bonus/shinobi_seal_mandala.png",
+      "role": "Ninja-themed sand motif variant",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "sand/motifs/ninja-bonus/shuriken_smoke_cloud.png",
+      "role": "Ninja-themed sand motif variant",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "sand/name-templates/straight.png",
+      "role": "Dynamic player-name sand template",
+      "status": "approved-test",
+      "notes": "Template only; render actual player name dynamically at runtime."
+    },
+    {
+      "file": "sand/name-templates/arc.png",
+      "role": "Dynamic player-name sand template",
+      "status": "approved-test",
+      "notes": "Template only; render actual player name dynamically at runtime."
+    },
+    {
+      "file": "sand/name-templates/seal.png",
+      "role": "Dynamic player-name sand template",
+      "status": "approved-test",
+      "notes": "Template only; render actual player name dynamically at runtime."
+    },
+    {
+      "file": "sand/accents/petal_scatter.png",
+      "role": "Pink blossom/petal scatter accent",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "sand/accents/moss_edge.png",
+      "role": "Moss/stone edge accent",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "sand/stones/layouts/centered.png",
+      "role": "Centered stone layout",
+      "status": "approved-test",
+      "notes": "2048x1024 transparent overlay canvas for prototype layering."
+    },
+    {
+      "file": "sand/stones/layouts/riverbank.png",
+      "role": "Riverbank stone layout",
+      "status": "approved-test",
+      "notes": "2048x1024 transparent overlay canvas for prototype layering."
+    },
+    {
+      "file": "sand/stones/layouts/mountain.png",
+      "role": "Mountain stone layout",
+      "status": "approved-test",
+      "notes": "2048x1024 transparent overlay canvas for prototype layering."
+    },
+    {
+      "file": "sand/stones/variants/moss_cluster.png",
+      "role": "Moss stone cluster variant",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "sand/stones/variants/stepping_stones.png",
+      "role": "Riverbank stepping-stone variant",
+      "status": "approved-test",
+      "notes": ""
+    },
+    {
+      "file": "sand/stones/variants/rock_spire.png",
+      "role": "Rock spire variant",
+      "status": "approved-test",
+      "notes": ""
+    }
+  ]
+}
