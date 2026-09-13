@@ -6,6 +6,7 @@ on:
       - feature/sanctuary-first-bloom
     paths:
       - 'scripts/build-sanctuary-runtime-assets.py'
+      - 'scripts/polish-sanctuary-rake-patterns.py'
       - '.github/workflows/build-sanctuary-runtime-assets.yml'
       - 'assets/ui/sanctuary/first-bloom/bonsai/**'
       - 'assets/ui/sanctuary/first-bloom/sand/**'
@@ -35,11 +36,15 @@ jobs:
       - name: Build canonical Sanctuary runtime assets
         run: python scripts/build-sanctuary-runtime-assets.py
 
+      - name: Polish Sanctuary rake grooves
+        run: python scripts/polish-sanctuary-rake-patterns.py
+
       - name: Validate generated runtime asset tree
         shell: bash
         run: |
           set -euo pipefail
           test -f assets/ui/sanctuary/first-bloom/runtime/MANIFEST.json
+          test -f assets/ui/sanctuary/first-bloom/runtime/tree/root_contact_shadow.png
           test -f assets/ui/sanctuary/first-bloom/runtime/tree/rootbase_01.png
           test -f assets/ui/sanctuary/first-bloom/runtime/tree/rootfront_04.png
           test -f assets/ui/sanctuary/first-bloom/runtime/tree/trunk_06.png
@@ -48,7 +53,9 @@ jobs:
           test -f assets/ui/sanctuary/first-bloom/runtime/tree/blossom_pink_03.png
           test -f assets/ui/sanctuary/first-bloom/runtime/tree/fx_pink_bloom_burst.png
           test -f assets/ui/sanctuary/first-bloom/runtime/garden/sand_bed_base.png
+          test -f assets/ui/sanctuary/first-bloom/runtime/garden/tray_inner_shade.png
           test -f assets/ui/sanctuary/first-bloom/runtime/garden/pattern_still_water.png
+          test -f assets/ui/sanctuary/first-bloom/runtime/garden/pattern_spiral_wind.png
           test -f assets/ui/sanctuary/first-bloom/runtime/garden/motif_blazing_spiral.png
           test -f assets/ui/sanctuary/first-bloom/runtime/garden/stones_centered.png
           echo 'Canonical Sanctuary runtime assets verified.'
