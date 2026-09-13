@@ -1,19 +1,27 @@
 (()=>{
 'use strict';
 
-const VERSION='5.2.0';
+const VERSION='5.3.0';
 const PORTAL_ROOT='assets/vfx/summon/portal-reveal';
 const CARD_BACK_SRC='assets/ui/summon/reveal/summon_reveal_card_back.png';
 const CARD_FRONT_FRAME_SRC='assets/ui/summon/reveal/summon_reveal_card_front_frame.png';
 const VFX=Object.freeze({
  portal:`${PORTAL_ROOT}/summon_portal_base.webp`,
- chargeRing:`${PORTAL_ROOT}/ring_ornate_cloud.webp`,
- resolveFlash:`${PORTAL_ROOT}/flip_reveal_starburst.webp`
+ ornateRing:`${PORTAL_ROOT}/ring_ornate_cloud.webp`,
+ outerRing:`${PORTAL_ROOT}/ring_outer_navy_gold.webp`,
+ energyRing:`${PORTAL_ROOT}/ring_energy_gold.webp`,
+ chargeImpact:`${PORTAL_ROOT}/reveal_impact_burst.webp`,
+ motionCards:`${PORTAL_ROOT}/flip_motion_cards.webp`,
+ flipFrameBlue:`${PORTAL_ROOT}/flip_frame_blue_white.webp`,
+ flipFrameCrimson:`${PORTAL_ROOT}/flip_frame_crimson_gold.webp`,
+ flipSlash:`${PORTAL_ROOT}/flip_crimson_gold_slash.webp`,
+ resolveFlash:`${PORTAL_ROOT}/flip_reveal_starburst.webp`,
+ resolveParticles:`${PORTAL_ROOT}/flip_particles_gold_crimson.webp`
 });
 const TIMELINES=Object.freeze({
- resonance:Object.freeze({portal:0,circleSlow:600,circleFast:1000,cardEnter:1300,flip:1500,resolve:1900,done:2120}),
- new:Object.freeze({portal:0,circleSlow:600,circleFast:1000,cardEnter:1300,flip:1500,resolve:1900,done:2120}),
- shiny:Object.freeze({portal:0,circleSlow:600,circleFast:1000,cardEnter:1300,flip:1500,resolve:1900,done:2120})
+ resonance:Object.freeze({portal:0,circleSlow:450,circleFast:850,cardEnter:1280,flip:1500,resolve:1920,done:2240}),
+ new:Object.freeze({portal:0,circleSlow:450,circleFast:850,cardEnter:1280,flip:1500,resolve:1920,done:2240}),
+ shiny:Object.freeze({portal:0,circleSlow:450,circleFast:850,cardEnter:1280,flip:1500,resolve:1920,done:2240})
 });
 const REDUCED_MOTION=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
 let cinematicRun=0;
@@ -39,7 +47,7 @@ function schedule(scene,run,delay,fn){
 function setStage(scene,stage){scene.dataset.bbRevealStage=stage}
 function paintedFrame(){return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))}
 async function prepareVfx(refs){
- const images=[...refs.portalFx.querySelectorAll('img'),...refs.chargeFx.querySelectorAll('img')];
+ const images=[...refs.portalFx.querySelectorAll('img'),...refs.chargeFx.querySelectorAll('img'),...refs.cardFx.querySelectorAll('img')];
  await Promise.all(images.map(node=>{
   if(node.complete)return node.decode?.().catch(()=>{})||Promise.resolve();
   return new Promise(resolve=>{node.addEventListener('load',resolve,{once:true});node.addEventListener('error',resolve,{once:true})});
@@ -65,7 +73,7 @@ function buildPortalFx(wrap){
  if(fx?.dataset.bbVfxVersion===VERSION)return fx;
  fx?.remove();
  fx=document.createElement('div');fx.className='bb-portal-stage-vfx';fx.dataset.bbVfxVersion=VERSION;fx.setAttribute('aria-hidden','true');
- fx.append(img(VFX.portal,'bb-summon-portal'));
+ fx.append(img(VFX.portal,'bb-summon-portal'),img(VFX.ornateRing,'bb-portal-ring bb-portal-ring-ornate'));
  wrap.append(fx);
  return fx;
 }
@@ -75,7 +83,24 @@ function buildChargeFx(wrap){
  if(fx?.dataset.bbVfxVersion===VERSION)return fx;
  fx?.remove();
  fx=document.createElement('div');fx.className='bb-portal-charge-vfx';fx.dataset.bbVfxVersion=VERSION;fx.setAttribute('aria-hidden','true');
- fx.append(img(VFX.chargeRing,'bb-portal-ring bb-portal-ring-charge'),img(VFX.resolveFlash,'bb-portal-resolve-flash'));
+ fx.append(
+  img(VFX.outerRing,'bb-portal-ring bb-portal-ring-outer'),
+  img(VFX.energyRing,'bb-portal-ring bb-portal-ring-energy'),
+  img(VFX.chargeImpact,'bb-charge-impact'),
+  img(VFX.motionCards,'bb-flip-motion-cards'),
+  img(VFX.resolveFlash,'bb-portal-resolve-flash')
+ );
+ wrap.append(fx);
+ return fx;
+}
+
+function buildCardFx(wrap){
+ let fx=wrap.querySelector('.bb-card-stage-vfx');
+ if(fx?.dataset.bbVfxVersion===VERSION)return fx;
+ fx?.remove();
+ fx=document.createElement('div');fx.className='bb-card-stage-vfx';fx.dataset.bbVfxVersion=VERSION;fx.setAttribute('aria-hidden','true');
+ const frame=img(VFX.flipFrameCrimson,'bb-flip-energy-frame');
+ fx.append(frame,img(VFX.flipSlash,'bb-flip-slash'),img(VFX.resolveParticles,'bb-resolve-particles'));
  wrap.append(fx);
  return fx;
 }
@@ -111,7 +136,8 @@ function ensurePhysicalCard(){
  const labels=front?ensureCardLabels(front):{};
  const portalFx=buildPortalFx(wrap);
  const chargeFx=buildChargeFx(wrap);
- return {wrap,scene,flipper,front,back,portalFx,chargeFx,...labels};
+ const cardFx=buildCardFx(wrap);
+ return {wrap,scene,flipper,front,back,portalFx,chargeFx,cardFx,...labels};
 }
 
 function syncCardLabels(refs,pull){
@@ -172,7 +198,9 @@ function syncPhysicalCard(pull,index,total){
  const kind=revealKind(pull),rarity=String(pull.rarity||'rare').toLowerCase(),run=++cinematicRun;
  scene.dataset.bbCinematic='v5';scene.dataset.bbRevealKind=kind;scene.dataset.bbCinematicRarity=rarity;scene.dataset.bbRevealRun=String(run);
  refs.wrap.dataset.bbRevealKind=kind;refs.wrap.dataset.bbRevealRun=String(run);refs.wrap.style.setProperty('--bb-pull-index',String(index||0));
- refs.portalFx.dataset.bbRevealKind=kind;refs.chargeFx.dataset.bbRevealKind=kind;
+ refs.portalFx.dataset.bbRevealKind=kind;refs.chargeFx.dataset.bbRevealKind=kind;refs.cardFx.dataset.bbRevealKind=kind;
+ const flipFrame=refs.cardFx.querySelector('.bb-flip-energy-frame');
+ if(flipFrame){const frameSrc=kind==='new'?VFX.flipFrameBlue:VFX.flipFrameCrimson;if(!flipFrame.src.endsWith(frameSrc))flipFrame.src=frameSrc}
  syncCardLabels(refs,pull);
  const badge=document.getElementById('pullNewBadge');
  if(badge)badge.textContent=pull.shinyUnlock?'SHINY AWAKENED':pull.isNew?'NEW FIGHTER':pull.progress||'RESONANCE';
