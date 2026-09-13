@@ -1,5 +1,6 @@
 (()=>{
 'use strict';
+
 const DEV=document.querySelector('meta[name="sanctuary-dev-build"]')?.content==='true'||['localhost','127.0.0.1','[::1]'].includes(location.hostname);
 const KEY=DEV?'bb:sanctuary:first-bloom:v3':'bb:sanctuary:first-bloom:release:v3';
 const LEGACY_KEYS=['bb:sanctuary:first-bloom:v2','bb:sanctuary:first-bloom:release:v2','bb:sanctuary:v1'];
@@ -7,6 +8,7 @@ const SCHEMA=3;
 const ROOT='assets/ui/sanctuary/first-bloom/runtime/';
 const BUILD_BRANCH='feature/sanctuary-first-bloom';
 const ASSET_SPEC='canonical tree 1536x1536 / garden 1536x1024';
+
 const TREE=['Seedling','New Growth','Young Bonsai','Shaped Bonsai','Mature Bonsai','First Bloom'];
 const GARDEN=['Untouched','First Lines','Composed','Balanced','Harmonized','First Bloom'];
 const RAKES=['still_water','ripple_ring','flowing_river','spiral_wind'];
@@ -17,6 +19,21 @@ const NAMES=['straight','arc','seal'];
 const DESIGN_SECTIONS=['pattern','motif','stones','signature','finish'];
 const ROOT_BY_STAGE=[1,1,2,2,3,4];
 const CANOPY_BY_STAGE=[0,1,2,3,4,4];
+const FX_STATE={
+ idle:{file:'idle_drift',className:'fx-drift'},
+ petal_drift:{file:'idle_drift',className:'fx-drift'},
+ wind_ring:{file:'wind_ring',className:'fx-ring'},
+ bloom_burst:{file:'bloom_burst',className:'fx-burst'},
+ settle:{file:'ground_scatter',className:'fx-ground'},
+};
+const VISUAL_PRESETS={
+ 1:{canopyType:'green',blossomVariant:'pink',rakePattern:'still_water',motif:'blazing_spiral',stoneLayout:'centered',nameLayout:'straight'},
+ 2:{canopyType:'green',blossomVariant:'pink',rakePattern:'still_water',motif:'blazing_spiral',stoneLayout:'centered',nameLayout:'straight'},
+ 3:{canopyType:'green',blossomVariant:'pink',rakePattern:'ripple_ring',motif:'petal_drift',stoneLayout:'riverbank',nameLayout:'arc'},
+ 4:{canopyType:'jade',blossomVariant:'blue',rakePattern:'spiral_wind',motif:'shinobi_seal_mandala',stoneLayout:'mountain',nameLayout:'arc'},
+ 5:{canopyType:'green',blossomVariant:'pink',rakePattern:'flowing_river',motif:'lotus_bloom_bonus',stoneLayout:'riverbank',nameLayout:'seal'},
+ 6:{canopyType:'green',blossomVariant:'pink',rakePattern:'flowing_river',motif:'lotus_bloom_bonus',stoneLayout:'riverbank',nameLayout:'seal'},
+};
 const REQUIREMENTS={
  1:{water:1,nourish:1,shape:0},
  2:{water:1,nourish:1,shape:1},
@@ -26,71 +43,562 @@ const REQUIREMENTS={
  6:{water:0,nourish:0,shape:0},
 };
 const COSTS={
- water:{spiritWater:1},nourish:{leafEssence:25},shape:{leafEssence:15,gardenStone:5},
- pattern:{gardenStone:10},motif:{gardenStone:15},stones:{gardenStone:20},signature:{spiritWater:1,leafEssence:10},refine:{spiritWater:1,leafEssence:10}
+ water:{spiritWater:1},
+ nourish:{leafEssence:25},
+ shape:{leafEssence:15,gardenStone:5},
+ pattern:{gardenStone:10},
+ motif:{gardenStone:15},
+ stones:{gardenStone:20},
+ signature:{spiritWater:1,leafEssence:10},
+ refine:{spiritWater:1,leafEssence:10},
 };
-const LABEL={still_water:'Still Water',ripple_ring:'Ripple Ring',flowing_river:'Flowing River',spiral_wind:'Spiral Wind',blazing_spiral:'Blazing Spiral',akatsuki_cloud:'Cloud Current',petal_drift:'Petal Drift',shuriken_vortex:'Shuriken Vortex',kunai_wind:'Kunai Wind',shinobi_seal_mandala:'Shinobi Seal',shuriken_smoke_cloud:'Smoke Shuriken',lotus_bloom_bonus:'Lotus Bloom',centered:'Centered Stones',riverbank:'Riverbank',mountain:'Mountain',straight:'Straight Inscription',arc:'Arc Inscription',seal:'Seal Inscription',pink:'Pink',blue:'Blue',orange:'Orange',red:'Red',ice:'Ice',fire:'Fire',pattern:'Pattern',motif:'Motif',stones:'Stones',signature:'Signature',finish:'Finish'};
+const LABEL={
+ still_water:'Still Water',ripple_ring:'Ripple Ring',flowing_river:'Flowing River',spiral_wind:'Spiral Wind',
+ blazing_spiral:'Blazing Spiral',akatsuki_cloud:'Cloud Current',petal_drift:'Petal Drift',shuriken_vortex:'Shuriken Vortex',
+ kunai_wind:'Kunai Wind',shinobi_seal_mandala:'Shinobi Seal',shuriken_smoke_cloud:'Smoke Shuriken',lotus_bloom_bonus:'Lotus Bloom',
+ centered:'Centered Stones',riverbank:'Riverbank',mountain:'Mountain',
+ straight:'Straight Inscription',arc:'Arc Inscription',seal:'Seal Inscription',
+ pink:'Pink',blue:'Blue',orange:'Orange',red:'Red',ice:'Ice',fire:'Fire',
+ pattern:'Pattern',motif:'Motif',stones:'Stones',signature:'Signature',finish:'Finish',
+};
+
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,Number(v)||0));
 const cycle=(arr,v)=>arr[(Math.max(0,arr.indexOf(v))+1)%arr.length];
 const blankCare=()=>({water:0,nourish:0,shape:0});
 const blankApplied=()=>({pattern:false,motif:false,stones:false,signature:false,refine:false});
-const defaults=()=>({schema:SCHEMA,cultivationNumber:1,resources:DEV?{leafEssence:9999,gardenStone:9999,spiritWater:999,harmonySeals:10}:{leafEssence:0,gardenStone:0,spiritWater:0,harmonySeals:0},treeStage:1,stageCare:blankCare(),canopyType:'green',blossomVariant:'pink',rakePattern:'still_water',motif:'blazing_spiral',stoneLayout:'centered',nameLayout:'straight',gardenApplied:blankApplied(),completed:false,completionClaimed:false,grove:[],summonResults:[],lastSummon:null});
-function playerName(){try{const p=JSON.parse(localStorage.getItem('bb_player_profile_v1')||'{}');return String(p.username||'PLAYER').trim().slice(0,16)||'PLAYER'}catch{return 'PLAYER'}}
-function migrate(raw){if(!raw)return defaults();if(raw.schema===SCHEMA)return raw;const d=defaults();const h=clamp(Number(raw.gardenHarmony)||0,0,100);return {...d,...raw,schema:SCHEMA,treeStage:clamp(Math.round(raw.treeStage||1),1,6),stageCare:blankCare(),gardenApplied:{pattern:h>=20,motif:h>=40,stones:h>=60,signature:h>=80,refine:h>=100},canopyType:['green','jade'].includes(raw.canopyType)?raw.canopyType:'green',blossomVariant:BLOSSOMS.includes(raw.blossomVariant)?raw.blossomVariant:'pink',rakePattern:RAKES.includes(raw.rakePattern)?raw.rakePattern:'still_water',motif:MOTIFS.includes(raw.motif)?raw.motif:'blazing_spiral',stoneLayout:STONES.includes(raw.stoneLayout)?raw.stoneLayout:'centered',nameLayout:NAMES.includes(raw.nameLayout)?raw.nameLayout:'straight',grove:Array.isArray(raw.grove)?raw.grove:[],summonResults:Array.isArray(raw.summonResults)?raw.summonResults:[]};}
-function normalize(raw){const d=defaults(),s={...d,...migrate(raw),resources:{...d.resources,...(raw?.resources||{})},stageCare:{...blankCare(),...(raw?.stageCare||{})},gardenApplied:{...blankApplied(),...(raw?.gardenApplied||{})}};s.schema=SCHEMA;s.cultivationNumber=Math.max(1,Math.floor(Number(s.cultivationNumber)||1));s.treeStage=clamp(Math.round(s.treeStage),1,6);s.canopyType=['green','jade'].includes(s.canopyType)?s.canopyType:'green';s.blossomVariant=BLOSSOMS.includes(s.blossomVariant)?s.blossomVariant:'pink';s.rakePattern=RAKES.includes(s.rakePattern)?s.rakePattern:'still_water';s.motif=MOTIFS.includes(s.motif)?s.motif:'blazing_spiral';s.stoneLayout=STONES.includes(s.stoneLayout)?s.stoneLayout:'centered';s.nameLayout=NAMES.includes(s.nameLayout)?s.nameLayout:'straight';s.grove=Array.isArray(s.grove)?s.grove:[];s.summonResults=Array.isArray(s.summonResults)?s.summonResults:[];for(const k of Object.keys(d.resources))s.resources[k]=Math.max(0,Math.floor(Number(s.resources[k])||0));for(const k of Object.keys(blankCare()))s.stageCare[k]=Math.max(0,Math.floor(Number(s.stageCare[k])||0));return s;}
-function load(){try{const current=JSON.parse(localStorage.getItem(KEY)||'null');if(current)return normalize(current);for(const k of LEGACY_KEYS){const old=JSON.parse(localStorage.getItem(k)||'null');if(old)return normalize(migrate(old));}}catch{}return defaults();}
-let S=load();let tab='cultivate';let designSection='pattern';let showcaseIndex=null;let saveState='loaded';let toastTimer=null;let ceremonyTimer=[];let fxPhase='idle';
-function save(message=''){localStorage.setItem(KEY,JSON.stringify(S));saveState='saved';renderStatus();if(message)toast(message);}
-function reload(){S=load();showcaseIndex=null;saveState='loaded';render();toast('Sanctuary save reloaded.');}
-function toast(message){const el=$('toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.hidden=true,1900);}
+const defaults=()=>({
+ schema:SCHEMA,
+ cultivationNumber:1,
+ resources:DEV?{leafEssence:9999,gardenStone:9999,spiritWater:999,harmonySeals:10}:{leafEssence:0,gardenStone:0,spiritWater:0,harmonySeals:0},
+ treeStage:1,
+ stageCare:blankCare(),
+ canopyType:'green',
+ blossomVariant:'pink',
+ rakePattern:'still_water',
+ motif:'blazing_spiral',
+ stoneLayout:'centered',
+ nameLayout:'straight',
+ gardenApplied:blankApplied(),
+ completed:false,
+ completionClaimed:false,
+ grove:[],
+ summonResults:[],
+ lastSummon:null,
+});
+
+function playerName(){
+ try{
+  const p=JSON.parse(localStorage.getItem('bb_player_profile_v1')||'{}');
+  return String(p.username||'PLAYER').trim().slice(0,16)||'PLAYER';
+ }catch{return 'PLAYER';}
+}
+function migrate(raw){
+ if(!raw)return defaults();
+ if(raw.schema===SCHEMA)return raw;
+ const d=defaults();
+ const h=clamp(Number(raw.gardenHarmony)||0,0,100);
+ return {
+  ...d,...raw,schema:SCHEMA,
+  treeStage:clamp(Math.round(raw.treeStage||1),1,6),
+  stageCare:blankCare(),
+  gardenApplied:{pattern:h>=20,motif:h>=40,stones:h>=60,signature:h>=80,refine:h>=100},
+  canopyType:['green','jade'].includes(raw.canopyType)?raw.canopyType:'green',
+  blossomVariant:BLOSSOMS.includes(raw.blossomVariant)?raw.blossomVariant:'pink',
+  rakePattern:RAKES.includes(raw.rakePattern)?raw.rakePattern:'still_water',
+  motif:MOTIFS.includes(raw.motif)?raw.motif:'blazing_spiral',
+  stoneLayout:STONES.includes(raw.stoneLayout)?raw.stoneLayout:'centered',
+  nameLayout:NAMES.includes(raw.nameLayout)?raw.nameLayout:'straight',
+  grove:Array.isArray(raw.grove)?raw.grove:[],
+  summonResults:Array.isArray(raw.summonResults)?raw.summonResults:[],
+ };
+}
+function normalize(raw){
+ const d=defaults();
+ const s={
+  ...d,...migrate(raw),
+  resources:{...d.resources,...(raw?.resources||{})},
+  stageCare:{...blankCare(),...(raw?.stageCare||{})},
+  gardenApplied:{...blankApplied(),...(raw?.gardenApplied||{})},
+ };
+ s.schema=SCHEMA;
+ s.cultivationNumber=Math.max(1,Math.floor(Number(s.cultivationNumber)||1));
+ s.treeStage=clamp(Math.round(s.treeStage),1,6);
+ s.canopyType=['green','jade'].includes(s.canopyType)?s.canopyType:'green';
+ s.blossomVariant=BLOSSOMS.includes(s.blossomVariant)?s.blossomVariant:'pink';
+ s.rakePattern=RAKES.includes(s.rakePattern)?s.rakePattern:'still_water';
+ s.motif=MOTIFS.includes(s.motif)?s.motif:'blazing_spiral';
+ s.stoneLayout=STONES.includes(s.stoneLayout)?s.stoneLayout:'centered';
+ s.nameLayout=NAMES.includes(s.nameLayout)?s.nameLayout:'straight';
+ s.grove=Array.isArray(s.grove)?s.grove:[];
+ s.summonResults=Array.isArray(s.summonResults)?s.summonResults:[];
+ for(const k of Object.keys(d.resources))s.resources[k]=Math.max(0,Math.floor(Number(s.resources[k])||0));
+ for(const k of Object.keys(blankCare()))s.stageCare[k]=Math.max(0,Math.floor(Number(s.stageCare[k])||0));
+ return s;
+}
+function load(){
+ try{
+  const current=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(current)return normalize(current);
+  for(const k of LEGACY_KEYS){
+   const old=JSON.parse(localStorage.getItem(k)||'null');
+   if(old)return normalize(migrate(old));
+  }
+ }catch{}
+ return defaults();
+}
+
+let S=load();
+let tab='cultivate';
+let designSection='pattern';
+let showcaseIndex=null;
+let saveState='loaded';
+let toastTimer=null;
+let ceremonyTimer=[];
+let fxPhase='idle';
+
+function save(message=''){
+ localStorage.setItem(KEY,JSON.stringify(S));
+ saveState='saved';
+ renderStatus();
+ if(message)toast(message);
+}
+function stopCeremony(){
+ ceremonyTimer.forEach(clearTimeout);
+ ceremonyTimer=[];
+ fxPhase='idle';
+ $('sanctuaryApp')?.classList.remove('ceremony-active');
+ const el=$('ceremony');
+ if(el)el.hidden=true;
+}
+function reload(){
+ stopCeremony();
+ S=load();
+ showcaseIndex=null;
+ saveState='loaded';
+ render();
+ toast('Sanctuary save reloaded.');
+}
+function toast(message){
+ const el=$('toast');
+ el.textContent=message;
+ el.hidden=false;
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>el.hidden=true,1900);
+}
 function stageReq(){return REQUIREMENTS[S.treeStage]||REQUIREMENTS[6];}
 function reqDone(key){return S.stageCare[key]>=stageReq()[key];}
 function stageReady(){const r=stageReq();return ['water','nourish','shape'].every(k=>S.stageCare[k]>=r[k]);}
-function treeProgress(){if(S.treeStage>=6)return 100;const r=stageReq();const total=r.water+r.nourish+r.shape;const done=Math.min(r.water,S.stageCare.water)+Math.min(r.nourish,S.stageCare.nourish)+Math.min(r.shape,S.stageCare.shape);return Math.round(((S.treeStage-1)+(total?done/total:1))*20);}
+function treeProgress(){
+ if(S.treeStage>=6)return 100;
+ const r=stageReq();
+ const total=r.water+r.nourish+r.shape;
+ const done=Math.min(r.water,S.stageCare.water)+Math.min(r.nourish,S.stageCare.nourish)+Math.min(r.shape,S.stageCare.shape);
+ return Math.round(((S.treeStage-1)+(total?done/total:1))*20);
+}
 function harmony(){return Object.values(S.gardenApplied).filter(Boolean).length*20;}
 function gardenStage(){return Math.min(6,Math.floor(harmony()/20)+1);}
 function blossomStage(v=S){if(v.completed)return 3;if(v.treeStage>=6)return 2;if(v.treeStage===5)return 1;return 0;}
-function spend(cost){for(const [k,v] of Object.entries(cost))if(S.resources[k]<v){toast(`Not enough ${k.replace(/[A-Z]/g,m=>' '+m).toLowerCase()}.`);return false;}for(const [k,v] of Object.entries(cost))S.resources[k]-=v;return true;}
-function asset(el,path,show=true){if(!el)return;el.hidden=!show;if(!show){el.removeAttribute('src');return;}const src=ROOT+path;if(el.getAttribute('src')!==src)el.src=src;}
-function currentVisual(){if(showcaseIndex!==null&&S.grove[showcaseIndex]){const g=S.grove[showcaseIndex];return {treeStage:6,canopyType:g.canopyType||'green',blossomVariant:g.blossomVariant||'pink',rakePattern:g.rakePattern||'still_water',motif:g.motif||'blazing_spiral',stoneLayout:g.stoneLayout||'centered',nameLayout:g.nameLayout||'straight',signature:g.signature||playerName(),applied:{pattern:true,motif:true,stones:true,signature:true,refine:true},completed:true};}return {treeStage:S.treeStage,canopyType:S.canopyType,blossomVariant:S.blossomVariant,rakePattern:S.rakePattern,motif:S.motif,stoneLayout:S.stoneLayout,nameLayout:S.nameLayout,signature:playerName(),applied:S.gardenApplied,completed:S.completed};}
-function renderScene(){const v=currentVisual();const stage=v.treeStage;const root=ROOT_BY_STAGE[stage-1],canopy=CANOPY_BY_STAGE[stage-1],blossom=blossomStage(v);asset($('rootLayer'),`tree/rootbase_0${root}.png`);asset($('trunkLayer'),`tree/trunk_0${stage}.png`);asset($('canopyLayer'),`tree/canopy_${v.canopyType}_0${Math.max(1,canopy)}.png`,canopy>0);asset($('blossomLayer'),`tree/blossom_${v.blossomVariant}_0${Math.max(1,blossom)}.png`,blossom>0);asset($('rootFrontLayer'),`tree/rootfront_0${root}.png`);
- const fxColor=v.blossomVariant||'pink';const settled=(v.completed||showcaseIndex!==null)&&fxPhase==='idle';asset($('fxDrift'),`tree/fx_${fxColor}_idle_drift.png`,fxPhase==='petal_drift'||settled);asset($('fxRing'),`tree/fx_${fxColor}_wind_ring.png`,fxPhase==='wind_ring');asset($('fxBurst'),`tree/fx_${fxColor}_bloom_burst.png`,fxPhase==='bloom_burst');asset($('fxGround'),`tree/fx_${fxColor}_ground_scatter.png`,fxPhase==='settle');$('sceneViewport').dataset.fx=fxPhase;
- const preview=!v.completed&&showcaseIndex===null&&tab==='design';asset($('rakeLayer'),`garden/pattern_${v.rakePattern}.png`,v.applied.pattern||(preview&&designSection==='pattern'));asset($('motifLayer'),`garden/motif_${v.motif}.png`,v.applied.motif||(preview&&designSection==='motif'));asset($('stoneLayer'),`garden/stones_${v.stoneLayout}.png`,v.applied.stones||(preview&&designSection==='stones'));asset($('nameTemplateLayer'),`garden/name_${v.nameLayout}.png`,v.applied.signature||(preview&&designSection==='signature'));const sig=$('gardenSignature');sig.textContent=v.signature;sig.dataset.layout=v.nameLayout;sig.hidden=!(v.applied.signature||(preview&&designSection==='signature'));
- const tp=showcaseIndex!==null?100:treeProgress(),gh=showcaseIndex!==null?100:harmony();$('treeStageLabel').textContent=showcaseIndex!==null?'First Bloom':TREE[S.treeStage-1];$('treePercent').textContent=`${tp}%`;$('treeMeter').style.width=`${tp}%`;$('gardenStageLabel').textContent=showcaseIndex!==null?'First Bloom Garden':GARDEN[gardenStage()-1];$('gardenPercent').textContent=`${gh}%`;$('gardenMeter').style.width=`${gh}%`;$('showcaseBadge').hidden=showcaseIndex===null;
- $('cultivationNumber').textContent=S.cultivationNumber;$('leafCount').textContent=S.resources.leafEssence.toLocaleString();$('stoneCount').textContent=S.resources.gardenStone.toLocaleString();$('waterCount').textContent=S.resources.spiritWater.toLocaleString();$('sealCount').textContent=S.resources.harmonySeals.toLocaleString();}
-function costText(cost){return Object.entries(cost).map(([k,v])=>`${v} ${k==='leafEssence'?'LEAF':k==='gardenStone'?'STONE':k==='spiritWater'?'WATER':'SEAL'}`).join(' + ');}
-function renderCultivate(){if(showcaseIndex!==null)return `<div class="panel-head"><div><h2>Grove Showcase</h2><p>This completed cultivation is read-only.</p></div><button class="action-btn primary" data-action="exit-showcase">RETURN</button></div>`;const stage=S.treeStage,r=stageReq();if(S.completed)return `<div class="panel-head"><div><h2>First Bloom Complete</h2><p>This cultivation is preserved in the Grove.</p></div><span class="stage-ready">SEAL CLAIMED</span></div><div class="action-row"><button class="action-btn primary" data-action="new-cycle">BEGIN NEW CULTIVATION</button></div>`;if(stage===6){const ready=harmony()===100;return `<div class="panel-head"><div><h2>First Bloom</h2><p>The tree is mature. Complete the garden to begin the bloom ceremony.</p></div>${ready?'<span class="stage-ready">READY</span>':''}</div><div class="requirement-row"><span class="req-chip done">TREE 100%</span><span class="req-chip ${ready?'done':''}">HARMONY ${harmony()}%</span></div><div class="action-row"><button class="action-btn primary" data-action="complete" ${ready?'':'disabled'}>COMPLETE FIRST BLOOM</button></div>`;}
- const chip=(k,label)=>`<span class="req-chip ${reqDone(k)?'done':''}">${label} ${Math.min(S.stageCare[k],r[k])}/${r[k]}</span>`;return `<div class="panel-head"><div><h2>${esc(TREE[stage-1])}</h2><p>Complete this stage's care, then advance the bonsai.</p></div>${stageReady()?'<span class="stage-ready">STAGE READY</span>':''}</div><div class="requirement-row">${r.water?chip('water','WATER'):''}${r.nourish?chip('nourish','NOURISH'):''}${r.shape?chip('shape','SHAPE'):''}</div><div class="action-row"><button class="action-btn primary" data-care="water" ${reqDone('water')||!r.water?'disabled':''}>WATER<br><small>${costText(COSTS.water)}</small></button><button class="action-btn" data-care="nourish" ${reqDone('nourish')||!r.nourish?'disabled':''}>NOURISH<br><small>${costText(COSTS.nourish)}</small></button><button class="action-btn" data-care="shape" ${reqDone('shape')||!r.shape?'disabled':''}>SHAPE<br><small>${costText(COSTS.shape)}</small></button></div>${stageReady()?'<div class="action-row"><button class="action-btn primary" data-action="advance-stage">CULTIVATE NEXT STAGE</button></div>':''}`;}
-function designOptions(section){if(section==='pattern')return RAKES;if(section==='motif')return MOTIFS;if(section==='stones')return STONES;if(section==='signature')return NAMES;return [];}
+function spend(cost){
+ for(const [k,v] of Object.entries(cost)){
+  if(S.resources[k]<v){
+   toast(`Not enough ${k.replace(/[A-Z]/g,m=>' '+m).toLowerCase()}.`);
+   return false;
+  }
+ }
+ for(const [k,v] of Object.entries(cost))S.resources[k]-=v;
+ return true;
+}
+function renderAssetSlot(el,path){
+ if(!el)return;
+ const show=Boolean(path);
+ el.hidden=!show;
+ if(!show){el.removeAttribute('src');return;}
+ const src=ROOT+path;
+ if(el.getAttribute('src')!==src)el.src=src;
+}
+function currentVisual(){
+ if(showcaseIndex!==null&&S.grove[showcaseIndex]){
+  const g=S.grove[showcaseIndex];
+  return {
+   treeStage:6,
+   canopyType:['green','jade'].includes(g.canopyType)?g.canopyType:'green',
+   blossomVariant:BLOSSOMS.includes(g.blossomVariant)?g.blossomVariant:'pink',
+   rakePattern:RAKES.includes(g.rakePattern)?g.rakePattern:'still_water',
+   motif:MOTIFS.includes(g.motif)?g.motif:'blazing_spiral',
+   stoneLayout:STONES.includes(g.stoneLayout)?g.stoneLayout:'centered',
+   nameLayout:NAMES.includes(g.nameLayout)?g.nameLayout:'straight',
+   signature:g.signature||playerName(),
+   applied:{pattern:true,motif:true,stones:true,signature:true,refine:true},
+   completed:true,
+  };
+ }
+ return {
+  treeStage:S.treeStage,
+  canopyType:S.canopyType,
+  blossomVariant:S.blossomVariant,
+  rakePattern:S.rakePattern,
+  motif:S.motif,
+  stoneLayout:S.stoneLayout,
+  nameLayout:S.nameLayout,
+  signature:playerName(),
+  applied:S.gardenApplied,
+  completed:S.completed,
+ };
+}
+function resolveVisualState(){
+ const v=currentVisual();
+ const stage=clamp(v.treeStage,1,6);
+ const rootStage=ROOT_BY_STAGE[stage-1];
+ const canopyStage=CANOPY_BY_STAGE[stage-1];
+ const bloomStage=blossomStage(v);
+ const preview=!v.completed&&showcaseIndex===null&&tab==='design';
+ const showPattern=Boolean(v.applied.pattern||(preview&&designSection==='pattern'));
+ const showMotif=Boolean(v.applied.motif||(preview&&designSection==='motif'));
+ const showStones=Boolean(v.applied.stones||(preview&&designSection==='stones'));
+ const showSignature=Boolean(v.applied.signature||(preview&&designSection==='signature'));
+ const settled=(v.completed||showcaseIndex!==null)&&fxPhase==='idle';
+ const activeFxState=fxPhase==='idle'?(settled?'idle':null):fxPhase;
+ const fx=activeFxState?FX_STATE[activeFxState]||null:null;
+ return {
+  tree:{
+   rootBase:`tree/rootbase_0${rootStage}.png`,
+   trunk:`tree/trunk_0${stage}.png`,
+   canopyFamily:v.canopyType,
+   canopyStage,
+   canopy:canopyStage>0?`tree/canopy_${v.canopyType}_0${canopyStage}.png`:null,
+   blossomFamily:v.blossomVariant,
+   blossomStage:bloomStage,
+   blossom:bloomStage>0?`tree/blossom_${v.blossomVariant}_0${bloomStage}.png`:null,
+   fxState:fx?activeFxState:null,
+   fx:fx?`tree/fx_${v.blossomVariant}_${fx.file}.png`:null,
+   fxClass:fx?.className||'',
+  },
+  garden:{
+   sandBase:'garden/sand_bed_base.png',
+   rakePattern:showPattern?`garden/pattern_${v.rakePattern}.png`:null,
+   rakePatternName:showPattern?v.rakePattern:null,
+   motif:showMotif?`garden/motif_${v.motif}.png`:null,
+   motifName:showMotif?v.motif:null,
+   stones:showStones?`garden/stones_${v.stoneLayout}.png`:null,
+   stoneLayout:showStones?v.stoneLayout:null,
+   accent:null,
+   signature:showSignature?{template:`garden/name_${v.nameLayout}.png`,layout:v.nameLayout,text:v.signature}:null,
+   fxState:null,
+  },
+ };
+}
+function renderScene(){
+ const visual=resolveVisualState();
+ renderAssetSlot($('sandBase'),visual.garden.sandBase);
+ renderAssetSlot($('rootLayer'),visual.tree.rootBase);
+ renderAssetSlot($('trunkLayer'),visual.tree.trunk);
+ renderAssetSlot($('canopyLayer'),visual.tree.canopy);
+ renderAssetSlot($('blossomLayer'),visual.tree.blossom);
+
+ const fx=$('fxLayer');
+ fx.className=`tree-layer fx-layer ${visual.tree.fxClass}`.trim();
+ fx.dataset.fxState=visual.tree.fxState||'none';
+ renderAssetSlot(fx,visual.tree.fx);
+ $('sceneViewport').dataset.fx=visual.tree.fxState||'none';
+
+ renderAssetSlot($('rakeLayer'),visual.garden.rakePattern);
+ renderAssetSlot($('motifLayer'),visual.garden.motif);
+ const stone=$('stoneLayer');
+ stone.dataset.layout=visual.garden.stoneLayout||'none';
+ renderAssetSlot(stone,visual.garden.stones);
+ renderAssetSlot($('nameTemplateLayer'),visual.garden.signature?.template||null);
+ const sig=$('gardenSignature');
+ sig.textContent=visual.garden.signature?.text||'';
+ sig.dataset.layout=visual.garden.signature?.layout||'none';
+ sig.hidden=!visual.garden.signature;
+
+ const tp=showcaseIndex!==null?100:treeProgress();
+ const gh=showcaseIndex!==null?100:harmony();
+ $('treeStageLabel').textContent=showcaseIndex!==null?'First Bloom':TREE[S.treeStage-1];
+ $('treePercent').textContent=`${tp}%`;
+ $('treeMeter').style.width=`${tp}%`;
+ $('gardenStageLabel').textContent=showcaseIndex!==null?'First Bloom Garden':GARDEN[gardenStage()-1];
+ $('gardenPercent').textContent=`${gh}%`;
+ $('gardenMeter').style.width=`${gh}%`;
+ $('showcaseBadge').hidden=showcaseIndex===null;
+ $('cultivationNumber').textContent=S.cultivationNumber;
+ $('leafCount').textContent=S.resources.leafEssence.toLocaleString();
+ $('stoneCount').textContent=S.resources.gardenStone.toLocaleString();
+ $('waterCount').textContent=S.resources.spiritWater.toLocaleString();
+ $('sealCount').textContent=S.resources.harmonySeals.toLocaleString();
+}
+function costText(cost){
+ return Object.entries(cost).map(([k,v])=>`${v} ${k==='leafEssence'?'LEAF':k==='gardenStone'?'STONE':k==='spiritWater'?'WATER':'SEAL'}`).join(' + ');
+}
+function renderCultivate(){
+ if(showcaseIndex!==null)return `<div class="panel-head"><div><h2>Grove Showcase</h2><p>This completed cultivation is read-only.</p></div><button class="action-btn primary" data-action="exit-showcase">RETURN</button></div>`;
+ const stage=S.treeStage,r=stageReq();
+ if(S.completed)return `<div class="panel-head"><div><h2>First Bloom Complete</h2><p>This cultivation is preserved in the Grove.</p></div><span class="stage-ready">SEAL CLAIMED</span></div><div class="action-row"><button class="action-btn primary" data-action="new-cycle">BEGIN NEW CULTIVATION</button></div>`;
+ if(stage===6){
+  const ready=harmony()===100;
+  return `<div class="panel-head"><div><h2>First Bloom</h2><p>The tree is mature. Complete the garden to begin the bloom ceremony.</p></div>${ready?'<span class="stage-ready">READY</span>':''}</div><div class="requirement-row"><span class="req-chip done">TREE 100%</span><span class="req-chip ${ready?'done':''}">HARMONY ${harmony()}%</span></div><div class="action-row"><button class="action-btn primary" data-action="complete" ${ready?'':'disabled'}>COMPLETE FIRST BLOOM</button></div>`;
+ }
+ const chip=(k,label)=>`<span class="req-chip ${reqDone(k)?'done':''}">${label} ${Math.min(S.stageCare[k],r[k])}/${r[k]}</span>`;
+ return `<div class="panel-head"><div><h2>${esc(TREE[stage-1])}</h2><p>Complete this stage's care, then advance the bonsai.</p></div>${stageReady()?'<span class="stage-ready">STAGE READY</span>':''}</div><div class="requirement-row">${r.water?chip('water','WATER'):''}${r.nourish?chip('nourish','NOURISH'):''}${r.shape?chip('shape','SHAPE'):''}</div><div class="action-row"><button class="action-btn primary" data-care="water" ${reqDone('water')||!r.water?'disabled':''}>WATER<br><small>${costText(COSTS.water)}</small></button><button class="action-btn" data-care="nourish" ${reqDone('nourish')||!r.nourish?'disabled':''}>NOURISH<br><small>${costText(COSTS.nourish)}</small></button><button class="action-btn" data-care="shape" ${reqDone('shape')||!r.shape?'disabled':''}>SHAPE<br><small>${costText(COSTS.shape)}</small></button></div>${stageReady()?'<div class="action-row"><button class="action-btn primary" data-action="advance-stage">CULTIVATE NEXT STAGE</button></div>':''}`;
+}
+function designOptions(section){
+ if(section==='pattern')return RAKES;
+ if(section==='motif')return MOTIFS;
+ if(section==='stones')return STONES;
+ if(section==='signature')return NAMES;
+ return [];
+}
 function selectedFor(section){return section==='pattern'?S.rakePattern:section==='motif'?S.motif:section==='stones'?S.stoneLayout:S.nameLayout;}
 function componentApplied(section){return section==='finish'?S.gardenApplied.refine:Boolean(S.gardenApplied[section]);}
-function renderDesign(){if(showcaseIndex!==null)return `<div class="panel-head"><div><h2>Garden Design</h2><p>Showcase mode is read-only.</p></div><button class="action-btn primary" data-action="exit-showcase">RETURN</button></div>`;const tabs=`<div class="design-sections">${DESIGN_SECTIONS.map(x=>`<button class="design-section ${x===designSection?'active':''}" data-design-section="${x}">${esc(LABEL[x])}</button>`).join('')}</div>`;if(designSection==='finish'){const all=['pattern','motif','stones','signature'].every(k=>S.gardenApplied[k]);return `<div class="panel-head"><div><h2>Garden Harmony</h2><p>Harmony comes from completing the garden, not repeated percentage taps.</p></div><span class="stage-ready">${harmony()}%</span></div>${tabs}<div class="requirement-row">${['pattern','motif','stones','signature'].map(k=>`<span class="req-chip ${S.gardenApplied[k]?'done':''}">${esc(LABEL[k])}</span>`).join('')}<span class="req-chip ${S.gardenApplied.refine?'done':''}">REFINED</span></div><div class="action-row"><button class="action-btn primary" data-apply="refine" ${!all||S.gardenApplied.refine?'disabled':''}>FINAL REFINEMENT<br><small>${costText(COSTS.refine)}</small></button></div>`;}
- const opts=designOptions(designSection),sel=selectedFor(designSection),applied=componentApplied(designSection);return `<div class="panel-head"><div><h2>${esc(LABEL[designSection])}</h2><p>Select a design to preview it live, then apply it to the garden.</p></div><span class="stage-ready">${harmony()}%</span></div>${tabs}<div class="choice-strip">${opts.map(v=>`<button class="choice-card ${v===sel?'selected':''}" data-design-choice="${v}"><strong>${esc(LABEL[v]||v)}</strong><small>${v===sel?'LIVE PREVIEW':'SELECT'}</small></button>`).join('')}</div><div class="apply-row"><span class="apply-status ${applied?'done':''}">${applied?'APPLIED TO GARDEN':'PREVIEW ONLY'}</span><button class="action-btn primary" data-apply="${designSection}" ${applied?'disabled':''}>APPLY · ${costText(COSTS[designSection])}</button></div>`;}
-function groveThumb(g){const root=4,stage=6,canopy=4;return `<div class="grove-thumb"><img src="${ROOT}tree/rootbase_0${root}.png" alt=""><img src="${ROOT}tree/trunk_0${stage}.png" alt=""><img src="${ROOT}tree/canopy_${esc(g.canopyType||'green')}_0${canopy}.png" alt=""><img src="${ROOT}tree/blossom_${esc(g.blossomVariant||'pink')}_03.png" alt=""><img src="${ROOT}tree/rootfront_0${root}.png" alt=""></div>`;}
-function renderGrove(){const cards=S.grove.length?S.grove.map((g,i)=>`<button class="grove-card ${showcaseIndex===i?'selected':''}" data-grove="${i}">${groveThumb(g)}<strong>FIRST BLOOM #${String(g.cultivationNumber||i+1).padStart(3,'0')}</strong><small>${esc(LABEL[g.canopyType]||g.canopyType||'Green')} · ${esc(LABEL[g.blossomVariant]||g.blossomVariant||'Pink')}<br>${esc(LABEL[g.rakePattern]||g.rakePattern)} · ${esc(LABEL[g.stoneLayout]||g.stoneLayout)}</small></button>`).join(''):'<div class="notice">Complete First Bloom to preserve your first living cultivation here.</div>';return `<div class="panel-head"><div><h2>The Grove</h2><p>Completed cultivations remain as a permanent visual collection.</p></div>${showcaseIndex!==null?'<button class="action-btn primary" data-action="exit-showcase">RETURN</button>':''}</div><div class="grove-grid">${cards}</div>`;}
-function renderSummon(){return `<div class="panel-head"><div><h2>Sanctuary Summon</h2><p>Use Harmony Seals earned from completed cultivations.</p></div><span class="stage-ready">${S.resources.harmonySeals} SEALS</span></div><div class="action-row"><button class="action-btn primary" data-action="summon" ${S.resources.harmonySeals<1?'disabled':''}>SANCTUARY SUMMON · 1 SEAL</button></div>${S.lastSummon?`<div class="summon-result"><small>TEST REWARD</small><strong>${esc(S.lastSummon.reward)}</strong></div>`:''}`;}
-function renderPanel(){const html=tab==='cultivate'?renderCultivate():tab==='design'?renderDesign():tab==='grove'?renderGrove():renderSummon();$('actionPanel').innerHTML=html;document.querySelectorAll('.dock-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));}
-function renderStatus(){if(!$('devStatus'))return;$('devStatus').textContent=`SANCTUARY DEV STATUS\n\nBuild: First Bloom Rebuild\nBranch: ${BUILD_BRANCH}\nAssets: ${ASSET_SPEC}\n\nCultivation: ${S.cultivationNumber}\nTree: ${TREE[S.treeStage-1]} · ${treeProgress()}%\nCare: W${S.stageCare.water} N${S.stageCare.nourish} S${S.stageCare.shape}\nGarden: ${harmony()}%\nPattern: ${LABEL[S.rakePattern]} ${S.gardenApplied.pattern?'[applied]':'[preview]'}\nMotif: ${LABEL[S.motif]} ${S.gardenApplied.motif?'[applied]':'[preview]'}\nStones: ${LABEL[S.stoneLayout]} ${S.gardenApplied.stones?'[applied]':'[preview]'}\nSignature: ${LABEL[S.nameLayout]} ${S.gardenApplied.signature?'[applied]':'[preview]'}\nCanopy: ${S.canopyType}\nBloom: ${LABEL[S.blossomVariant]}\nSeals: ${S.resources.harmonySeals}\nSave: ${saveState}`;}
+function renderDesign(){
+ if(showcaseIndex!==null)return `<div class="panel-head"><div><h2>Garden Design</h2><p>Showcase mode is read-only.</p></div><button class="action-btn primary" data-action="exit-showcase">RETURN</button></div>`;
+ const tabs=`<div class="design-sections">${DESIGN_SECTIONS.map(x=>`<button class="design-section ${x===designSection?'active':''}" data-design-section="${x}">${esc(LABEL[x])}</button>`).join('')}</div>`;
+ if(designSection==='finish'){
+  const all=['pattern','motif','stones','signature'].every(k=>S.gardenApplied[k]);
+  return `<div class="panel-head"><div><h2>Garden Harmony</h2><p>Harmony comes from completing the garden, not repeated percentage taps.</p></div><span class="stage-ready">${harmony()}%</span></div>${tabs}<div class="requirement-row">${['pattern','motif','stones','signature'].map(k=>`<span class="req-chip ${S.gardenApplied[k]?'done':''}">${esc(LABEL[k])}</span>`).join('')}<span class="req-chip ${S.gardenApplied.refine?'done':''}">REFINED</span></div><div class="action-row"><button class="action-btn primary" data-apply="refine" ${!all||S.gardenApplied.refine?'disabled':''}>FINAL REFINEMENT<br><small>${costText(COSTS.refine)}</small></button></div>`;
+ }
+ const opts=designOptions(designSection),sel=selectedFor(designSection),applied=componentApplied(designSection);
+ return `<div class="panel-head"><div><h2>${esc(LABEL[designSection])}</h2><p>Select a design to preview it live, then apply it to the garden.</p></div><span class="stage-ready">${harmony()}%</span></div>${tabs}<div class="choice-strip">${opts.map(v=>`<button class="choice-card ${v===sel?'selected':''}" data-design-choice="${v}"><strong>${esc(LABEL[v]||v)}</strong><small>${v===sel?'LIVE PREVIEW':'SELECT'}</small></button>`).join('')}</div><div class="apply-row"><span class="apply-status ${applied?'done':''}">${applied?'APPLIED TO GARDEN':'PREVIEW ONLY'}</span><button class="action-btn primary" data-apply="${designSection}" ${applied?'disabled':''}>APPLY · ${costText(COSTS[designSection])}</button></div>`;
+}
+function groveThumb(g){
+ const root=4,stage=6,canopy=4;
+ return `<div class="grove-thumb"><img src="${ROOT}tree/rootbase_0${root}.png" alt=""><img src="${ROOT}tree/trunk_0${stage}.png" alt=""><img src="${ROOT}tree/canopy_${esc(g.canopyType||'green')}_0${canopy}.png" alt=""><img src="${ROOT}tree/blossom_${esc(g.blossomVariant||'pink')}_03.png" alt=""></div>`;
+}
+function renderGrove(){
+ const cards=S.grove.length?S.grove.map((g,i)=>`<button class="grove-card ${showcaseIndex===i?'selected':''}" data-grove="${i}">${groveThumb(g)}<strong>FIRST BLOOM #${String(g.cultivationNumber||i+1).padStart(3,'0')}</strong><small>${esc(LABEL[g.canopyType]||g.canopyType||'Green')} · ${esc(LABEL[g.blossomVariant]||g.blossomVariant||'Pink')}<br>${esc(LABEL[g.rakePattern]||g.rakePattern)} · ${esc(LABEL[g.stoneLayout]||g.stoneLayout)}</small></button>`).join(''):'<div class="notice">Complete First Bloom to preserve your first living cultivation here.</div>';
+ return `<div class="panel-head"><div><h2>The Grove</h2><p>Completed cultivations remain as a permanent visual collection.</p></div>${showcaseIndex!==null?'<button class="action-btn primary" data-action="exit-showcase">RETURN</button>':''}</div><div class="grove-grid">${cards}</div>`;
+}
+function renderSummon(){
+ return `<div class="panel-head"><div><h2>Sanctuary Summon</h2><p>Use Harmony Seals earned from completed cultivations.</p></div><span class="stage-ready">${S.resources.harmonySeals} SEALS</span></div><div class="action-row"><button class="action-btn primary" data-action="summon" ${S.resources.harmonySeals<1?'disabled':''}>SANCTUARY SUMMON · 1 SEAL</button></div>${S.lastSummon?`<div class="summon-result"><small>TEST REWARD</small><strong>${esc(S.lastSummon.reward)}</strong></div>`:''}`;
+}
+function renderPanel(){
+ const html=tab==='cultivate'?renderCultivate():tab==='design'?renderDesign():tab==='grove'?renderGrove():renderSummon();
+ $('actionPanel').innerHTML=html;
+ document.querySelectorAll('.dock-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+}
+function renderStatus(){
+ if(!$('devStatus'))return;
+ const v=resolveVisualState();
+ $('devStatus').textContent=`SANCTUARY DEV STATUS\n\nBuild: First Bloom Rebuild\nBranch: ${BUILD_BRANCH}\nAssets: ${ASSET_SPEC}\n\nCultivation: ${S.cultivationNumber}\nTree: ${TREE[S.treeStage-1]} · ${treeProgress()}%\nCare: W${S.stageCare.water} N${S.stageCare.nourish} S${S.stageCare.shape}\nGarden: ${harmony()}%\nPattern: ${LABEL[S.rakePattern]} ${S.gardenApplied.pattern?'[applied]':'[preview]'}\nMotif: ${LABEL[S.motif]} ${S.gardenApplied.motif?'[applied]':'[preview]'}\nStones: ${LABEL[S.stoneLayout]} ${S.gardenApplied.stones?'[applied]':'[preview]'}\nSignature: ${LABEL[S.nameLayout]} ${S.gardenApplied.signature?'[applied]':'[preview]'}\nCanopy: ${S.canopyType}\nBloom: ${LABEL[S.blossomVariant]}\nFX: ${v.tree.fxState||'none'}\nResolved: one asset per category\nSeals: ${S.resources.harmonySeals}\nSave: ${saveState}`;
+}
 function render(){renderScene();renderPanel();renderStatus();}
-function doCare(kind){const r=stageReq();if(S.treeStage>=6||r[kind]<=S.stageCare[kind])return;if(!spend(COSTS[kind]))return;S.stageCare[kind]+=1;saveState='dirty';save();render();}
-function advanceStage(){if(S.treeStage>=6||!stageReady())return;S.treeStage+=1;S.stageCare=blankCare();saveState='dirty';save(`${TREE[S.treeStage-1]} reached.`);render();}
-function setDesignChoice(value){if(showcaseIndex!==null)return;const key=designSection==='pattern'?'rakePattern':designSection==='motif'?'motif':designSection==='stones'?'stoneLayout':designSection==='signature'?'nameLayout':null;if(!key)return;const lists={rakePattern:RAKES,motif:MOTIFS,stoneLayout:STONES,nameLayout:NAMES};if(!lists[key].includes(value)||S[key]===value)return;S[key]=value;S.gardenApplied[designSection]=false;S.gardenApplied.refine=false;saveState='dirty';save();render();}
-function applyDesign(section){if(showcaseIndex!==null)return;if(section==='refine'){if(!['pattern','motif','stones','signature'].every(k=>S.gardenApplied[k])||S.gardenApplied.refine)return;if(!spend(COSTS.refine))return;S.gardenApplied.refine=true;}else{if(!['pattern','motif','stones','signature'].includes(section)||S.gardenApplied[section])return;if(!spend(COSTS[section]))return;S.gardenApplied[section]=true;S.gardenApplied.refine=false;}saveState='dirty';save(`${LABEL[section]||'Garden'} applied.`);render();}
-function groveRecord(){return {id:`first-bloom-${S.cultivationNumber}`,cultivationNumber:S.cultivationNumber,completedAt:new Date().toISOString(),canopyType:S.canopyType,blossomVariant:S.blossomVariant,rakePattern:S.rakePattern,motif:S.motif,stoneLayout:S.stoneLayout,nameLayout:S.nameLayout,signature:playerName()};}
-function complete(){if(S.treeStage!==6||harmony()!==100){toast('Tree and Garden Harmony must both be complete.');return;}if(S.completionClaimed||S.grove.some(g=>g.id===`first-bloom-${S.cultivationNumber}`)){toast('This cultivation is already complete.');return;}S.completed=true;S.completionClaimed=true;S.resources.harmonySeals+=1;S.grove.push(groveRecord());saveState='dirty';save();render();runCeremony();}
-function setFxPhase(phase){fxPhase=phase;renderScene();}
-function runCeremony(){ceremonyTimer.forEach(clearTimeout);ceremonyTimer=[];const app=$('sanctuaryApp'),el=$('ceremony');el.hidden=false;el.querySelector('span').textContent='THE GARDEN ANSWERS';app.classList.add('ceremony-active');setFxPhase('petal_drift');ceremonyTimer.push(setTimeout(()=>setFxPhase('wind_ring'),460));ceremonyTimer.push(setTimeout(()=>{el.querySelector('span').textContent='FIRST BLOOM AWAKENS';setFxPhase('bloom_burst');},980));ceremonyTimer.push(setTimeout(()=>{el.querySelector('span').textContent='HARMONY SEAL +1';setFxPhase('settle');},1540));ceremonyTimer.push(setTimeout(()=>{el.hidden=true;app.classList.remove('ceremony-active');setFxPhase('idle');toast('First Bloom preserved in the Grove.');},2350));}
-function newCycle(){const keep={resources:S.resources,grove:S.grove,summonResults:S.summonResults,lastSummon:S.lastSummon,cultivationNumber:S.cultivationNumber+1};S=normalize({...defaults(),...keep});showcaseIndex=null;saveState='dirty';save('A fresh cultivation has begun.');render();}
-function summon(){if(!spend({harmonySeals:1}))return;const rewards=['Jade Garden Charm','Moonlit Pot Crest','Sacred Moss Token','Spirit Water Vessel'];const result={reward:rewards[S.summonResults.length%rewards.length],at:new Date().toISOString()};S.lastSummon=result;S.summonResults.push(result);saveState='dirty';save('One Harmony Seal consumed.');render();}
-function openDev(){if(!DEV)return;$('devPanel').classList.add('open');$('devPanel').setAttribute('aria-hidden','false');$('devBackdrop').hidden=false;$('devOpen').setAttribute('aria-expanded','true');}
-function closeDev(){$('devPanel').classList.remove('open');$('devPanel').setAttribute('aria-hidden','true');$('devBackdrop').hidden=true;$('devOpen').setAttribute('aria-expanded','false');}
-function devSetHarmony(value){const count=Math.round(value/20),keys=['pattern','motif','stones','signature','refine'];S.gardenApplied=blankApplied();keys.slice(0,count).forEach(k=>S.gardenApplied[k]=true);saveState='dirty';save();render();}
-function devPreset(n){showcaseIndex=null;S.completed=false;S.completionClaimed=false;S.stageCare=blankCare();S.gardenApplied=blankApplied();if(n===1){S.treeStage=1;}if(n===2){S.treeStage=2;S.stageCare={water:1,nourish:0,shape:0};S.gardenApplied.pattern=true;}if(n===3){S.treeStage=3;S.stageCare={water:1,nourish:1,shape:0};Object.assign(S.gardenApplied,{pattern:true,motif:true,stones:true});}if(n===4){S.treeStage=5;S.stageCare={water:1,nourish:1,shape:1};Object.assign(S.gardenApplied,{pattern:true,motif:true,stones:true,signature:true});}if(n===5){S.treeStage=6;Object.assign(S.gardenApplied,{pattern:true,motif:true,stones:true,signature:true,refine:true});}if(n===6){S.treeStage=6;Object.assign(S.gardenApplied,{pattern:true,motif:true,stones:true,signature:true,refine:true});S.completed=true;S.completionClaimed=true;if(!S.grove.some(g=>g.id===`first-bloom-${S.cultivationNumber}`))S.grove.push(groveRecord());}saveState='dirty';save(`Preset ${n} loaded.`);render();}
-function devControls(){if(!DEV){$('devOpen').hidden=true;return;}const group=items=>`<div class="dev-group">${items.map(([l,a,c=''])=>`<button data-dev="${a}" class="${c}">${l}</button>`).join('')}</div>`;$('devControls').innerHTML=`<details open><summary>FLOW PRESETS</summary>${group([["1 · New","preset-1"],["2 · Early","preset-2"],["3 · Mid","preset-3"],["4 · Near Bloom","preset-4"],["5 · Ready","preset-5"],["6 · Completed","preset-6"]])}</details><details><summary>TREE</summary>${group([["Stage 1","stage-1"],["Stage 2","stage-2"],["Stage 3","stage-3"],["Stage 4","stage-4"],["Stage 5","stage-5"],["Stage 6","stage-6"],["Green canopy","canopy-green"],["Jade canopy","canopy-jade"],["Cycle bloom theme","bloom-cycle","wide"]])}</details><details><summary>GARDEN</summary>${group([["Harmony 0","harmony-0"],["Harmony 20","harmony-20"],["Harmony 40","harmony-40"],["Harmony 60","harmony-60"],["Harmony 80","harmony-80"],["Harmony 100","harmony-100"],["Cycle pattern","pattern-cycle"],["Cycle motif","motif-cycle"],["Cycle stones","stones-cycle"],["Cycle signature","name-cycle"]])}</details><details><summary>ECONOMY / SAVE</summary>${group([["Refill resources","refill","wide"],["+1 Seal","seal"],["Run ceremony","ceremony"],["Save","save"],["Reload","reload"],["Reset cultivation","reset","danger wide"],["Clear Sanctuary save","clear","danger wide"]])}</details>`;}
-function devAction(a){if(!DEV)return;if(a.startsWith('preset-'))return devPreset(Number(a.split('-')[1]));if(a.startsWith('stage-')){S.treeStage=Number(a.split('-')[1]);S.stageCare=blankCare();}else if(a==='canopy-green')S.canopyType='green';else if(a==='canopy-jade')S.canopyType='jade';else if(a==='bloom-cycle')S.blossomVariant=cycle(BLOSSOMS,S.blossomVariant);else if(a.startsWith('harmony-'))return devSetHarmony(Number(a.split('-')[1]));else if(a==='pattern-cycle'){S.rakePattern=cycle(RAKES,S.rakePattern);S.gardenApplied.pattern=false;S.gardenApplied.refine=false;}else if(a==='motif-cycle'){S.motif=cycle(MOTIFS,S.motif);S.gardenApplied.motif=false;S.gardenApplied.refine=false;}else if(a==='stones-cycle'){S.stoneLayout=cycle(STONES,S.stoneLayout);S.gardenApplied.stones=false;S.gardenApplied.refine=false;}else if(a==='name-cycle'){S.nameLayout=cycle(NAMES,S.nameLayout);S.gardenApplied.signature=false;S.gardenApplied.refine=false;}else if(a==='refill')Object.assign(S.resources,{leafEssence:9999,gardenStone:9999,spiritWater:999,harmonySeals:Math.max(10,S.resources.harmonySeals)});else if(a==='seal')S.resources.harmonySeals+=1;else if(a==='ceremony'){runCeremony();return;}else if(a==='save'){save('State saved.');render();return;}else if(a==='reload'){reload();return;}else if(a==='reset'){const keep={resources:S.resources,grove:S.grove,summonResults:S.summonResults,lastSummon:S.lastSummon,cultivationNumber:S.cultivationNumber};S=normalize({...defaults(),...keep});}else if(a==='clear'){localStorage.removeItem(KEY);S=defaults();}else return;saveState='dirty';save();render();}
-document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.id==='homeButton'){location.href='./';return;}if(t.id==='devOpen'){openDev();return;}if(t.id==='devClose'){closeDev();return;}if(t.classList.contains('dock-tab')){tab=t.dataset.tab;showcaseIndex=tab==='grove'?showcaseIndex:null;render();return;}if(t.dataset.designSection){designSection=t.dataset.designSection;render();return;}if(t.dataset.designChoice){setDesignChoice(t.dataset.designChoice);return;}if(t.dataset.apply){applyDesign(t.dataset.apply);return;}if(t.dataset.care){doCare(t.dataset.care);return;}if(t.dataset.grove!==undefined){showcaseIndex=Number(t.dataset.grove);tab='grove';render();return;}if(t.dataset.dev){devAction(t.dataset.dev);return;}const a=t.dataset.action;if(a==='advance-stage')advanceStage();else if(a==='complete')complete();else if(a==='new-cycle')newCycle();else if(a==='summon')summon();else if(a==='exit-showcase'){showcaseIndex=null;render();}});
-$('devBackdrop').addEventListener('click',closeDev);document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDev();});
-devControls();render();
+function doCare(kind){
+ const r=stageReq();
+ if(S.treeStage>=6||r[kind]<=S.stageCare[kind])return;
+ if(!spend(COSTS[kind]))return;
+ S.stageCare[kind]+=1;
+ saveState='dirty';
+ save();
+ render();
+}
+function advanceStage(){
+ if(S.treeStage>=6||!stageReady())return;
+ S.treeStage+=1;
+ S.stageCare=blankCare();
+ saveState='dirty';
+ save(`${TREE[S.treeStage-1]} reached.`);
+ render();
+}
+function setDesignChoice(value){
+ if(showcaseIndex!==null)return;
+ const key=designSection==='pattern'?'rakePattern':designSection==='motif'?'motif':designSection==='stones'?'stoneLayout':designSection==='signature'?'nameLayout':null;
+ if(!key)return;
+ const lists={rakePattern:RAKES,motif:MOTIFS,stoneLayout:STONES,nameLayout:NAMES};
+ if(!lists[key].includes(value)||S[key]===value)return;
+ S[key]=value;
+ S.gardenApplied[designSection]=false;
+ S.gardenApplied.refine=false;
+ saveState='dirty';
+ save();
+ render();
+}
+function applyDesign(section){
+ if(showcaseIndex!==null)return;
+ if(section==='refine'){
+  if(!['pattern','motif','stones','signature'].every(k=>S.gardenApplied[k])||S.gardenApplied.refine)return;
+  if(!spend(COSTS.refine))return;
+  S.gardenApplied.refine=true;
+ }else{
+  if(!['pattern','motif','stones','signature'].includes(section)||S.gardenApplied[section])return;
+  if(!spend(COSTS[section]))return;
+  S.gardenApplied[section]=true;
+  S.gardenApplied.refine=false;
+ }
+ saveState='dirty';
+ save(`${LABEL[section]||'Garden'} applied.`);
+ render();
+}
+function groveRecord(){
+ return {
+  id:`first-bloom-${S.cultivationNumber}`,
+  cultivationNumber:S.cultivationNumber,
+  completedAt:new Date().toISOString(),
+  canopyType:S.canopyType,
+  blossomVariant:S.blossomVariant,
+  rakePattern:S.rakePattern,
+  motif:S.motif,
+  stoneLayout:S.stoneLayout,
+  nameLayout:S.nameLayout,
+  signature:playerName(),
+ };
+}
+function complete(){
+ if(S.treeStage!==6||harmony()!==100){toast('Tree and Garden Harmony must both be complete.');return;}
+ if(S.completionClaimed||S.grove.some(g=>g.id===`first-bloom-${S.cultivationNumber}`)){toast('This cultivation is already complete.');return;}
+ S.completed=true;
+ S.completionClaimed=true;
+ S.resources.harmonySeals+=1;
+ S.grove.push(groveRecord());
+ saveState='dirty';
+ save();
+ render();
+ runCeremony();
+}
+function setFxPhase(phase){
+ fxPhase=Object.prototype.hasOwnProperty.call(FX_STATE,phase)||phase==='idle'?phase:'idle';
+ renderScene();
+}
+function runCeremony(){
+ stopCeremony();
+ const app=$('sanctuaryApp'),el=$('ceremony');
+ el.hidden=false;
+ el.querySelector('span').textContent='THE GARDEN ANSWERS';
+ app.classList.add('ceremony-active');
+ setFxPhase('petal_drift');
+ ceremonyTimer.push(setTimeout(()=>setFxPhase('wind_ring'),460));
+ ceremonyTimer.push(setTimeout(()=>{el.querySelector('span').textContent='FIRST BLOOM AWAKENS';setFxPhase('bloom_burst');},980));
+ ceremonyTimer.push(setTimeout(()=>{el.querySelector('span').textContent='HARMONY SEAL +1';setFxPhase('settle');},1540));
+ ceremonyTimer.push(setTimeout(()=>{
+  el.hidden=true;
+  app.classList.remove('ceremony-active');
+  setFxPhase('idle');
+  toast('First Bloom preserved in the Grove.');
+ },2350));
+}
+function newCycle(){
+ stopCeremony();
+ const keep={resources:S.resources,grove:S.grove,summonResults:S.summonResults,lastSummon:S.lastSummon,cultivationNumber:S.cultivationNumber+1};
+ S=normalize({...defaults(),...keep});
+ showcaseIndex=null;
+ saveState='dirty';
+ save('A fresh cultivation has begun.');
+ render();
+}
+function summon(){
+ if(!spend({harmonySeals:1}))return;
+ const rewards=['Jade Garden Charm','Moonlit Pot Crest','Sacred Moss Token','Spirit Water Vessel'];
+ const result={reward:rewards[S.summonResults.length%rewards.length],at:new Date().toISOString()};
+ S.lastSummon=result;
+ S.summonResults.push(result);
+ saveState='dirty';
+ save('One Harmony Seal consumed.');
+ render();
+}
+function openDev(){
+ if(!DEV)return;
+ $('devPanel').classList.add('open');
+ $('devPanel').setAttribute('aria-hidden','false');
+ $('devBackdrop').hidden=false;
+ $('devOpen').setAttribute('aria-expanded','true');
+}
+function closeDev(){
+ $('devPanel').classList.remove('open');
+ $('devPanel').setAttribute('aria-hidden','true');
+ $('devBackdrop').hidden=true;
+ $('devOpen').setAttribute('aria-expanded','false');
+}
+function devSetHarmony(value){
+ const count=Math.round(value/20),keys=['pattern','motif','stones','signature','refine'];
+ S.gardenApplied=blankApplied();
+ keys.slice(0,count).forEach(k=>S.gardenApplied[k]=true);
+ saveState='dirty';
+ save();
+ render();
+}
+function applyVisualPreset(n){Object.assign(S,VISUAL_PRESETS[n]||VISUAL_PRESETS[1]);}
+function devPreset(n){
+ stopCeremony();
+ showcaseIndex=null;
+ S.completed=false;
+ S.completionClaimed=false;
+ S.stageCare=blankCare();
+ S.gardenApplied=blankApplied();
+ applyVisualPreset(n);
+ if(n===1){S.treeStage=1;}
+ if(n===2){S.treeStage=2;S.stageCare={water:1,nourish:0,shape:0};S.gardenApplied.pattern=true;}
+ if(n===3){S.treeStage=3;S.stageCare={water:1,nourish:1,shape:0};Object.assign(S.gardenApplied,{pattern:true,motif:true,stones:true});}
+ if(n===4){S.treeStage=5;S.stageCare={water:1,nourish:1,shape:1};Object.assign(S.gardenApplied,{pattern:true,motif:true,stones:true,signature:true});}
+ if(n===5){S.treeStage=6;Object.assign(S.gardenApplied,{pattern:true,motif:true,stones:true,signature:true,refine:true});}
+ if(n===6){
+  S.treeStage=6;
+  Object.assign(S.gardenApplied,{pattern:true,motif:true,stones:true,signature:true,refine:true});
+  S.completed=true;
+  S.completionClaimed=true;
+  if(!S.grove.some(g=>g.id===`first-bloom-${S.cultivationNumber}`))S.grove.push(groveRecord());
+ }
+ saveState='dirty';
+ save(`Preset ${n} loaded.`);
+ render();
+}
+function devControls(){
+ if(!DEV){$('devOpen').hidden=true;return;}
+ const group=items=>`<div class="dev-group">${items.map(([l,a,c=''])=>`<button data-dev="${a}" class="${c}">${l}</button>`).join('')}</div>`;
+ $('devControls').innerHTML=`<details open><summary>FLOW PRESETS</summary>${group([["1 · New","preset-1"],["2 · Early","preset-2"],["3 · Mid","preset-3"],["4 · Near Bloom","preset-4"],["5 · Ready","preset-5"],["6 · Completed","preset-6"]])}</details><details><summary>TREE</summary>${group([["Stage 1","stage-1"],["Stage 2","stage-2"],["Stage 3","stage-3"],["Stage 4","stage-4"],["Stage 5","stage-5"],["Stage 6","stage-6"],["Green canopy","canopy-green"],["Jade canopy","canopy-jade"],["Cycle bloom theme","bloom-cycle","wide"]])}</details><details><summary>GARDEN</summary>${group([["Harmony 0","harmony-0"],["Harmony 20","harmony-20"],["Harmony 40","harmony-40"],["Harmony 60","harmony-60"],["Harmony 80","harmony-80"],["Harmony 100","harmony-100"],["Cycle pattern","pattern-cycle"],["Cycle motif","motif-cycle"],["Cycle stones","stones-cycle"],["Cycle signature","name-cycle"]])}</details><details><summary>ECONOMY / SAVE</summary>${group([["Refill resources","refill","wide"],["+1 Seal","seal"],["Run ceremony","ceremony"],["Save","save"],["Reload","reload"],["Reset cultivation","reset","danger wide"],["Clear Sanctuary save","clear","danger wide"]])}</details>`;
+}
+function devAction(a){
+ if(!DEV)return;
+ if(a.startsWith('preset-'))return devPreset(Number(a.split('-')[1]));
+ if(a.startsWith('stage-')){S.treeStage=Number(a.split('-')[1]);S.stageCare=blankCare();}
+ else if(a==='canopy-green')S.canopyType='green';
+ else if(a==='canopy-jade')S.canopyType='jade';
+ else if(a==='bloom-cycle')S.blossomVariant=cycle(BLOSSOMS,S.blossomVariant);
+ else if(a.startsWith('harmony-'))return devSetHarmony(Number(a.split('-')[1]));
+ else if(a==='pattern-cycle'){S.rakePattern=cycle(RAKES,S.rakePattern);S.gardenApplied.pattern=false;S.gardenApplied.refine=false;}
+ else if(a==='motif-cycle'){S.motif=cycle(MOTIFS,S.motif);S.gardenApplied.motif=false;S.gardenApplied.refine=false;}
+ else if(a==='stones-cycle'){S.stoneLayout=cycle(STONES,S.stoneLayout);S.gardenApplied.stones=false;S.gardenApplied.refine=false;}
+ else if(a==='name-cycle'){S.nameLayout=cycle(NAMES,S.nameLayout);S.gardenApplied.signature=false;S.gardenApplied.refine=false;}
+ else if(a==='refill')Object.assign(S.resources,{leafEssence:9999,gardenStone:9999,spiritWater:999,harmonySeals:Math.max(10,S.resources.harmonySeals)});
+ else if(a==='seal')S.resources.harmonySeals+=1;
+ else if(a==='ceremony'){runCeremony();return;}
+ else if(a==='save'){save('State saved.');render();return;}
+ else if(a==='reload'){reload();return;}
+ else if(a==='reset'){
+  stopCeremony();
+  const keep={resources:S.resources,grove:S.grove,summonResults:S.summonResults,lastSummon:S.lastSummon,cultivationNumber:S.cultivationNumber};
+  S=normalize({...defaults(),...keep});
+ }
+ else if(a==='clear'){stopCeremony();localStorage.removeItem(KEY);S=defaults();}
+ else return;
+ saveState='dirty';
+ save();
+ render();
+}
+
+document.addEventListener('click',e=>{
+ const t=e.target.closest('button');
+ if(!t)return;
+ if(t.id==='homeButton'){location.href='./';return;}
+ if(t.id==='devOpen'){openDev();return;}
+ if(t.id==='devClose'){closeDev();return;}
+ if(t.classList.contains('dock-tab')){tab=t.dataset.tab;showcaseIndex=tab==='grove'?showcaseIndex:null;render();return;}
+ if(t.dataset.designSection){designSection=t.dataset.designSection;render();return;}
+ if(t.dataset.designChoice){setDesignChoice(t.dataset.designChoice);return;}
+ if(t.dataset.apply){applyDesign(t.dataset.apply);return;}
+ if(t.dataset.care){doCare(t.dataset.care);return;}
+ if(t.dataset.grove!==undefined){showcaseIndex=Number(t.dataset.grove);tab='grove';render();return;}
+ if(t.dataset.dev){devAction(t.dataset.dev);return;}
+ const a=t.dataset.action;
+ if(a==='advance-stage')advanceStage();
+ else if(a==='complete')complete();
+ else if(a==='new-cycle')newCycle();
+ else if(a==='summon')summon();
+ else if(a==='exit-showcase'){showcaseIndex=null;render();}
+});
+
+$('devBackdrop').addEventListener('click',closeDev);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDev();});
+devControls();
+render();
 })();

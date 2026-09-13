@@ -58,14 +58,14 @@
     "No object-fit: fill is required for production runtime layers.",
     "The decorative inner bonsai pot is removed in runtime; the tree grows directly from an integrated soil/moss island.",
     "Root contact shadow is a separate production layer so grounding can be tuned without repainting the planting island.",
-    "rootfront files are retained as transparent compatibility layers only.",
+    "rootfront files are retained as transparent compatibility assets only and are not rendered by First Bloom.",
     "Tray inner shade gives the sand surface a recessed physical read before stone-specific shadows are added.",
     "Original core stone layouts remain source-only because of matte remnants.",
     "Sand pattern and motif runtime files are groove-only transparent overlays.",
     "Low-alpha blossom and FX matte fields are removed during runtime build.",
-    "Ceremony FX files are normalized but must be sequenced, never enabled simultaneously.",
+    "Ceremony FX files are normalized and resolve through one runtime FX slot; ceremony phases are sequenced, never enabled simultaneously.",
     "Rake patterns use shallow directional groove shading with an inset edge fade; broad source furrows are never rendered as dark painted stripes.",
-    "Stone compositions frame the open sand from left/right anchors and carry authored contact shadows; no V1 stone group occupies the bonsai centerline."
+    "Stone compositions frame the open sand from left/right anchors and carry authored contact shadows; runtime offsets push every layout farther from the front-center lane."
   ],
   "rakePass": {
     "renderer": "natural_groove_v1",
@@ -76,6 +76,11 @@
   },
   "stonePass": {
     "renderer": "framed_grounded_v1",
+    "openCenterLane": {
+      "xMin": 590,
+      "xMax": 946,
+      "frontCenterClear": true
+    },
     "layouts": {
       "centered": {
         "source": "sand/stones/variants/moss_cluster.png",
@@ -87,7 +92,15 @@
           470,
           525
         ],
-        "role": "left midground cluster"
+        "runtimeOffsetPercent": [
+          -4,
+          0
+        ],
+        "resolvedCenter": [
+          409,
+          525
+        ],
+        "role": "left-biased midground cluster"
       },
       "riverbank": {
         "source": "sand/stones/variants/stepping_stones.png",
@@ -99,7 +112,15 @@
           1060,
           510
         ],
-        "role": "right sweeping bank"
+        "runtimeOffsetPercent": [
+          6,
+          -1
+        ],
+        "resolvedCenter": [
+          1152,
+          500
+        ],
+        "role": "right edge sweeping bank"
       },
       "mountain": {
         "source": "sand/stones/variants/rock_spire.png",
@@ -111,7 +132,15 @@
           390,
           455
         ],
-        "role": "left rear vertical accent"
+        "runtimeOffsetPercent": [
+          -3.5,
+          -5
+        ],
+        "resolvedCenter": [
+          336,
+          404
+        ],
+        "role": "left rear supporting landmark"
       }
     },
     "broadShadow": {

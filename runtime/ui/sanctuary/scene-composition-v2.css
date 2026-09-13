@@ -43,6 +43,27 @@
   filter:drop-shadow(0 4px 4px rgba(72,35,37,.22));
 }
 
+/* Stone art is authored with contact shadows already baked to the canonical
+   garden plane. Runtime offsets keep the front-center lane open while retaining
+   that embedded relationship with the sand. Only the single resolved stone
+   slot receives a transform. */
+#stoneLayer{
+  transform-origin:50% 50%;
+  transition:transform .22s ease;
+}
+#stoneLayer[data-layout="centered"]{
+  transform:translate(-4%,0);
+}
+#stoneLayer[data-layout="riverbank"]{
+  transform:translate(6%,-1%);
+}
+#stoneLayer[data-layout="mountain"]{
+  transform:translate(-3.5%,-5%);
+}
+#stoneLayer[data-layout="none"]{
+  transform:none;
+}
+
 /* Dedicated generated depth layers are intentionally passive. */
 .scene-depth-layer{
   pointer-events:none;
