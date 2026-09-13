@@ -1,14 +1,35 @@
 import fs from 'node:fs/promises';
+
 const html=await fs.readFile('sanctuary.html','utf8');
 const js=await fs.readFile('runtime/ui/sanctuary/first-bloom.js','utf8');
 const css=await fs.readFile('runtime/ui/sanctuary/first-bloom.css','utf8');
 const home=await fs.readFile('runtime/ui/home/home-sanctuary-entry.js','utf8');
-const manifest=JSON.parse(await fs.readFile('assets/ui/sanctuary/first-bloom/ASSET_MANIFEST.json','utf8'));
-for(const token of ['gardenScene','bonsai-stack','garden-stack','devPanel','actionPanel','runtime/ui/sanctuary/first-bloom.js'])if(!html.includes(token))throw new Error(`Sanctuary HTML missing ${token}`);
-for(const token of ["bb:sanctuary:first-bloom:v2","SCHEMA=2","feature/sanctuary-first-bloom","e90a4e02d5645550a7d0c8d89277c0ade1b1ad7a","leafEssence:9999","gardenStone:9999","spiritWater:999","harmonySeals:10","applyPreset","completionClaimed","summonResults","addToGrove","structuredClone(S)","bonsai/trunks/trunk_0","sand/patterns/","sand/motifs/","sand/stones/"])if(!js.includes(token))throw new Error(`Sanctuary runtime missing ${token}`);
-for(const token of ['garden-layer','bonsai-layer','dev-panel','safe-area-inset','prefers-reduced-motion'])if(!css.includes(token))throw new Error(`Sanctuary CSS missing ${token}`);
+const sourceManifest=JSON.parse(await fs.readFile('assets/ui/sanctuary/first-bloom/ASSET_MANIFEST.json','utf8'));
+const runtimeManifest=JSON.parse(await fs.readFile('assets/ui/sanctuary/first-bloom/runtime/MANIFEST.json','utf8'));
+
+for(const token of ['sceneViewport','treeCanvas','gardenCanvas','rootFrontLayer','actionDrawer','devPanel','data-tab="design"','runtime/ui/sanctuary/first-bloom.js']){
+  if(!html.includes(token))throw new Error(`Sanctuary HTML missing ${token}`);
+}
+for(const token of [
+  "bb:sanctuary:first-bloom:v3","SCHEMA=3","feature/sanctuary-first-bloom",
+  "assets/ui/sanctuary/first-bloom/runtime/","REQUIREMENTS=","gardenApplied","stageCare",
+  "applyDesign","advanceStage","completionClaimed","summonResults","groveRecord",
+  "petal_drift","wind_ring","bloom_burst","settle","rootfront_0","pattern_","motif_","stones_"
+]){
+  if(!js.includes(token))throw new Error(`Sanctuary runtime missing ${token}`);
+}
+for(const token of ['canonical-canvas','tree-canvas','garden-canvas','action-drawer','sanctuary-dock','grove-thumb','safe-area-inset']){
+  if(!css.includes(token))throw new Error(`Sanctuary CSS missing ${token}`);
+}
+if(/object-fit\s*:\s*fill/.test(css))throw new Error('Sanctuary production CSS must not stretch art with object-fit: fill');
+if(html.includes('potLayer')||js.includes('pot_base.png'))throw new Error('Standalone pot must not render with rootbase-owned pot');
 if(!home.includes('sanctuary_home_button.png')||!home.includes("location.href='sanctuary.html'"))throw new Error('Sanctuary Home route or approved button missing');
-if((manifest.files||[]).length<86)throw new Error(`Sanctuary production manifest unexpectedly contains only ${manifest.files?.length||0} files`);
-for(const item of manifest.files||[])await fs.access(`assets/ui/sanctuary/first-bloom/${item.file}`);
-if(/assets\/ui\/sanctuary\/(?!first-bloom)/.test(js+html+home))throw new Error('Sanctuary runtime escaped the approved first-bloom production folder');
-console.log(`Sanctuary validation PASS: ${manifest.files.length} production assets, layered V2 state, dev controls, Grove, and isolated Seal summon.`);
+if((sourceManifest.files||[]).length<86)throw new Error(`Sanctuary source manifest unexpectedly contains only ${sourceManifest.files?.length||0} files`);
+for(const item of sourceManifest.files||[])await fs.access(`assets/ui/sanctuary/first-bloom/${item.file}`);
+if(runtimeManifest.version!==2||runtimeManifest.treeCanvas?.width!==1536||runtimeManifest.treeCanvas?.height!==1536||runtimeManifest.gardenCanvas?.width!==1536||runtimeManifest.gardenCanvas?.height!==1024)throw new Error('Sanctuary canonical runtime manifest dimensions/version invalid');
+for(const file of [
+ 'tree/rootbase_01.png','tree/rootfront_04.png','tree/trunk_06.png','tree/canopy_green_04.png','tree/canopy_jade_04.png','tree/blossom_pink_03.png','tree/fx_pink_bloom_burst.png',
+ 'garden/sand_bed_base.png','garden/pattern_still_water.png','garden/pattern_spiral_wind.png','garden/motif_blazing_spiral.png','garden/name_straight.png','garden/stones_centered.png','garden/stones_riverbank.png','garden/stones_mountain.png'
+])await fs.access(`assets/ui/sanctuary/first-bloom/runtime/${file}`);
+if(/assets\/ui\/sanctuary\/(?!first-bloom)/.test(js+html+home))throw new Error('Sanctuary runtime escaped the approved first-bloom folder');
+console.log(`Sanctuary validation PASS: canonical compositor, schema V3 stage care, design-driven Harmony, sequenced ceremony FX, Grove showcase, and isolated Seal summon.`);
