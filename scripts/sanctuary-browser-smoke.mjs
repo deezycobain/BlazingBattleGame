@@ -69,6 +69,7 @@ async function run(name,type){
   await page.locator('[data-tab="design"]').click();
   await page.locator('[data-design-section="pattern"]').click();
   await page.locator('[data-design-choice="ripple_ring"]').click();
+  await page.waitForFunction(()=>{const e=document.getElementById('rakeLayer');return !!e&&!e.hidden&&e.complete&&e.naturalWidth>0&&(e.getAttribute('src')||'').includes('pattern_ripple_ring.png');},null,{timeout:30000});
   before=await state();
   if(before.gardenApplied.pattern)throw new Error('selecting a pattern applied it without confirmation');
   const previewVisible=await page.locator('#rakeLayer').evaluate(e=>!e.hidden&&e.complete&&e.naturalWidth>0);
