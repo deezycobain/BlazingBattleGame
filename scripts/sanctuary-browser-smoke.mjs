@@ -27,8 +27,8 @@ async function run(name,type){
   await page.locator('#bbHomeApproved [data-nav="sanctuary"]').click();
   await page.waitForURL(/\/sanctuary(?:\.html)?(?:[?#]|$)/,{waitUntil:'domcontentloaded'});
   await page.locator('#sceneViewport').waitFor({state:'visible',timeout:30000});
-  await page.waitForFunction(key=>JSON.parse(localStorage.getItem(key)||'null')?.schema===3,KEY,{timeout:20000});
   await waitArt();
+  await page.waitForFunction(()=>document.getElementById('rootLayer')?.getAttribute('src')?.includes('/runtime/tree/'));
 
   const geometry=await page.evaluate(()=>{const scene=document.getElementById('sceneViewport').getBoundingClientRect(),drawer=document.getElementById('actionDrawer').getBoundingClientRect(),tree=document.getElementById('treeCanvas').getBoundingClientRect(),garden=document.getElementById('gardenCanvas').getBoundingClientRect();return {vw:innerWidth,scroll:document.documentElement.scrollWidth,scene:{l:scene.left,r:scene.right,t:scene.top,b:scene.bottom},drawer:{t:drawer.top,b:drawer.bottom},tree:{w:tree.width,h:tree.height},garden:{w:garden.width,h:garden.height},potLayer:!!document.getElementById('potLayer')};});
   if(geometry.scroll>geometry.vw+1||geometry.scene.l<0||geometry.scene.r>geometry.vw+1||geometry.drawer.t<geometry.scene.b-2||geometry.potLayer)throw new Error(`V3 mobile compositor geometry invalid: ${JSON.stringify(geometry)}`);
@@ -52,6 +52,12 @@ async function run(name,type){
    await openDev();
   }
 
+  // Preset 6 intentionally archives the current cultivation. Start a fresh cycle
+  // before normal interaction assertions so duplicate-award protection remains meaningful.
+  await closeDev();
+  await page.locator('[data-tab="cultivate"]').click();
+  if(await page.locator('[data-action="new-cycle"]').count())await page.locator('[data-action="new-cycle"]').click();
+  await openDev();
   await page.locator('[data-dev="preset-1"]').click();
   await closeDev();
   let before=await state();
