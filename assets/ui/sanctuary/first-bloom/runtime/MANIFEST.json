@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "treeCanvas": {
+    "width": 1536,
+    "height": 1536
+  },
+  "gardenCanvas": {
+    "width": 1536,
+    "height": 1024
+  },
+  "potOwnership": "rootbase",
+  "renderOrder": {
+    "tree": [
+      "rootbase",
+      "trunk",
+      "canopy",
+      "blossom",
+      "rootfront"
+    ],
+    "garden": [
+      "sand_bed_base",
+      "pattern",
+      "motif",
+      "name",
+      "stones"
+    ]
+  },
+  "stoneProductionMap": {
+    "centered": "moss_cluster",
+    "riverbank": "stepping_stones",
+    "mountain": "rock_spire"
+  },
+  "notes": [
+    "No object-fit: fill is required for runtime layers.",
+    "Original core stone layouts remain source-only because of matte remnants.",
+    "Sand pattern and motif runtime files are groove-only transparent overlays."
+  ]
+}
