@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "treeCanvas": {
     "width": 1536,
     "height": 1536
@@ -39,12 +39,22 @@
     "bloom_burst",
     "settle"
   ],
+  "alphaCleanup": {
+    "blossoms": 64,
+    "fx": {
+      "idle_drift": 32,
+      "wind_ring": 28,
+      "bloom_burst": 55,
+      "ground_scatter": 55
+    }
+  },
   "notes": [
     "Runtime art layers share deterministic canonical coordinates.",
     "No object-fit: fill is required for production runtime layers.",
     "Standalone pot_base.png is not used together with rootbase assets.",
     "Original core stone layouts remain source-only because of matte remnants.",
     "Sand pattern and motif runtime files are groove-only transparent overlays.",
+    "Low-alpha blossom and FX matte fields are removed during runtime build.",
     "Ceremony FX files are normalized but must be sequenced, never enabled simultaneously."
   ]
 }
