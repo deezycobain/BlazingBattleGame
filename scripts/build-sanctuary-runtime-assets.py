@@ -45,10 +45,26 @@ MOTIFS=(
 )
 PATTERNS=('still_water','ripple_ring','flowing_river','spiral_wind')
 FX_FILES=('idle_drift','wind_ring','bloom_burst','ground_scatter')
+FX_ALPHA_THRESHOLDS={'idle_drift':32,'wind_ring':28,'bloom_burst':55,'ground_scatter':55}
 
 
 def rgba(path:Path)->Image.Image:
     return Image.open(path).convert('RGBA')
+
+def clean_soft_alpha(src:Image.Image,threshold:int,gamma:float=.8)->Image.Image:
+    """Remove low-opacity generated matte while keeping authored antialiasing.
+
+    Several blossom/FX source PNGs technically contain alpha but also carry a
+    broad, low-alpha colored field. On top of the game scene that field reads
+    as a rectangular fog patch. Remap the useful alpha range so low-opacity
+    matte disappears and petals/flowers remain soft at their edges.
+    """
+    arr=np.array(src).copy()
+    alpha=arr[:,:,3].astype(np.float32)
+    norm=np.clip((alpha-float(threshold))/(255.0-float(threshold)),0,1)
+    norm=np.power(norm,gamma)
+    arr[:,:,3]=(norm*255.0).astype(np.uint8)
+    return Image.fromarray(arr)
 
 def paste_scaled(src:Image.Image, scale:float, x:int, y:int, canvas=TREE_CANVAS)->Image.Image:
     w=max(1,round(src.width*scale)); h=max(1,round(src.height*scale))
@@ -124,9 +140,11 @@ def build_tree(root:Path,out:Path):
             save_png(paste_scaled(rgba(root/f'bonsai/canopy/{family}/canopy_0{i}.png'),scale,x,y),t/f'canopy_{family}_0{i}.png')
 
     # Flowering branch strips stay localized near the crown rather than stretching.
+    # Generated source art has a low-alpha matte, so clean that before placement.
     for color in COLORS:
         for i,(scale,x,y) in BLOSSOM_TRANSFORMS.items():
-            save_png(paste_scaled(rgba(root/f'bonsai/blossoms/{color}/blossom_0{i}.png'),scale,x,y),t/f'blossom_{color}_0{i}.png')
+            blossom=clean_soft_alpha(rgba(root/f'bonsai/blossoms/{color}/blossom_0{i}.png'),64,.8)
+            save_png(paste_scaled(blossom,scale,x,y),t/f'blossom_{color}_0{i}.png')
 
     # Ceremony FX normalized onto the tree canvas. Runtime sequences them, never all at once.
     fx_placements={
@@ -138,7 +156,8 @@ def build_tree(root:Path,out:Path):
     for color in COLORS:
         for name in FX_FILES:
             mw,mh,center=fx_placements[name]
-            fx=fit_transparent(rgba(root/f'bonsai/fx/{color}/{name}.png'),mw,mh,center,canvas=TREE_CANVAS)
+            clean=clean_soft_alpha(rgba(root/f'bonsai/fx/{color}/{name}.png'),FX_ALPHA_THRESHOLDS[name],.8)
+            fx=fit_transparent(clean,mw,mh,center,canvas=TREE_CANVAS)
             save_png(fx,t/f'fx_{color}_{name}.png')
 
 def build_garden(root:Path,out:Path):
@@ -186,7 +205,7 @@ def main():
     build_tree(root,out)
     build_garden(root,out)
     manifest={
-      'version':2,
+      'version':3,
       'treeCanvas':{'width':TREE_CANVAS[0],'height':TREE_CANVAS[1]},
       'gardenCanvas':{'width':GARDEN_CANVAS[0],'height':GARDEN_CANVAS[1]},
       'potOwnership':'rootbase',
@@ -196,12 +215,14 @@ def main():
       },
       'stoneProductionMap':{'centered':'moss_cluster','riverbank':'stepping_stones','mountain':'rock_spire'},
       'fxStateMachine':['idle','petal_drift','wind_ring','bloom_burst','settle'],
+      'alphaCleanup':{'blossoms':64,'fx':FX_ALPHA_THRESHOLDS},
       'notes':[
         'Runtime art layers share deterministic canonical coordinates.',
         'No object-fit: fill is required for production runtime layers.',
         'Standalone pot_base.png is not used together with rootbase assets.',
         'Original core stone layouts remain source-only because of matte remnants.',
         'Sand pattern and motif runtime files are groove-only transparent overlays.',
+        'Low-alpha blossom and FX matte fields are removed during runtime build.',
         'Ceremony FX files are normalized but must be sequenced, never enabled simultaneously.'
       ]
     }
