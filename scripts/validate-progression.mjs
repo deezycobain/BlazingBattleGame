@@ -94,12 +94,8 @@ for(const [rel,width,height,minBytes] of [
 if(!pkg.scripts?.build?.includes('progression-postprocess.mjs'))fail('build chain missing progression postprocess');
 for(const [rel,width,height] of [
  ['assets/vfx/summon/portal-reveal/summon_portal_base.webp',768,768],
- ['assets/vfx/summon/portal-reveal/ring_outer_navy_gold.webp',768,768],
- ['assets/vfx/summon/portal-reveal/ring_energy_gold.webp',768,768],
- ['assets/vfx/summon/portal-reveal/reveal_impact_burst.webp',768,768],
- ['assets/vfx/summon/portal-reveal/flip_shadow_afterimage.webp',768,960],
- ['assets/vfx/summon/portal-reveal/flip_reveal_starburst.webp',768,768],
- ['assets/vfx/summon/portal-reveal/flip_particles_gold_crimson.webp',768,768]
+ ['assets/vfx/summon/portal-reveal/ring_ornate_cloud.webp',768,768],
+ ['assets/vfx/summon/portal-reveal/flip_reveal_starburst.webp',768,768]
 ]){
  const asset=await readBinary(rel);
  if(asset.length<50000||asset.length>250000)fail(`portal VFX is not mobile-sized: ${rel} (${asset.length} bytes)`);
@@ -108,19 +104,19 @@ for(const [rel,width,height] of [
  if(asset.readUIntLE(24,3)+1!==width||asset.readUIntLE(27,3)+1!==height)fail(`portal VFX dimensions changed: ${rel}`);
 }
 for(const marker of [
- "const VERSION='5.1.0'",'circleSlow:600','circleFast:1000','cardEnter:1380','flip:1580','resolve:2000','done:2240',
+ "const VERSION='5.2.0'",'portal:0','circleSlow:600','circleFast:1000','cardEnter:1300','flip:1500','resolve:1900','done:2120',
  "setStage(scene,'portal')","setStage(scene,'circle-slow')","setStage(scene,'circle-fast')","setStage(scene,'card-enter')","setStage(scene,'flip')","setStage(scene,'resolve')",
- 'summon_portal_base.webp','ring_outer_navy_gold.webp','ring_energy_gold.webp','reveal_impact_burst.webp','flip_shadow_afterimage.webp','flip_reveal_starburst.webp','flip_particles_gold_crimson.webp',
- '.bb-summon-portal{width:88%}','.bb-portal-ring-outer{width:80%}','.bb-portal-ring-energy{width:74%}',
- 'await prepareVfx(refs)','await waitForPortalAnimation(refs)','bb-cinematic-preparing .pullCardWrap::before','bbPortalForm .86s','bbPortalRingOuter .80s','bbPortalRingEnergy .80s','bbPortalImpact .26s','bbFlipAfterimage .42s','bbResolveParticles .28s','bbPhysicalCardFlip .42s','rotateY(180deg)','@media(prefers-reduced-motion:reduce)'
+ 'summon_portal_base.webp','ring_ornate_cloud.webp','flip_reveal_starburst.webp',
+ '.bb-summon-portal{width:78%}','.bb-portal-ring-charge{width:70%}',
+ 'await prepareVfx(refs)','await waitForPortalAnimation(refs)','bb-cinematic-preparing .pullCardWrap::before','bbPortalOpen .68s','bbChargeAccelerate .72s','bbPhysicalCardFlip .40s','bbResolveFlash .20s','rotateY(180deg)','@media(prefers-reduced-motion:reduce)'
 ])if(!cinematicJs.includes(marker)&&!cinematicCss.includes(marker))fail(`summon cinematic missing ${marker}`);
-for(const removed of ['bb-paint-stroke','bb-paint-accent','reveal-brush','card-spin-orbit','reveal-resolve-ring','bbBrush','bbCircleCharge','rotateY(540deg)','rotateY(720deg)']){
+for(const removed of ['bb-paint-stroke','bb-paint-accent','reveal-brush','card-spin-orbit','reveal-resolve-ring','bbBrush','bbCircleCharge','bb-portal-ring-outer','bb-portal-ring-energy','bb-portal-impact','bb-flip-afterimage','bb-resolve-particles','ring_outer_navy_gold','ring_energy_gold','reveal_impact_burst','flip_shadow_afterimage','flip_particles_gold_crimson','rotateY(540deg)','rotateY(720deg)']){
  if(cinematicJs.includes(removed)||cinematicCss.includes(removed))fail(`busy summon effect survived: ${removed}`);
 }
 for(const expensive of ['clip-path:','mask-image:','-webkit-mask-image:','filter:blur(','will-change:']){
  if(cinematicCss.includes(expensive))fail(`expensive summon animation primitive survived: ${expensive}`);
 }
-const portalCreates=[...cinematicJs.matchAll(/img\(VFX\.(?:portal|outerRing|energyRing|impact|flipAfterimage|resolveFlash|resolveParticles),/g)].length;
-if(portalCreates!==7)fail(`expected exactly seven phase-isolated portal layers, found ${portalCreates}`);
+const portalCreates=[...cinematicJs.matchAll(/img\(VFX\.(?:portal|chargeRing|resolveFlash),/g)].length;
+if(portalCreates!==3)fail(`expected exactly three phase-isolated VFX layers, found ${portalCreates}`);
 if(!pkg.scripts?.['smoke:browser']?.includes('summon-cinematic-browser-smoke.mjs'))fail('summon cinematic browser smoke is not wired into smoke:browser');
-console.log('Progression PASS: canonical summon art, persistent Resonance rerolls, and the fluid 2.24s portal cinematic are enforced.');
+console.log('Progression PASS: canonical summon art, persistent Resonance rerolls, and the simplified 2.12s portal cinematic are enforced.');
