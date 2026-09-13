@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "treeCanvas": {
+    "width": 1536,
+    "height": 1536
+  },
+  "gardenCanvas": {
+    "width": 1536,
+    "height": 1024
+  },
+  "potOwnership": "rootbase",
+  "renderOrder": {
+    "tree": [
+      "rootbase",
+      "trunk",
+      "canopy",
+      "blossom",
+      "rootfront",
+      "fx"
+    ],
+    "garden": [
+      "sand_bed_base",
+      "pattern",
+      "motif",
+      "name",
+      "accent",
+      "stones"
+    ]
+  },
+  "stoneProductionMap": {
+    "centered": "moss_cluster",
+    "riverbank": "stepping_stones",
+    "mountain": "rock_spire"
+  },
+  "fxStateMachine": [
+    "idle",
+    "petal_drift",
+    "wind_ring",
+    "bloom_burst",
+    "settle"
+  ],
+  "notes": [
+    "Runtime art layers share deterministic canonical coordinates.",
+    "No object-fit: fill is required for production runtime layers.",
+    "Standalone pot_base.png is not used together with rootbase assets.",
+    "Original core stone layouts remain source-only because of matte remnants.",
+    "Sand pattern and motif runtime files are groove-only transparent overlays.",
+    "Ceremony FX files are normalized but must be sequenced, never enabled simultaneously."
+  ]
+}
