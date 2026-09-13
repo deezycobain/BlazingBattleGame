@@ -63,6 +63,14 @@
     "Original core stone layouts remain source-only because of matte remnants.",
     "Sand pattern and motif runtime files are groove-only transparent overlays.",
     "Low-alpha blossom and FX matte fields are removed during runtime build.",
-    "Ceremony FX files are normalized but must be sequenced, never enabled simultaneously."
-  ]
+    "Ceremony FX files are normalized but must be sequenced, never enabled simultaneously.",
+    "Rake patterns use shallow directional groove shading with an inset edge fade; broad source furrows are never rendered as dark painted stripes."
+  ],
+  "rakePass": {
+    "renderer": "natural_groove_v1",
+    "centralDepressionAlpha": 18,
+    "rimShadowAlpha": 80,
+    "rimHighlightAlpha": 55,
+    "surfaceEdgeFadePx": 48
+  }
 }
