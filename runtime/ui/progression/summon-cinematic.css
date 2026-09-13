@@ -68,6 +68,7 @@
 #summonPullScreen .pullCardWrap[data-fighter="Tyler"]{--bb-art-x:50%;--bb-art-y:43%}
 
 /* The card is withheld through the portal and the complete charge. */
+#summonPullScreen .pullScene.bb-cinematic-preparing .bb-card-flipper,
 #summonPullScreen .pullScene[data-bb-paint-stage="portal"] .bb-card-flipper,
 #summonPullScreen .pullScene[data-bb-paint-stage="circle-slow"] .bb-card-flipper,
 #summonPullScreen .pullScene[data-bb-paint-stage="circle-fast"] .bb-card-flipper{opacity:0!important;animation:none!important}
@@ -120,6 +121,9 @@
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-card-front .summonedTradingCard,
 #summonPullScreen .pullScene[data-bb-paint-stage="done"] .bb-card-front .summonedTradingCard{opacity:1!important;transform:scale(1)!important}
 
+#summonPullScreen .pullScene.bb-cinematic-preparing .pullCardMeta,
+#summonPullScreen .pullScene.bb-cinematic-preparing .cardNew,
+#summonPullScreen .pullScene.bb-cinematic-preparing #pullMessage,
 #summonPullScreen .pullScene.bb-cinematic-running .pullCardMeta,
 #summonPullScreen .pullScene.bb-cinematic-running .cardNew,
 #summonPullScreen .pullScene.bb-cinematic-running #pullMessage{opacity:0!important;transition:opacity .14s ease-out!important}
@@ -128,6 +132,11 @@
 #summonPullScreen .pullScene.bb-cinematic-running #pullTapArea .pullTapHint,
 #summonPullScreen .pullScene.bb-cinematic-running #pullTapArea .tapHint,
 #summonPullScreen .pullScene.bb-cinematic-running #pullTapArea .tapToContinue{opacity:0!important}
+#summonPullScreen .pullScene.bb-cinematic-preparing #pullTapArea::before,
+#summonPullScreen .pullScene.bb-cinematic-preparing #pullTapArea::after,
+#summonPullScreen .pullScene.bb-cinematic-preparing #pullTapArea .pullTapHint,
+#summonPullScreen .pullScene.bb-cinematic-preparing #pullTapArea .tapHint,
+#summonPullScreen .pullScene.bb-cinematic-preparing #pullTapArea .tapToContinue{opacity:0!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="done"] #pullMessage{opacity:1!important;animation:bbRevealMetaIn .16s ease-out both!important}
 
 #summonPullScreen .pullScene[data-bb-reveal-kind="new"] .pullCardWrap::before{border-color:#5b91ad!important;box-shadow:0 0 0 2px rgba(111,174,205,.18),0 12px 25px rgba(54,39,24,.24),0 0 24px rgba(74,139,171,.19)!important}

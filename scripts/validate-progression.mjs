@@ -109,7 +109,7 @@ for(const marker of [
  "setStage(scene,'portal')","setStage(scene,'circle-slow')","setStage(scene,'circle-fast')","setStage(scene,'card-enter')","setStage(scene,'flip')","setStage(scene,'resolve')",
  'summon_portal_base.webp','ring_outer_navy_gold.webp','ring_energy_gold.webp','flip_reveal_starburst.webp',
  '.bb-summon-portal{width:88%}','.bb-portal-ring-outer{width:80%}','.bb-portal-ring-energy{width:74%}',
- 'bbPortalForm .78s','bbPortalRingOuter .72s','bbPortalRingEnergy .72s','bbPhysicalCardFlip .40s','rotateY(180deg)','@media(prefers-reduced-motion:reduce)'
+ 'await prepareVfx(refs)','await waitForPortalAnimation(refs)','bb-cinematic-preparing','bbPortalForm .78s','bbPortalRingOuter .72s','bbPortalRingEnergy .72s','bbPhysicalCardFlip .40s','rotateY(180deg)','@media(prefers-reduced-motion:reduce)'
 ])if(!cinematicJs.includes(marker)&&!cinematicCss.includes(marker))fail(`summon cinematic missing ${marker}`);
 for(const removed of ['bb-paint-stroke','bb-paint-accent','reveal-brush','card-spin-orbit','reveal-resolve-ring','bbBrush','bbCircleCharge','rotateY(540deg)','rotateY(720deg)']){
  if(cinematicJs.includes(removed)||cinematicCss.includes(removed))fail(`busy summon effect survived: ${removed}`);

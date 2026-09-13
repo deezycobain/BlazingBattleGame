@@ -38,6 +38,21 @@ function schedule(scene,run,delay,fn){
  timelineTimers.push(timer);
 }
 function setStage(scene,stage){scene.dataset.bbPaintStage=stage}
+function paintedFrame(){return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))}
+async function prepareVfx(refs){
+ const images=[...refs.portalFx.querySelectorAll('img'),...refs.chargeFx.querySelectorAll('img')];
+ await Promise.all(images.map(node=>{
+  if(node.complete)return node.decode?.().catch(()=>{})||Promise.resolve();
+  return new Promise(resolve=>{node.addEventListener('load',resolve,{once:true});node.addEventListener('error',resolve,{once:true})});
+ }));
+ await paintedFrame();
+}
+async function waitForPortalAnimation(refs){
+ void refs.portalFx.offsetWidth;
+ const animation=refs.portalFx.querySelector('.bb-summon-portal')?.getAnimations?.()[0];
+ if(!animation?.ready){await paintedFrame();return}
+ await Promise.race([animation.ready.catch(()=>{}),new Promise(resolve=>setTimeout(resolve,240))]);
+}
 function ensureCardLabels(front){
  let name=front.querySelector('.bb-card-nameplate');
  if(!name){name=document.createElement('div');name.className='bb-card-nameplate';name.setAttribute('aria-hidden','true');front.append(name)}
@@ -117,27 +132,36 @@ function finishReveal(scene,message,finalMessage){
  setStage(scene,'done');
  if(message)message.textContent=message.dataset.bbFinalMessage||finalMessage;
  scene.classList.remove('bb-cinematic-running');
+ scene.classList.remove('bb-cinematic-preparing');
 }
 
-function startRevealTimeline(refs,pull,run){
+async function startRevealTimeline(refs,pull,run){
  clearTimeline();
  const {scene}=refs;
  const kind=revealKind(pull),timeline=TIMELINES[kind]||TIMELINES.resonance;
  scene.classList.remove('bb-cinematic-running');
+ scene.classList.add('bb-cinematic-preparing');
  scene.removeAttribute('data-bb-paint-stage');
- void scene.offsetWidth;
- scene.classList.add('bb-cinematic-running');
- setStage(scene,'portal');
 
  const message=document.getElementById('pullMessage');
  const finalMessage=pull.shinyUnlock?'SHINY AWAKENING!':pull.isNew?'NEW FIGHTER!':pull.progress||'RESONANCE';
  if(message){message.dataset.bbFinalMessage=finalMessage;message.textContent=''}
 
  if(REDUCED_MOTION){
+  scene.classList.remove('bb-cinematic-preparing');
+  scene.classList.add('bb-cinematic-running');
   schedule(scene,run,40,()=>setStage(scene,'resolve'));
   schedule(scene,run,90,()=>finishReveal(scene,message,finalMessage));
   return;
  }
+ await prepareVfx(refs);
+ if(Number(scene.dataset.bbRevealRun)!==run)return;
+ void scene.offsetWidth;
+ scene.classList.add('bb-cinematic-running');
+ await waitForPortalAnimation(refs);
+ if(Number(scene.dataset.bbRevealRun)!==run)return;
+ scene.classList.remove('bb-cinematic-preparing');
+ setStage(scene,'portal');
  schedule(scene,run,timeline.circleSlow,()=>setStage(scene,'circle-slow'));
  schedule(scene,run,timeline.circleFast,()=>setStage(scene,'circle-fast'));
  schedule(scene,run,timeline.cardEnter,()=>setStage(scene,'card-enter'));
@@ -164,6 +188,7 @@ function syncPhysicalCard(pull,index,total){
 
 function decorateResults(pulls){
  clearTimeline();
+ cinematicRun+=1;
  const cards=[...document.querySelectorAll('#pullResultsGrid .pullCard')];
  cards.forEach((card,index)=>{
   const pull=pulls?.[index];
@@ -174,7 +199,7 @@ function decorateResults(pulls){
   card.dataset.bbRevealKind=pull?revealKind(pull):'resonance';
  });
  const scene=sceneNode();
- if(scene){scene.classList.remove('bb-cinematic-running');scene.removeAttribute('data-bb-paint-stage');scene.removeAttribute('data-bb-reveal-kind');scene.removeAttribute('data-bb-cinematic-rarity')}
+ if(scene){scene.dataset.bbRevealRun=String(cinematicRun);scene.classList.remove('bb-cinematic-running','bb-cinematic-preparing');scene.removeAttribute('data-bb-paint-stage');scene.removeAttribute('data-bb-reveal-kind');scene.removeAttribute('data-bb-cinematic-rarity')}
 }
 
 function installTapGuard(){
@@ -183,7 +208,7 @@ function installTapGuard(){
  tap.dataset.bbCinematicGuard='1';
  tap.addEventListener('click',event=>{
   const scene=sceneNode();
-  if(!scene?.classList.contains('bb-cinematic-running'))return;
+  if(!scene?.classList.contains('bb-cinematic-running')&&!scene?.classList.contains('bb-cinematic-preparing'))return;
   event.preventDefault();event.stopImmediatePropagation();
  },true);
 }
