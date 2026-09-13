@@ -7,6 +7,7 @@ on:
     paths:
       - 'scripts/build-sanctuary-runtime-assets.py'
       - 'scripts/polish-sanctuary-rake-patterns.py'
+      - 'scripts/polish-sanctuary-stones.py'
       - '.github/workflows/build-sanctuary-runtime-assets.yml'
       - 'assets/ui/sanctuary/first-bloom/bonsai/**'
       - 'assets/ui/sanctuary/first-bloom/sand/**'
@@ -39,6 +40,9 @@ jobs:
       - name: Polish Sanctuary rake grooves
         run: python scripts/polish-sanctuary-rake-patterns.py
 
+      - name: Polish Sanctuary stone compositions
+        run: python scripts/polish-sanctuary-stones.py
+
       - name: Validate generated runtime asset tree
         shell: bash
         run: |
@@ -58,6 +62,8 @@ jobs:
           test -f assets/ui/sanctuary/first-bloom/runtime/garden/pattern_spiral_wind.png
           test -f assets/ui/sanctuary/first-bloom/runtime/garden/motif_blazing_spiral.png
           test -f assets/ui/sanctuary/first-bloom/runtime/garden/stones_centered.png
+          test -f assets/ui/sanctuary/first-bloom/runtime/garden/stones_riverbank.png
+          test -f assets/ui/sanctuary/first-bloom/runtime/garden/stones_mountain.png
           echo 'Canonical Sanctuary runtime assets verified.'
 
       - name: Commit generated runtime assets
