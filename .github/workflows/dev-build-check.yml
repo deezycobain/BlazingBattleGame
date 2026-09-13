@@ -148,3 +148,9 @@ jobs:
             sleep 20
           done
           exit 1
+
+      - name: Chromium + WebKit deployed Sanctuary feature smoke
+        if: github.event_name == 'push' && github.ref_name == 'feature/sanctuary-first-bloom'
+        env:
+          BB_SMOKE_URL: https://feature-sanctuary-first-bloom-blazing-battle-game.blazingbattle.workers.dev
+        run: node scripts/sanctuary-browser-smoke.mjs
