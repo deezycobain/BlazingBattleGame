@@ -1,7 +1,8 @@
 /* Sanctuary composition pass V2
-   Step 2: lock the bonsai-to-garden silhouette before sand/stone polish.
-   These are intentional overrides on top of first-bloom.css so the scene geometry
-   can be tuned independently from the rest of the Sanctuary UI. */
+   Step 2 locks the bonsai-to-garden silhouette.
+   Step 3 adds restrained physical depth before sand/stone-specific polish.
+   These overrides stay separate from first-bloom.css so scene geometry and
+   presentation can be tuned without disturbing the broader Sanctuary UI. */
 
 .scene-viewport{
   --bb-tree-width:min(65%,500px);
@@ -10,11 +11,13 @@
   --bb-garden-bottom:-3%;
 }
 
-/* The bonsai now reads as a rear planting feature rather than the whole scene. */
+/* The bonsai reads as a rear planting feature rather than the whole scene. */
 .tree-canvas{
   width:var(--bb-tree-width);
   bottom:var(--bb-tree-bottom);
   z-index:3;
+  /* broad ambient grounding only; contact depth is supplied by runtime art */
+  filter:drop-shadow(0 10px 7px rgba(8,7,5,.20));
 }
 
 /* Give the karesansui plane more visual ownership of the lower half. */
@@ -22,7 +25,31 @@
   width:var(--bb-garden-width);
   bottom:var(--bb-garden-bottom);
   z-index:1;
+  filter:drop-shadow(0 13px 11px rgba(0,0,0,.30));
 }
+
+/* Layer-specific shadows create volume without the sticker-like look of one
+   oversized shadow around the full tree silhouette. */
+#rootLayer{
+  filter:drop-shadow(0 2px 2px rgba(45,30,16,.30));
+}
+#trunkLayer{
+  filter:drop-shadow(0 4px 2.5px rgba(30,20,12,.34));
+}
+#canopyLayer{
+  filter:drop-shadow(0 7px 6px rgba(12,28,18,.30));
+}
+#blossomLayer{
+  filter:drop-shadow(0 4px 4px rgba(72,35,37,.22));
+}
+
+/* Dedicated generated depth layers are intentionally passive. */
+.scene-depth-layer{
+  pointer-events:none;
+  user-select:none;
+}
+#rootShadowLayer{opacity:.92}
+#trayShadeLayer{opacity:.86}
 
 /* Keep the progression strip clear of the garden's front lip without changing
    gameplay layout yet. */
