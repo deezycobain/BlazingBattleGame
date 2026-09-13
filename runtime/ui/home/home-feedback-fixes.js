@@ -7,12 +7,12 @@ const CSS=`
 #bbHomeApproved.bb-home-v9 .bb-home-v4-dock{
  position:relative!important;
  width:min(560px,calc(100vw - 28px))!important;
- height:clamp(118px,16.5vh,142px)!important;
+ height:clamp(176px,24vh,214px)!important;
  grid-template-columns:repeat(2,minmax(0,1fr))!important;
- grid-template-rows:repeat(2,minmax(0,1fr))!important;
- gap:6px 12px!important;
+ grid-template-rows:repeat(3,minmax(0,1fr))!important;
+ gap:3px 10px!important;
  padding:0 4px!important;
- bottom:26px!important;
+ bottom:18px!important;
  transform:none!important;
 }
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav{min-width:0!important;min-height:0!important;width:auto!important;height:100%!important;max-height:none!important;aspect-ratio:auto!important;place-self:stretch!important}
@@ -20,20 +20,21 @@ const CSS=`
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="summon"]{grid-column:2!important;grid-row:1!important;transform:rotate(.35deg)!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="units"]{grid-column:1!important;grid-row:2!important;transform:rotate(-.2deg)!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="forge"]{grid-column:2!important;grid-row:2!important;transform:rotate(.3deg)!important}
+#bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="sanctuary"]{grid-column:1/3!important;grid-row:3!important;width:76%!important;height:100%!important;place-self:center!important;transform:rotate(-.15deg)!important;filter:drop-shadow(0 6px 7px rgba(0,0,0,.42))!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav] img{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;transform:none!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-social{gap:10px!important}
 @media(max-width:430px){
  #bbHomeApproved.bb-home-v9 .bb-home-v4-dock{
   width:calc(100vw - 22px)!important;
-  height:118px!important;
-  gap:4px 8px!important;
+  height:180px!important;
+  gap:2px 7px!important;
   padding:0 2px!important;
-  bottom:32px!important;
+  bottom:22px!important;
  }
  #bbHomeApproved.bb-home-v9 .bb-home-v4-social{gap:9px!important}
 }
 @media(max-height:700px) and (max-width:620px){
- #bbHomeApproved.bb-home-v9 .bb-home-v4-dock{height:106px!important;bottom:24px!important}
+ #bbHomeApproved.bb-home-v9 .bb-home-v4-dock{height:158px!important;bottom:15px!important}
 }
 `;
 const SKIP_TEXT=new Set(['SCRIPT','STYLE','PRE','CODE','TEXTAREA']);
