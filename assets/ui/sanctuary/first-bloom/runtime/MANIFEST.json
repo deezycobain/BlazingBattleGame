@@ -11,6 +11,7 @@
   "potOwnership": "integrated_garden_planter",
   "renderOrder": {
     "tree": [
+      "root_contact_shadow",
       "rootbase_integrated_island",
       "trunk",
       "canopy",
@@ -22,6 +23,7 @@
       "pattern",
       "motif",
       "name",
+      "tray_inner_shade",
       "accent",
       "stones"
     ]
@@ -47,12 +49,17 @@
       "ground_scatter": 55
     }
   },
+  "depthPass": {
+    "rootContactShadow": "two-scale soft contact shadow",
+    "trayInnerShade": "perspective-masked edge occlusion and front depth"
+  },
   "notes": [
     "Runtime art layers share deterministic canonical coordinates.",
     "No object-fit: fill is required for production runtime layers.",
     "The decorative inner bonsai pot is removed in runtime; the tree grows directly from an integrated soil/moss island.",
-    "Runtime rootbase files now contain the natural planting island plus a soft contact shadow.",
+    "Root contact shadow is a separate production layer so grounding can be tuned without repainting the planting island.",
     "rootfront files are retained as transparent compatibility layers only.",
+    "Tray inner shade gives the sand surface a recessed physical read before stone-specific shadows are added.",
     "Original core stone layouts remain source-only because of matte remnants.",
     "Sand pattern and motif runtime files are groove-only transparent overlays.",
     "Low-alpha blossom and FX matte fields are removed during runtime build.",
