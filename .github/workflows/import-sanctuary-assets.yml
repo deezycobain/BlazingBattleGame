@@ -1,0 +1,63 @@
+name: Import Sanctuary asset packs
+
+on:
+  push:
+    branches:
+      - feature/sanctuary-first-bloom
+    paths:
+      - 'asset-import/sanctuary-first-bloom/*.zip'
+
+permissions:
+  contents: write
+
+jobs:
+  import-assets:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/sanctuary-first-bloom
+          fetch-depth: 0
+
+      - name: Extract Sanctuary asset packs
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          packs=(asset-import/sanctuary-first-bloom/*.zip)
+          if [ ${#packs[@]} -eq 0 ]; then
+            echo 'No Sanctuary ZIP packs found.'
+            exit 1
+          fi
+          for pack in "${packs[@]}"; do
+            echo "Extracting $pack"
+            unzip -o "$pack" -d .
+          done
+
+      - name: Verify imported asset tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f assets/ui/sanctuary/first-bloom/bonsai/pot/pot_base.png
+          test -f assets/ui/sanctuary/first-bloom/bonsai/trunks/trunk_06.png
+          test -f assets/ui/sanctuary/first-bloom/sand/base/sand_bed_base.png
+          test -f assets/ui/sanctuary/first-bloom/sand/patterns/still_water.png
+          test -f assets/ui/sanctuary/first-bloom/sand/stones/layouts/centered.png
+          echo 'Sanctuary production asset tree verified.'
+
+      - name: Remove staging ZIPs and commit imported assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f asset-import/sanctuary-first-bloom/*.zip
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/ui/sanctuary/first-bloom asset-import/sanctuary-first-bloom
+          if git diff --cached --quiet; then
+            echo 'No asset changes to commit.'
+            exit 0
+          fi
+          git commit -m 'Import Sanctuary First Bloom production assets'
+          git push origin HEAD:feature/sanctuary-first-bloom
