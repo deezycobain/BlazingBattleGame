@@ -6,7 +6,7 @@ import shutil
 import json
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageChops
 
 TREE_CANVAS=(1536,1536)
 GARDEN_CANVAS=(1536,1024)
@@ -72,12 +72,7 @@ def save_png(im:Image.Image,path:Path):
     im.save(path,optimize=True)
 
 def extract_root_island(src:Image.Image)->Image.Image:
-    """Keep the authored soil/moss/root crown while removing the decorative inner pot.
-
-    The original rootbase art contains a full second bonsai container. Sanctuary now
-    uses one integrated garden planter, so runtime rootbase files become organic
-    planting islands instead. The trunk art provides the visible exposed roots.
-    """
+    """Keep the authored soil/moss/root crown while removing the decorative inner pot."""
     arr=np.array(src.convert('RGBA')).copy()
     rgb=arr[:,:,:3]
     source_alpha=arr[:,:,3].astype(np.float32)/255.0
@@ -95,7 +90,7 @@ def extract_root_island(src:Image.Image)->Image.Image:
     organic=np.clip((1.0-dist)/0.14,0,1)
     bottom_fade=np.clip((160.0-yy)/16.0,0,1)
 
-    # Remove the navy/gold/ivory container rim that intrudes into the upper crop.
+    # Remove navy/gold/ivory remnants from the old decorative pot.
     blue=(hue>88)&(hue<132)&(sat>45)
     gold=(hue>6)&(hue<34)&(sat>75)&(val>100)&(yy>118)
     pale_rim=(sat<80)&(val>150)&(yy>125)
@@ -105,14 +100,37 @@ def extract_root_island(src:Image.Image)->Image.Image:
     return Image.fromarray(arr)
 
 def root_contact_shadow()->Image.Image:
-    """Soft grounding shadow shared by the planting island and exposed trunk roots."""
-    mask=Image.new('L',TREE_CANVAS,0)
-    draw=ImageDraw.Draw(mask)
-    draw.ellipse((430,1130,1106,1260),fill=128)
-    mask=mask.filter(ImageFilter.GaussianBlur(28))
-    shadow=Image.new('RGBA',TREE_CANVAS,(0,0,0,0))
+    """Two-scale contact shadow: broad grounding plus a tighter root/core shadow."""
+    broad=Image.new('L',TREE_CANVAS,0)
+    bd=ImageDraw.Draw(broad)
+    bd.ellipse((425,1124,1111,1268),fill=88)
+    broad=broad.filter(ImageFilter.GaussianBlur(34))
+
+    tight=Image.new('L',TREE_CANVAS,0)
+    td=ImageDraw.Draw(tight)
+    td.ellipse((548,1152,988,1238),fill=142)
+    tight=tight.filter(ImageFilter.GaussianBlur(17))
+
+    mask=ImageChops.lighter(broad,tight)
+    shadow=Image.new('RGBA',TREE_CANVAS,(12,10,8,0))
     shadow.putalpha(mask)
     return shadow
+
+def garden_inner_shade()->Image.Image:
+    """Subtle sand-surface edge occlusion so the tray reads as a recessed garden."""
+    w,h=GARDEN_CANVAS
+    poly=np.zeros((h,w),np.uint8)
+    cv2.fillConvexPoly(poly,SURFACE_QUAD.astype(np.int32),255)
+    dist=cv2.distanceTransform(poly,cv2.DIST_L2,5)
+    edge=np.clip((54.0-dist)/54.0,0,1)
+    yy=np.arange(h,dtype=np.float32)[:,None]
+    front=np.clip((yy-510.0)/190.0,0,1)*0.22
+    alpha=(edge*58.0 + front*38.0)*(poly.astype(np.float32)/255.0)
+    alpha=cv2.GaussianBlur(alpha,(0,0),2.2)
+    out=np.zeros((h,w,4),np.uint8)
+    out[:,:,:3]=np.array([50,36,24],np.uint8)
+    out[:,:,3]=np.clip(alpha,0,92).astype(np.uint8)
+    return Image.fromarray(out)
 
 def relief_overlay(path:Path,quad:np.ndarray,dark_alpha=175,light_alpha=90)->Image.Image:
     im=np.array(rgba(path))
@@ -155,15 +173,13 @@ def fit_transparent(src:Image.Image,max_w:int,max_h:int,center:tuple[int,int],ca
 def build_tree(root:Path,out:Path):
     t=out/'tree'
 
-    # Sanctuary V1 now has one planter only: the main garden tray. The source rootbase
-    # paintings are harvested for their natural soil/moss/root crowns, while the inner
-    # decorative pot is discarded. Keeping the old runtime filenames avoids save/UI churn.
-    shadow=root_contact_shadow()
+    # Sanctuary V1 has one planter only: the main garden tray. Rootbase source paintings
+    # are harvested for soil/moss/root crowns while the decorative inner pot is discarded.
+    save_png(root_contact_shadow(),t/'root_contact_shadow.png')
     for i in range(1,5):
         natural=extract_root_island(rgba(root/f'bonsai/roots/rootbase_0{i}.png'))
         island=paste_scaled(natural,1.08,353,1022)
-        full=Image.alpha_composite(shadow,island)
-        save_png(full,t/f'rootbase_0{i}.png')
+        save_png(island,t/f'rootbase_0{i}.png')
 
         # Compatibility layer retained for the existing compositor, intentionally empty.
         save_png(Image.new('RGBA',TREE_CANVAS,(0,0,0,0)),t/f'rootfront_0{i}.png')
@@ -208,6 +224,7 @@ def build_garden(root:Path,out:Path):
 
     save_png(fit_transparent(rgba(root/'sand/accents/moss_edge.png'),1220,470,(768,520)),g/'accent_moss_edge.png')
     save_png(fit_transparent(rgba(root/'sand/accents/petal_scatter.png'),1120,500,(768,520)),g/'accent_petal_scatter.png')
+    save_png(garden_inner_shade(),g/'tray_inner_shade.png')
 
     stone_map={
       'centered':'sand/stones/variants/moss_cluster.png',
@@ -239,18 +256,23 @@ def main():
       'gardenCanvas':{'width':GARDEN_CANVAS[0],'height':GARDEN_CANVAS[1]},
       'potOwnership':'integrated_garden_planter',
       'renderOrder':{
-        'tree':['rootbase_integrated_island','trunk','canopy','blossom','fx'],
-        'garden':['sand_bed_base','pattern','motif','name','accent','stones']
+        'tree':['root_contact_shadow','rootbase_integrated_island','trunk','canopy','blossom','fx'],
+        'garden':['sand_bed_base','pattern','motif','name','tray_inner_shade','accent','stones']
       },
       'stoneProductionMap':{'centered':'moss_cluster','riverbank':'stepping_stones','mountain':'rock_spire'},
       'fxStateMachine':['idle','petal_drift','wind_ring','bloom_burst','settle'],
       'alphaCleanup':{'blossoms':64,'fx':FX_ALPHA_THRESHOLDS},
+      'depthPass':{
+        'rootContactShadow':'two-scale soft contact shadow',
+        'trayInnerShade':'perspective-masked edge occlusion and front depth'
+      },
       'notes':[
         'Runtime art layers share deterministic canonical coordinates.',
         'No object-fit: fill is required for production runtime layers.',
         'The decorative inner bonsai pot is removed in runtime; the tree grows directly from an integrated soil/moss island.',
-        'Runtime rootbase files now contain the natural planting island plus a soft contact shadow.',
+        'Root contact shadow is a separate production layer so grounding can be tuned without repainting the planting island.',
         'rootfront files are retained as transparent compatibility layers only.',
+        'Tray inner shade gives the sand surface a recessed physical read before stone-specific shadows are added.',
         'Original core stone layouts remain source-only because of matte remnants.',
         'Sand pattern and motif runtime files are groove-only transparent overlays.',
         'Low-alpha blossom and FX matte fields are removed during runtime build.',
