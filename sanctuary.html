@@ -22,23 +22,23 @@
    <div class="environment" aria-hidden="true"><div class="sun"></div><div class="mountains"></div><div class="veranda"></div></div>
    <div class="garden-stack" aria-label="Layered karesansui garden">
     <img id="sandBase" class="garden-layer sand-base" src="assets/ui/sanctuary/first-bloom/sand/base/sand_bed_base.png" alt="">
-    <img id="rakeLayer" class="garden-layer" alt=""><img id="motifLayer" class="garden-layer motif-layer" alt="">
+    <div class="sand-surface"><img id="rakeLayer" class="garden-layer" alt=""><img id="motifLayer" class="garden-layer motif-layer" alt="">
     <img id="nameTemplateLayer" class="garden-layer name-template-layer" alt=""><div id="gardenSignature" class="garden-signature" aria-label="Player garden signature"></div>
     <img id="mossLayer" class="garden-layer accent-layer" src="assets/ui/sanctuary/first-bloom/sand/accents/moss_edge.png" alt="">
-    <img id="petalLayer" class="garden-layer accent-layer" src="assets/ui/sanctuary/first-bloom/sand/accents/petal_scatter.png" alt=""><img id="stoneLayer" class="garden-layer stones-layer" alt="">
+    <img id="petalLayer" class="garden-layer accent-layer" src="assets/ui/sanctuary/first-bloom/sand/accents/petal_scatter.png" alt=""></div><img id="stoneLayer" class="garden-layer stones-layer" alt="">
    </div>
    <div class="bonsai-stack" aria-label="Layered First Bloom bonsai">
-    <img id="potLayer" class="bonsai-layer pot-layer" src="assets/ui/sanctuary/first-bloom/bonsai/pot/pot_base.png" alt="Bonsai pot">
-    <img id="rootLayer" class="bonsai-layer root-layer" alt="Root and soil state"><img id="trunkLayer" class="bonsai-layer trunk-layer" alt="Bonsai trunk stage">
+    <img id="potLayer" hidden class="bonsai-layer pot-layer" src="assets/ui/sanctuary/first-bloom/bonsai/pot/pot_base.png" alt="Bonsai pot">
+    <img id="rootLayer" class="bonsai-layer root-layer" alt="Root and soil state"><div class="tree-crown"><img id="trunkLayer" class="bonsai-layer trunk-layer" alt="Bonsai trunk stage">
     <img id="canopyLayer" class="bonsai-layer canopy-layer" alt="Bonsai canopy"><img id="blossomLayer" class="bonsai-layer blossom-layer" alt="Bonsai blossoms">
-    <img id="fxDrift" class="bonsai-layer fx-layer fx-drift" alt=""><img id="fxRing" class="bonsai-layer fx-layer fx-ring" alt=""><img id="fxBurst" class="bonsai-layer fx-layer fx-burst" alt=""><img id="fxGround" class="bonsai-layer fx-layer fx-ground" alt="">
+    </div><img id="fxDrift" class="bonsai-layer fx-layer fx-drift" alt=""><img id="fxRing" class="bonsai-layer fx-layer fx-ring" alt=""><img id="fxBurst" class="bonsai-layer fx-layer fx-burst" alt=""><img id="fxGround" class="bonsai-layer fx-layer fx-ground" alt="">
    </div>
+   <div id="ceremony" class="ceremony" hidden aria-live="assertive"><small>CULTIVATION COMPLETE</small><strong>FIRST BLOOM</strong><span>HARMONY SEAL ACQUIRED</span></div>
+  </section>
    <div class="scene-status">
     <div><span><b id="treeStageLabel">Seedling</b><small>TREE · <em id="treePercent">0%</em></small></span><div class="meter"><i id="treeMeter"></i></div></div>
     <div><span><b id="gardenStageLabel">Untouched Garden</b><small>HARMONY · <em id="gardenPercent">0%</em></small></span><div class="meter garden-meter"><i id="gardenMeter"></i></div></div>
    </div>
-   <div id="ceremony" class="ceremony" hidden aria-live="assertive"><small>CULTIVATION COMPLETE</small><strong>FIRST BLOOM</strong><span>HARMONY SEAL ACQUIRED</span></div>
-  </section>
   <nav class="sanctuary-tabs" aria-label="Sanctuary sections"><button class="tab active" type="button" data-tab="cultivate">CULTIVATE</button><button class="tab" type="button" data-tab="garden">GARDEN</button><button class="tab" type="button" data-tab="grove">GROVE</button><button class="tab" type="button" data-tab="summon">SUMMON</button></nav>
   <section id="actionPanel" class="action-panel" aria-live="polite"></section><div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
  </main>
