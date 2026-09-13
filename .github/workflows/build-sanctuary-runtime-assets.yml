@@ -65,4 +65,8 @@ jobs:
             exit 0
           fi
           git commit -m 'Build canonical Sanctuary runtime assets'
+          # Other Sanctuary edits may land while this image job is running.
+          # Rebase the generated-only commit onto the latest branch before push.
+          git fetch origin feature/sanctuary-first-bloom
+          git rebase origin/feature/sanctuary-first-bloom
           git push origin HEAD:feature/sanctuary-first-bloom
