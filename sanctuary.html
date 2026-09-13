@@ -7,43 +7,64 @@
  <link rel="stylesheet" href="runtime/ui/sanctuary/first-bloom.css">
 </head>
 <body>
- <main id="sanctuaryApp" class="sanctuary-app">
-  <header class="sanctuary-topbar">
-   <div class="sanctuary-title"><small>BLAZING BATTLE</small><strong>SANCTUARY</strong><span>FIRST BLOOM · CULTIVATION <b id="cultivationNumber">1</b></span></div>
-   <div class="sanctuary-resources" aria-label="Sanctuary resources">
-    <div><i>葉</i><span><b id="leafCount">0</b><small>LEAF ESSENCE</small></span></div>
-    <div><i>石</i><span><b id="stoneCount">0</b><small>GARDEN STONE</small></span></div>
-    <div><i>水</i><span><b id="waterCount">0</b><small>SPIRIT WATER</small></span></div>
-    <div><i>和</i><span><b id="sealCount">0</b><small>HARMONY SEAL</small></span></div>
+ <main id="sanctuaryApp" class="sanctuary-shell">
+  <header class="sanctuary-header">
+   <div class="brand-block"><small>BLAZING BATTLE</small><strong>SANCTUARY</strong><span>FIRST BLOOM · CULTIVATION <b id="cultivationNumber">1</b></span></div>
+   <div class="header-actions"><button id="homeButton" class="home-button" type="button">← HOME</button><button id="devOpen" class="dev-button" type="button" aria-controls="devPanel" aria-expanded="false" title="Sanctuary developer controls">DEV</button></div>
+   <div class="resource-ribbon" aria-label="Sanctuary resources">
+    <div><i>葉</i><span><b id="leafCount">0</b><small>LEAF</small></span></div>
+    <div><i>石</i><span><b id="stoneCount">0</b><small>STONE</small></span></div>
+    <div><i>水</i><span><b id="waterCount">0</b><small>WATER</small></span></div>
+    <div><i>和</i><span><b id="sealCount">0</b><small>SEALS</small></span></div>
    </div>
-   <div class="sanctuary-top-actions"><button id="homeButton" class="quiet-button" type="button">← HOME</button><button id="devOpen" class="dev-button" type="button" aria-controls="devPanel" aria-expanded="false">DEV</button></div>
   </header>
-  <section id="gardenScene" class="garden-scene" aria-label="First Bloom garden">
-   <div class="environment" aria-hidden="true"><div class="sun"></div><div class="mountains"></div><div class="veranda"></div></div>
-   <div class="garden-stack" aria-label="Layered karesansui garden">
-    <img id="sandBase" class="garden-layer sand-base" src="assets/ui/sanctuary/first-bloom/sand/base/sand_bed_base.png" alt="">
-    <div class="sand-surface"><img id="rakeLayer" class="garden-layer" alt=""><img id="motifLayer" class="garden-layer motif-layer" alt="">
-    <img id="nameTemplateLayer" class="garden-layer name-template-layer" alt=""><div id="gardenSignature" class="garden-signature" aria-label="Player garden signature"></div>
-    <img id="mossLayer" class="garden-layer accent-layer" src="assets/ui/sanctuary/first-bloom/sand/accents/moss_edge.png" alt="">
-    <img id="petalLayer" class="garden-layer accent-layer" src="assets/ui/sanctuary/first-bloom/sand/accents/petal_scatter.png" alt=""></div><img id="stoneLayer" class="garden-layer stones-layer" alt="">
+
+  <section id="sceneViewport" class="scene-viewport" aria-label="First Bloom Sanctuary">
+   <div class="scene-environment" aria-hidden="true"><div class="sun"></div><div class="mountain-layer one"></div><div class="mountain-layer two"></div><div class="veranda"></div></div>
+
+   <div id="treeCanvas" class="tree-canvas canonical-canvas" aria-label="Bonsai cultivation">
+    <img id="rootLayer" class="tree-layer" alt="Root and pot state">
+    <img id="trunkLayer" class="tree-layer" alt="Bonsai trunk stage">
+    <img id="canopyLayer" class="tree-layer" alt="Bonsai canopy">
+    <img id="blossomLayer" class="tree-layer blossom-layer" alt="Bonsai blossoms">
+    <img id="rootFrontLayer" class="tree-layer" alt="Bonsai pot foreground">
+    <img id="fxDrift" class="tree-layer fx-layer fx-drift" alt="">
+    <img id="fxRing" class="tree-layer fx-layer fx-ring" alt="">
+    <img id="fxBurst" class="tree-layer fx-layer fx-burst" alt="">
+    <img id="fxGround" class="tree-layer fx-layer fx-ground" alt="">
    </div>
-   <div class="bonsai-stack" aria-label="Layered First Bloom bonsai">
-    <img id="potLayer" hidden class="bonsai-layer pot-layer" src="assets/ui/sanctuary/first-bloom/bonsai/pot/pot_base.png" alt="Bonsai pot">
-    <img id="rootLayer" class="bonsai-layer root-layer" alt="Root and soil state"><div class="tree-crown"><img id="trunkLayer" class="bonsai-layer trunk-layer" alt="Bonsai trunk stage">
-    <img id="canopyLayer" class="bonsai-layer canopy-layer" alt="Bonsai canopy"><img id="blossomLayer" class="bonsai-layer blossom-layer" alt="Bonsai blossoms">
-    </div><img id="fxDrift" class="bonsai-layer fx-layer fx-drift" alt=""><img id="fxRing" class="bonsai-layer fx-layer fx-ring" alt=""><img id="fxBurst" class="bonsai-layer fx-layer fx-burst" alt=""><img id="fxGround" class="bonsai-layer fx-layer fx-ground" alt="">
+
+   <div id="gardenCanvas" class="garden-canvas canonical-canvas" aria-label="Karesansui garden">
+    <img id="sandBase" class="garden-layer" src="assets/ui/sanctuary/first-bloom/runtime/garden/sand_bed_base.png" alt="Sand garden">
+    <img id="rakeLayer" class="garden-layer" alt="Rake pattern">
+    <img id="motifLayer" class="garden-layer" alt="Garden motif">
+    <img id="nameTemplateLayer" class="garden-layer" alt="Garden signature frame">
+    <div id="gardenSignature" class="garden-signature" aria-label="Player garden signature"></div>
+    <img id="stoneLayer" class="garden-layer" alt="Garden stones">
    </div>
-   <div id="ceremony" class="ceremony" hidden aria-live="assertive"><small>CULTIVATION COMPLETE</small><strong>FIRST BLOOM</strong><span>HARMONY SEAL ACQUIRED</span></div>
+
+   <div class="scene-status" aria-label="Sanctuary progression">
+    <div class="status-line"><span><b id="treeStageLabel">Seedling</b><small>TREE <em id="treePercent">0%</em></small></span><div class="meter"><i id="treeMeter"></i></div></div>
+    <div class="status-line"><span><b id="gardenStageLabel">Untouched</b><small>HARMONY <em id="gardenPercent">0%</em></small></span><div class="meter garden-meter"><i id="gardenMeter"></i></div></div>
+   </div>
+
+   <div id="showcaseBadge" class="showcase-badge" hidden>GROVE SHOWCASE</div>
+   <div id="ceremony" class="ceremony" hidden aria-live="assertive"><small>CULTIVATION COMPLETE</small><strong>FIRST BLOOM</strong><span>HARMONY SEAL +1</span></div>
   </section>
-   <div class="scene-status">
-    <div><span><b id="treeStageLabel">Seedling</b><small>TREE · <em id="treePercent">0%</em></small></span><div class="meter"><i id="treeMeter"></i></div></div>
-    <div><span><b id="gardenStageLabel">Untouched Garden</b><small>HARMONY · <em id="gardenPercent">0%</em></small></span><div class="meter garden-meter"><i id="gardenMeter"></i></div></div>
-   </div>
-  <nav class="sanctuary-tabs" aria-label="Sanctuary sections"><button class="tab active" type="button" data-tab="cultivate">CULTIVATE</button><button class="tab" type="button" data-tab="garden">GARDEN</button><button class="tab" type="button" data-tab="grove">GROVE</button><button class="tab" type="button" data-tab="summon">SUMMON</button></nav>
-  <section id="actionPanel" class="action-panel" aria-live="polite"></section><div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <nav class="sanctuary-dock" aria-label="Sanctuary sections">
+   <button class="dock-tab active" type="button" data-tab="cultivate">CULTIVATE</button>
+   <button class="dock-tab" type="button" data-tab="design">DESIGN</button>
+   <button class="dock-tab" type="button" data-tab="grove">GROVE</button>
+   <button class="dock-tab" type="button" data-tab="summon">SUMMON</button>
+  </nav>
+
+  <section id="actionDrawer" class="action-drawer" aria-live="polite"><div class="drawer-grip" aria-hidden="true"></div><div id="actionPanel"></div></section>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
  </main>
+
  <div id="devBackdrop" class="dev-backdrop" hidden></div>
- <aside id="devPanel" class="dev-panel" aria-label="Sanctuary Test Panel" aria-hidden="true"><header><div><small>SANCTUARY</small><strong>TEST PANEL</strong></div><button id="devClose" type="button" aria-label="Close developer panel">×</button></header><div id="devStatus" class="dev-status"></div><div id="devControls" class="dev-controls"></div></aside>
+ <aside id="devPanel" class="dev-panel" aria-label="Sanctuary Test Panel" aria-hidden="true"><header><div><small>SANCTUARY</small><strong>LAB</strong></div><button id="devClose" type="button" aria-label="Close developer panel">×</button></header><div id="devStatus" class="dev-status"></div><div id="devControls" class="dev-controls"></div></aside>
  <script src="runtime/ui/sanctuary/first-bloom.js"></script>
 </body>
 </html>
