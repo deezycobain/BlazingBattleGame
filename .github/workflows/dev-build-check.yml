@@ -28,6 +28,8 @@ jobs:
           done
           cat /tmp/bb-server.log
           exit 1
+      - name: Chromium + WebKit Sanctuary vertical-slice smoke
+        run: node scripts/sanctuary-browser-smoke.mjs
       - name: Chromium + WebKit local boot smoke
         run: npm run smoke:browser
       - name: Save Home browser screenshots
@@ -50,8 +52,6 @@ jobs:
         run: node scripts/battle-pause-browser-smoke.mjs
       - name: Chromium + WebKit local Retina display-quality smoke
         run: node scripts/display-quality-smoke.mjs
-      - name: Chromium + WebKit Sanctuary vertical-slice smoke
-        run: node scripts/sanctuary-browser-smoke.mjs
       - name: Chromium + WebKit deployed dev smoke
         if: github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
         env:
