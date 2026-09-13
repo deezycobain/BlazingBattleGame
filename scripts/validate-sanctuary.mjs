@@ -3,11 +3,12 @@ import fs from 'node:fs/promises';
 const html=await fs.readFile('sanctuary.html','utf8');
 const js=await fs.readFile('runtime/ui/sanctuary/first-bloom.js','utf8');
 const css=await fs.readFile('runtime/ui/sanctuary/first-bloom.css','utf8');
+const compositionCss=await fs.readFile('runtime/ui/sanctuary/scene-composition-v2.css','utf8');
 const home=await fs.readFile('runtime/ui/home/home-sanctuary-entry.js','utf8');
 const sourceManifest=JSON.parse(await fs.readFile('assets/ui/sanctuary/first-bloom/ASSET_MANIFEST.json','utf8'));
 const runtimeManifest=JSON.parse(await fs.readFile('assets/ui/sanctuary/first-bloom/runtime/MANIFEST.json','utf8'));
 
-for(const token of ['sceneViewport','treeCanvas','gardenCanvas','rootFrontLayer','actionDrawer','devPanel','data-tab="design"','runtime/ui/sanctuary/first-bloom.js']){
+for(const token of ['sceneViewport','treeCanvas','gardenCanvas','rootFrontLayer','actionDrawer','devPanel','data-tab="design"','runtime/ui/sanctuary/first-bloom.js','scene-composition-v2.css']){
   if(!html.includes(token))throw new Error(`Sanctuary HTML missing ${token}`);
 }
 for(const token of [
@@ -21,15 +22,19 @@ for(const token of [
 for(const token of ['canonical-canvas','tree-canvas','garden-canvas','action-drawer','sanctuary-dock','grove-thumb','safe-area-inset']){
   if(!css.includes(token))throw new Error(`Sanctuary CSS missing ${token}`);
 }
-if(/object-fit\s*:\s*fill/.test(css))throw new Error('Sanctuary production CSS must not stretch art with object-fit: fill');
-if(html.includes('potLayer')||js.includes('pot_base.png'))throw new Error('Standalone pot must not render with rootbase-owned pot');
+for(const token of ['--bb-tree-width','--bb-tree-bottom','--bb-garden-width','--bb-garden-bottom']){
+  if(!compositionCss.includes(token))throw new Error(`Sanctuary composition CSS missing ${token}`);
+}
+if(/object-fit\s*:\s*fill/.test(css+compositionCss))throw new Error('Sanctuary production CSS must not stretch art with object-fit: fill');
+if(html.includes('potLayer')||js.includes('pot_base.png'))throw new Error('Standalone bonsai pot must not render in the integrated Sanctuary planter');
 if(!home.includes('sanctuary_home_button.png')||!home.includes("location.href='sanctuary.html'"))throw new Error('Sanctuary Home route or approved button missing');
 if((sourceManifest.files||[]).length<86)throw new Error(`Sanctuary source manifest unexpectedly contains only ${sourceManifest.files?.length||0} files`);
 for(const item of sourceManifest.files||[])await fs.access(`assets/ui/sanctuary/first-bloom/${item.file}`);
-if(runtimeManifest.version!==2||runtimeManifest.treeCanvas?.width!==1536||runtimeManifest.treeCanvas?.height!==1536||runtimeManifest.gardenCanvas?.width!==1536||runtimeManifest.gardenCanvas?.height!==1024)throw new Error('Sanctuary canonical runtime manifest dimensions/version invalid');
+if(runtimeManifest.version!==3||runtimeManifest.treeCanvas?.width!==1536||runtimeManifest.treeCanvas?.height!==1536||runtimeManifest.gardenCanvas?.width!==1536||runtimeManifest.gardenCanvas?.height!==1024)throw new Error('Sanctuary canonical runtime manifest dimensions/version invalid');
+if(runtimeManifest.potOwnership!=='integrated_garden_planter')throw new Error('Sanctuary runtime must use the integrated garden planter root island');
 for(const file of [
  'tree/rootbase_01.png','tree/rootfront_04.png','tree/trunk_06.png','tree/canopy_green_04.png','tree/canopy_jade_04.png','tree/blossom_pink_03.png','tree/fx_pink_bloom_burst.png',
  'garden/sand_bed_base.png','garden/pattern_still_water.png','garden/pattern_spiral_wind.png','garden/motif_blazing_spiral.png','garden/name_straight.png','garden/stones_centered.png','garden/stones_riverbank.png','garden/stones_mountain.png'
 ])await fs.access(`assets/ui/sanctuary/first-bloom/runtime/${file}`);
 if(/assets\/ui\/sanctuary\/(?!first-bloom)/.test(js+html+home))throw new Error('Sanctuary runtime escaped the approved first-bloom folder');
-console.log(`Sanctuary validation PASS: canonical compositor, schema V3 stage care, design-driven Harmony, sequenced ceremony FX, Grove showcase, and isolated Seal summon.`);
+console.log(`Sanctuary validation PASS: integrated root island, locked scene proportions, canonical compositor, schema V3 stage care, design-driven Harmony, sequenced ceremony FX, Grove showcase, and isolated Seal summon.`);
