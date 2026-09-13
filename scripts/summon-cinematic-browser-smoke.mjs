@@ -16,23 +16,38 @@ async function stageState(page){
   return page.evaluate(()=>{
     const scene=document.getElementById('pullScene');
     const flipper=scene?.querySelector('.bb-card-flipper');
-    const paint=scene?.querySelector('.bb-paint-stage-vfx');
-    const orbit=scene?.querySelector('.bb-spin-orbit');
+    const portal=scene?.querySelector('.bb-summon-portal');
+    const outerRing=scene?.querySelector('.bb-portal-ring-outer');
+    const energyRing=scene?.querySelector('.bb-portal-ring-energy');
+    const resolveFlash=scene?.querySelector('.bb-portal-resolve-flash');
     const art=scene?.querySelector('.bb-card-front .summonedTradingCard');
     const message=document.getElementById('pullMessage');
-    const orbitAnimation=orbit?.getAnimations?.()[0];
+    const outerAnimation=outerRing?.getAnimations?.()[0];
+    const energyAnimation=energyRing?.getAnimations?.()[0];
+    const bounds=node=>{if(!node)return null;const box=node.getBoundingClientRect();return {left:box.left,right:box.right,top:box.top,bottom:box.bottom,width:box.width,height:box.height,centerX:box.left+box.width/2,centerY:box.top+box.height/2}};
+    const cardBounds=bounds(scene?.querySelector('#pullCardWrap'));
     return {
       stage:scene?.dataset.bbPaintStage||'',
       running:scene?.classList.contains('bb-cinematic-running')||false,
-      strokes:scene?.querySelectorAll('.bb-paint-stroke').length||0,
-      echoes:scene?.querySelectorAll('.bb-paint-stroke-echo').length||0,
-      accents:scene?.querySelectorAll('.bb-paint-accent').length||0,
+      portalLayers:scene?.querySelectorAll('.bb-summon-portal').length||0,
+      ringLayers:scene?.querySelectorAll('.bb-portal-ring').length||0,
+      resolveLayers:scene?.querySelectorAll('.bb-portal-resolve-flash').length||0,
       cardOpacity:flipper?Number.parseFloat(getComputedStyle(flipper).opacity):null,
       cardAnimation:flipper?getComputedStyle(flipper).animationName:'',
-      paintOpacity:paint?Number.parseFloat(getComputedStyle(paint).opacity):null,
-      orbitOpacity:orbit?Number.parseFloat(getComputedStyle(orbit).opacity):null,
-      orbitAnimation:orbit?getComputedStyle(orbit).animationName:'',
-      orbitStart:Number.isFinite(orbitAnimation?.startTime)?orbitAnimation.startTime:null,
+      portalOpacity:portal?Number.parseFloat(getComputedStyle(portal).opacity):null,
+      outerOpacity:outerRing?Number.parseFloat(getComputedStyle(outerRing).opacity):null,
+      energyOpacity:energyRing?Number.parseFloat(getComputedStyle(energyRing).opacity):null,
+      resolveOpacity:resolveFlash?Number.parseFloat(getComputedStyle(resolveFlash).opacity):null,
+      outerAnimation:outerRing?getComputedStyle(outerRing).animationName:'',
+      energyAnimation:energyRing?getComputedStyle(energyRing).animationName:'',
+      resolveAnimation:resolveFlash?getComputedStyle(resolveFlash).animationName:'',
+      outerStart:Number.isFinite(outerAnimation?.startTime)?outerAnimation.startTime:null,
+      energyStart:Number.isFinite(energyAnimation?.startTime)?energyAnimation.startTime:null,
+      viewport:{width:innerWidth,height:innerHeight},
+      cardBounds,
+      portalBounds:bounds(portal),
+      outerBounds:bounds(outerRing),
+      energyBounds:bounds(energyRing),
       artOpacity:art?Number.parseFloat(getComputedStyle(art).opacity):null,
       messageOpacity:message?Number.parseFloat(getComputedStyle(message).opacity):null,
       message:message?.textContent?.trim()||''
@@ -61,7 +76,7 @@ async function run(name,type){
     await page.locator('#bbHomeApproved [data-nav="summon"]').click();
     await page.locator('#summonScreen.active #singleSummonBtn').waitFor({state:'visible'});
     const runtime=await page.evaluate(()=>({version:window.BlazingSummonCinematic?.version,timeline:window.BlazingSummonCinematic?.timeline}));
-    if(runtime.version!=='4.0.0'||runtime.timeline?.resonance?.done!==2150||runtime.timeline?.resonance?.flip!==1550)throw new Error(`unexpected cinematic contract: ${JSON.stringify(runtime)}`);
+    if(runtime.version!=='5.0.0'||runtime.timeline?.resonance?.done!==2080||runtime.timeline?.resonance?.flip!==1480)throw new Error(`unexpected cinematic contract: ${JSON.stringify(runtime)}`);
 
     await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
@@ -77,25 +92,34 @@ async function run(name,type){
     });
     await page.locator('#singleSummonBtn').click();
 
-    const paint=await waitStage(page,'paint');
-    if(paint.strokes!==2||paint.echoes!==0||paint.accents!==0)throw new Error(`paint layer count is not exactly two: ${JSON.stringify(paint)}`);
-    if(paint.cardOpacity!==0||paint.orbitOpacity!==0)throw new Error(`card/circle leaked into paint beat: ${JSON.stringify(paint)}`);
+    await waitStage(page,'portal');
+    await page.waitForTimeout(90);
+    const portal=await stageState(page);
+    if(portal.portalLayers!==1||portal.ringLayers!==2||portal.resolveLayers!==1)throw new Error(`curated portal layer contract changed: ${JSON.stringify(portal)}`);
+    if(portal.cardOpacity!==0||portal.portalOpacity<=0||portal.outerOpacity!==0||portal.energyOpacity!==0)throw new Error(`portal beat is not isolated: ${JSON.stringify(portal)}`);
+    for(const [label,box] of Object.entries({portal:portal.portalBounds,outer:portal.outerBounds,energy:portal.energyBounds})){
+      if(!box||box.left<0||box.right>portal.viewport.width||Math.abs(box.centerX-portal.cardBounds.centerX)>2||Math.abs(box.centerY-portal.cardBounds.centerY)>2)throw new Error(`${label} VFX is not compact and card-centered: ${JSON.stringify({box,card:portal.cardBounds,viewport:portal.viewport})}`);
+    }
 
     const slow=await waitStage(page,'circle-slow');
     await page.waitForTimeout(110);
     const slowMoving=await stageState(page);
-    if(slow.cardOpacity!==0||slow.paintOpacity!==0||slowMoving.orbitAnimation!=='bbCircleCharge'||slowMoving.orbitOpacity<=0)throw new Error(`slow charge is not isolated: ${JSON.stringify({slow,slowMoving})}`);
+    if(slow.cardOpacity!==0||slowMoving.outerAnimation!=='bbPortalRingOuter'||slowMoving.energyAnimation!=='bbPortalRingEnergy'||slowMoving.outerOpacity<=0)throw new Error(`slow charge is not isolated: ${JSON.stringify({slow,slowMoving})}`);
 
     const fast=await waitStage(page,'circle-fast');
     await page.waitForTimeout(110);
     const fastMoving=await stageState(page);
-    if(fast.cardOpacity!==0||fast.paintOpacity!==0||fastMoving.orbitAnimation!=='bbCircleCharge'||fastMoving.orbitOpacity<=slowMoving.orbitOpacity)throw new Error(`circle did not accelerate cleanly before card entry: ${JSON.stringify({slowMoving,fast,fastMoving})}`);
-    if(slowMoving.orbitStart!==null&&fastMoving.orbitStart!==null&&Math.abs(slowMoving.orbitStart-fastMoving.orbitStart)>2)throw new Error(`circle animation restarted between slow/fast stages: ${JSON.stringify({slowMoving,fastMoving})}`);
+    if(fast.cardOpacity!==0||fastMoving.outerAnimation!=='bbPortalRingOuter'||fastMoving.energyAnimation!=='bbPortalRingEnergy'||fastMoving.energyOpacity<=0)throw new Error(`circle did not accelerate cleanly before card entry: ${JSON.stringify({slowMoving,fast,fastMoving})}`);
+    if(slowMoving.outerStart!==null&&fastMoving.outerStart!==null&&Math.abs(slowMoving.outerStart-fastMoving.outerStart)>2)throw new Error(`outer ring restarted between slow/fast stages: ${JSON.stringify({slowMoving,fastMoving})}`);
+    if(slowMoving.energyStart!==null&&fastMoving.energyStart!==null&&Math.abs(slowMoving.energyStart-fastMoving.energyStart)>2)throw new Error(`energy ring restarted between slow/fast stages: ${JSON.stringify({slowMoving,fastMoving})}`);
+    for(const [label,box] of Object.entries({outer:fastMoving.outerBounds,energy:fastMoving.energyBounds})){
+      if(!box||box.left<0||box.right>fastMoving.viewport.width||Math.abs(box.centerX-fastMoving.cardBounds.centerX)>2||Math.abs(box.centerY-fastMoving.cardBounds.centerY)>2)throw new Error(`${label} charge left the centered mobile corridor: ${JSON.stringify({box,card:fastMoving.cardBounds,viewport:fastMoving.viewport})}`);
+    }
 
     await waitStage(page,'card-enter');
     await page.waitForTimeout(90);
     const card=await stageState(page);
-    if(card.cardOpacity<.5||card.cardAnimation!=='bbCardBackEnter'||card.paintOpacity!==0)throw new Error(`card back did not materialize cleanly: ${JSON.stringify(card)}`);
+    if(card.cardOpacity<.5||card.cardAnimation!=='bbCardBackEnter'||card.outerOpacity>0.05||card.energyOpacity>0.05)throw new Error(`card back did not materialize after charge cleared: ${JSON.stringify(card)}`);
 
     await waitStage(page,'flip');
     await page.waitForTimeout(90);
@@ -104,7 +128,10 @@ async function run(name,type){
     if(flip.cardAnimation!=='bbPhysicalCardFlip'||flip.artOpacity!==1)throw new Error(`single flip did not reveal fighter front: ${JSON.stringify(flip)}`);
     if(!flipFrames.some(value=>String(value).includes('180deg'))||flipFrames.some(value=>/rotateY\((?:[2-9]\d\d|\d{4,})deg\)/.test(String(value))))throw new Error(`flip is not one 180-degree action: ${JSON.stringify(flipFrames)}`);
 
-    const resolve=await waitStage(page,'resolve');
+    await waitStage(page,'resolve');
+    await page.waitForTimeout(55);
+    const resolve=await stageState(page);
+    if(resolve.resolveAnimation!=='bbPortalResolve'||resolve.resolveOpacity<=0)throw new Error(`resolve flash did not support the settled card: ${JSON.stringify(resolve)}`);
     if(resolve.messageOpacity>0.05)throw new Error(`result text became visible before card settled: ${JSON.stringify(resolve)}`);
     const done=await waitStage(page,'done');
     await page.waitForTimeout(40);
@@ -119,16 +146,16 @@ async function run(name,type){
     if(!labels.name||!labels.rarity||labels.copyDisplay!=='none')throw new Error(`front labels/copy overlay incorrect: ${JSON.stringify(labels)}`);
 
     const trace=await page.evaluate(()=>window.__bbSummonTrace);
-    const expectedStages=['paint','circle-slow','circle-fast','card-enter','flip','resolve','done'];
+    const expectedStages=['portal','circle-slow','circle-fast','card-enter','flip','resolve','done'];
     if(JSON.stringify(trace.map(item=>item.stage))!==JSON.stringify(expectedStages))throw new Error(`stage order changed: ${JSON.stringify(trace)}`);
-    const paintAt=trace[0].at;
-    const ranges={paint:[0,20],'circle-slow':[620,780],'circle-fast':[970,1130],'card-enter':[1270,1430],flip:[1470,1630],resolve:[1870,2030],done:[2070,2230]};
-    for(const item of trace){const elapsed=item.at-paintAt,[min,max]=ranges[item.stage];if(elapsed<min||elapsed>max)throw new Error(`${item.stage} timing outside ${min}-${max}ms after paint: ${JSON.stringify(trace)}`)}
+    const portalAt=trace[0].at;
+    const ranges={portal:[0,20],'circle-slow':[500,660],'circle-fast':[860,1020],'card-enter':[1200,1360],flip:[1400,1560],resolve:[1800,1960],done:[2000,2160]};
+    for(const item of trace){const elapsed=item.at-portalAt,[min,max]=ranges[item.stage];if(elapsed<min||elapsed>max)throw new Error(`${item.stage} timing outside ${min}-${max}ms after portal: ${JSON.stringify(trace)}`)}
 
     await page.locator('#nextPullBtn').evaluate(button=>button.click());
     await page.locator('#pullResultsGrid .pullCard').first().waitFor({state:'visible',timeout:3000});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Summon cinematic browser smoke PASS (${name}): two strokes, isolated continuous charge, hidden card, one 180-degree flip, 2.15s resolve, and results flow verified.`);
+    console.log(`Summon cinematic browser smoke PASS (${name}): compact portal, continuous two-ring charge, hidden card, one 180-degree flip, 2.08s resolve, and results flow verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
