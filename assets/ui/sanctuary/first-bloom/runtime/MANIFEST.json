@@ -8,14 +8,13 @@
     "width": 1536,
     "height": 1024
   },
-  "potOwnership": "rootbase",
+  "potOwnership": "integrated_garden_planter",
   "renderOrder": {
     "tree": [
-      "rootbase",
+      "rootbase_integrated_island",
       "trunk",
       "canopy",
       "blossom",
-      "rootfront",
       "fx"
     ],
     "garden": [
@@ -51,7 +50,9 @@
   "notes": [
     "Runtime art layers share deterministic canonical coordinates.",
     "No object-fit: fill is required for production runtime layers.",
-    "Standalone pot_base.png is not used together with rootbase assets.",
+    "The decorative inner bonsai pot is removed in runtime; the tree grows directly from an integrated soil/moss island.",
+    "Runtime rootbase files now contain the natural planting island plus a soft contact shadow.",
+    "rootfront files are retained as transparent compatibility layers only.",
     "Original core stone layouts remain source-only because of matte remnants.",
     "Sand pattern and motif runtime files are groove-only transparent overlays.",
     "Low-alpha blossom and FX matte fields are removed during runtime build.",
