@@ -10,11 +10,11 @@ html=html.replace(new RegExp(`<style\\b[^>]*id=["']${marker}["'][^>]*>[\\s\\S]*?
 const css=`<style id="${marker}">
 html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-dock{
  grid-template-columns:repeat(2,minmax(0,1fr))!important;
- grid-template-rows:repeat(2,minmax(0,1fr))!important;
+ grid-template-rows:repeat(3,minmax(0,1fr))!important;
 }
 html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav]{
  min-width:0!important;
- min-height:0!important;
+ min-height:42px!important;
  width:auto!important;
  height:100%!important;
  max-height:none!important;
@@ -43,6 +43,12 @@ html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav="f
  grid-row:2!important;
  transform:rotate(.3deg)!important;
 }
+html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav="sanctuary"]{
+ grid-column:1/3!important;
+ grid-row:3!important;
+ width:76%!important;
+ place-self:center!important;
+}
 html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav] img{
  width:100%!important;
  height:100%!important;
@@ -53,6 +59,6 @@ html body #bbHomeApproved.bb-home-live-v7.bb-home-v8 .bb-home-v4-nav[data-nav] i
 </style>`;
 if(!html.includes('</head>'))throw new Error('Home v8 finalize: missing </head>');
 html=html.replace('</head>',`${css}</head>`);
-for(const required of [marker,'grid-template-columns:repeat(2','grid-template-rows:repeat(2','bb-home-v4-nav[data-nav]','aspect-ratio:auto!important'])if(!html.includes(required))throw new Error(`Home v8 finalize: missing ${required}`);
+for(const required of [marker,'grid-template-columns:repeat(2','grid-template-rows:repeat(3','min-height:42px!important','data-nav="sanctuary"','aspect-ratio:auto!important'])if(!html.includes(required))throw new Error(`Home v8 finalize: missing ${required}`);
 await fs.writeFile(file,html);
 console.log('Home v8 finalize PASS: equal 2x2 Home action cells normalized without legacy Battle-span or viewport-width overrides.');
