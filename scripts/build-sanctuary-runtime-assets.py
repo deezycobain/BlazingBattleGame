@@ -6,7 +6,7 @@ import shutil
 import json
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFilter
 
 TREE_CANVAS=(1536,1536)
 GARDEN_CANVAS=(1536,1024)
@@ -52,13 +52,7 @@ def rgba(path:Path)->Image.Image:
     return Image.open(path).convert('RGBA')
 
 def clean_soft_alpha(src:Image.Image,threshold:int,gamma:float=.8)->Image.Image:
-    """Remove low-opacity generated matte while keeping authored antialiasing.
-
-    Several blossom/FX source PNGs technically contain alpha but also carry a
-    broad, low-alpha colored field. On top of the game scene that field reads
-    as a rectangular fog patch. Remap the useful alpha range so low-opacity
-    matte disappears and petals/flowers remain soft at their edges.
-    """
+    """Remove low-opacity generated matte while keeping authored antialiasing."""
     arr=np.array(src).copy()
     alpha=arr[:,:,3].astype(np.float32)
     norm=np.clip((alpha-float(threshold))/(255.0-float(threshold)),0,1)
@@ -76,6 +70,49 @@ def paste_scaled(src:Image.Image, scale:float, x:int, y:int, canvas=TREE_CANVAS)
 def save_png(im:Image.Image,path:Path):
     path.parent.mkdir(parents=True,exist_ok=True)
     im.save(path,optimize=True)
+
+def extract_root_island(src:Image.Image)->Image.Image:
+    """Keep the authored soil/moss/root crown while removing the decorative inner pot.
+
+    The original rootbase art contains a full second bonsai container. Sanctuary now
+    uses one integrated garden planter, so runtime rootbase files become organic
+    planting islands instead. The trunk art provides the visible exposed roots.
+    """
+    arr=np.array(src.convert('RGBA')).copy()
+    rgb=arr[:,:,:3]
+    source_alpha=arr[:,:,3].astype(np.float32)/255.0
+    hsv=cv2.cvtColor(rgb,cv2.COLOR_RGB2HSV)
+    hue,sat,val=cv2.split(hsv)
+    h,w=source_alpha.shape
+    yy,xx=np.mgrid[0:h,0:w]
+
+    # Organic rear planting mound. A feathered ellipse avoids any new hard container edge.
+    cx=w/2.0
+    cy=100.0
+    rx=290.0
+    ry=135.0
+    dist=((xx-cx)/rx)**2+((yy-cy)/ry)**2
+    organic=np.clip((1.0-dist)/0.14,0,1)
+    bottom_fade=np.clip((160.0-yy)/16.0,0,1)
+
+    # Remove the navy/gold/ivory container rim that intrudes into the upper crop.
+    blue=(hue>88)&(hue<132)&(sat>45)
+    gold=(hue>6)&(hue<34)&(sat>75)&(val>100)&(yy>118)
+    pale_rim=(sat<80)&(val>150)&(yy>125)
+
+    alpha=source_alpha*organic*bottom_fade*(~blue)*(~gold)*(~pale_rim)
+    arr[:,:,3]=(np.clip(alpha,0,1)*255).astype(np.uint8)
+    return Image.fromarray(arr)
+
+def root_contact_shadow()->Image.Image:
+    """Soft grounding shadow shared by the planting island and exposed trunk roots."""
+    mask=Image.new('L',TREE_CANVAS,0)
+    draw=ImageDraw.Draw(mask)
+    draw.ellipse((430,1130,1106,1260),fill=128)
+    mask=mask.filter(ImageFilter.GaussianBlur(28))
+    shadow=Image.new('RGBA',TREE_CANVAS,(0,0,0,0))
+    shadow.putalpha(mask)
+    return shadow
 
 def relief_overlay(path:Path,quad:np.ndarray,dark_alpha=175,light_alpha=90)->Image.Image:
     im=np.array(rgba(path))
@@ -117,20 +154,19 @@ def fit_transparent(src:Image.Image,max_w:int,max_h:int,center:tuple[int,int],ca
 
 def build_tree(root:Path,out:Path):
     t=out/'tree'
-    # Root/pot states own the visible bonsai container for V1.
+
+    # Sanctuary V1 now has one planter only: the main garden tray. The source rootbase
+    # paintings are harvested for their natural soil/moss/root crowns, while the inner
+    # decorative pot is discarded. Keeping the old runtime filenames avoids save/UI churn.
+    shadow=root_contact_shadow()
     for i in range(1,5):
-        source=rgba(root/f'bonsai/roots/rootbase_0{i}.png')
-        a=np.array(source)
-        # Strip authored continuation/debris below the container before canonical placement.
-        if a.shape[0] > 455:
-            a[455:,:,3]=0
-        source=Image.fromarray(a)
-        full=paste_scaled(source,0.992,387,1028)
+        natural=extract_root_island(rgba(root/f'bonsai/roots/rootbase_0{i}.png'))
+        island=paste_scaled(natural,1.08,353,1022)
+        full=Image.alpha_composite(shadow,island)
         save_png(full,t/f'rootbase_0{i}.png')
-        # Foreground pot occlusion: front face only, used after the trunk.
-        arr=np.array(full)
-        arr[:1239,:,3]=0
-        save_png(Image.fromarray(arr),t/f'rootfront_0{i}.png')
+
+        # Compatibility layer retained for the existing compositor, intentionally empty.
+        save_png(Image.new('RGBA',TREE_CANVAS,(0,0,0,0)),t/f'rootfront_0{i}.png')
 
     for i,(scale,x,y) in TRUNK_TRANSFORMS.items():
         save_png(paste_scaled(rgba(root/f'bonsai/trunks/trunk_0{i}.png'),scale,x,y),t/f'trunk_0{i}.png')
@@ -139,14 +175,11 @@ def build_tree(root:Path,out:Path):
         for i,(scale,x,y) in CANOPY_TRANSFORMS.items():
             save_png(paste_scaled(rgba(root/f'bonsai/canopy/{family}/canopy_0{i}.png'),scale,x,y),t/f'canopy_{family}_0{i}.png')
 
-    # Flowering branch strips stay localized near the crown rather than stretching.
-    # Generated source art has a low-alpha matte, so clean that before placement.
     for color in COLORS:
         for i,(scale,x,y) in BLOSSOM_TRANSFORMS.items():
             blossom=clean_soft_alpha(rgba(root/f'bonsai/blossoms/{color}/blossom_0{i}.png'),64,.8)
             save_png(paste_scaled(blossom,scale,x,y),t/f'blossom_{color}_0{i}.png')
 
-    # Ceremony FX normalized onto the tree canvas. Runtime sequences them, never all at once.
     fx_placements={
       'idle_drift':(950,900,(768,650)),
       'wind_ring':(930,700,(768,720)),
@@ -164,7 +197,6 @@ def build_garden(root:Path,out:Path):
     g=out/'garden'
     save_png(rgba(root/'sand/base/sand_bed_base.png'),g/'sand_bed_base.png')
 
-    # Convert authored pattern/motif pictures into transparent sand-relief overlays.
     for name in PATTERNS:
         save_png(relief_overlay(root/f'sand/patterns/{name}.png',SURFACE_QUAD,175,90),g/f'pattern_{name}.png')
     for name,rel in MOTIFS:
@@ -174,12 +206,9 @@ def build_garden(root:Path,out:Path):
     save_png(fit_transparent(rgba(root/'sand/name-templates/arc.png'),900,290,(768,490)),g/'name_arc.png')
     save_png(fit_transparent(rgba(root/'sand/name-templates/seal.png'),500,500,(768,500)),g/'name_seal.png')
 
-    # Optional accents are kept separate and aligned to the same garden canvas.
     save_png(fit_transparent(rgba(root/'sand/accents/moss_edge.png'),1220,470,(768,520)),g/'accent_moss_edge.png')
     save_png(fit_transparent(rgba(root/'sand/accents/petal_scatter.png'),1120,500,(768,520)),g/'accent_petal_scatter.png')
 
-    # Use clean authored variants for the V1 production trio. Original core layouts
-    # contain rectangular matte remnants and stay source-only.
     stone_map={
       'centered':'sand/stones/variants/moss_cluster.png',
       'riverbank':'sand/stones/variants/stepping_stones.png',
@@ -208,9 +237,9 @@ def main():
       'version':3,
       'treeCanvas':{'width':TREE_CANVAS[0],'height':TREE_CANVAS[1]},
       'gardenCanvas':{'width':GARDEN_CANVAS[0],'height':GARDEN_CANVAS[1]},
-      'potOwnership':'rootbase',
+      'potOwnership':'integrated_garden_planter',
       'renderOrder':{
-        'tree':['rootbase','trunk','canopy','blossom','rootfront','fx'],
+        'tree':['rootbase_integrated_island','trunk','canopy','blossom','fx'],
         'garden':['sand_bed_base','pattern','motif','name','accent','stones']
       },
       'stoneProductionMap':{'centered':'moss_cluster','riverbank':'stepping_stones','mountain':'rock_spire'},
@@ -219,7 +248,9 @@ def main():
       'notes':[
         'Runtime art layers share deterministic canonical coordinates.',
         'No object-fit: fill is required for production runtime layers.',
-        'Standalone pot_base.png is not used together with rootbase assets.',
+        'The decorative inner bonsai pot is removed in runtime; the tree grows directly from an integrated soil/moss island.',
+        'Runtime rootbase files now contain the natural planting island plus a soft contact shadow.',
+        'rootfront files are retained as transparent compatibility layers only.',
         'Original core stone layouts remain source-only because of matte remnants.',
         'Sand pattern and motif runtime files are groove-only transparent overlays.',
         'Low-alpha blossom and FX matte fields are removed during runtime build.',
