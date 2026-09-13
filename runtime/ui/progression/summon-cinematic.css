@@ -1,4 +1,4 @@
-/* Blazing Battle summon cinematic v5
+/* Blazing Battle summon cinematic v5.1
    Four compact beats: portal, charge, card, reveal. */
 
 #summonPullScreen .pullScene{position:relative;overflow:visible!important}
@@ -72,6 +72,8 @@
 #summonPullScreen .pullScene[data-bb-paint-stage="portal"] .bb-card-flipper,
 #summonPullScreen .pullScene[data-bb-paint-stage="circle-slow"] .bb-card-flipper,
 #summonPullScreen .pullScene[data-bb-paint-stage="circle-fast"] .bb-card-flipper{opacity:0!important;animation:none!important}
+#summonPullScreen .pullScene.bb-cinematic-preparing .pullCardWrap::before,
+#summonPullScreen .pullScene.bb-cinematic-preparing .pullCardWrap::after,
 #summonPullScreen .pullScene[data-bb-paint-stage="portal"] .pullCardWrap::before,
 #summonPullScreen .pullScene[data-bb-paint-stage="portal"] .pullCardWrap::after,
 #summonPullScreen .pullScene[data-bb-paint-stage="circle-slow"] .pullCardWrap::before,
@@ -88,20 +90,27 @@
 #summonPullScreen .bb-portal-charge-vfx{z-index:3}
 #summonPullScreen .bb-summon-portal,
 #summonPullScreen .bb-portal-ring,
-#summonPullScreen .bb-portal-resolve-flash{
+#summonPullScreen .bb-portal-impact,
+#summonPullScreen .bb-flip-afterimage,
+#summonPullScreen .bb-portal-resolve-flash,
+#summonPullScreen .bb-resolve-particles{
  position:absolute;left:50%;top:50%;display:block;height:auto;object-fit:contain;opacity:0;pointer-events:none;
  transform:translate3d(-50%,-50%,0);backface-visibility:hidden;-webkit-backface-visibility:hidden;
 }
 #summonPullScreen .bb-summon-portal{width:88%}
 #summonPullScreen .bb-portal-ring-outer{width:80%}
 #summonPullScreen .bb-portal-ring-energy{width:74%}
+#summonPullScreen .bb-portal-impact{width:84%}
+#summonPullScreen .bb-flip-afterimage{width:82%}
 #summonPullScreen .bb-portal-resolve-flash{width:86%}
+#summonPullScreen .bb-resolve-particles{width:88%}
 #summonPullScreen .bb-vfx-missing{display:none!important}
 
 /* One uninterrupted portal-to-charge curve; speed builds without restarting a layer. */
-#summonPullScreen .pullScene.bb-cinematic-running .bb-summon-portal{animation:bbPortalForm .78s cubic-bezier(.22,.58,.2,1) 0s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running .bb-portal-ring-outer{animation:bbPortalRingOuter .72s cubic-bezier(.42,0,.18,1) .56s both!important}
-#summonPullScreen .pullScene.bb-cinematic-running .bb-portal-ring-energy{animation:bbPortalRingEnergy .72s cubic-bezier(.42,0,.18,1) .56s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-summon-portal{animation:bbPortalForm .86s cubic-bezier(.16,.72,.2,1) 0s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-portal-ring-outer{animation:bbPortalRingOuter .80s cubic-bezier(.45,0,.85,.55) .58s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-portal-ring-energy{animation:bbPortalRingEnergy .80s cubic-bezier(.45,0,.85,.55) .58s both!important}
+#summonPullScreen .pullScene.bb-cinematic-running .bb-portal-impact{animation:bbPortalImpact .26s cubic-bezier(.16,.72,.2,1) 1.23s both!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="card-enter"] .bb-summon-portal,
 #summonPullScreen .pullScene[data-bb-paint-stage="card-enter"] .bb-portal-ring,
 #summonPullScreen .pullScene[data-bb-paint-stage="flip"] .bb-summon-portal,
@@ -111,9 +120,11 @@
 #summonPullScreen .pullScene[data-bb-paint-stage="done"] .bb-summon-portal,
 #summonPullScreen .pullScene[data-bb-paint-stage="done"] .bb-portal-ring{animation:none!important;opacity:0!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-portal-resolve-flash{animation:bbPortalResolve .24s ease-out both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="flip"] .bb-flip-afterimage{animation:bbFlipAfterimage .42s cubic-bezier(.22,.58,.18,1) both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-resolve-particles{animation:bbResolveParticles .28s ease-out both!important}
 
 #summonPullScreen .pullScene[data-bb-paint-stage="card-enter"] .bb-card-flipper{opacity:1!important;animation:bbCardBackEnter .20s cubic-bezier(.18,.78,.2,1) both!important}
-#summonPullScreen .pullScene[data-bb-paint-stage="flip"] .bb-card-flipper{opacity:1!important;animation:bbPhysicalCardFlip .40s cubic-bezier(.32,.02,.16,1) both!important}
+#summonPullScreen .pullScene[data-bb-paint-stage="flip"] .bb-card-flipper{opacity:1!important;animation:bbPhysicalCardFlip .42s cubic-bezier(.32,.02,.16,1) both!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="flip"] .bb-card-front .summonedTradingCard{opacity:1!important;transform:scale(1)!important;transition:none!important}
 #summonPullScreen .pullScene[data-bb-paint-stage="resolve"] .bb-card-flipper,
 #summonPullScreen .pullScene[data-bb-paint-stage="done"] .bb-card-flipper{opacity:1!important;transform:rotateY(180deg)!important}
@@ -155,22 +166,27 @@
 @keyframes bbPortalForm{
  0%{opacity:0;transform:translate3d(-50%,-50%,0) scale(.72) rotate(-7deg)}
  24%{opacity:.78}
- 64%{opacity:.66;transform:translate3d(-50%,-50%,0) scale(.94) rotate(0deg)}
+ 64%{opacity:.66}
  100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1) rotate(2deg)}
 }
 @keyframes bbPortalRingOuter{
  0%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(-14deg) scale(.91)}
  18%{opacity:.58}
- 48%{opacity:.78;transform:translate3d(-50%,-50%,0) rotate(24deg) scale(.96)}
- 76%{opacity:.88;transform:translate3d(-50%,-50%,0) rotate(92deg) scale(.995)}
+ 48%{opacity:.78}
+ 76%{opacity:.88}
  100%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(206deg) scale(1.02)}
 }
 @keyframes bbPortalRingEnergy{
  0%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(10deg) scale(.88)}
  34%{opacity:.18}
- 58%{opacity:.62;transform:translate3d(-50%,-50%,0) rotate(-42deg) scale(.95)}
- 82%{opacity:.8;transform:translate3d(-50%,-50%,0) rotate(-142deg) scale(1)}
+ 58%{opacity:.62}
+ 82%{opacity:.8}
  100%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(-278deg) scale(1.025)}
+}
+@keyframes bbPortalImpact{
+ 0%{opacity:0;transform:translate3d(-50%,-50%,0) scale(.68)}
+ 42%{opacity:.48}
+ 100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.01)}
 }
 /* One physical half-turn: back to front, with a restrained weighted settle. */
 @keyframes bbPhysicalCardFlip{
@@ -184,6 +200,17 @@
  0%{opacity:0;transform:translate3d(-50%,-50%,0) scale(.72)}
  28%{opacity:.54}
  100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.02)}
+}
+@keyframes bbFlipAfterimage{
+ 0%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(-3deg) scale(.9)}
+ 26%{opacity:.34}
+ 70%{opacity:.22}
+ 100%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(3deg) scale(1.025)}
+}
+@keyframes bbResolveParticles{
+ 0%{opacity:0;transform:translate3d(-50%,-50%,0) scale(.9)}
+ 30%{opacity:.36}
+ 100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.04)}
 }
 @keyframes bbFrontCardSettle{
  0%{transform:rotateY(180deg) scale(1.018) translateY(-1px)}

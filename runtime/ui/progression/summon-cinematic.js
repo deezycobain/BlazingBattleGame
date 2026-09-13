@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const VERSION='5.0.0';
+const VERSION='5.1.0';
 const PORTAL_ROOT='assets/vfx/summon/portal-reveal';
 const CARD_BACK_SRC='assets/ui/summon/reveal/summon_reveal_card_back.png';
 const CARD_FRONT_FRAME_SRC='assets/ui/summon/reveal/summon_reveal_card_front_frame.png';
@@ -9,12 +9,15 @@ const VFX=Object.freeze({
  portal:`${PORTAL_ROOT}/summon_portal_base.webp`,
  outerRing:`${PORTAL_ROOT}/ring_outer_navy_gold.webp`,
  energyRing:`${PORTAL_ROOT}/ring_energy_gold.webp`,
- resolveFlash:`${PORTAL_ROOT}/flip_reveal_starburst.webp`
+ impact:`${PORTAL_ROOT}/reveal_impact_burst.webp`,
+ flipAfterimage:`${PORTAL_ROOT}/flip_shadow_afterimage.webp`,
+ resolveFlash:`${PORTAL_ROOT}/flip_reveal_starburst.webp`,
+ resolveParticles:`${PORTAL_ROOT}/flip_particles_gold_crimson.webp`
 });
 const TIMELINES=Object.freeze({
- resonance:Object.freeze({circleSlow:580,circleFast:940,cardEnter:1280,flip:1480,resolve:1880,done:2080}),
- new:Object.freeze({circleSlow:580,circleFast:940,cardEnter:1280,flip:1480,resolve:1880,done:2080}),
- shiny:Object.freeze({circleSlow:580,circleFast:940,cardEnter:1280,flip:1480,resolve:1880,done:2080})
+ resonance:Object.freeze({circleSlow:600,circleFast:1000,cardEnter:1380,flip:1580,resolve:2000,done:2240}),
+ new:Object.freeze({circleSlow:600,circleFast:1000,cardEnter:1380,flip:1580,resolve:2000,done:2240}),
+ shiny:Object.freeze({circleSlow:600,circleFast:1000,cardEnter:1380,flip:1580,resolve:2000,done:2240})
 });
 const REDUCED_MOTION=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
 let cinematicRun=0;
@@ -79,7 +82,10 @@ function buildChargeFx(wrap){
  fx.append(
   img(VFX.outerRing,'bb-portal-ring bb-portal-ring-outer'),
   img(VFX.energyRing,'bb-portal-ring bb-portal-ring-energy'),
-  img(VFX.resolveFlash,'bb-portal-resolve-flash')
+  img(VFX.impact,'bb-portal-impact'),
+  img(VFX.flipAfterimage,'bb-flip-afterimage'),
+  img(VFX.resolveFlash,'bb-portal-resolve-flash'),
+  img(VFX.resolveParticles,'bb-resolve-particles')
  );
  wrap.append(fx);
  return fx;
