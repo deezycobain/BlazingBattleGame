@@ -50,18 +50,18 @@ async function run(name,type){
     queueConsumesCommittedSquad:/let item=queue\[targetIndex\+\+\],enemy=item\.enemy,attackers=item\.attackers,attackIndex=0;/.test(targetHead),
     consumesEveryAttacker:/attackIndex\+\+/.test(attackerTail),
     boundedBySquad:/attackIndex\s*>=\s*attackers\.length/.test(attackerTail),
-    koAbort:/enemy\.hp\s*<=\s*0\s*\|\|\s*attackIndex\s*>=\s*attackers\.length/.test(attackerTail),
+    koAbort:/function\s+runAttacker\s*\(\s*\)\s*\{\s*if\s*\(\s*enemy\.hp\s*<=\s*0\s*\)\s*return\s+runTarget\s*\(\s*\)\s*;/.test(attackerTail),
     hasMultipleTargetSupport:/targetIndex\s*>=\s*queue\.length/.test(targetHead),
     sourceLength:compact.length
    };
   });
 
   if(state.error)throw new Error(state.error);
-  if(!state.committedSquad||state.legacyPerTarget||!state.queueConsumesCommittedSquad||!state.consumesEveryAttacker||!state.boundedBySquad||state.koAbort||!state.hasMultipleTargetSupport){
+  if(!state.committedSquad||state.legacyPerTarget||!state.queueConsumesCommittedSquad||!state.consumesEveryAttacker||!state.boundedBySquad||!state.koAbort||!state.hasMultipleTargetSupport){
    throw new Error(`linked multi-target sequence invariant failed: ${JSON.stringify(state)}`);
   }
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Chain attack smoke PASS (${name}): one committed linked squad is reused for every resolved Basic target and every member completes its sequence.`);
+  console.log(`Chain attack smoke PASS (${name}): committed links are reused across resolved Basic targets and stop immediately after a target KO.`);
   await context.close();
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
