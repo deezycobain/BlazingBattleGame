@@ -8,26 +8,92 @@
   --bb-tree-width:min(65%,500px);
   --bb-tree-bottom:29%;
   --bb-tree-scale:1;
+  --bb-tree-anchor-y:69%;
+  --bb-foliage-x:0%;
+  --bb-foliage-y:0%;
+  --bb-foliage-scale:1;
   --bb-garden-width:min(106%,790px);
   --bb-garden-bottom:-3%;
 }
 
-/* The bonsai reads as a rear planting feature rather than the whole scene. */
+/* The bonsai reads as a rear planting feature rather than the whole scene.
+   All authored tree layers share one canonical 1536 square, so the whole tree
+   remains registered together and scales around the real root/contact area. */
 .tree-canvas{
   width:var(--bb-tree-width);
   bottom:var(--bb-tree-bottom);
   z-index:3;
   transform:translateX(-50%) scale(var(--bb-tree-scale));
-  transform-origin:50% 69%;
+  transform-origin:50% var(--bb-tree-anchor-y);
   transition:transform .22s ease;
   /* broad ambient grounding only; contact depth is supplied by runtime art */
   filter:drop-shadow(0 10px 7px rgba(8,7,5,.20));
 }
 
-/* Mature authored stages are intentionally large. Pull them back from the
-   upper tray rail while keeping the visual root anchor almost stationary. */
-.tree-canvas:has(#trunkLayer[src$="trunk_05.png"]){--bb-tree-scale:.93}
-.tree-canvas:has(#trunkLayer[src$="trunk_06.png"]){--bb-tree-scale:.91}
+/* Stage registration is intentionally subtle. The source files already share
+   canonical coordinates, so these values only correct visual weight and the
+   point where foliage meets the authored branch structure. Early foliage is
+   brought slightly down/in; mature foliage is restrained around the root
+   anchor instead of swelling toward the top rail. */
+.tree-canvas:has(#trunkLayer[src$="trunk_01.png"]){
+  --bb-tree-scale:.96;
+  --bb-foliage-x:0%;
+  --bb-foliage-y:0%;
+  --bb-foliage-scale:1;
+}
+.tree-canvas:has(#trunkLayer[src$="trunk_02.png"]){
+  --bb-tree-scale:.98;
+  --bb-foliage-x:-.35%;
+  --bb-foliage-y:1.55%;
+  --bb-foliage-scale:1.035;
+}
+.tree-canvas:has(#trunkLayer[src$="trunk_03.png"]){
+  --bb-tree-scale:.99;
+  --bb-foliage-x:-.25%;
+  --bb-foliage-y:1%;
+  --bb-foliage-scale:1.02;
+}
+.tree-canvas:has(#trunkLayer[src$="trunk_04.png"]){
+  --bb-tree-scale:1;
+  --bb-foliage-x:-.1%;
+  --bb-foliage-y:.45%;
+  --bb-foliage-scale:1;
+}
+.tree-canvas:has(#trunkLayer[src$="trunk_05.png"]){
+  --bb-tree-scale:.93;
+  --bb-foliage-x:-.2%;
+  --bb-foliage-y:.75%;
+  --bb-foliage-scale:.965;
+}
+.tree-canvas:has(#trunkLayer[src$="trunk_06.png"]){
+  --bb-tree-scale:.91;
+  --bb-foliage-x:-.15%;
+  --bb-foliage-y:.6%;
+  --bb-foliage-scale:.95;
+}
+
+/* Foliage, blossoms, and their FX move as one registered family. Individual
+   translate/scale properties compose with the existing FX transforms and bloom
+   keyframes instead of replacing them. */
+#canopyLayer,
+#blossomLayer,
+#fxLayer{
+  translate:var(--bb-foliage-x) var(--bb-foliage-y);
+  scale:var(--bb-foliage-scale);
+  transform-origin:50% var(--bb-tree-anchor-y);
+  transition:translate .22s ease,scale .22s ease;
+}
+
+/* Give branch structure readable depth. A single canopy asset still remains
+   active, but the trunk/twigs sit above that foliage plane so leaf pads feel
+   attached to branches rather than pasted over them. Blossoms and FX remain
+   the final foreground accents. */
+#rootShadowLayer{z-index:0}
+#rootLayer{z-index:1}
+#canopyLayer{z-index:2}
+#trunkLayer{z-index:3}
+#blossomLayer{z-index:4}
+#fxLayer{z-index:5}
 
 /* Give the karesansui plane more visual ownership of the lower half. */
 .garden-canvas{
