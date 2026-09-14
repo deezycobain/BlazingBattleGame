@@ -7,7 +7,7 @@ let html=await fs.readFile(file,'utf8');
 const branch=process.env.WORKERS_CI_BRANCH||process.env.BB_BRANCH||'local';
 const commit=process.env.WORKERS_CI_COMMIT_SHA||'local';
 const isProduction=branch==='main';
-const GAME_VERSION='v0.7.0';
+const GAME_VERSION='v0.7.5';
 const readJson=async p=>JSON.parse(await fs.readFile(path.join(ROOT,p),'utf8'));
 const replaceRequired=(oldText,newText,label)=>{if(!html.includes(oldText))throw new Error(`Postprocess anchor missing: ${label}`);html=html.replace(oldText,newText);};
 
@@ -54,7 +54,7 @@ replaceRequired('<div class="teamActions">\n      <button id="saveTeamBtn" class
 const teamUiStyle=`<style id="bb-team-mobile-fit">#teamScreen .teamActions{display:flex;flex-direction:column;gap:8px;padding-bottom:max(12px,env(safe-area-inset-bottom));}#teamScreen #teamSaved{order:0;min-height:20px;margin:0;text-align:center;line-height:1.3;font-size:11px;font-weight:800;color:#85f0a5;}#teamScreen #saveTeamBtn{order:1;flex:0 0 auto;}@media(max-width:700px){#teamScreen .teamBody{padding-bottom:calc(18px + env(safe-area-inset-bottom));}#teamScreen .teamActions{position:relative;z-index:2;}}</style>`;
 html=html.replace(/<\/head>/i,`${teamUiStyle}</head>`);
 
-const meta=`<script>window.BB_BUILD_META=Object.freeze({version:${JSON.stringify('v0.7.0')},branch:${JSON.stringify(branch)},commit:${JSON.stringify(commit)},environment:${JSON.stringify(isProduction?'production':'preview')},canonicalRuntime:true});<\/script>`;
+const meta=`<script>window.BB_BUILD_META=Object.freeze({version:${JSON.stringify(GAME_VERSION)},branch:${JSON.stringify(branch)},commit:${JSON.stringify(commit)},environment:${JSON.stringify(isProduction?'production':'preview')},canonicalRuntime:true});<\/script>`;
 html=html.replace(/<head([^>]*)>/i,`<head$1>${meta}`);
 if(!isProduction){const spawnRx=/function teamSpawnOptions\(name\)\{.*?\n\}/s;if(!spawnRx.test(html))throw new Error('Dev postprocess: teamSpawnOptions anchor missing');html=html.replace(spawnRx,"function teamSpawnOptions(name){\n return {startingChakra:'full'};\n}");const speedAnchor="mark:d.combat.mark,speed:d.stats.speed,attack:d.stats.attack,defense:d.stats.defense,";if(!html.includes(speedAnchor))throw new Error('Dev postprocess: runtime speed anchor missing');html=html.replace(speedAnchor,"mark:d.combat.mark,speed:(d.role==='playable'?200:(d.role==='boss'?50:d.stats.speed)),attack:d.stats.attack,defense:d.stats.defense,");const bossAnchor="speed:canonicalUnit('anubis').stats.speed,attack:canonicalUnit('anubis').stats.attack";if(html.includes(bossAnchor))html=html.replace(bossAnchor,"speed:50,attack:canonicalUnit('anubis').stats.attack");const devConfig=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startPlayableAtMaxChakra:true,playerSpeed:200,bossSpeed:50});<\/script>`;html=html.replace(/<head([^>]*)>/i,`<head$1>${devConfig}</head>`.replace('</head></head>','</head>'));}
 await fs.writeFile(file,html);
