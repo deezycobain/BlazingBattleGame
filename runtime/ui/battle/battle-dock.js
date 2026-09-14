@@ -28,6 +28,11 @@ function setBackdrop(field){
  const bg=canvas?.style?.backgroundImage||'';
  if(bg&&bg!=='none')field.style.setProperty('--bb-road-backdrop',bg);
 }
+function sizeField(field){
+ const r=field?.getBoundingClientRect?.();if(!r||!(r.width>0&&r.height>0))return;
+ const width=Math.max(r.width,r.height*(2/3)),height=width*1.5;
+ field.style.setProperty('--bb-field-width',`${width}px`);field.style.setProperty('--bb-field-height',`${height}px`);
+}
 function toggleJutsu(pair){
  const s=read('S');if(!s||s.bbRunMode!=='road'||s.ready?.ref!==pair||window.BlazingRoadCamera?.isCombatLocked?.())return;
  const normal=control('normal'),jutsu=control('jutsu');if(!normal||!jutsu)return;
@@ -64,7 +69,7 @@ function sync(){
  for(const id of ['normal','jutsu','swap'])move(document.getElementById(id),dock.querySelector('.bb-dock-actions'));
  move(document.getElementById('bbBattlePauseButton'),dock.querySelector('.bb-dock-timeline'));
  const s=read('S');if(!s||!root.classList.contains('active'))return;
- const field=document.getElementById('bbBattleField');setBackdrop(field);
+ const field=document.getElementById('bbBattleField');setBackdrop(field);sizeField(field);
  syncTurnStrip(dock,s);
  const health=dock.querySelector('.bb-team-health');health.hidden=s.bbRunMode!=='road';
  const shared=window.BlazingRoadSharedHp?.snapshot?.();
