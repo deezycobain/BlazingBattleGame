@@ -35,11 +35,18 @@ if(loop.outcome(victory)!=='victory'||loop.phase(victory).label!=='VICTORY')thro
 const defeat={pairs:[pair('Down',{hp:0})],enemies:[enemy('Alive')],phase:'resolve',ready:null};
 if(loop.outcome(defeat)!=='defeat'||loop.phase(defeat).label!=='DEFEAT')throw new Error('Defeat outcome contract failed');
 
-const dock=await fs.readFile('runtime/ui/battle/battle-dock.js','utf8');
-for(const marker of ['BlazingCombatLoop','bb-dock-turns','bb-turn-queue','bb-ko-badge','YOUR TURN','ENEMY TURN'])if(!dock.includes(marker))throw new Error(`Battle dock missing combat-loop marker: ${marker}`);
-const css=await fs.readFile('runtime/ui/battle/battle-dock.css','utf8');
-for(const marker of ['.bb-dock-turns','.bb-turn-chip.current','.bb-dock-unit.ko .bb-ko-badge'])if(!css.includes(marker))throw new Error(`Battle dock CSS missing combat-loop marker: ${marker}`);
-const post=await fs.readFile('scripts/battle-mobile-controls-postprocess.mjs','utf8');
-if(!post.includes('runtime/combat/combat-loop-runtime.js')||!post.includes('bb-combat-loop-runtime'))throw new Error('Production build does not inject combat-loop runtime');
+const roadAlive={bbRunMode:'road',bbRoadTeamHp:80,pairs:[pair('Road A',{hp:0}),pair('Road B',{hp:0})],enemies:[enemy('Road Enemy')],phase:'player',ready:{kind:'pair',ref:null}};
+roadAlive.ready.ref=roadAlive.pairs[0];
+const roadSnap=loop.snapshot(roadAlive,{limit:4});
+if(loop.outcome(roadAlive)!=='ongoing'||!roadSnap.queue.some(item=>item.name==='Road A')||!roadSnap.queue.some(item=>item.name==='Road B'))throw new Error(`Road shared-team HP did not keep player units actionable: ${JSON.stringify(roadSnap)}`);
+roadAlive.bbRoadTeamHp=0;
+if(loop.outcome(roadAlive)!=='defeat')throw new Error('Road team did not defeat as one shared HP pool');
 
-console.log('Combat loop validation PASS: canonical current/next ordering, KO exclusion, player/enemy ownership, and victory/defeat outcomes.');
+const dock=await fs.readFile('runtime/ui/battle/battle-dock.js','utf8');
+for(const marker of ['BlazingCombatLoop','bb-dock-turns','bb-turn-queue','BlazingRoadSharedHp','toggleJutsu','YOUR TURN','ENEMY TURN'])if(!dock.includes(marker))throw new Error(`Battle dock missing combat-loop marker: ${marker}`);
+const css=await fs.readFile('runtime/ui/battle/battle-dock.css','utf8');
+for(const marker of ['.bb-dock-turns','.bb-turn-chip.current','.bb-dock-unit.armed','.bb-dock-actions{display:none'])if(!css.includes(marker))throw new Error(`Battle dock CSS missing combat-loop marker: ${marker}`);
+const post=await fs.readFile('scripts/battle-mobile-controls-postprocess.mjs','utf8');
+for(const marker of ['runtime/combat/combat-loop-runtime.js','bb-combat-loop-runtime','runtime/modes/blazing-road-battle-refinements.js','bb-blazing-road-battle-refinements'])if(!post.includes(marker))throw new Error(`Production build does not inject combat-loop marker: ${marker}`);
+
+console.log('Combat loop validation PASS: canonical current/next ordering, non-Road KO exclusion, Road shared-team HP, portrait jutsu wiring, and victory/defeat outcomes.');
