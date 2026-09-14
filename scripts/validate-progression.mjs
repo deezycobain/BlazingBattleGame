@@ -112,11 +112,11 @@ for(const [rel,width,height] of [
  if(asset.readUIntLE(24,3)+1!==width||asset.readUIntLE(27,3)+1!==height)fail(`portal VFX dimensions changed: ${rel}`);
 }
 for(const marker of [
- "const VERSION='5.3.0'",'portal:0','circleSlow:450','circleFast:850','cardEnter:1280','flip:1500','resolve:1920','done:2240',
+ "const VERSION='5.4.0'",'portal:0','circleSlow:500','circleFast:950','cardEnter:1450','flip:1810','resolve:2260','done:2550',
  "setStage(scene,'portal')","setStage(scene,'circle-slow')","setStage(scene,'circle-fast')","setStage(scene,'card-enter')","setStage(scene,'flip')","setStage(scene,'resolve')",
  'summon_portal_base.webp','ring_ornate_cloud.webp','ring_outer_navy_gold.webp','ring_energy_gold.webp','reveal_impact_burst.webp','flip_motion_cards.webp','flip_frame_blue_white.webp','flip_frame_crimson_gold.webp','flip_crimson_gold_slash.webp','flip_reveal_starburst.webp','flip_particles_gold_crimson.webp',
  '.bb-summon-portal{width:78%}','.bb-portal-ring-ornate{width:74%}','.bb-portal-ring-outer{width:68%}','.bb-portal-ring-energy{width:62%}',
- 'await prepareVfx(refs)','await waitForPortalAnimation(refs)','bb-cinematic-preparing .pullCardWrap::before','bbPortalOpen .66s','bbOrnateRingBuild .78s','bbOuterRingCharge .90s','bbEnergyRingCharge .62s','bbMotionCardsBridge .38s','bbFlipFrameAura .76s','bbFlipSlash .30s','bbPhysicalCardFlip .40s','bbResolveFlash .22s','bbResolveParticles .34s','rotateY(180deg)','@media(prefers-reduced-motion:reduce)'
+ 'await prepareVfx(refs)','await waitForPortalAnimation(refs)','bb-cinematic-preparing .pullCardWrap::before','bbPortalOpen .72s','bbOrnateRingBuild .86s','bbOuterRingCharge 1s','bbEnergyRingCharge .72s','bbMotionCardsBridge .48s','bbFlipFrameAura .86s','bbFlipSlash .34s','bbCardBackEnter .28s','bbPhysicalCardFlip .45s','bbResolveFlash .24s','bbResolveParticles .38s','rotateY(180deg)','@media(prefers-reduced-motion:reduce)'
 ])if(!cinematicJs.includes(marker)&&!cinematicCss.includes(marker))fail(`summon cinematic missing ${marker}`);
 for(const removed of ['bb-paint-stroke','bb-paint-accent','reveal-brush','card-spin-orbit','reveal-resolve-ring','bbBrush','bbCircleCharge','bb-flip-afterimage','flip_shadow_afterimage','flip_impact_burst','rotateY(540deg)','rotateY(720deg)']){
  if(cinematicJs.includes(removed)||cinematicCss.includes(removed))fail(`busy summon effect survived: ${removed}`);
@@ -127,4 +127,4 @@ for(const expensive of ['clip-path:','mask-image:','-webkit-mask-image:','filter
 const runtimeCreates=[...cinematicJs.matchAll(/img\(VFX\.(?:portal|ornateRing|outerRing|energyRing|chargeImpact|motionCards|flipFrameCrimson|flipSlash|resolveFlash|resolveParticles),/g)].length;
 if(runtimeCreates!==10)fail(`expected ten sequenced VFX DOM layers, found ${runtimeCreates}`);
 if(!pkg.scripts?.['smoke:browser']?.includes('summon-cinematic-browser-smoke.mjs'))fail('summon cinematic browser smoke is not wired into smoke:browser');
-console.log('Progression PASS: canonical summon art, persistent Resonance rerolls, and the pack-driven 2.24s brush-free cinematic are enforced.');
+console.log('Progression PASS: canonical summon art, persistent Resonance rerolls, and the smooth 2.55s brush-free cinematic are enforced.');

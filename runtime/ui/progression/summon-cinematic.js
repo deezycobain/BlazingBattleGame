@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const VERSION='5.3.0';
+const VERSION='5.4.0';
 const PORTAL_ROOT='assets/vfx/summon/portal-reveal';
 const CARD_BACK_SRC='assets/ui/summon/reveal/summon_reveal_card_back.png';
 const CARD_FRONT_FRAME_SRC='assets/ui/summon/reveal/summon_reveal_card_front_frame.png';
@@ -19,9 +19,9 @@ const VFX=Object.freeze({
  resolveParticles:`${PORTAL_ROOT}/flip_particles_gold_crimson.webp`
 });
 const TIMELINES=Object.freeze({
- resonance:Object.freeze({portal:0,circleSlow:450,circleFast:850,cardEnter:1280,flip:1500,resolve:1920,done:2240}),
- new:Object.freeze({portal:0,circleSlow:450,circleFast:850,cardEnter:1280,flip:1500,resolve:1920,done:2240}),
- shiny:Object.freeze({portal:0,circleSlow:450,circleFast:850,cardEnter:1280,flip:1500,resolve:1920,done:2240})
+ resonance:Object.freeze({portal:0,circleSlow:500,circleFast:950,cardEnter:1450,flip:1810,resolve:2260,done:2550}),
+ new:Object.freeze({portal:0,circleSlow:500,circleFast:950,cardEnter:1450,flip:1810,resolve:2260,done:2550}),
+ shiny:Object.freeze({portal:0,circleSlow:500,circleFast:950,cardEnter:1450,flip:1810,resolve:2260,done:2550})
 });
 const REDUCED_MOTION=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
 let cinematicRun=0;
