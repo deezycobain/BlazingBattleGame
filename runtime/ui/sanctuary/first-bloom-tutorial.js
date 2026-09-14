@@ -52,6 +52,12 @@ function addTutorialNote(){
  note.innerHTML='<strong>TUTORIAL GARDEN</strong>Choose and apply one sand pattern. That is enough to finish your first bloom. Motifs, stones, and refinement become meaningful from Cultivation 2 onward.';
  panel.prepend(note);
 }
+function syncPanelHarmony(state){
+ const designActive=document.querySelector('.dock-tab[data-tab="design"].active');
+ if(!designActive)return;
+ const badge=$('actionPanel')?.querySelector('.panel-head .stage-ready');
+ if(badge&&/^\d+%$/.test((badge.textContent||'').trim()))badge.textContent=`${tutorialHarmony(state)}%`;
+}
 function simplifyMaturePanel(state){
  if(!tutorialReady(state)||state.completed)return;
  const button=document.querySelector('[data-action="complete"]');
@@ -140,6 +146,7 @@ function syncTutorialUi(){
  }
  setHarmonyDisplay(tutorialHarmony(state));
  addTutorialNote();
+ syncPanelHarmony(state);
  simplifyMaturePanel(state);
  hideUnchosenTutorialGroveLayers(state);
  renderCoach(state);
