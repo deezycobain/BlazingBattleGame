@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const VERSION='5.6.0';
+const VERSION='5.7.0';
 const PORTAL_ROOT='assets/vfx/summon/portal-reveal';
 const CARD_BACK_SRC='assets/ui/summon/reveal/summon_reveal_card_back.png';
 const CARD_FRONT_FRAME_SRC='assets/ui/summon/reveal/summon_reveal_card_front_frame.png';
@@ -12,6 +12,7 @@ const VFX=Object.freeze({
  energyRing:`${PORTAL_ROOT}/ring_energy_gold.webp`,
  chargeImpact:`${PORTAL_ROOT}/reveal_impact_burst.webp`,
  motionCards:`${PORTAL_ROOT}/flip_motion_cards.webp`,
+ shadowAfterimage:`${PORTAL_ROOT}/flip_shadow_afterimage.webp`,
  flipFrameBlue:`${PORTAL_ROOT}/flip_frame_blue_white.webp`,
  flipFrameCrimson:`${PORTAL_ROOT}/flip_frame_crimson_gold.webp`,
  flipSlash:`${PORTAL_ROOT}/flip_crimson_gold_slash.webp`,
@@ -20,9 +21,9 @@ const VFX=Object.freeze({
  resolveParticles:`${PORTAL_ROOT}/flip_particles_gold_crimson.webp`
 });
 const TIMELINES=Object.freeze({
- resonance:Object.freeze({portal:0,circleSlow:520,circleFast:980,cardEnter:1500,flip:2020,resolve:2670,done:3560}),
- new:Object.freeze({portal:0,circleSlow:520,circleFast:980,cardEnter:1500,flip:2020,resolve:2670,done:3560}),
- shiny:Object.freeze({portal:0,circleSlow:520,circleFast:980,cardEnter:1500,flip:2020,resolve:2670,done:3560})
+ resonance:Object.freeze({portal:0,circleSlow:520,circleFast:980,cardEnter:1500,flip:2020,resolve:2670,done:3660}),
+ new:Object.freeze({portal:0,circleSlow:520,circleFast:980,cardEnter:1500,flip:2020,resolve:2670,done:3660}),
+ shiny:Object.freeze({portal:0,circleSlow:520,circleFast:980,cardEnter:1500,flip:2020,resolve:2670,done:3660})
 });
 const REDUCED_MOTION=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
 let cinematicRun=0;
@@ -89,6 +90,7 @@ function buildChargeFx(wrap){
   img(VFX.energyRing,'bb-portal-ring bb-portal-ring-energy'),
   img(VFX.chargeImpact,'bb-charge-impact'),
   img(VFX.motionCards,'bb-flip-motion-cards'),
+  img(VFX.shadowAfterimage,'bb-flip-shadow-afterimage'),
   img(VFX.resolveImpact,'bb-resolve-impact'),
   img(VFX.resolveFlash,'bb-portal-resolve-flash')
  );
