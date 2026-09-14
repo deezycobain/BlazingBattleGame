@@ -9,7 +9,7 @@ const home=await fs.readFile('runtime/ui/home/home-sanctuary-entry.js','utf8');
 const sourceManifest=JSON.parse(await fs.readFile('assets/ui/sanctuary/first-bloom/ASSET_MANIFEST.json','utf8'));
 const runtimeManifest=JSON.parse(await fs.readFile('assets/ui/sanctuary/first-bloom/runtime/MANIFEST.json','utf8'));
 
-for(const token of ['sceneViewport','treeCanvas','gardenCanvas','rootShadowLayer','trayShadeLayer','fxLayer','actionDrawer','devPanel','tutorialCoach','tutorialDismiss','data-tab="design"','runtime/ui/sanctuary/first-bloom.js','runtime/ui/sanctuary/first-bloom-tutorial.js','scene-composition-v2.css']){
+for(const token of ['sceneViewport','treeCanvas','gardenCanvas','rootShadowLayer','trayShadeLayer','fxLayer','actionDrawer','devPanel','tutorialCoach','tutorialDismiss','FIRST BLOOM TUTORIAL','data-tab="design"','runtime/ui/sanctuary/first-bloom.js','runtime/ui/sanctuary/first-bloom-tutorial.js','scene-composition-v2.css']){
   if(!html.includes(token))throw new Error(`Sanctuary HTML missing ${token}`);
 }
 for(const oldFx of ['fxDrift','fxRing','fxBurst','fxGround','rootFrontLayer']){
@@ -30,7 +30,7 @@ for(const token of [
 }
 for(const token of [
   'tutorialHarmony','tutorialReady','completeTutorial','tutorialGroveRecord',
-  'FIRST BLOOM TUTORIAL','TUTORIAL GARDEN','gardenApplied?.pattern',
+  'TUTORIAL GARDEN','gardenApplied?.pattern',
   'bb:sanctuary:first-bloom:tutorial:v1'
 ]){
   if(!tutorial.includes(token))throw new Error(`Sanctuary tutorial runtime missing ${token}`);
