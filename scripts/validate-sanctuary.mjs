@@ -2,13 +2,14 @@ import fs from 'node:fs/promises';
 
 const html=await fs.readFile('sanctuary.html','utf8');
 const js=await fs.readFile('runtime/ui/sanctuary/first-bloom.js','utf8');
+const tutorial=await fs.readFile('runtime/ui/sanctuary/first-bloom-tutorial.js','utf8');
 const css=await fs.readFile('runtime/ui/sanctuary/first-bloom.css','utf8');
 const compositionCss=await fs.readFile('runtime/ui/sanctuary/scene-composition-v2.css','utf8');
 const home=await fs.readFile('runtime/ui/home/home-sanctuary-entry.js','utf8');
 const sourceManifest=JSON.parse(await fs.readFile('assets/ui/sanctuary/first-bloom/ASSET_MANIFEST.json','utf8'));
 const runtimeManifest=JSON.parse(await fs.readFile('assets/ui/sanctuary/first-bloom/runtime/MANIFEST.json','utf8'));
 
-for(const token of ['sceneViewport','treeCanvas','gardenCanvas','rootShadowLayer','trayShadeLayer','fxLayer','actionDrawer','devPanel','data-tab="design"','runtime/ui/sanctuary/first-bloom.js','scene-composition-v2.css']){
+for(const token of ['sceneViewport','treeCanvas','gardenCanvas','rootShadowLayer','trayShadeLayer','fxLayer','actionDrawer','devPanel','tutorialCoach','tutorialDismiss','data-tab="design"','runtime/ui/sanctuary/first-bloom.js','runtime/ui/sanctuary/first-bloom-tutorial.js','scene-composition-v2.css']){
   if(!html.includes(token))throw new Error(`Sanctuary HTML missing ${token}`);
 }
 for(const oldFx of ['fxDrift','fxRing','fxBurst','fxGround','rootFrontLayer']){
@@ -27,6 +28,13 @@ for(const token of [
 ]){
   if(!js.includes(token))throw new Error(`Sanctuary runtime missing ${token}`);
 }
+for(const token of [
+  'tutorialHarmony','tutorialReady','completeTutorial','tutorialGroveRecord',
+  'FIRST BLOOM TUTORIAL','TUTORIAL GARDEN','gardenApplied?.pattern',
+  'bb:sanctuary:first-bloom:tutorial:v1'
+]){
+  if(!tutorial.includes(token))throw new Error(`Sanctuary tutorial runtime missing ${token}`);
+}
 for(const forbidden of ["$('fxDrift')","$('fxRing')","$('fxBurst')","$('fxGround')","rootfront_0"]){
   if(js.includes(forbidden))throw new Error(`Sanctuary runtime still contains deprecated same-category renderer ${forbidden}`);
 }
@@ -37,12 +45,14 @@ for(const token of ['canonical-canvas','tree-canvas','garden-canvas','action-dra
   if(!css.includes(token))throw new Error(`Sanctuary CSS missing ${token}`);
 }
 for(const token of [
-  '--bb-tree-width','--bb-tree-bottom','--bb-garden-width','--bb-garden-bottom',
-  'scene-depth-layer','rootShadowLayer','trayShadeLayer',
+  '--bb-tree-width','--bb-tree-bottom','--bb-tree-sink','--bb-garden-width','--bb-garden-bottom',
+  'scene-depth-layer','rootShadowLayer','trayShadeLayer','.tree-canvas::after',
+  '.tutorial-mode','.tutorial-coach','.tutorial-note',
   '#stoneLayer[data-layout="centered"]','#stoneLayer[data-layout="riverbank"]','#stoneLayer[data-layout="mountain"]'
 ]){
   if(!compositionCss.includes(token))throw new Error(`Sanctuary composition CSS missing ${token}`);
 }
+if(!/scaleY\(\.72\)/.test(compositionCss)||!compositionCss.includes('rgba(238,220,184,.46)'))throw new Error('Sanctuary root-to-sand grounding treatment missing');
 if(/object-fit\s*:\s*fill/.test(css+compositionCss))throw new Error('Sanctuary production CSS must not stretch art with object-fit: fill');
 if(html.includes('potLayer')||js.includes('pot_base.png'))throw new Error('Standalone bonsai pot must not render in the integrated Sanctuary planter');
 if(!home.includes('sanctuary_home_button.png')||!home.includes("location.href='sanctuary.html'"))throw new Error('Sanctuary Home route or approved button missing');
@@ -74,4 +84,4 @@ for(const file of [
 
 if(/assets\/ui\/sanctuary\/(?!first-bloom)/.test(js+html+home))throw new Error('Sanctuary runtime escaped the approved first-bloom folder');
 
-console.log('Sanctuary validation PASS: signature retired, four-step Harmony, one resolved asset per visual category, one sequenced FX slot, deterministic clean presets, offset side-framed stones, open center sand, canonical compositor, schema V4 stage care, Grove showcase, and isolated Seal summon.');
+console.log('Sanctuary validation PASS: tutorial-first First Bloom completion, guided coach popups, grounded root contact, signature retired, one resolved asset per visual category, sequenced FX, deterministic presets, offset side-framed stones, open center sand, canonical compositor, Grove showcase, and isolated Seal summon.');
