@@ -6,8 +6,9 @@
 
 .scene-viewport{
   --bb-tree-width:min(65%,500px);
-  --bb-tree-bottom:29%;
+  --bb-tree-bottom:28.2%;
   --bb-tree-scale:1;
+  --bb-tree-sink:0%;
   --bb-tree-anchor-y:69%;
   --bb-foliage-x:0%;
   --bb-foliage-y:0%;
@@ -22,18 +23,17 @@
   width:var(--bb-tree-width);
   bottom:var(--bb-tree-bottom);
   z-index:3;
-  transform:translateX(-50%) scale(var(--bb-tree-scale));
+  transform:translate(-50%,var(--bb-tree-sink)) scale(var(--bb-tree-scale));
   transform-origin:50% var(--bb-tree-anchor-y);
-  transition:transform .22s ease;
-  /* broad ambient grounding only; contact depth is supplied by runtime art */
-  filter:drop-shadow(0 10px 7px rgba(8,7,5,.20));
+  transition:transform .22s ease,bottom .22s ease;
+  /* Keep the broad tree shadow light. Contact depth belongs at the roots. */
+  filter:drop-shadow(0 6px 5px rgba(8,7,5,.15));
 }
 
 /* Stage registration is intentionally subtle. The source files already share
    canonical coordinates, so these values only correct visual weight and the
-   point where foliage meets the authored branch structure. Early foliage is
-   brought slightly down/in while mature stages are restrained as one complete
-   tree around the root anchor. */
+   point where foliage meets the authored branch structure. Mature trees settle
+   a touch deeper into the sand so the roots do not read as floating stickers. */
 .tree-canvas:has(#trunkLayer[src$="trunk_01.png"]){
   --bb-tree-scale:.96;
   --bb-foliage-x:0%;
@@ -47,22 +47,25 @@
 .tree-canvas:has(#trunkLayer[src$="trunk_03.png"]){
   --bb-tree-scale:.99;
   --bb-foliage-x:-.25%;
-  --bb-foliage-y:1%;
+  --bb-foliage-y:1.15%;
 }
 .tree-canvas:has(#trunkLayer[src$="trunk_04.png"]){
   --bb-tree-scale:1;
+  --bb-tree-sink:.45%;
   --bb-foliage-x:-.1%;
-  --bb-foliage-y:.45%;
+  --bb-foliage-y:.8%;
 }
 .tree-canvas:has(#trunkLayer[src$="trunk_05.png"]){
   --bb-tree-scale:.93;
+  --bb-tree-sink:.85%;
   --bb-foliage-x:-.2%;
-  --bb-foliage-y:.75%;
+  --bb-foliage-y:1.05%;
 }
 .tree-canvas:has(#trunkLayer[src$="trunk_06.png"]){
   --bb-tree-scale:.91;
+  --bb-tree-sink:1.05%;
   --bb-foliage-x:-.15%;
-  --bb-foliage-y:.6%;
+  --bb-foliage-y:.95%;
 }
 
 /* Foliage, blossoms, and their FX move as one registered family. Translation
@@ -75,16 +78,43 @@
   transition:translate .22s ease;
 }
 
-/* Give branch structure readable depth. A single canopy asset still remains
-   active, but the trunk/twigs sit above that foliage plane so leaf pads feel
-   attached to branches rather than pasted over them. Blossoms and FX remain
-   the final foreground accents. */
+/* Give branch structure readable depth without allowing the wood to detach from
+   the foliage mass. One asset remains active per category. */
 #rootShadowLayer{z-index:0}
 #rootLayer{z-index:1}
 #canopyLayer{z-index:2}
 #trunkLayer{z-index:3}
 #blossomLayer{z-index:4}
 #fxLayer{z-index:5}
+
+/* Root-to-sand integration: flatten and soften the contact shadow, then place a
+   very light sand-colored veil over the lowest root tips. The goal is for roots
+   to enter the surface instead of looking pasted on top of it. */
+#rootShadowLayer{
+  opacity:.68;
+  transform:translateY(1.15%) scaleX(.91) scaleY(.72);
+  transform-origin:50% 69%;
+  filter:blur(1px);
+  mix-blend-mode:multiply;
+}
+.tree-canvas::after{
+  content:"";
+  position:absolute;
+  z-index:4;
+  left:29%;
+  top:66.5%;
+  width:42%;
+  height:6.5%;
+  border-radius:50%;
+  pointer-events:none;
+  background:radial-gradient(ellipse at center,
+    rgba(238,220,184,.46) 0 22%,
+    rgba(232,211,175,.28) 43%,
+    rgba(225,201,162,.12) 58%,
+    transparent 76%);
+  filter:blur(1.8px);
+  opacity:.72;
+}
 
 /* Give the karesansui plane more visual ownership of the lower half. */
 .garden-canvas{
@@ -97,16 +127,16 @@
 /* Layer-specific shadows create volume without the sticker-like look of one
    oversized shadow around the full tree silhouette. */
 #rootLayer{
-  filter:drop-shadow(0 2px 2px rgba(45,30,16,.30));
+  filter:drop-shadow(0 1px 1.5px rgba(45,30,16,.20));
 }
 #trunkLayer{
-  filter:drop-shadow(0 4px 2.5px rgba(30,20,12,.34));
+  filter:drop-shadow(0 3px 2px rgba(30,20,12,.28));
 }
 #canopyLayer{
-  filter:drop-shadow(0 7px 6px rgba(12,28,18,.30));
+  filter:drop-shadow(0 6px 5px rgba(12,28,18,.28));
 }
 #blossomLayer{
-  filter:drop-shadow(0 4px 4px rgba(72,35,37,.22));
+  filter:drop-shadow(0 3px 3px rgba(72,35,37,.20));
 }
 
 /* Protect the root/contact-shadow area from decorative line noise. Rake and
@@ -164,7 +194,6 @@
   pointer-events:none;
   user-select:none;
 }
-#rootShadowLayer{opacity:.92}
 #trayShadeLayer{opacity:.86}
 
 /* Keep the progression strip clear of the garden's front lip without changing
@@ -173,6 +202,76 @@
   left:8px;
   right:8px;
   bottom:6px;
+}
+
+/* First cultivation is intentionally tutorial-simple. Advanced design tabs stay
+   available for curious players but are visually secondary because only the
+   pattern is required to finish the tutorial bloom. */
+.tutorial-mode .design-section:not([data-design-section="pattern"]){
+  opacity:.46;
+}
+.tutorial-note{
+  margin:0 0 7px;
+  padding:7px 9px;
+  border-left:4px solid #a42d24;
+  background:#0b315f;
+  color:#fff1c8;
+  font-size:8px;
+  font-weight:850;
+  line-height:1.35;
+  letter-spacing:.02em;
+}
+.tutorial-note strong{
+  display:block;
+  margin-bottom:2px;
+  color:#f0cb76;
+  letter-spacing:.10em;
+}
+.tutorial-coach{
+  position:fixed;
+  z-index:130;
+  top:max(118px,calc(env(safe-area-inset-top) + 82px));
+  right:max(10px,env(safe-area-inset-right));
+  width:min(310px,calc(100vw - 20px));
+  pointer-events:none;
+}
+.tutorial-coach[hidden]{display:none}
+.tutorial-card{
+  pointer-events:auto;
+  padding:11px 12px 10px;
+  border:1px solid #e7b74d;
+  background:linear-gradient(145deg,#071e42 0%,#0b315f 72%,#7d1d1b 100%);
+  color:#fff1c8;
+  box-shadow:0 12px 32px rgba(0,0,0,.42),inset 0 0 0 1px rgba(255,224,143,.12);
+}
+.tutorial-card small{
+  display:block;
+  margin-bottom:3px;
+  color:#e7b74d;
+  font-size:7px;
+  font-weight:950;
+  letter-spacing:.16em;
+}
+.tutorial-card strong{
+  display:block;
+  font-family:Georgia,serif;
+  font-size:20px;
+  line-height:1;
+}
+.tutorial-card p{
+  margin:5px 0 8px;
+  font-size:10px;
+  line-height:1.35;
+}
+.tutorial-card button{
+  min-height:31px;
+  padding:5px 11px;
+  border:1px solid #e7b74d;
+  background:linear-gradient(#f7e8bc,#d5ae67);
+  color:#291a0e;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:.08em;
 }
 
 /* Phone Design choices should look intentionally arranged, not like a clipped
@@ -211,7 +310,7 @@
 @media (min-width:700px){
   .scene-viewport{
     --bb-tree-width:min(62%,540px);
-    --bb-tree-bottom:28%;
+    --bb-tree-bottom:27.5%;
     --bb-garden-width:min(96%,820px);
     --bb-garden-bottom:-1%;
   }
