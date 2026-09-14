@@ -11,26 +11,31 @@ function front(pair){
 }
 function actorName(actor){return String(actor?.name||actor?.display_name||'Unknown');}
 function livingUnit(unit){return !!(unit&&actorName(unit)!=='—'&&finite(unit.hp,0)>0);}
-function livingPair(pair){return livingUnit(front(pair));}
+function roadTeamAlive(state){
+ if(state?.bbRunMode!=='road')return false;
+ const shared=window.BlazingRoadSharedHp?.snapshot?.();
+ if(shared?.active)return shared.alive;
+ if(Number.isFinite(Number(state?.bbRoadTeamHp)))return Number(state.bbRoadTeamHp)>0;
+ return (state?.pairs||[]).some(pair=>livingUnit(front(pair)));
+}
+function livingPair(pair,state=null){return state?.bbRunMode==='road'?roadTeamAlive(state):livingUnit(front(pair));}
 function actorId(kind,ref,index=0){
  const unit=kind==='pair'?front(ref):ref;
  const raw=String(unit?.id||unit?.unit_id||actorName(unit)||`${kind}-${index}`).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
  return `${kind}:${raw||index}`;
 }
-function entry(kind,ref,index=0){
+function entry(kind,ref,index=0,state=null){
  const unit=kind==='pair'?front(ref):ref;
- if(!livingUnit(unit))return null;
+ if(kind==='pair'&&state?.bbRunMode==='road'){
+  if(!unit||actorName(unit)==='—'||!roadTeamAlive(state))return null;
+ }else if(!livingUnit(unit))return null;
  const gauge=clamp(finite(ref?.gauge??unit?.gauge,0),0,100);
  const speed=Math.max(.01,finite(unit?.speed??ref?.speed,1));
- return {
-  id:actorId(kind,ref,index),kind,ref,unit,
-  name:actorName(unit),gauge,speed,
-  turnsToReady:Math.max(0,100-gauge)/speed
- };
+ return {id:actorId(kind,ref,index),kind,ref,unit,name:actorName(unit),gauge,speed,turnsToReady:Math.max(0,100-gauge)/speed};
 }
 function actors(state){
- const players=(state?.pairs||[]).map((pair,index)=>entry('pair',pair,index)).filter(Boolean);
- const enemies=(state?.enemies||[]).map((enemy,index)=>entry('enemy',enemy,index)).filter(Boolean);
+ const players=(state?.pairs||[]).map((pair,index)=>entry('pair',pair,index,state)).filter(Boolean);
+ const enemies=(state?.enemies||[]).map((enemy,index)=>entry('enemy',enemy,index,state)).filter(Boolean);
  return [...players,...enemies];
 }
 function readyEntry(state,list=actors(state)){
@@ -48,13 +53,10 @@ function queue(state,{limit=6}={}){
   if(a.kind!==b.kind)return a.kind==='pair'?-1:1;
   return a.name.localeCompare(b.name);
  });
- return sorted.slice(0,Math.max(1,Math.floor(finite(limit,6)))).map((item,index)=>({
-  id:item.id,kind:item.kind,name:item.name,gauge:item.gauge,speed:item.speed,
-  turnsToReady:item.turnsToReady,current:!!ready&&item===ready,order:index
- }));
+ return sorted.slice(0,Math.max(1,Math.floor(finite(limit,6)))).map((item,index)=>({id:item.id,kind:item.kind,name:item.name,gauge:item.gauge,speed:item.speed,turnsToReady:item.turnsToReady,current:!!ready&&item===ready,order:index}));
 }
 function outcome(state){
- const players=(state?.pairs||[]).filter(livingPair).length;
+ const players=state?.bbRunMode==='road'?(roadTeamAlive(state)?1:0):(state?.pairs||[]).filter(pair=>livingPair(pair,state)).length;
  const enemies=(state?.enemies||[]).filter(livingUnit).length;
  if(enemies===0&&players>0)return 'victory';
  if(players===0)return 'defeat';
@@ -71,10 +73,9 @@ function phase(state){
  return {key:'charge',label:'TURN METER',tone:'charge'};
 }
 function snapshot(state,{limit=6}={}){
- const order=queue(state,{limit});
- const current=order.find(item=>item.current)||null;
+ const order=queue(state,{limit}),current=order.find(item=>item.current)||null;
  return {phase:phase(state),outcome:outcome(state),current,queue:order};
 }
 
-window.BlazingCombatLoop=Object.freeze({front,livingUnit,livingPair,actors,queue,outcome,phase,snapshot});
+window.BlazingCombatLoop=Object.freeze({front,livingUnit,livingPair,roadTeamAlive,actors,queue,outcome,phase,snapshot});
 })();
