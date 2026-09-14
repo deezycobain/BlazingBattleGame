@@ -14,12 +14,12 @@ for(const token of ['sceneViewport','treeCanvas','gardenCanvas','rootShadowLayer
 for(const oldFx of ['fxDrift','fxRing','fxBurst','fxGround','rootFrontLayer']){
   if(html.includes(`id="${oldFx}"`))throw new Error(`Sanctuary HTML still exposes deprecated overlapping layer ${oldFx}`);
 }
-for(const id of ['rootLayer','trunkLayer','canopyLayer','blossomLayer','fxLayer','sandBase','rakeLayer','motifLayer','nameTemplateLayer','stoneLayer']){
+for(const id of ['rootLayer','trunkLayer','canopyLayer','blossomLayer','fxLayer','sandBase','rakeLayer','motifLayer','stoneLayer']){
   const hits=(html.match(new RegExp(`id="${id}"`,'g'))||[]).length;
   if(hits!==1)throw new Error(`Sanctuary must expose exactly one ${id} slot; found ${hits}`);
 }
 for(const token of [
-  "bb:sanctuary:first-bloom:v3","SCHEMA=3","feature/sanctuary-first-bloom",
+  "bb:sanctuary:first-bloom:v4","SCHEMA=4","feature/sanctuary-first-bloom",
   "assets/ui/sanctuary/first-bloom/runtime/","REQUIREMENTS=","gardenApplied","stageCare",
   "resolveVisualState","renderAssetSlot","VISUAL_PRESETS","FX_STATE","applyVisualPreset",
   "applyDesign","advanceStage","completionClaimed","summonResults","groveRecord",
@@ -29,6 +29,9 @@ for(const token of [
 }
 for(const forbidden of ["$('fxDrift')","$('fxRing')","$('fxBurst')","$('fxGround')","rootfront_0"]){
   if(js.includes(forbidden))throw new Error(`Sanctuary runtime still contains deprecated same-category renderer ${forbidden}`);
+}
+for(const retired of ['nameTemplateLayer','gardenSignature','data-design-section="signature"','COSTS.signature','nameLayout','name_straight.png']){
+  if((js+html).includes(retired))throw new Error(`Sanctuary signature system was retired but ${retired} is still wired`);
 }
 for(const token of ['canonical-canvas','tree-canvas','garden-canvas','action-drawer','sanctuary-dock','grove-thumb','safe-area-inset']){
   if(!css.includes(token))throw new Error(`Sanctuary CSS missing ${token}`);
@@ -66,9 +69,9 @@ if(runtimeManifest.stonePass.layouts.mountain.runtimeOffsetPercent[1]>=0)throw n
 
 for(const file of [
  'tree/root_contact_shadow.png','tree/rootbase_01.png','tree/trunk_06.png','tree/canopy_green_04.png','tree/canopy_jade_04.png','tree/blossom_pink_03.png','tree/fx_pink_idle_drift.png','tree/fx_pink_bloom_burst.png',
- 'garden/sand_bed_base.png','garden/tray_inner_shade.png','garden/pattern_still_water.png','garden/pattern_spiral_wind.png','garden/motif_blazing_spiral.png','garden/name_straight.png','garden/stones_centered.png','garden/stones_riverbank.png','garden/stones_mountain.png'
+ 'garden/sand_bed_base.png','garden/tray_inner_shade.png','garden/pattern_still_water.png','garden/pattern_spiral_wind.png','garden/motif_blazing_spiral.png','garden/stones_centered.png','garden/stones_riverbank.png','garden/stones_mountain.png'
 ])await fs.access(`assets/ui/sanctuary/first-bloom/runtime/${file}`);
 
 if(/assets\/ui\/sanctuary\/(?!first-bloom)/.test(js+html+home))throw new Error('Sanctuary runtime escaped the approved first-bloom folder');
 
-console.log('Sanctuary validation PASS: one resolved asset per visual category, one sequenced FX slot, deterministic clean presets, offset side-framed stones, open center sand, canonical compositor, schema V3 stage care, Grove showcase, and isolated Seal summon.');
+console.log('Sanctuary validation PASS: signature retired, four-step Harmony, one resolved asset per visual category, one sequenced FX slot, deterministic clean presets, offset side-framed stones, open center sand, canonical compositor, schema V4 stage care, Grove showcase, and isolated Seal summon.');
