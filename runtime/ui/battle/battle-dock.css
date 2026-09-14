@@ -8,6 +8,21 @@
 #bbBattleDock .bb-team-health[hidden]{display:none}
 #bbTeamHealthFill{height:100%;background:linear-gradient(#b7f579,#34b45b 45%,#168343);transition:width .18s}
 #bbTeamHealthText{position:absolute;inset:0;text-align:center;color:#fff8d8;text-shadow:0 1px 2px #000;font:800 10px/16px system-ui}
+#bbBattleDock .bb-dock-turns{display:flex;align-items:stretch;gap:5px;height:31px;margin:0 0 4px;min-width:0}
+#bbBattleDock .bb-turn-label{flex:0 0 60px;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid #806b48;border-radius:5px;background:#171318;color:#d7c6a0;font:900 8px/1.05 system-ui;letter-spacing:.25px;padding:2px}
+#bbBattleDock .bb-turn-label[data-tone="player"]{color:#fff0aa;border-color:#d6ad4e;background:#34271b}
+#bbBattleDock .bb-turn-label[data-tone="enemy"]{color:#ffd1d1;border-color:#a95454;background:#341a20}
+#bbBattleDock .bb-turn-label[data-tone="victory"]{color:#d9ffd9;border-color:#69b86e;background:#17301d}
+#bbBattleDock .bb-turn-label[data-tone="defeat"]{color:#ffd6d6;border-color:#b05050;background:#35171b}
+#bbBattleDock .bb-turn-queue{display:flex;flex:1 1 auto;gap:4px;min-width:0;overflow:hidden}
+#bbBattleDock .bb-turn-chip{position:relative;flex:1 1 0;min-width:0;max-width:86px;border:1px solid #5f5b56;border-radius:5px;background:#15171c;overflow:hidden;padding:2px 3px 4px;box-sizing:border-box}
+#bbBattleDock .bb-turn-chip b{display:block;color:#b8a782;font:900 6px/7px system-ui;letter-spacing:.35px}
+#bbBattleDock .bb-turn-chip em{display:block;color:#eee4cd;font:800 8px/11px system-ui;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bbBattleDock .bb-turn-chip i{position:absolute;left:0;bottom:0;height:2px;width:var(--bb-turn-gauge,0%);background:#6ac6df}
+#bbBattleDock .bb-turn-chip.enemy i{background:#d66363}
+#bbBattleDock .bb-turn-chip.current{border-color:#f0cf78;background:#3a291e;box-shadow:0 0 6px #e4ba5744}
+#bbBattleDock .bb-turn-chip.current b{color:#ffe7a0}
+#bbBattleDock .bb-turn-chip.next{border-color:#8d805e}
 #bbBattleDock .bb-dock-timeline{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:center;gap:8px}
 #battleScreen #bbBattleDock #meter{position:relative!important;display:block!important;width:100%!important;height:34px!important;min-height:34px!important;overflow:hidden!important;background:#0d1018!important;border:1px solid #a3844c!important;border-radius:5px!important;box-sizing:border-box!important}
 #battleScreen #bbBattleDock #meter .track{top:16px!important;left:20px!important;right:13px!important;height:2px!important}
@@ -16,16 +31,21 @@
 #battleScreen #bbBattleDock #bbBattlePauseButton{position:static!important;inset:auto!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;margin:0!important;transform:none!important;z-index:auto!important}
 #bbBattleDock .bb-dock-team{display:flex;justify-content:center;gap:clamp(16px,7vw,40px);padding:3px 0}
 #bbBattleDock .bb-dock-unit{width:58px;text-align:center;min-width:0;position:relative}
-#bbBattleDock .bb-dock-portrait{height:48px;width:48px;margin:auto;border:2px solid #be9c51;border-radius:50%;padding:3px;background:conic-gradient(#30c7ef var(--chakra),#25333f 0);box-shadow:0 2px 4px #0009}
+#bbBattleDock .bb-dock-portrait{height:48px;width:48px;margin:auto;border:2px solid #be9c51;border-radius:50%;padding:3px;background:conic-gradient(#30c7ef var(--chakra),#25333f 0);box-shadow:0 2px 4px #0009;position:relative}
 #bbBattleDock .bb-dock-portrait img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 20%;border-radius:50%;background:#111}
 #bbBattleDock .bb-dock-unit.active .bb-dock-portrait{border-color:#ffebaa;box-shadow:0 0 9px #f5c560}
-#bbBattleDock .bb-dock-unit.ko{opacity:.4}
+#bbBattleDock .bb-dock-unit.ko{opacity:.58}
+#bbBattleDock .bb-dock-unit.ko .bb-dock-portrait img{filter:grayscale(1) brightness(.48)}
+#bbBattleDock .bb-ko-badge{display:none;position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%) rotate(-8deg);z-index:2;color:#fff0e6;background:#781f25;border:1px solid #ffc4b7;border-radius:4px;padding:1px 4px;font:1000 10px/12px system-ui;box-shadow:0 1px 4px #000}
+#bbBattleDock .bb-dock-unit.ko .bb-ko-badge{display:block}
 #bbBattleDock .bb-dock-unit small{display:block;font:700 9px/12px system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #bbBattleDock .bb-dock-unit em{position:absolute;right:-4px;top:35px;background:#111d;border:1px solid #ac945a;border-radius:6px;padding:1px 3px;color:#80e5ff;font:800 8px/10px system-ui;font-style:normal}
+#bbBattleDock .bb-dock-unit.ko em{color:#ffd0c7;border-color:#88464a;background:#2c1115}
 #bbBattleDock .bb-dock-actions{display:flex;justify-content:center;gap:8px;align-items:center}
 #battleScreen #bbBattleDock .bb-battle-mobile-control,#battleScreen #bbBattleDock #swap{position:static!important;inset:auto!important;flex:1 1 0!important;box-sizing:border-box!important;width:auto!important;min-width:44px!important;max-width:180px!important;inline-size:auto!important;min-inline-size:44px!important;max-inline-size:180px!important;height:44px!important;min-height:44px!important;padding:4px 8px!important;border:1px solid #b5914d!important;border-radius:22px!important;background:linear-gradient(#422125,#211217)!important;color:#fbe7b5!important;font:800 11px/1.15 system-ui!important;transform:none!important;touch-action:manipulation!important}
 #battleScreen #bbBattleDock .selected{background:linear-gradient(#ad3329,#691b23)!important;border-color:#f4d787!important;box-shadow:inset 0 0 0 2px #301a19,0 0 7px #cf823133!important}
 #battleScreen #bbBattleDock button:disabled{opacity:.45!important}
 #battleScreen #bbBattleDock #phase{position:static!important;display:block!important;text-align:center!important;font:700 9px/14px system-ui!important;height:14px!important;color:#d5c5a4!important}
 #battleScreen #reset{display:none!important}
+@media(max-height:720px){#bbBattleDock .bb-dock-turns{height:27px}#bbBattleDock .bb-dock-team{padding:1px 0}#bbBattleDock .bb-dock-portrait{width:42px;height:42px}}
 @media(min-width:701px){#bbBattleDock{padding-left:max(var(--bb-battle-safe-left),calc((100vw - 600px)/2));padding-right:max(var(--bb-battle-safe-right),calc((100vw - 600px)/2))}}
