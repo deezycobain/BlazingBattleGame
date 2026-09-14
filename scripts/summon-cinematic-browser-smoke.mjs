@@ -15,12 +15,12 @@ async function waitHome(page){
 async function stageState(page){
   return page.evaluate(()=>{
     const scene=document.getElementById('pullScene'),flipper=scene?.querySelector('.bb-card-flipper'),art=scene?.querySelector('.bb-card-front .summonedTradingCard'),message=document.getElementById('pullMessage');
-    const nodes={portal:'.bb-summon-portal',ornate:'.bb-portal-ring-ornate',outer:'.bb-portal-ring-outer',energy:'.bb-portal-ring-energy',impact:'.bb-charge-impact',motion:'.bb-flip-motion-cards',frame:'.bb-flip-energy-frame',slash:'.bb-flip-slash',flash:'.bb-portal-resolve-flash',particles:'.bb-resolve-particles'};
+    const nodes={portal:'.bb-summon-portal',ornate:'.bb-portal-ring-ornate',outer:'.bb-portal-ring-outer',energy:'.bb-portal-ring-energy',impact:'.bb-charge-impact',motion:'.bb-flip-motion-cards',frame:'.bb-flip-energy-frame',slash:'.bb-flip-slash',resolveImpact:'.bb-resolve-impact',flash:'.bb-portal-resolve-flash',particles:'.bb-resolve-particles'};
     const effects={};
     for(const [key,selector] of Object.entries(nodes)){const node=scene?.querySelector(selector),style=node?getComputedStyle(node):null,animation=node?.getAnimations?.()[0];effects[key]={opacity:style?Number.parseFloat(style.opacity):null,animation:style?.animationName||'',start:Number.isFinite(animation?.startTime)?animation.startTime:null,src:node?.getAttribute('src')||''}}
     const bounds=node=>{if(!node)return null;const box=node.getBoundingClientRect();return {left:box.left,right:box.right,centerX:box.left+box.width/2,centerY:box.top+box.height/2}};
     const card=scene?.querySelector('#pullCardWrap'),cardBounds=bounds(card);
-    return {stage:scene?.dataset.bbRevealStage||'',kind:scene?.dataset.bbRevealKind||'',running:scene?.classList.contains('bb-cinematic-running')||false,vfxLayers:scene?.querySelectorAll('.bb-portal-stage-vfx img,.bb-portal-charge-vfx img,.bb-card-stage-vfx img').length||0,brushLayers:scene?.querySelectorAll('.bb-paint-stroke,.bb-paint-accent,[src*="reveal-brush"]').length||0,shadowLayers:scene?.querySelectorAll('.bb-flip-afterimage,[src*="flip_shadow_afterimage"],[src*="flip_impact_burst"]').length||0,effects,cardOpacity:flipper?Number.parseFloat(getComputedStyle(flipper).opacity):null,cardAnimation:flipper?getComputedStyle(flipper).animationName:'',artOpacity:art?Number.parseFloat(getComputedStyle(art).opacity):null,messageOpacity:message?Number.parseFloat(getComputedStyle(message).opacity):null,message:message?.textContent?.trim()||'',viewport:{width:innerWidth,height:innerHeight},cardBounds,bounds:Object.fromEntries(Object.entries(nodes).map(([key,selector])=>[key,bounds(scene?.querySelector(selector))]))};
+    return {stage:scene?.dataset.bbRevealStage||'',kind:scene?.dataset.bbRevealKind||'',running:scene?.classList.contains('bb-cinematic-running')||false,vfxLayers:scene?.querySelectorAll('.bb-portal-stage-vfx img,.bb-portal-charge-vfx img,.bb-card-stage-vfx img').length||0,brushLayers:scene?.querySelectorAll('.bb-paint-stroke,.bb-paint-accent,[src*="reveal-brush"]').length||0,shadowLayers:scene?.querySelectorAll('.bb-flip-afterimage,[src*="flip_shadow_afterimage"]').length||0,effects,cardOpacity:flipper?Number.parseFloat(getComputedStyle(flipper).opacity):null,cardAnimation:flipper?getComputedStyle(flipper).animationName:'',artOpacity:art?Number.parseFloat(getComputedStyle(art).opacity):null,messageOpacity:message?Number.parseFloat(getComputedStyle(message).opacity):null,message:message?.textContent?.trim()||'',viewport:{width:innerWidth,height:innerHeight},cardBounds,bounds:Object.fromEntries(Object.entries(nodes).map(([key,selector])=>[key,bounds(scene?.querySelector(selector))]))};
   });
 }
 
@@ -41,14 +41,14 @@ async function run(name,type){
     if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
     await page.locator('#bbHomeApproved [data-nav="summon"]').click();await page.locator('#summonScreen.active #singleSummonBtn').waitFor({state:'visible'});
     const runtime=await page.evaluate(()=>({version:window.BlazingSummonCinematic?.version,timeline:window.BlazingSummonCinematic?.timeline,vfx:window.BlazingSummonCinematic?.vfx}));
-    if(runtime.version!=='5.4.0'||runtime.timeline?.resonance?.done!==2550||runtime.timeline?.resonance?.cardEnter!==1450||runtime.timeline?.resonance?.flip!==1810)throw new Error(`unexpected cinematic contract: ${JSON.stringify(runtime)}`);
-    if(Object.keys(runtime.vfx||{}).length!==11)throw new Error(`the production pack is not fully mapped: ${JSON.stringify(runtime.vfx)}`);
+    if(runtime.version!=='5.5.0'||runtime.timeline?.resonance?.done!==3380||runtime.timeline?.resonance?.cardEnter!==1450||runtime.timeline?.resonance?.flip!==1950||runtime.timeline?.resonance?.resolve!==2550)throw new Error(`unexpected cinematic contract: ${JSON.stringify(runtime)}`);
+    if(Object.keys(runtime.vfx||{}).length!==12)throw new Error(`the production pack is not fully mapped: ${JSON.stringify(runtime.vfx)}`);
 
     await page.evaluate(()=>{const scene=document.getElementById('pullScene');window.__bbSummonTrace=[];window.__bbSummonTraceStart=performance.now();window.__bbSummonObserver?.disconnect?.();window.__bbSummonObserver=new MutationObserver(()=>{const stage=scene?.dataset.bbRevealStage||'',trace=window.__bbSummonTrace;if(stage&&trace.at(-1)?.stage!==stage)trace.push({stage,at:performance.now()-window.__bbSummonTraceStart})});if(scene)window.__bbSummonObserver.observe(scene,{attributes:true,attributeFilter:['data-bb-reveal-stage']})});
     await page.locator('#singleSummonBtn').click();
 
     await waitStage(page,'portal');await page.waitForTimeout(90);const portal=await stageState(page);
-    if(portal.vfxLayers!==10||portal.brushLayers||portal.shadowLayers||portal.cardOpacity!==0||!visible(portal.effects.portal)||visible(portal.effects.outer)||visible(portal.effects.energy))throw new Error(`portal beat is not isolated: ${JSON.stringify(portal)}`);
+    if(portal.vfxLayers!==11||portal.brushLayers||portal.shadowLayers||portal.cardOpacity!==0||!visible(portal.effects.portal)||visible(portal.effects.outer)||visible(portal.effects.energy))throw new Error(`portal beat is not isolated: ${JSON.stringify(portal)}`);
     for(const key of Object.keys(portal.bounds))assertCentered(key,portal.bounds[key],portal.cardBounds,portal.viewport);
 
     const slow=await waitStage(page,'circle-slow');await page.waitForTimeout(100);const slowMoving=await stageState(page);
@@ -61,14 +61,16 @@ async function run(name,type){
     if(card.cardOpacity<.5||card.cardAnimation!=='bbCardBackEnter'||visible(card.effects.outer)||visible(card.effects.energy)||!visible(card.effects.motion)||!visible(card.effects.frame))throw new Error(`card arrival did not receive the pack transition: ${JSON.stringify(card)}`);
     const expectedFrame=card.kind==='new'?'flip_frame_blue_white.webp':'flip_frame_crimson_gold.webp';
     if(!card.effects.frame.src.endsWith(expectedFrame))throw new Error(`wrong reveal frame for ${card.kind}: ${card.effects.frame.src}`);
+    await page.waitForTimeout(280);const heldCard=await stageState(page);
+    if(heldCard.stage!=='card-enter'||heldCard.cardOpacity<.99||heldCard.artOpacity!==0)throw new Error(`card back did not receive a readable pre-flip hold: ${JSON.stringify(heldCard)}`);
 
     await waitStage(page,'flip');await page.waitForTimeout(240);const flip=await stageState(page);
     const flipFrames=await page.locator('#pullScene .bb-card-flipper').evaluate(node=>node.getAnimations()[0]?.effect?.getKeyframes?.().map(frame=>frame.transform)||[]);
     if(flip.cardAnimation!=='bbPhysicalCardFlip'||flip.artOpacity!==1||!visible(flip.effects.frame)||!visible(flip.effects.slash))throw new Error(`physical flip/support VFX are wrong: ${JSON.stringify(flip)}`);
     if(!flipFrames.some(value=>String(value).includes('180deg'))||flipFrames.some(value=>/rotateY\((?:[2-9]\d\d|\d{4,})deg\)/.test(String(value))))throw new Error(`flip is not one 180-degree action: ${JSON.stringify(flipFrames)}`);
 
-    await waitStage(page,'resolve');await page.waitForTimeout(100);const resolve=await stageState(page);
-    if(resolve.effects.flash.animation!=='bbResolveFlash'||resolve.effects.particles.animation!=='bbResolveParticles'||!visible(resolve.effects.flash)||!visible(resolve.effects.particles)||resolve.messageOpacity>0.05)throw new Error(`resolve tail is not sequenced correctly: ${JSON.stringify(resolve)}`);
+    await waitStage(page,'resolve');await page.waitForTimeout(250);const resolve=await stageState(page);
+    if(resolve.effects.flash.animation!=='bbResolveFlash'||resolve.effects.resolveImpact.animation!=='bbResolveImpact'||resolve.effects.particles.animation!=='bbResolveParticles'||!visible(resolve.effects.flash)||!visible(resolve.effects.resolveImpact)||!visible(resolve.effects.particles)||resolve.messageOpacity>0.05)throw new Error(`resolve burst and particle tail are not readable: ${JSON.stringify(resolve)}`);
     await waitStage(page,'done');await page.waitForTimeout(40);const settled=await stageState(page);
     if(settled.running||settled.artOpacity!==1||settled.messageOpacity<.9||!settled.message)throw new Error(`reveal did not settle cleanly: ${JSON.stringify(settled)}`);
 
@@ -76,11 +78,11 @@ async function run(name,type){
     if(!labels.name||!labels.rarity||labels.copyDisplay!=='none')throw new Error(`front labels/copy overlay incorrect: ${JSON.stringify(labels)}`);
     const trace=await page.evaluate(()=>window.__bbSummonTrace),expectedStages=['portal','circle-slow','circle-fast','card-enter','flip','resolve','done'];
     if(JSON.stringify(trace.map(item=>item.stage))!==JSON.stringify(expectedStages))throw new Error(`stage order changed: ${JSON.stringify(trace)}`);
-    const portalAt=trace[0].at,ranges={portal:[0,25],'circle-slow':[400,600],'circle-fast':[850,1050],'card-enter':[1350,1550],flip:[1710,1910],resolve:[2160,2360],done:[2450,2650]};
+    const portalAt=trace[0].at,ranges={portal:[0,25],'circle-slow':[400,600],'circle-fast':[850,1050],'card-enter':[1350,1550],flip:[1850,2050],resolve:[2450,2650],done:[3280,3480]};
     for(const item of trace){const elapsed=item.at-portalAt,[min,max]=ranges[item.stage];if(elapsed<min||elapsed>max)throw new Error(`${item.stage} timing outside ${min}-${max}ms after portal: ${JSON.stringify(trace)}`)}
     await page.locator('#nextPullBtn').evaluate(button=>button.click());await page.locator('#pullResultsGrid .pullCard').first().waitFor({state:'visible',timeout:3000});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Summon cinematic browser smoke PASS (${name}): smooth brush-free pack sequencing, centered accelerated rings, readable card hold, slash-supported 180-degree flip, resolve tail, and 2.55s results flow verified.`);
+    console.log(`Summon cinematic browser smoke PASS (${name}): unchanged accelerated rings, readable card hold, 600ms 180-degree flip, visible post-flip impact/starburst/particles, and 3.38s results flow verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
