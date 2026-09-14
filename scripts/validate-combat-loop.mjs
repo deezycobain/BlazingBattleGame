@@ -24,7 +24,7 @@ if(snap.phase.label!=='YOUR TURN'||snap.current?.name!=='Alpha')throw new Error(
 if(snap.queue.some(item=>item.name==='KO Ally'))throw new Error('KO fighter survived actionable turn queue');
 if(snap.queue[0]?.name!=='Alpha'||!snap.queue[0]?.current)throw new Error(`Ready actor did not own queue head: ${JSON.stringify(snap.queue)}`);
 const predicted=snap.queue.slice(1).map(item=>item.name);
-if(predicted[0]!=='Red')throw new Error(`Gauge/speed readiness order is wrong: ${JSON.stringify(predicted)}`);
+if(predicted.join(',')!=='Blue,Red,Beta')throw new Error(`Gauge/speed readiness order is wrong: ${JSON.stringify(predicted)}`);
 
 state.phase='cpu';state.ready={kind:'enemy',ref:red,g:100};
 const enemySnap=loop.snapshot(state,{limit:5});
