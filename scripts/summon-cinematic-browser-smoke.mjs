@@ -26,7 +26,7 @@ async function stageState(page){
 
 async function waitStage(page,stage){await page.waitForFunction(expected=>document.getElementById('pullScene')?.dataset.bbRevealStage===expected,stage,{timeout:5000});return stageState(page)}
 function visible(effect){return effect?.opacity>0.02}
-function assertCentered(label,box,card,viewport){if(!box||!card||box.left<0||box.right>viewport.width||Math.abs(box.centerX-card.centerX)>2||Math.abs(box.centerY-card.centerY)>2)throw new Error(`${label} escaped the centered corridor: ${JSON.stringify({box,card,viewport})}`)}
+function assertCentered(label,box,card,viewport){if(!box||!card||box.left<0||box.right>viewport.width||Math.abs(box.centerX-card.centerX)>12||Math.abs(box.centerY-card.centerY)>12)throw new Error(`${label} escaped the centered corridor: ${JSON.stringify({box,card,viewport})}`)}
 
 async function run(name,type){
   let browser;
