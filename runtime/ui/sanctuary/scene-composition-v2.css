@@ -78,12 +78,13 @@
   transition:translate .22s ease;
 }
 
-/* Give branch structure readable depth without allowing the wood to detach from
-   the foliage mass. One asset remains active per category. */
+/* Use the natural bonsai paint order. The trunk and branch skeleton sits behind
+   the foliage so leaf pads occlude branch sections naturally instead of every
+   twig looking pasted over the canopy. Blossoms and FX remain foreground. */
 #rootShadowLayer{z-index:0}
 #rootLayer{z-index:1}
-#canopyLayer{z-index:2}
-#trunkLayer{z-index:3}
+#trunkLayer{z-index:2}
+#canopyLayer{z-index:3}
 #blossomLayer{z-index:4}
 #fxLayer{z-index:5}
 
@@ -100,7 +101,7 @@
 .tree-canvas::after{
   content:"";
   position:absolute;
-  z-index:4;
+  z-index:2;
   left:29%;
   top:66.5%;
   width:42%;
