@@ -11,7 +11,6 @@
   --bb-tree-anchor-y:69%;
   --bb-foliage-x:0%;
   --bb-foliage-y:0%;
-  --bb-foliage-scale:1;
   --bb-garden-width:min(106%,790px);
   --bb-garden-bottom:-3%;
 }
@@ -33,55 +32,47 @@
 /* Stage registration is intentionally subtle. The source files already share
    canonical coordinates, so these values only correct visual weight and the
    point where foliage meets the authored branch structure. Early foliage is
-   brought slightly down/in; mature foliage is restrained around the root
-   anchor instead of swelling toward the top rail. */
+   brought slightly down/in while mature stages are restrained as one complete
+   tree around the root anchor. */
 .tree-canvas:has(#trunkLayer[src$="trunk_01.png"]){
   --bb-tree-scale:.96;
   --bb-foliage-x:0%;
   --bb-foliage-y:0%;
-  --bb-foliage-scale:1;
 }
 .tree-canvas:has(#trunkLayer[src$="trunk_02.png"]){
   --bb-tree-scale:.98;
   --bb-foliage-x:-.35%;
   --bb-foliage-y:1.55%;
-  --bb-foliage-scale:1.035;
 }
 .tree-canvas:has(#trunkLayer[src$="trunk_03.png"]){
   --bb-tree-scale:.99;
   --bb-foliage-x:-.25%;
   --bb-foliage-y:1%;
-  --bb-foliage-scale:1.02;
 }
 .tree-canvas:has(#trunkLayer[src$="trunk_04.png"]){
   --bb-tree-scale:1;
   --bb-foliage-x:-.1%;
   --bb-foliage-y:.45%;
-  --bb-foliage-scale:1;
 }
 .tree-canvas:has(#trunkLayer[src$="trunk_05.png"]){
   --bb-tree-scale:.93;
   --bb-foliage-x:-.2%;
   --bb-foliage-y:.75%;
-  --bb-foliage-scale:.965;
 }
 .tree-canvas:has(#trunkLayer[src$="trunk_06.png"]){
   --bb-tree-scale:.91;
   --bb-foliage-x:-.15%;
   --bb-foliage-y:.6%;
-  --bb-foliage-scale:.95;
 }
 
-/* Foliage, blossoms, and their FX move as one registered family. Individual
-   translate/scale properties compose with the existing FX transforms and bloom
-   keyframes instead of replacing them. */
+/* Foliage, blossoms, and their FX move as one registered family. Translation
+   does not replace the authored scale or the existing blossom/FX transform
+   animations, so bloom timing and final-state registration stay intact. */
 #canopyLayer,
 #blossomLayer,
 #fxLayer{
   translate:var(--bb-foliage-x) var(--bb-foliage-y);
-  scale:var(--bb-foliage-scale);
-  transform-origin:50% var(--bb-tree-anchor-y);
-  transition:translate .22s ease,scale .22s ease;
+  transition:translate .22s ease;
 }
 
 /* Give branch structure readable depth. A single canopy asset still remains
