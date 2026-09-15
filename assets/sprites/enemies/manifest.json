@@ -1,0 +1,297 @@
+{
+  "pack": "Blazing Battle Basic Enemy Sprites",
+  "version": "1.0.0",
+  "unit_count": 6,
+  "sheet_standard": {
+    "frames_per_sheet": 4,
+    "layout": "horizontal",
+    "source_dimensions": "2172x724",
+    "frame_dimensions": "543x724",
+    "transparent_background": true,
+    "frame_order": "left_to_right"
+  },
+  "units": [
+    {
+      "id": "road_rookie",
+      "display_name": "Road Rookie",
+      "classification": "enemy_basic",
+      "full_inventory_entry": false,
+      "attack_type": "straight_punch",
+      "animations": {
+        "idle": {
+          "file": "assets/sprites/enemies/road_rookie/road_rookie_idle.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": true,
+          "recommended_fps": 5,
+          "playback": [
+            0,
+            1,
+            2,
+            3,
+            2,
+            1
+          ]
+        },
+        "attack": {
+          "file": "assets/sprites/enemies/road_rookie/road_rookie_attack.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": false,
+          "recommended_fps": 10,
+          "playback": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "id": "rogue_kunoichi",
+      "display_name": "Rogue Kunoichi",
+      "classification": "enemy_basic",
+      "full_inventory_entry": false,
+      "attack_type": "side_kick",
+      "animations": {
+        "idle": {
+          "file": "assets/sprites/enemies/rogue_kunoichi/rogue_kunoichi_idle.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": true,
+          "recommended_fps": 5,
+          "playback": [
+            0,
+            1,
+            2,
+            3,
+            2,
+            1
+          ]
+        },
+        "attack": {
+          "file": "assets/sprites/enemies/rogue_kunoichi/rogue_kunoichi_attack.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": false,
+          "recommended_fps": 10,
+          "playback": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "id": "masked_scout",
+      "display_name": "Masked Scout",
+      "classification": "enemy_basic",
+      "full_inventory_entry": false,
+      "attack_type": "kunai_slash",
+      "animations": {
+        "idle": {
+          "file": "assets/sprites/enemies/masked_scout/masked_scout_idle.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": true,
+          "recommended_fps": 5,
+          "playback": [
+            0,
+            1,
+            2,
+            3,
+            2,
+            1
+          ]
+        },
+        "attack": {
+          "file": "assets/sprites/enemies/masked_scout/masked_scout_attack.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": false,
+          "recommended_fps": 10,
+          "playback": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "id": "blond_rookie",
+      "display_name": "Blond Rookie",
+      "classification": "enemy_basic",
+      "full_inventory_entry": false,
+      "attack_type": "straight_punch",
+      "animations": {
+        "idle": {
+          "file": "assets/sprites/enemies/blond_rookie/blond_rookie_idle.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": true,
+          "recommended_fps": 5,
+          "playback": [
+            0,
+            1,
+            2,
+            3,
+            2,
+            1
+          ]
+        },
+        "attack": {
+          "file": "assets/sprites/enemies/blond_rookie/blond_rookie_attack.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": false,
+          "recommended_fps": 10,
+          "playback": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "id": "purple_scarf_kunoichi",
+      "display_name": "Purple Scarf Kunoichi",
+      "classification": "enemy_basic",
+      "full_inventory_entry": false,
+      "attack_type": "palm_strike",
+      "animations": {
+        "idle": {
+          "file": "assets/sprites/enemies/purple_scarf_kunoichi/purple_scarf_kunoichi_idle.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": true,
+          "recommended_fps": 5,
+          "playback": [
+            0,
+            1,
+            2,
+            3,
+            2,
+            1
+          ]
+        },
+        "attack": {
+          "file": "assets/sprites/enemies/purple_scarf_kunoichi/purple_scarf_kunoichi_attack.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": false,
+          "recommended_fps": 10,
+          "playback": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "id": "mist_rogue",
+      "display_name": "Mist Rogue",
+      "classification": "enemy_basic",
+      "full_inventory_entry": false,
+      "attack_type": "quick_strike",
+      "animations": {
+        "idle": {
+          "file": "assets/sprites/enemies/mist_rogue/mist_rogue_idle.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": true,
+          "recommended_fps": 5,
+          "playback": [
+            0,
+            1,
+            2,
+            3,
+            2,
+            1
+          ]
+        },
+        "attack": {
+          "file": "assets/sprites/enemies/mist_rogue/mist_rogue_attack.png",
+          "width": 2172,
+          "height": 724,
+          "frames": 4,
+          "frame_width": 543,
+          "frame_height": 724,
+          "alpha": true,
+          "layout": "horizontal",
+          "loop": false,
+          "recommended_fps": 10,
+          "playback": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      }
+    }
+  ]
+}
