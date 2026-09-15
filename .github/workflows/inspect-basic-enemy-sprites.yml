@@ -1,4 +1,4 @@
-name: Inspect basic enemy sprites
+name: Install basic enemy sprite pack
 
 on:
   push:
@@ -10,37 +10,87 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  inspect:
+  install:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout dev branch
         uses: actions/checkout@v4
         with:
           ref: dev-next-2026-09-01
+          fetch-depth: 0
 
-      - name: Inspect battle sprite loader
+      - name: Validate and install sprite pack
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
+          ZIP="blazing-battle-basic-enemy-sprites-v1.zip"
+          if [ ! -f "$ZIP" ]; then
+            echo "Sprite archive already consumed; nothing to install."
+            exit 0
+          fi
+
+          TMP="$(mktemp -d)"
+          unzip -q "$ZIP" -d "$TMP"
+          ROOT="$TMP/blazing-battle-basic-enemy-sprites-v1"
+          test -f "$ROOT/manifest.json"
+          test -f "$ROOT/README.md"
+          test -f "$ROOT/SHA256SUMS.txt"
+
+          python3 - "$ROOT" <<'PY'
           from pathlib import Path
-          text=Path('index.html').read_text(errors='replace')
-          markers=['function drawUnit(','ACTIVE_ENEMY_SPRITES','const SPRITES','const SPRITE','SPRITE_MAP','UNIT_IMAGES','new Image();','function animateLunge(']
-          seen=[]
-          for marker in markers:
-              start=0
-              while True:
-                  i=text.find(marker,start)
-                  if i<0: break
-                  if all(abs(i-old)>1800 for old in seen):
-                      seen.append(i)
-                      lo=max(0,i-2600); hi=min(len(text),i+7000)
-                      print(f'\n--- {marker} @ {i} ---\n{text[lo:hi]}\n--- END ---')
-                  start=i+len(marker)
-                  if len(seen)>=16: break
-              if len(seen)>=16: break
-          print(f'SPRITE_SNIPPETS={len(seen)}')
+          import hashlib, json, struct, sys
+
+          root = Path(sys.argv[1])
+          manifest = json.loads((root / 'manifest.json').read_text())
+          units = manifest.get('units', [])
+          assert len(units) == 6, f'Expected 6 enemy units, found {len(units)}'
+          expected_ids = {
+              'road_rookie', 'rogue_kunoichi', 'masked_scout',
+              'blond_rookie', 'purple_scarf_kunoichi', 'mist_rogue'
+          }
+          assert {u['id'] for u in units} == expected_ids, 'Unexpected unit IDs in manifest'
+
+          pngs = sorted(root.glob('assets/sprites/enemies/*/*.png'))
+          assert len(pngs) == 12, f'Expected 12 PNG sheets, found {len(pngs)}'
+          for path in pngs:
+              data = path.read_bytes()
+              assert data[:8] == b'\x89PNG\r\n\x1a\n', f'Invalid PNG: {path}'
+              width, height = struct.unpack('>II', data[16:24])
+              assert (width, height) == (2172, 724), f'Unexpected dimensions for {path}: {width}x{height}'
+
+          sums = {}
+          for line in (root / 'SHA256SUMS.txt').read_text().splitlines():
+              line = line.strip()
+              if not line or line.lower().startswith('sha256'):
+                  continue
+              digest, rel = line.split(maxsplit=1)
+              sums[rel.strip()] = digest
+          for path in pngs:
+              rel = path.relative_to(root).as_posix()
+              expected = sums.get(rel)
+              assert expected, f'Missing checksum for {rel}'
+              actual = hashlib.sha256(path.read_bytes()).hexdigest()
+              assert actual == expected, f'Checksum mismatch for {rel}'
+          print('Validated six enemy IDs, twelve 2172x724 PNG sheets, and package checksums.')
           PY
+
+          mkdir -p assets/sprites/enemies
+          cp -R "$ROOT/assets/sprites/enemies/." assets/sprites/enemies/
+          cp "$ROOT/manifest.json" assets/sprites/enemies/manifest.json
+          cp "$ROOT/README.md" assets/sprites/enemies/PACK-README.md
+          cp "$ROOT/SHA256SUMS.txt" assets/sprites/enemies/SHA256SUMS.txt
+          rm "$ZIP"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/sprites/enemies "$ZIP"
+          if git diff --cached --quiet; then
+            echo "No sprite-pack changes to commit."
+            exit 0
+          fi
+          git commit -m "feat: install basic enemy sprite pack"
+          git pull --rebase origin dev-next-2026-09-01
+          git push origin HEAD:dev-next-2026-09-01
