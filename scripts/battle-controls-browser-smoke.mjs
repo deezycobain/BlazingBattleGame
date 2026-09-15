@@ -44,7 +44,7 @@ async function forceCurrentPlayer(page){
 async function inspect(page){
  return page.evaluate(async()=>{
   window.BlazingBattleDock.sync();await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  const s=globalThis.eval('S'),root=document.getElementById('battleScreen'),field=document.getElementById('bbBattleField'),dock=document.getElementById('bbBattleDock'),active=dock.querySelector('.bb-dock-unit.active'),portrait=active?.querySelector('.bb-dock-portrait'),turns=dock.querySelector('.bb-dock-turns'),health=dock.querySelector('.bb-team-health');
+  const root=document.getElementById('battleScreen'),field=document.getElementById('bbBattleField'),dock=document.getElementById('bbBattleDock'),active=dock.querySelector('.bb-dock-unit.active'),portrait=active?.querySelector('.bb-dock-portrait'),turns=dock.querySelector('.bb-dock-turns'),health=dock.querySelector('.bb-team-health');
   const rect=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height}};
   const shared=window.BlazingRoadSharedHp?.snapshot?.()||{};
   const canvas=document.getElementById('game'),dockBefore=rect(dock),portraitBefore=rect(portrait),oldScale=canvas?.style.scale||'',oldTransform=canvas?.style.transform||'';
@@ -99,7 +99,7 @@ async function run(name,type){
   const phone=await inspect(page);assertLayout(phone,`${name}/phone`);
   const jutsu=await toggleJutsuViaPortrait(page);if(jutsu.error||(!jutsu.after.armed&&jutsu.after.pressed!=='true'))throw new Error(`portrait Jutsu toggle failed: ${JSON.stringify(jutsu)}`);
   await fs.mkdir('test-artifacts',{recursive:true});await page.screenshot({path:`test-artifacts/road-dock-${name}.png`});
-  await page.setViewportSize({width:1366,height:900});await page.waitForTimeout(180);window;
+  await page.setViewportSize({width:1366,height:900});await page.waitForTimeout(180);
   const desktop=await inspect(page);assertLayout(desktop,`${name}/desktop`);
   await page.evaluate(()=>window.BlazingBattlePause?.resume?.());
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
