@@ -1,0 +1,49 @@
+name: Inspect basic enemy sprites
+
+on:
+  push:
+    branches:
+      - dev-next-2026-09-01
+    paths:
+      - blazing-battle-basic-enemy-sprites-v1.zip
+      - .github/workflows/inspect-basic-enemy-sprites.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev-next-2026-09-01
+
+      - name: Inspect archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="blazing-battle-basic-enemy-sprites-v1.zip"
+          test -f "$ZIP"
+          TMP="$(mktemp -d)"
+          unzip -q "$ZIP" -d "$TMP"
+          echo "=== ARCHIVE FILES ==="
+          find "$TMP" -type f -printf '%P\n' | sort
+          echo "=== PNG METADATA ==="
+          python3 - "$TMP" <<'PY'
+          from pathlib import Path
+          import struct, sys
+          root = Path(sys.argv[1])
+          pngs = sorted(root.rglob('*.png'))
+          print(f'PNG_COUNT={len(pngs)}')
+          for path in pngs:
+              data = path.read_bytes()
+              if data[:8] != b'\x89PNG\r\n\x1a\n':
+                  raise SystemExit(f'Not a PNG: {path.relative_to(root)}')
+              w, h = struct.unpack('>II', data[16:24])
+              print(f'{path.relative_to(root)}|{w}x{h}|{path.stat().st_size}')
+          if len(pngs) != 12:
+              raise SystemExit(f'Expected 12 PNGs, found {len(pngs)}')
+          PY
