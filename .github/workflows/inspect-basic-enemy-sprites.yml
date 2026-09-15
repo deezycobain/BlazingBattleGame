@@ -21,45 +21,26 @@ jobs:
         with:
           ref: dev-next-2026-09-01
 
-      - name: Inspect package and enemy renderer
+      - name: Inspect battle sprite loader
         shell: bash
         run: |
           set -euo pipefail
-          ZIP="blazing-battle-basic-enemy-sprites-v1.zip"
-          test -f "$ZIP"
-          TMP="$(mktemp -d)"
-          unzip -q "$ZIP" -d "$TMP"
-          ROOT="$TMP/blazing-battle-basic-enemy-sprites-v1"
-          echo "=== MANIFEST ==="
-          cat "$ROOT/manifest.json"
-          echo "=== INDEX ENEMY RENDERER SNIPPETS ==="
           python3 - <<'PY'
           from pathlib import Path
           text=Path('index.html').read_text(errors='replace')
-          markers=[
-              'function makeEnemyFromData',
-              'function drawEnemy',
-              'function drawEnemies',
-              'makeEnemyFromData(',
-              'e.boss',
-              'S.enemies.forEach',
-              'for(const e of S.enemies',
-              'for (const e of S.enemies'
-          ]
+          markers=['function drawUnit(','ACTIVE_ENEMY_SPRITES','const SPRITES','const SPRITE','SPRITE_MAP','UNIT_IMAGES','new Image();','function animateLunge(']
           seen=[]
           for marker in markers:
               start=0
               while True:
                   i=text.find(marker,start)
                   if i<0: break
-                  if all(abs(i-old)>2500 for old in seen):
+                  if all(abs(i-old)>1800 for old in seen):
                       seen.append(i)
-                      lo=max(0,i-1800); hi=min(len(text),i+5200)
+                      lo=max(0,i-2600); hi=min(len(text),i+7000)
                       print(f'\n--- {marker} @ {i} ---\n{text[lo:hi]}\n--- END ---')
                   start=i+len(marker)
-                  if len(seen)>=12: break
-              if len(seen)>=12: break
-          print(f'RENDER_SNIPPETS={len(seen)}')
+                  if len(seen)>=16: break
+              if len(seen)>=16: break
+          print(f'SPRITE_SNIPPETS={len(seen)}')
           PY
-          echo "=== ROAD CONTENT EXPORT TAIL ==="
-          tail -n 90 runtime/modes/blazing-road-content.js
