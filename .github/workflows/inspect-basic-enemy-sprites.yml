@@ -21,7 +21,7 @@ jobs:
         with:
           ref: dev-next-2026-09-01
 
-      - name: Inspect archive
+      - name: Inspect package and enemy renderer
         shell: bash
         run: |
           set -euo pipefail
@@ -30,27 +30,36 @@ jobs:
           TMP="$(mktemp -d)"
           unzip -q "$ZIP" -d "$TMP"
           ROOT="$TMP/blazing-battle-basic-enemy-sprites-v1"
-          echo "=== ARCHIVE FILES ==="
-          find "$TMP" -type f -printf '%P\n' | sort
-          echo "=== README ==="
-          cat "$ROOT/README.md"
           echo "=== MANIFEST ==="
           cat "$ROOT/manifest.json"
-          echo "=== SHA256SUMS ==="
-          cat "$ROOT/SHA256SUMS.txt"
-          echo "=== PNG METADATA ==="
-          python3 - "$TMP" <<'PY'
+          echo "=== INDEX ENEMY RENDERER SNIPPETS ==="
+          python3 - <<'PY'
           from pathlib import Path
-          import struct, sys
-          root = Path(sys.argv[1])
-          pngs = sorted(root.rglob('*.png'))
-          print(f'PNG_COUNT={len(pngs)}')
-          for path in pngs:
-              data = path.read_bytes()
-              if data[:8] != b'\x89PNG\r\n\x1a\n':
-                  raise SystemExit(f'Not a PNG: {path.relative_to(root)}')
-              w, h = struct.unpack('>II', data[16:24])
-              print(f'{path.relative_to(root)}|{w}x{h}|{path.stat().st_size}')
-          if len(pngs) != 12:
-              raise SystemExit(f'Expected 12 PNGs, found {len(pngs)}')
+          text=Path('index.html').read_text(errors='replace')
+          markers=[
+              'function makeEnemyFromData',
+              'function drawEnemy',
+              'function drawEnemies',
+              'makeEnemyFromData(',
+              'e.boss',
+              'S.enemies.forEach',
+              'for(const e of S.enemies',
+              'for (const e of S.enemies'
+          ]
+          seen=[]
+          for marker in markers:
+              start=0
+              while True:
+                  i=text.find(marker,start)
+                  if i<0: break
+                  if all(abs(i-old)>2500 for old in seen):
+                      seen.append(i)
+                      lo=max(0,i-1800); hi=min(len(text),i+5200)
+                      print(f'\n--- {marker} @ {i} ---\n{text[lo:hi]}\n--- END ---')
+                  start=i+len(marker)
+                  if len(seen)>=12: break
+              if len(seen)>=12: break
+          print(f'RENDER_SNIPPETS={len(seen)}')
           PY
+          echo "=== ROAD CONTENT EXPORT TAIL ==="
+          tail -n 90 runtime/modes/blazing-road-content.js
