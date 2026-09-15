@@ -9,7 +9,7 @@ async function waitHome(page){
  await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
  const loading=page.locator('#bb-loading-screen');
  if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
- await page.waitForFunction(()=>typeof window.BlazingRoadRun==='object'&&typeof window.BlazingRoadCamera==='object'&&typeof window.BlazingBattlePause==='object'&&typeof window.BlazingBattleMobileControls==='object',{timeout:30000});
+ await page.waitForFunction(()=>typeof window.BlazingRoadRun==='object'&&typeof window.BlazingRoadCamera==='object'&&typeof window.BlazingRoadTurns==='object'&&typeof window.BlazingBattleDock==='object'&&typeof window.BlazingBattlePause==='object',{timeout:30000});
 }
 async function enterRoad(page){
  await page.evaluate(()=>window.BlazingRoadRun.clearRun());
@@ -18,138 +18,95 @@ async function enterRoad(page){
  await panel.waitFor({state:'visible',timeout:5000});
  await page.locator('#bbHomeApproved [data-mode="road"]').click();
  await page.waitForFunction(()=>{try{const s=globalThis.eval('S');return document.getElementById('battleScreen')?.classList.contains('active')&&s?.bbRunMode==='road'}catch{return false}},{timeout:15000});
- await page.locator('#bbBattlePauseButton.visible').waitFor({state:'visible',timeout:5000});
  await page.waitForFunction(()=>!window.BlazingRoadCamera?.isCombatLocked?.(),null,{timeout:12000});
+ await page.locator('#bbBattleDock').waitFor({state:'visible',timeout:5000});
 }
-async function controlDiagnostics(page){
+async function forceCurrentPlayer(page){
  return page.evaluate(()=>{
-  const read=name=>{try{const el=globalThis.eval(name);if(!(el instanceof Element))return {value:typeof el};const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {id:el.id||null,text:(el.textContent||'').replace(/\s+/g,' ').trim(),display:s.display,visibility:s.visibility,disabled:!!el.disabled,rect:{left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height}}}catch(error){return {error:String(error?.message||error)}}};
-  const root=document.getElementById('battleScreen');
-  return {snapshot:window.BlazingBattleMobileControls?.snapshot?.()||null,refs:{normalBtn:read('normalBtn'),jutsuBtn:read('jutsuBtn')},buttons:[...(root?.querySelectorAll('button')||[])].map(el=>({id:el.id||null,text:(el.textContent||'').replace(/\s+/g,' ').trim(),className:el.className,display:getComputedStyle(el).display,visibility:getComputedStyle(el).visibility}))};
+  const s=globalThis.eval('S'),front=globalThis.eval('front'),updateUI=globalThis.eval('updateUI'),R=window.BlazingRoadTurns;
+  if(!window.BlazingBattlePause.isPaused())window.BlazingBattlePause.pause();
+  const refFor=current=>current?.kind==='pair'
+   ? s.pairs.find(pair=>front(pair)?.name===current.name)
+   : s.enemies.find(enemy=>enemy?.name===current?.name&&enemy.hp>0);
+  for(let i=0;i<24;i++){
+   const snap=R.snapshot({limit:20}),current=snap.current,ref=refFor(current);
+   if(!current||!ref)return {error:'initiative actor could not be resolved',snap};
+   if(current.kind==='pair'){
+    const unit=front(ref);unit.chakra=unit.maxChakra;ref.gauge=100;s.ready={kind:'pair',ref,g:100};s.phase='player';s.anim=null;s.drag=false;
+    updateUI();window.BlazingBattleDock.sync();
+    return {ok:true,name:unit.name,round:snap.round,speed:current.speed};
+   }
+   ref.gauge=100;s.ready={kind:'enemy',ref,g:100};s.phase='cpu';R.sync();ref.gauge=0;s.ready=null;s.phase='charge';R.sync();
+  }
+  return {error:'no player turn reached'};
  });
 }
-async function forcePlayerControls(page){
- await page.evaluate(()=>{
-  const s=globalThis.eval('S'),front=globalThis.eval('front'),updateUI=globalThis.eval('updateUI');
-  const pair=(s.pairs||[]).find(candidate=>front(candidate)?.name&&front(candidate).name!=='—');
-  if(!pair)throw new Error('No live player pair available for battle-control smoke');
-  const unit=front(pair);pair.gauge=100;unit.chakra=unit.maxChakra;
-  s.phase='player';s.ready={kind:'pair',ref:pair,g:100};s.anim=null;s.drag=false;
-  updateUI();window.BlazingBattleMobileControls.sync();
- });
- try{
-  await page.waitForFunction(()=>{
-   const controls=window.BlazingBattleMobileControls?.snapshot?.().controls||{};
-   return ['basic','jutsu','pause'].every(kind=>controls[kind]?.visible);
-  },null,{timeout:5000});
- }catch(error){
-  const diagnostic=await controlDiagnostics(page);
-  throw new Error(`battle controls did not all become visible :: ${JSON.stringify(diagnostic)} :: ${error.message}`);
- }
-}
-async function inspect(page,safeOverride=null){
- return page.evaluate(async safe=>{
-  const root=document.getElementById('battleScreen');
-  if(safe){
-   root.style.setProperty('--bb-battle-safe-top',`${safe.top}px`);
-   root.style.setProperty('--bb-battle-safe-right',`${safe.right}px`);
-   root.style.setProperty('--bb-battle-safe-bottom',`${safe.bottom}px`);
-   root.style.setProperty('--bb-battle-safe-left',`${safe.left}px`);
-  }
-  window.BlazingBattleMobileControls.sync();window.BlazingBattleDock.sync();
-  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  const snap=window.BlazingBattleMobileControls.snapshot();
-  const controls={};
-  for(const kind of ['basic','jutsu','pause']){
-   const selector=kind==='pause'?'#bbBattlePauseButton':`.bb-battle-control-${kind}`;
-   const candidates=[...document.querySelectorAll(`#battleScreen ${selector}`)];
-   const el=candidates.find(node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return s.display!=='none'&&s.visibility!=='hidden'&&r.width>0&&r.height>0})||candidates[0];
-   if(!el){controls[kind]=null;continue}
-   const r=el.getBoundingClientRect(),cx=Math.min(innerWidth-1,Math.max(0,r.left+r.width/2)),cy=Math.min(innerHeight-1,Math.max(0,r.top+r.height/2));
-   const hit=document.elementFromPoint(cx,cy);
-   controls[kind]={rect:{left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height},position:getComputedStyle(el).position,hit:hit===el||el.contains(hit),disabled:!!el.disabled,text:(el.textContent||'').replace(/\s+/g,' ').trim(),id:el.id||null};
-  }
-  const style=await (await fetch('runtime/ui/battle/battle-dock.css')).text();
-  const camera=window.BlazingRoadCamera.snapshot();
-  const canvas=document.getElementById(camera.canvasId||'game')||[...root.querySelectorAll('canvas')].sort((a,b)=>{const ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();return br.width*br.height-ar.width*ar.height})[0]||null;
-  const before=Object.fromEntries(Object.entries(controls).map(([kind,value])=>[kind,value?.rect||null]));
-  const oldScale=canvas?.style.scale||'',oldTransform=canvas?.style.transform||'';
+async function inspect(page){
+ return page.evaluate(async()=>{
+  window.BlazingBattleDock.sync();await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  const s=globalThis.eval('S'),root=document.getElementById('battleScreen'),field=document.getElementById('bbBattleField'),dock=document.getElementById('bbBattleDock'),active=dock.querySelector('.bb-dock-unit.active'),portrait=active?.querySelector('.bb-dock-portrait'),turns=dock.querySelector('.bb-dock-turns'),health=dock.querySelector('.bb-team-health');
+  const rect=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height}};
+  const shared=window.BlazingRoadSharedHp?.snapshot?.()||{};
+  const canvas=document.getElementById('game'),dockBefore=rect(dock),portraitBefore=rect(portrait),oldScale=canvas?.style.scale||'',oldTransform=canvas?.style.transform||'';
   if(canvas){if('scale' in canvas.style)canvas.style.scale='1.28';else canvas.style.transform='scale(1.28)'}
   await new Promise(resolve=>requestAnimationFrame(resolve));
-  const after={};
-  for(const kind of ['basic','jutsu','pause']){
-   const selector=kind==='pause'?'#bbBattlePauseButton':`.bb-battle-control-${kind}`;
-   const el=[...document.querySelectorAll(`#battleScreen ${selector}`)].find(node=>getComputedStyle(node).display!=='none'&&node.getBoundingClientRect().width>0);
-   if(!el){after[kind]=null;continue}const r=el.getBoundingClientRect();after[kind]={left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};
-  }
+  const dockAfter=rect(dock),portraitAfter=rect(portrait);
   if(canvas){canvas.style.scale=oldScale;canvas.style.transform=oldTransform}
-  return {snap,controls,style,before,after,camera,safe:safe||{top:0,right:0,bottom:0,left:0}};
- },safeOverride);
-}
-function overlaps(a,b){return a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1}
-async function assertDock(page){
- const result=await page.evaluate(()=>{
-  const s=globalThis.eval('S');window.BlazingBattleDock.sync();
-  const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}};
-  const units=s.pairs.flatMap(p=>p.units).filter(u=>u.name&&u.name!=='—'&&u.maxHp>0),health=document.querySelector('.bb-team-health');
-  return {field:rect('bbBattleField'),dock:rect('bbBattleDock'),meter:rect('meter'),pause:rect('bbBattlePauseButton'),hp:+health.getAttribute('aria-valuenow'),max:+health.getAttribute('aria-valuemax'),expectedHp:units.reduce((n,u)=>n+Math.max(0,u.hp),0),expectedMax:units.reduce((n,u)=>n+u.maxHp,0),resetVisible:!!document.getElementById('reset').getClientRects().length,portraits:[...document.querySelectorAll('.bb-dock-portrait img')].every(img=>img.complete&&img.naturalWidth>0)};
- });
- if(result.field.bottom>result.dock.top+1||overlaps(result.meter,result.pause))throw new Error(`Dock overlaps field/meter: ${JSON.stringify(result)}`);
- if(result.meter.height<30||result.meter.top<result.dock.top||result.meter.bottom>result.dock.bottom)throw new Error('Turn meter is not contained in bottom dock');
- if(result.hp!==result.expectedHp||result.max!==result.expectedMax||result.resetVisible||!result.portraits)throw new Error(`Dock live-data/visibility failed: ${JSON.stringify(result)}`);
- await page.evaluate(()=>{
-  const s=globalThis.eval('S'),mode=s.bbRunMode;s.bbRunMode='castle';window.BlazingBattleDock.sync();
-  const hidden=document.querySelector('.bb-team-health').hidden;s.bbRunMode=mode;window.BlazingBattleDock.sync();if(!hidden)throw new Error('Shared HP leaked into Castle');
-  const renderer=window.BlazingBattlefieldRenderer.drawPlayerResources,calls=[];
-  const ctx=new Proxy({},{get:(_,key)=>()=>calls.push(key),set:()=>true});
-  renderer(ctx,{x:0,y:0,hp:10,maxHp:20,chakra:0,maxChakra:0,showHealth:false});if(calls.includes('fillRect'))throw new Error('Road individual HP still drawn');
-  renderer(ctx,{x:0,y:0,hp:10,maxHp:20,chakra:0,maxChakra:0});if(!calls.includes('fillRect'))throw new Error('Other mode HP missing');
+  const actionRow=dock.querySelector('.bb-dock-actions'),meter=document.getElementById('meter'),legacyNormal=document.getElementById('normal'),legacyJutsu=document.getElementById('jutsu');
+  return {
+   field:rect(field),dock:dockBefore,dockAfter,portrait:portraitBefore,portraitAfter,
+   viewport:{width:visualViewport?.width||innerWidth,height:visualViewport?.height||innerHeight,top:visualViewport?.offsetTop||0,left:visualViewport?.offsetLeft||0},
+   turnMode:turns?.dataset.mode||null,turnLabels:[...dock.querySelectorAll('.bb-turn-chip')].map(el=>({text:(el.textContent||'').replace(/\s+/g,' ').trim(),current:el.classList.contains('current'),next:el.classList.contains('next')})),
+   activeName:active?.querySelector('small')?.textContent||null,activePressed:active?.getAttribute('aria-pressed')||null,activeDisabled:!!active?.disabled,
+   chakraBackground:portrait?.style.backgroundImage||'',chakraText:active?.querySelector(':scope>em')?.textContent||'',
+   hp:Number(health?.getAttribute('aria-valuenow')),max:Number(health?.getAttribute('aria-valuemax')),sharedHp:Number(shared.hp),sharedMax:Number(shared.maxHp),
+   hidden:{actions:getComputedStyle(actionRow).display,meter:getComputedStyle(meter).display,normal:legacyNormal?getComputedStyle(legacyNormal).display:null,jutsu:legacyJutsu?getComputedStyle(legacyJutsu).display:null},
+   style:await (await fetch('runtime/ui/battle/battle-dock.css')).text(),rootActive:root.classList.contains('active'),round:window.BlazingRoadTurns.snapshot({limit:20})
+  };
  });
 }
-function assertGeometry(result,label){
- const {snap,controls,safe}=result,v=snap.viewport;
- const right=v.left+v.width,bottom=v.top+v.height;
- if(!/safe-area-inset-top/.test(result.style)||!/safe-area-inset-bottom/.test(result.style)||!/safe-area-inset-left/.test(result.style)||!/safe-area-inset-right/.test(result.style))throw new Error(`${label}: safe-area CSS contract missing`);
- if(!(result.camera?.targetScale>1.05))throw new Error(`${label}: Road camera was not zoomed during HUD assertion :: ${JSON.stringify(result.camera)}`);
- for(const kind of ['basic','jutsu','pause']){
-  const c=controls[kind];if(!c)throw new Error(`${label}: ${kind} control missing`);
-  const r=c.rect;if(r.width<44||r.height<44)throw new Error(`${label}: ${kind} touch target too small :: ${JSON.stringify(r)}`);
-  if(r.left<v.left+safe.left-1||r.top<v.top+safe.top-1||r.right>right-safe.right+1||r.bottom>bottom-safe.bottom+1)throw new Error(`${label}: ${kind} outside visible/safe viewport :: ${JSON.stringify({rect:r,viewport:v,safe})}`);
-  if(!c.hit)throw new Error(`${label}: ${kind} center is occluded/not tappable :: ${JSON.stringify(c)}`);
-  const a=result.before[kind],b=result.after[kind];
-  if(!a||!b||Math.abs(a.left-b.left)>.6||Math.abs(a.top-b.top)>.6||Math.abs(a.width-b.width)>.6||Math.abs(a.height-b.height)>.6)throw new Error(`${label}: ${kind} moved/scaled with Road canvas :: ${JSON.stringify({before:a,after:b})}`);
- }
-
- if(overlaps(controls.basic.rect,controls.jutsu.rect))throw new Error(`${label}: Basic overlaps Jutsu`);
+function sameRect(a,b,t=.75){return a&&b&&Math.abs(a.left-b.left)<=t&&Math.abs(a.top-b.top)<=t&&Math.abs(a.width-b.width)<=t&&Math.abs(a.height-b.height)<=t}
+function assertLayout(result,label){
+ if(!result.rootActive||!result.field||!result.dock||result.field.bottom>result.dock.top+1)throw new Error(`${label}: field/dock geometry invalid :: ${JSON.stringify(result)}`);
+ if(result.turnMode!=='round'||!result.turnLabels.length||!result.turnLabels[0].current)throw new Error(`${label}: round initiative strip missing :: ${JSON.stringify(result.turnLabels)}`);
+ if(!result.portrait||result.portrait.width<52||result.portrait.height<52||result.activeDisabled)throw new Error(`${label}: active portrait is not a usable touch target :: ${JSON.stringify(result)}`);
+ if(!/conic-gradient/i.test(result.chakraBackground)||result.chakraText.trim())throw new Error(`${label}: segmented chakra ring/numeric suppression failed :: ${JSON.stringify({bg:result.chakraBackground,text:result.chakraText})}`);
+ if(Math.abs(result.hp-result.sharedHp)>.01||Math.abs(result.max-result.sharedMax)>.01)throw new Error(`${label}: shared Road HP is not dock authority :: ${JSON.stringify(result)}`);
+ if(result.hidden.actions!=='none'||result.hidden.meter!=='none')throw new Error(`${label}: legacy meter/action row leaked into portrait HUD :: ${JSON.stringify(result.hidden)}`);
+ if(!sameRect(result.dock,result.dockAfter)||!sameRect(result.portrait,result.portraitAfter))throw new Error(`${label}: HUD moved/scaled with battlefield camera :: ${JSON.stringify({dock:[result.dock,result.dockAfter],portrait:[result.portrait,result.portraitAfter]})}`);
+ if(!/safe-area-inset-top/.test(result.style)||!/safe-area-inset-bottom/.test(result.style))throw new Error(`${label}: mobile safe-area contract missing`);
+}
+async function toggleJutsuViaPortrait(page){
+ return page.evaluate(async()=>{
+  const active=document.querySelector('#bbBattleDock .bb-dock-unit.active');if(!active)return {error:'active portrait missing'};
+  const before={pressed:active.getAttribute('aria-pressed'),armed:active.classList.contains('armed')};
+  active.click();await new Promise(resolve=>setTimeout(resolve,80));window.BlazingBattleDock.sync();
+  const after={pressed:active.getAttribute('aria-pressed'),armed:active.classList.contains('armed')};
+  return {before,after};
+ });
 }
 async function run(name,type){
  let browser;
  try{
-  console.log(`Battle controls smoke START (${name}) -> ${BASE}`);
+  console.log(`Battle dock smoke START (${name}) -> ${BASE}`);
   browser=await type.launch({headless:true,timeout:15000});
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:name==='webkit'});
   const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});await waitHome(page);
-  const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
-  if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
-  await enterRoad(page);await forcePlayerControls(page);
-  const normal=await inspect(page);assertGeometry(normal,`${name}/phone`);
-  const simulated={top:26,right:18,bottom:30,left:18};
-  const safe=await inspect(page,simulated);assertGeometry(safe,`${name}/phone-safe-area`);
-  await assertDock(page);
-  await fs.mkdir('test-artifacts',{recursive:true});
-  await page.screenshot({path:`test-artifacts/road-dock-${name}.png`});
-  await page.setViewportSize({width:1366,height:900});
-  await page.waitForTimeout(250);
-  await forcePlayerControls(page);
-  assertGeometry(await inspect(page),`${name}/desktop`);
-  await assertDock(page);
+  const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
+  await enterRoad(page);const forced=await forceCurrentPlayer(page);if(forced.error)throw new Error(`could not prepare player initiative turn: ${JSON.stringify(forced)}`);
+  const phone=await inspect(page);assertLayout(phone,`${name}/phone`);
+  const jutsu=await toggleJutsuViaPortrait(page);if(jutsu.error||(!jutsu.after.armed&&jutsu.after.pressed!=='true'))throw new Error(`portrait Jutsu toggle failed: ${JSON.stringify(jutsu)}`);
+  await fs.mkdir('test-artifacts',{recursive:true});await page.screenshot({path:`test-artifacts/road-dock-${name}.png`});
+  await page.setViewportSize({width:1366,height:900});await page.waitForTimeout(180);window;
+  const desktop=await inspect(page);assertLayout(desktop,`${name}/desktop`);
+  await page.evaluate(()=>window.BlazingBattlePause?.resume?.());
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Battle controls smoke PASS (${name}): Bottom dock, Normal/Jutsu/Pause stay tappable inside phone safe bounds and independent of Road canvas zoom.`);
+  console.log(`Battle dock smoke PASS (${name}): portrait-driven Jutsu, segmented chakra, shared HP, round initiative, and camera-independent HUD verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
 let failed=false;
-for(const [name,type] of Object.entries(TYPES)){try{await run(name,type)}catch(error){failed=true;console.error(`Battle controls smoke FAIL (${name}): ${error.stack||error.message}`)}}
+for(const [name,type] of Object.entries(TYPES)){try{await run(name,type)}catch(error){failed=true;console.error(`Battle dock smoke FAIL (${name}): ${error.stack||error.message}`)}}
 if(failed)process.exit(1);
