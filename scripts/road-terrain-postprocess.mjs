@@ -14,13 +14,15 @@ function replaceUnique(source,replacement,label){
 const playerSource=` const grab=S.dragGrabOffset||{x:0,y:0};
  let legal=clampToBattlefield({x:pt.x+grab.x,y:pt.y+grab.y});`;
 const playerReplacement=` const grab=S.dragGrabOffset||{x:0,y:0};
- let legal=clampToBattlefield({x:pt.x+grab.x,y:pt.y+grab.y});
+ let legal=S.bbRunMode==='road'
+  ? {x:clamp(pt.x+grab.x,0,W),y:clamp(pt.y+grab.y,0,H)}
+  : clampToBattlefield({x:pt.x+grab.x,y:pt.y+grab.y});
  if(S.bbRunMode==='road'&&window.BlazingRoadContent?.constrainMovementPoint){
   const terrainFrom=S.bbTerrainDragOrigin===S.dragOrigin&&S.bbTerrainLastLegal
    ? S.bbTerrainLastLegal
    : {x:p.x,y:p.y};
-  // Terrain collision is roster-agnostic: every playable fighter is represented only by
-  // the same tiny feet anchor. Body/targeting hitboxes never participate in map movement.
+  // Road map geometry owns the actual playable floor. The legacy generic battlefield
+  // clamp is intentionally bypassed here so deep foreground maps can use their full art.
   const footPadding=window.BlazingRoadContent.PLAYER_FOOT_PADDING||4;
   legal=window.BlazingRoadContent.constrainMovementPoint(S.bbRoadContent?.map,legal,terrainFrom,{padding:footPadding});
   S.bbTerrainDragOrigin=S.dragOrigin;
@@ -32,12 +34,12 @@ const evadeSource=`   const desiredEvade=clampToBattlefield({
     x:e.x+(ux-uy*side)*roadAi.evadeDistance,
     y:e.y+(uy+ux*side)*roadAi.evadeDistance
    });`;
-const evadeReplacement=`   let desiredEvade=clampToBattlefield({
-    x:e.x+(ux-uy*side)*roadAi.evadeDistance,
-    y:e.y+(uy+ux*side)*roadAi.evadeDistance
-   });
+const evadeReplacement=`   let desiredEvade={
+    x:clamp(e.x+(ux-uy*side)*roadAi.evadeDistance,0,W),
+    y:clamp(e.y+(uy+ux*side)*roadAi.evadeDistance,0,H)
+   };
    if(window.BlazingRoadContent?.constrainMovementPoint){
-    const enemyPadding=window.BlazingRoadContent.ENEMY_TERRAIN_PADDING||18;
+    const enemyPadding=Math.max(28,window.BlazingRoadContent.ENEMY_TERRAIN_PADDING||18);
     desiredEvade=window.BlazingRoadContent.constrainMovementPoint(S.bbRoadContent?.map,desiredEvade,{x:e.x,y:e.y},{padding:enemyPadding});
    }`;
 replaceUnique(evadeSource,evadeReplacement,'enemy Road evade movement anchor');
@@ -46,11 +48,12 @@ for(const marker of [
   "window.BlazingRoadContent?.constrainMovementPoint",
   "S.bbTerrainDragOrigin===S.dragOrigin",
   "S.bbTerrainLastLegal={x:legal.x,y:legal.y}",
+  "S.bbRunMode==='road'",
   "const footPadding=window.BlazingRoadContent.PLAYER_FOOT_PADDING||4",
-  "const enemyPadding=window.BlazingRoadContent.ENEMY_TERRAIN_PADDING||18"
+  "Math.max(28,window.BlazingRoadContent.ENEMY_TERRAIN_PADDING||18)"
 ]){
   if(!html.includes(marker))throw new Error(`Road terrain integration: built shell missing ${marker}`);
 }
 
 await fs.writeFile(file,html);
-console.log('Road terrain integration PASS: all playable fighters use one tiny feet-anchor collision footprint while map boundaries and enemy clearance stay independent.');
+console.log('Road terrain integration PASS: Road map geometry owns full-depth player movement and enemies retain a wider terrain-safe clearance.');
