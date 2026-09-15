@@ -3,6 +3,7 @@
 
 const MIN_LIVE_HP=.01;
 const POLL_MS=10;
+const ROAD_ENEMY_PADDING=28;
 const STYLE_ID='bb-road-battle-refinements-style';
 let stateRef=null,battleKey='',teamHp=0,teamMax=0,expected=new WeakMap(),timer=0;
 const finite=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;
@@ -31,18 +32,52 @@ function initialize(state,units,key){
  teamHp=Number.isFinite(Number(state.bbRoadTeamHp))?clamp(Number(state.bbRoadTeamHp),0,teamMax):savedTeamHp(state,units);
  expected=new WeakMap();rebalance(state,units);
 }
+function ensureSharedState(state=liveState()){
+ if(!state||state.bbRunMode!=='road'||!activeBattle())return null;
+ const units=fighters(state);if(!units.length)return null;
+ const key=keyFor(state),max=units.reduce((sum,u)=>sum+Math.max(0,finite(u.maxHp,0)),0);
+ if(state!==stateRef||key!==battleKey||Math.abs(max-teamMax)>.001)initialize(state,units,key);
+ return {state,units};
+}
 function syncSharedHp(){
  const state=liveState();
  if(!state||state.bbRunMode!=='road'||!activeBattle()){stateRef=null;battleKey='';teamHp=0;teamMax=0;expected=new WeakMap();return}
- const units=fighters(state);if(!units.length)return;
- const key=keyFor(state),max=units.reduce((sum,u)=>sum+Math.max(0,finite(u.maxHp,0)),0);
- if(state!==stateRef||key!==battleKey||Math.abs(max-teamMax)>.001){initialize(state,units,key);return}
+ const ready=ensureSharedState(state);if(!ready)return;
+ const {units}=ready;
  let delta=0,changed=false;
  for(const unit of units){const before=expected.get(unit),now=clamp(finite(unit.hp,0),0,finite(unit.maxHp,0));if(Number.isFinite(before)&&Math.abs(now-before)>.0001){delta+=now-before;changed=true}}
  if(changed)teamHp=clamp(teamHp+delta,0,teamMax);
  rebalance(state,units);
 }
 function snapshot(){const state=liveState(),active=!!(state&&state.bbRunMode==='road'&&activeBattle());return Object.freeze({active,hp:active?teamHp:0,maxHp:active?teamMax:0,alive:active&&teamHp>0,key:battleKey})}
+function isRoadPlayerTarget(state,target){return !!(state&&target&&state.bbRunMode==='road'&&fighters(state).includes(target))}
+function sharedDamageResult(target,damage,baseRuntime){
+ const ready=ensureSharedState();if(!ready||!isRoadPlayerTarget(ready.state,target))return null;
+ const raw=Math.max(0,finite(damage,0));
+ const reduced=typeof baseRuntime?.mitigatedDamage==='function'?baseRuntime.mitigatedDamage(raw,target?.defense):{raw,mitigation:0,damage:Math.max(0,Math.round(raw))};
+ const requested=Math.max(0,finite(reduced.damage,0)),before=teamHp;
+ teamHp=clamp(before-requested,0,teamMax);
+ rebalance(ready.state,ready.units);
+ return {before,after:teamHp,raw:finite(reduced.raw,raw),mitigation:finite(reduced.mitigation,0),requested,amount:before-teamHp,defeated:teamHp<=0,shared:true};
+}
+function patchCombatRuntime(){
+ const R=window.BlazingCombatRuntime;if(!R||R.__bbRoadSharedHp)return;
+ const baseApply=R.applyDamage.bind(R),baseTargets=R.applyDamageTargets?.bind(R),baseExecute=R.execute.bind(R);
+ const applyDamage=(target,damage)=>sharedDamageResult(target,damage,R)||baseApply(target,damage);
+ const applyDamageTargets=(targets,damage)=>(targets||[]).filter(Boolean).map(target=>({target,...applyDamage(target,damage)}));
+ const execute=(actionId,context={})=>{
+  if(actionId==='damage_target'&&isRoadPlayerTarget(liveState(),context.target)){
+   const parameters=context.parameters||{},damage=context.damage??R.computeScaledDamage(context.actor?.attack,parameters.multiplier??1);
+   return applyDamage(context.target,damage);
+  }
+  if(actionId==='damage_targets'&&(context.targets||[]).some(target=>isRoadPlayerTarget(liveState(),target))){
+   const parameters=context.parameters||{},damage=context.damage??R.computeScaledDamage(context.actor?.attack,parameters.multiplier??1);
+   return applyDamageTargets(context.targets,damage);
+  }
+  return baseExecute(actionId,context);
+ };
+ window.BlazingCombatRuntime=Object.freeze({...R,__bbRoadSharedHp:true,applyDamage,applyDamageTargets:baseTargets?applyDamageTargets:R.applyDamageTargets,execute});
+}
 function distribute(total,fighterList){
  const maxTotal=fighterList.reduce((sum,f)=>sum+Math.max(0,finite(f.max_hp??f.maxHp,0)),0);if(!(maxTotal>0)||total<=0)return fighterList.map(()=>0);
  const raw=fighterList.map(f=>Math.max(MIN_LIVE_HP,total*(Math.max(0,finite(f.max_hp??f.maxHp,0))/maxTotal))),sum=raw.reduce((a,b)=>a+b,0),scale=sum>0?total/sum:1;
@@ -61,15 +96,37 @@ function correctedMap(map){
  if(!map)return map;
  const p=map.presentation||{},presentation=Object.freeze({...p,introScale:1,combatScale:Math.max(1.24,finite(p.combatScale??p.scale,1.16)),scale:Math.max(1.24,finite(p.combatScale??p.scale,1.16))});
  if(map.key!=='shinobi-overlook')return Object.freeze({...map,presentation});
- const allowed=Object.freeze([{type:'polygon',points:Object.freeze([{x:74,y:178},{x:406,y:178},{x:414,y:238},{x:420,y:330},{x:424,y:430},{x:432,y:558},{x:48,y:558},{x:56,y:430},{x:60,y:330},{x:66,y:238}].map(Object.freeze))}]);
+ // The rooftop artwork has a deep foreground lane. Keep actors off the background roofs,
+ // while allowing the player to use the visible floor all the way toward the camera.
+ const allowed=Object.freeze([{type:'polygon',points:Object.freeze([
+  {x:88,y:226},{x:392,y:226},{x:402,y:270},{x:410,y:330},{x:418,y:410},{x:428,y:500},{x:440,y:620},
+  {x:40,y:620},{x:52,y:500},{x:62,y:410},{x:70,y:330},{x:78,y:270}
+ ].map(Object.freeze))}]);
  return Object.freeze({...map,presentation,movement:Object.freeze({allowed,blocked:Object.freeze([])})});
 }
 function patchRoadContent(){
  const C=window.BlazingRoadContent;if(!C||C.__bbBattleRefined)return;
  const maps=Object.freeze((C.MAPS||[]).map(correctedMap)),resolve=input=>typeof input==='string'?(maps.find(m=>m.key===input)||input):correctedMap(input);
  const isWalkablePoint=(map,p,opts)=>C.isWalkablePoint(resolve(map),p,opts),nearestWalkable=(map,p,opts)=>C.nearestWalkable(resolve(map),p,opts),constrainMovementPoint=(map,to,from,opts)=>C.constrainMovementPoint(resolve(map),to,from,opts);
- const stageConfig=value=>{const cfg=C.stageConfig(value),map=correctedMap(cfg.map);const enemies=Object.freeze((cfg.enemies||[]).map(enemy=>{const point=nearestWalkable(map,{x:enemy.x,y:enemy.y},{padding:C.ENEMY_TERRAIN_PADDING,maxRadius:240})||{x:enemy.x,y:enemy.y};return Object.freeze({...enemy,x:point.x,y:point.y})}));return Object.freeze({...cfg,map,enemies})};
+ const stageConfig=value=>{const cfg=C.stageConfig(value),map=correctedMap(cfg.map);const enemies=Object.freeze((cfg.enemies||[]).map(enemy=>{const point=nearestWalkable(map,{x:enemy.x,y:enemy.y},{padding:ROAD_ENEMY_PADDING,maxRadius:300})||{x:enemy.x,y:enemy.y};return Object.freeze({...enemy,x:point.x,y:point.y})}));return Object.freeze({...cfg,map,enemies})};
  window.BlazingRoadContent=Object.freeze({...C,__bbBattleRefined:true,MAPS:maps,stageConfig,mapForStage:value=>stageConfig(value).map,isWalkablePoint,nearestWalkable,constrainMovementPoint});
+}
+function syncEnemyTerrain(state=liveState()){
+ if(!state||state.bbRunMode!=='road'||!activeBattle())return;
+ const C=window.BlazingRoadContent,map=state.bbRoadContent?.map||C?.mapForStage?.(state.bbRoadStage||1);if(!C||!map)return;
+ const clampPoint=(point,from)=>{
+  if(C.isWalkablePoint?.(map,point,{padding:ROAD_ENEMY_PADDING}))return point;
+  return C.constrainMovementPoint?.(map,point,from||point,{padding:ROAD_ENEMY_PADDING})||C.nearestWalkable?.(map,point,{padding:ROAD_ENEMY_PADDING,maxRadius:300})||point;
+ };
+ for(const enemy of state.enemies||[]){
+  if(!enemy||finite(enemy.hp,0)<=0)continue;
+  const current={x:finite(enemy.x,240),y:finite(enemy.y,320)},safe=clampPoint(current,current);
+  enemy.x=safe.x;enemy.y=safe.y;
+  const animated=state.anim?.positions?.[enemy.name];
+  if(animated&&Number.isFinite(animated.x)&&Number.isFinite(animated.y)){
+   const safeAnimated=clampPoint({x:animated.x,y:animated.y},current);animated.x=safeAnimated.x;animated.y=safeAnimated.y;
+  }
+ }
 }
 function patchResourceRenderer(){
  const R=window.BlazingBattlefieldRenderer;if(!R||R.__bbRoadResourceRefined)return;const base=R.drawPlayerResources.bind(R);
@@ -96,7 +153,7 @@ function syncOverlay(){
  const width=vv?.width||window.innerWidth,height=vv?.height||window.innerHeight,left=vv?.offsetLeft||0,top=vv?.offsetTop||0;
  root.style.setProperty('--bb-vv-left',`${left}px`);root.style.setProperty('--bb-vv-top',`${top}px`);root.style.setProperty('--bb-vv-width',`${width}px`);root.style.setProperty('--bb-vv-height',`${height}px`);
 }
-function boot(){ensureStyle();syncOverlay();patchRoadRun();patchRoadContent();patchResourceRenderer();syncSharedHp();timer=window.setInterval(()=>{patchRoadRun();patchRoadContent();patchResourceRenderer();syncSharedHp();syncOverlay()},POLL_MS)}
+function boot(){ensureStyle();syncOverlay();patchRoadRun();patchRoadContent();patchCombatRuntime();patchResourceRenderer();syncSharedHp();syncEnemyTerrain();timer=window.setInterval(()=>{patchRoadRun();patchRoadContent();patchCombatRuntime();patchResourceRenderer();syncSharedHp();syncEnemyTerrain();syncOverlay()},POLL_MS)}
 window.BlazingRoadSharedHp=Object.freeze({sync:syncSharedHp,snapshot});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 window.visualViewport?.addEventListener('resize',syncOverlay,{passive:true});window.visualViewport?.addEventListener('scroll',syncOverlay,{passive:true});window.addEventListener('resize',syncOverlay,{passive:true});window.addEventListener('pagehide',()=>window.clearInterval(timer),{once:true});
