@@ -7,6 +7,7 @@ let html=await fs.readFile(file,'utf8');
 const CONTENT_ID='bb-blazing-road-content-runtime';
 const RUNTIME_ID='bb-blazing-road-runtime';
 const BOOT_ID='bb-blazing-road-bootstrap';
+const BASIC_ENEMY_SPRITES_ID='bb-basic-enemy-sprites-runtime';
 
 function replaceUnique(rx,replacement,label){
   const hits=[...html.matchAll(rx)];
@@ -49,7 +50,9 @@ function roadApplyStageContent(stage){
  const cfg=C.stageConfig(stage),statMax=C.STAT_MAX||100;
  const stat=value=>Math.max(1,Math.min(statMax,Math.round(Number(value)||1)));
  S.enemies=cfg.enemies.map((spec,index)=>{
-  const e=makeEnemyFromData(spec.id,spec.name,spec.x,spec.y,spec.mark),stats=spec.stats||{};
+  const stats=spec.stats||{};
+  const e={name:spec.name,spriteKey:spec.name,bbBasicEnemyId:spec.spriteId||spec.id,mark:spec.mark,x:spec.x,y:spec.y,r:19,hp:1,maxHp:1,speed:1,attack:1,defense:1,gauge:0,shape:{type:'circle',r:43},archetype:'enemy_basic'};
+  window.BlazingBasicEnemySprites?.preload?.(e.bbBasicEnemyId);
   e.maxHp=stat(stats.hp);e.hp=e.maxHp;
   e.attack=stat(stats.attack);e.defense=stat(stats.defense);e.speed=stat(stats.speed);
   e.bbRoadStage=cfg.stage;e.bbRoadElite=cfg.elite;e.bbRoadAi={...cfg.ai};e.bbRoadIndex=index;
@@ -98,6 +101,19 @@ replaceUnique(
   /let menuTransitioning=false;\s*function startBattle\(kind\)\{/g,
   `${helpers}\nlet menuTransitioning=false;\nfunction startBattle(kind){`,
   'menu battle entry anchor'
+);
+
+
+
+replaceUnique(
+  /let sprite=name\?SPRITES\[name\]:null;/g,
+  `const basicEnemyAttackState=(name&&S.anim?.attackPose)?S.anim.attackPose[name]:null;
+   if(isEnemy&&window.BlazingBasicEnemySprites?.draw?.(ctx,name,{attackState:basicEnemyAttackState,idlePhase,sizeScale,unitRenderScale:UNIT_RENDER_SCALE})){
+    ctx.restore();
+    return;
+   }
+   let sprite=name?SPRITES[name]:null;`,
+  'lightweight basic enemy sprite renderer'
 );
 
 replaceUnique(
@@ -166,16 +182,19 @@ replaceUnique(
   'player-forcing global charge watchdog'
 );
 
-for(const id of [CONTENT_ID,RUNTIME_ID,BOOT_ID]){
+for(const id of [CONTENT_ID,RUNTIME_ID,BOOT_ID,BASIC_ENEMY_SPRITES_ID]){
  html=html.replace(new RegExp(`<script\\b[^>]*id=["']${id}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'');
  html=html.replace(new RegExp(`<script\\b[^>]*id=["']${id}["'][^>]*/>`,'gi'),'');
 }
 const bodyAt=html.toLowerCase().lastIndexOf('</body>');
 if(bodyAt<0)throw new Error('Blazing Road integration: closing body missing');
-const tags=`<script id="${CONTENT_ID}" src="runtime/modes/blazing-road-content.js"></script><script id="${RUNTIME_ID}" src="runtime/modes/blazing-road-run.js"></script><script id="${BOOT_ID}">setTimeout(()=>{try{window.roadSyncCard?.(window.BlazingRoadRun?.loadRun?.())}catch(error){console.warn('Blazing Road card sync failed',error)}},0);<\/script>`;
+const tags=`<script id="${BASIC_ENEMY_SPRITES_ID}" src="runtime/modes/basic-enemy-sprites.js"></script><script id="${CONTENT_ID}" src="runtime/modes/blazing-road-content.js"></script><script id="${RUNTIME_ID}" src="runtime/modes/blazing-road-run.js"></script><script id="${BOOT_ID}">setTimeout(()=>{try{window.roadSyncCard?.(window.BlazingRoadRun?.loadRun?.())}catch(error){console.warn('Blazing Road card sync failed',error)}},0);<\/script>`;
 html=html.slice(0,bodyAt)+tags+html.slice(bodyAt);
 
 for(const marker of [
+  `id="${BASIC_ENEMY_SPRITES_ID}"`,
+  'bbBasicEnemyId',
+  'BlazingBasicEnemySprites?.draw',
   `id="${CONTENT_ID}"`,
   `id="${RUNTIME_ID}"`,
   `id="${BOOT_ID}"`,

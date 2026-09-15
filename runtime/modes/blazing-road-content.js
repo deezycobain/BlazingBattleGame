@@ -92,36 +92,45 @@ const BASE_ENEMY_STATS=Object.freeze({
   yurei:Object.freeze({hp:50,attack:37,defense:18,speed:68})
 });
 
+const BASIC_ENEMIES=Object.freeze({
+  road_rookie:Object.freeze({id:'road_rookie',displayName:'Road Rookie',statId:'onre',attackType:'straight_punch'}),
+  rogue_kunoichi:Object.freeze({id:'rogue_kunoichi',displayName:'Rogue Kunoichi',statId:'yurei',attackType:'side_kick'}),
+  masked_scout:Object.freeze({id:'masked_scout',displayName:'Masked Scout',statId:'yurei',attackType:'kunai_slash'}),
+  blond_rookie:Object.freeze({id:'blond_rookie',displayName:'Blond Rookie',statId:'onre',attackType:'straight_punch'}),
+  purple_scarf_kunoichi:Object.freeze({id:'purple_scarf_kunoichi',displayName:'Purple Scarf Kunoichi',statId:'gotoku',attackType:'palm_strike'}),
+  mist_rogue:Object.freeze({id:'mist_rogue',displayName:'Mist Rogue',statId:'gotoku',attackType:'quick_strike'})
+});
+
 const FORMATIONS=Object.freeze([
   Object.freeze([
-    Object.freeze({id:'onre',x:126,y:188}),
-    Object.freeze({id:'gotoku',x:352,y:225}),
-    Object.freeze({id:'yurei',x:236,y:342})
+    Object.freeze({id:'road_rookie',x:126,y:188}),
+    Object.freeze({id:'purple_scarf_kunoichi',x:352,y:225}),
+    Object.freeze({id:'rogue_kunoichi',x:236,y:342})
   ]),
   Object.freeze([
-    Object.freeze({id:'gotoku',x:112,y:178}),
-    Object.freeze({id:'yurei',x:356,y:190}),
-    Object.freeze({id:'onre',x:170,y:326}),
-    Object.freeze({id:'onre',x:342,y:390})
+    Object.freeze({id:'mist_rogue',x:112,y:178}),
+    Object.freeze({id:'masked_scout',x:356,y:190}),
+    Object.freeze({id:'blond_rookie',x:170,y:326}),
+    Object.freeze({id:'road_rookie',x:342,y:390})
   ]),
   Object.freeze([
-    Object.freeze({id:'yurei',x:105,y:205}),
-    Object.freeze({id:'onre',x:370,y:210}),
-    Object.freeze({id:'gotoku',x:180,y:345}),
-    Object.freeze({id:'yurei',x:326,y:365})
+    Object.freeze({id:'rogue_kunoichi',x:105,y:205}),
+    Object.freeze({id:'blond_rookie',x:370,y:210}),
+    Object.freeze({id:'purple_scarf_kunoichi',x:180,y:345}),
+    Object.freeze({id:'masked_scout',x:326,y:365})
   ]),
   Object.freeze([
-    Object.freeze({id:'onre',x:92,y:175}),
-    Object.freeze({id:'gotoku',x:240,y:155}),
-    Object.freeze({id:'yurei',x:385,y:180}),
-    Object.freeze({id:'gotoku',x:238,y:362})
+    Object.freeze({id:'road_rookie',x:92,y:175}),
+    Object.freeze({id:'mist_rogue',x:240,y:155}),
+    Object.freeze({id:'masked_scout',x:385,y:180}),
+    Object.freeze({id:'purple_scarf_kunoichi',x:238,y:362})
   ]),
   Object.freeze([
-    Object.freeze({id:'gotoku',x:100,y:185}),
-    Object.freeze({id:'yurei',x:380,y:185}),
-    Object.freeze({id:'onre',x:155,y:345}),
-    Object.freeze({id:'onre',x:325,y:345}),
-    Object.freeze({id:'gotoku',x:240,y:255})
+    Object.freeze({id:'mist_rogue',x:100,y:185}),
+    Object.freeze({id:'rogue_kunoichi',x:380,y:185}),
+    Object.freeze({id:'road_rookie',x:155,y:345}),
+    Object.freeze({id:'blond_rookie',x:325,y:345}),
+    Object.freeze({id:'purple_scarf_kunoichi',x:240,y:255})
   ])
 ]);
 
@@ -359,19 +368,25 @@ function stageConfig(value){
   const map=MAPS[(stage-1)%MAPS.length];
   const formation=FORMATIONS[(stage-1)%FORMATIONS.length];
   const secondRoute=stage>5;
+  const extraPool=['masked_scout','blond_rookie','mist_rogue'];
   const extraEnemy=secondRoute&&formation.length<5
-    ? [{id:['onre','gotoku','yurei'][stage%3],x:stage%2?300:178,y:stage%2?292:286}]
+    ? [{id:extraPool[stage%extraPool.length],x:stage%2?300:178,y:stage%2?292:286}]
     : [];
   const rawEnemies=[...formation,...extraEnemy];
   const enemies=rawEnemies.map((enemy,index)=>{
     const authored=map.enemyAnchors?.[index%map.enemyAnchors.length]||null;
     const desired=authored||{x:enemy.x,y:enemy.y};
     const spawn=nearestWalkable(map,desired,{padding:ENEMY_TERRAIN_PADDING,maxRadius:200})||desired;
+    const def=BASIC_ENEMIES[enemy.id]||BASIC_ENEMIES.road_rookie;
+    const statId=enemy.statId||def.statId||'onre';
     return Object.freeze({
       ...enemy,x:spawn.x,y:spawn.y,
-      name:`Road Rogue ${index+1}`,
+      name:`${def.displayName} ${index+1}`,
+      spriteId:def.id,
+      statId,
+      attackType:def.attackType,
       mark:String(index+1),
-      stats:statsForEnemy(enemy.id,stage,elite)
+      stats:statsForEnemy(statId,stage,elite)
     });
   });
   return Object.freeze({
@@ -397,7 +412,7 @@ function mapForStage(stage){return stageConfig(stage).map;}
 function isFinalStage(stage){return stageNumber(stage)>=MAX_STAGE;}
 
 window.BlazingRoadContent=Object.freeze({
-  MAX_STAGE,STAT_MAX,PLAYER_FOOT_PADDING,ENEMY_TERRAIN_PADDING,PLAYABLE_FLOOR,MAPS,BASE_ENEMY_STATS,
+  MAX_STAGE,STAT_MAX,PLAYER_FOOT_PADDING,ENEMY_TERRAIN_PADDING,PLAYABLE_FLOOR,MAPS,BASE_ENEMY_STATS,BASIC_ENEMIES,
   stageNumber,stageConfig,mapForStage,isFinalStage,visualScaleForY,isWalkablePoint,nearestWalkable,constrainMovementPoint
 });
 })();

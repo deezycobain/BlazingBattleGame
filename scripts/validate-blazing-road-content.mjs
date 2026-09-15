@@ -20,6 +20,23 @@ for(const [id,stats] of Object.entries(C.BASE_ENEMY_STATS||{})){
  }
 }
 
+const expectedBasicEnemyIds=['road_rookie','rogue_kunoichi','masked_scout','blond_rookie','purple_scarf_kunoichi','mist_rogue'];
+const publishedBasicEnemyIds=Object.keys(C.BASIC_ENEMIES||{}).sort();
+if(JSON.stringify(publishedBasicEnemyIds)!==JSON.stringify([...expectedBasicEnemyIds].sort()))throw new Error(`Basic enemy IDs mismatch: ${publishedBasicEnemyIds.join(', ')}`);
+const packManifest=JSON.parse(await fs.readFile('assets/sprites/enemies/manifest.json','utf8'));
+const manifestIds=(packManifest.units||[]).map(unit=>unit.id).sort();
+if(JSON.stringify(manifestIds)!==JSON.stringify([...expectedBasicEnemyIds].sort()))throw new Error('Installed basic enemy manifest does not match runtime IDs');
+for(const id of expectedBasicEnemyIds){
+ const def=C.BASIC_ENEMIES[id];
+ if(!def?.displayName||!C.BASE_ENEMY_STATS[def.statId])throw new Error(`Basic enemy ${id} has invalid display/stat mapping`);
+ for(const mode of ['idle','attack']){
+  const path=`assets/sprites/enemies/${id}/${id}_${mode}.png`;
+  const stat=await fs.stat(path);
+  if(stat.size<1024)throw new Error(`Basic enemy sheet is missing/empty: ${path}`);
+ }
+}
+
+
 const stages=Array.from({length:10},(_,i)=>C.stageConfig(i+1));
 for(const [i,cfg] of stages.entries()){
  const stage=i+1;
@@ -36,10 +53,13 @@ for(const [i,cfg] of stages.entries()){
  if(cfg.ai.evadeBase<0||cfg.ai.evadeBase>.4||cfg.ai.evadeLowHp<0||cfg.ai.evadeLowHp>.8)throw new Error(`Stage ${stage} evade tuning out of bounds`);
 }
 
+const seenBasicEnemyIds=new Set(stages.flatMap(stage=>stage.enemies.map(enemy=>enemy.id)));
+for(const id of expectedBasicEnemyIds)if(!seenBasicEnemyIds.has(id))throw new Error(`Basic enemy ${id} never appears in the 10-stage Road route`);
+
 const first=stages[0],final=stages[9];
 for(const id of Object.keys(C.BASE_ENEMY_STATS)){
- const a=first.enemies.find(enemy=>enemy.id===id)?.stats;
- const b=final.enemies.find(enemy=>enemy.id===id)?.stats;
+ const a=first.enemies.find(enemy=>enemy.statId===id)?.stats;
+ const b=final.enemies.find(enemy=>enemy.statId===id)?.stats;
  if(!a||!b)throw new Error(`Stage 1 and Stage 10 must both expose ${id} for curve validation`);
  for(const stat of ['hp','attack','defense','speed'])if(b[stat]<=a[stat])throw new Error(`${id}.${stat} must rise from Stage 1 to Stage 10`);
 }
