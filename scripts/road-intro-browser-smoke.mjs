@@ -136,7 +136,7 @@ async function run(name,type){
     const combat=frames.find(frame=>frame.mode==='combat'&&!frame.locked);
     if(!combat)throw new Error(`combat never unlocked after intro: ${JSON.stringify(frames.slice(-8))}`);
     if(!(combat.targetScale>1.05&&Math.abs(combat.targetScale-combat.combatScale)<.001&&/center/i.test(combat.position)))throw new Error(`final combat framing invalid: ${JSON.stringify(combat)}`);
-    if(Math.abs(combat.targetScale-1.18)>.001||combat.transitionMs!==1650)throw new Error(`Road camera tuning incorrect: ${JSON.stringify(combat)}`);
+    if(Math.abs(combat.targetScale-1.16)>.001||combat.transitionMs!==1650)throw new Error(`Road camera tuning incorrect: ${JSON.stringify(combat)}`);
     if(combat.wallMs-fightTime<1450)throw new Error(`combat unlocked before the slower camera arrived: ${JSON.stringify({fightTime,combatTime:combat.wallMs,transitionMs:combat.transitionMs})}`);
     const countFrame=firstByWord(frames,'3');
     if(countFrame?.rect&&combat.rect&&!(combat.rect.width>countFrame.rect.width*1.05))throw new Error(`final framing did not complete the zoom: ${JSON.stringify({intro:countFrame.rect,combat:combat.rect})}`);
@@ -153,8 +153,6 @@ async function run(name,type){
         movement:state.bbRoadContent.map.movement,feet:C.PLAYER_FOOT_PADDING,enemyPadding:C.ENEMY_TERRAIN_PADDING
       });
       const before=geometry();
-      // Execute the exact final renderer expression with a recording canvas;
-      // exercise every map and several perspective depths without ticking combat.
       const render=new Function('S','ctx','directionalFlip','scale','activePulse','bbRoadDepthScale',code);
       let maxError=0;
       for(const map of C.MAPS)for(const depth of [.82,1,1.1]){
