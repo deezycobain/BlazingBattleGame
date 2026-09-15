@@ -15,13 +15,14 @@ function normalizeName(value){return String(value||'').toLowerCase().replace(/[^
 function canonicalSpeed(unit){
  if(!unit)return 0;
  const match=Object.values(window.BLAZING_UNIT_DATA||{}).find(data=>normalizeName(data?.display_name)===normalizeName(unit.name));
- return Math.max(.01,finite(match?.stats?.speed,unit.speed||1));
+ return Math.max(.01,finite(match?.stats?.speed,originalSpeeds.get(unit)??unit.speed??1));
 }
+function authoredEnemySpeed(enemy){return Math.max(.01,finite(originalSpeeds.get(enemy)??enemy?.speed,1))}
 function roadAlive(state){const shared=window.BlazingRoadSharedHp?.snapshot?.();if(shared?.active)return !!shared.alive;return finite(state?.bbRoadTeamHp,1)>0}
 function actorId(kind,ref,unit,index){const raw=String(unit?.id||unit?.name||`${kind}-${index}`).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');return `${kind}:${raw||index}`}
 function collect(state){
  const players=(state?.pairs||[]).map((pair,i)=>{const unit=front(pair);if(!unit||unit.name==='—'||!roadAlive(state))return null;return {id:actorId('pair',pair,unit,i),kind:'pair',ref:pair,unit,name:unit.name,speed:canonicalSpeed(unit),index:i}}).filter(Boolean);
- const enemies=(state?.enemies||[]).map((enemy,i)=>{if(!enemy||finite(enemy.hp,0)<=0)return null;return {id:actorId('enemy',enemy,enemy,i),kind:'enemy',ref:enemy,unit:enemy,name:enemy.name||`Enemy ${i+1}`,speed:Math.max(.01,finite(enemy.speed,1)),index:i}}).filter(Boolean);
+ const enemies=(state?.enemies||[]).map((enemy,i)=>{if(!enemy||finite(enemy.hp,0)<=0)return null;return {id:actorId('enemy',enemy,enemy,i),kind:'enemy',ref:enemy,unit:enemy,name:enemy.name||`Enemy ${i+1}`,speed:authoredEnemySpeed(enemy),index:i}}).filter(Boolean);
  return [...players,...enemies];
 }
 function isAlive(entry,state){if(!entry)return false;if(entry.kind==='enemy')return finite(entry.ref?.hp,0)>0;return roadAlive(state)&&!!front(entry.ref)}
