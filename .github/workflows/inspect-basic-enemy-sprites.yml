@@ -1,4 +1,4 @@
-name: Wire basic enemy runtime
+name: Validate basic enemy integration
 
 on:
   push:
@@ -9,249 +9,36 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  wire:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout dev branch
         uses: actions/checkout@v4
         with:
           ref: dev-next-2026-09-01
-          fetch-depth: 0
 
-      - name: Wire six lightweight enemy IDs
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate basic enemy content
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          def sub_once(text, pattern, replacement, label, flags=0):
-              updated, count = re.subn(pattern, replacement, text, count=1, flags=flags)
-              if count != 1:
-                  raise SystemExit(f'{label}: expected one match, found {count}')
-              return updated
-
-          # 1) Blazing Road content: keep the three established stat archetypes, but
-          # route encounters through six lightweight enemy IDs from the uploaded pack.
-          content_path = Path('runtime/modes/blazing-road-content.js')
-          content = content_path.read_text()
-
-          basic_defs = r'''const BASIC_ENEMIES=Object.freeze({
-            road_rookie:Object.freeze({id:'road_rookie',displayName:'Road Rookie',statId:'onre',attackType:'straight_punch'}),
-            rogue_kunoichi:Object.freeze({id:'rogue_kunoichi',displayName:'Rogue Kunoichi',statId:'yurei',attackType:'side_kick'}),
-            masked_scout:Object.freeze({id:'masked_scout',displayName:'Masked Scout',statId:'yurei',attackType:'kunai_slash'}),
-            blond_rookie:Object.freeze({id:'blond_rookie',displayName:'Blond Rookie',statId:'onre',attackType:'straight_punch'}),
-            purple_scarf_kunoichi:Object.freeze({id:'purple_scarf_kunoichi',displayName:'Purple Scarf Kunoichi',statId:'gotoku',attackType:'palm_strike'}),
-            mist_rogue:Object.freeze({id:'mist_rogue',displayName:'Mist Rogue',statId:'gotoku',attackType:'quick_strike'})
-          });
-
-          '''
-          content = sub_once(
-              content,
-              r'(?=const FORMATIONS=Object\.freeze\(\[)',
-              basic_defs,
-              'insert basic enemy definitions'
-          )
-
-          formations = r'''const FORMATIONS=Object.freeze([
-            Object.freeze([
-              Object.freeze({id:'road_rookie',x:126,y:188}),
-              Object.freeze({id:'purple_scarf_kunoichi',x:352,y:225}),
-              Object.freeze({id:'rogue_kunoichi',x:236,y:342})
-            ]),
-            Object.freeze([
-              Object.freeze({id:'mist_rogue',x:112,y:178}),
-              Object.freeze({id:'masked_scout',x:356,y:190}),
-              Object.freeze({id:'blond_rookie',x:170,y:326}),
-              Object.freeze({id:'road_rookie',x:342,y:390})
-            ]),
-            Object.freeze([
-              Object.freeze({id:'rogue_kunoichi',x:105,y:205}),
-              Object.freeze({id:'blond_rookie',x:370,y:210}),
-              Object.freeze({id:'purple_scarf_kunoichi',x:180,y:345}),
-              Object.freeze({id:'masked_scout',x:326,y:365})
-            ]),
-            Object.freeze([
-              Object.freeze({id:'road_rookie',x:92,y:175}),
-              Object.freeze({id:'mist_rogue',x:240,y:155}),
-              Object.freeze({id:'masked_scout',x:385,y:180}),
-              Object.freeze({id:'purple_scarf_kunoichi',x:238,y:362})
-            ]),
-            Object.freeze([
-              Object.freeze({id:'mist_rogue',x:100,y:185}),
-              Object.freeze({id:'rogue_kunoichi',x:380,y:185}),
-              Object.freeze({id:'road_rookie',x:155,y:345}),
-              Object.freeze({id:'blond_rookie',x:325,y:345}),
-              Object.freeze({id:'purple_scarf_kunoichi',x:240,y:255})
-            ])
-          ]);'''
-          content = sub_once(
-              content,
-              r'const FORMATIONS=Object\.freeze\(\[[\s\S]*?\n\]\);(?=\n\nconst STAGE_NAMES)',
-              formations,
-              'replace Road formations'
-          )
-
-          content = sub_once(
-              content,
-              r"const extraEnemy=secondRoute&&formation\.length<5\n\s*\? \[\{id:\['onre','gotoku','yurei'\]\[stage%3\],x:stage%2\?300:178,y:stage%2\?292:286\}\]\n\s*: \[\];",
-              "const extraPool=['masked_scout','blond_rookie','mist_rogue'];\n  const extraEnemy=secondRoute&&formation.length<5\n    ? [{id:extraPool[stage%extraPool.length],x:stage%2?300:178,y:stage%2?292:286}]\n    : [];",
-              'replace second-route extra enemy'
-          )
-
-          old_stage_enemy = r'''    return Object.freeze({
-                ...enemy,x:spawn.x,y:spawn.y,
-                name:`Road Rogue ${index+1}`,
-                mark:String(index+1),
-                stats:statsForEnemy(enemy.id,stage,elite)
-              });'''
-          new_stage_enemy = r'''    const def=BASIC_ENEMIES[enemy.id]||BASIC_ENEMIES.road_rookie;
-              const statId=enemy.statId||def.statId||'onre';
-              return Object.freeze({
-                ...enemy,x:spawn.x,y:spawn.y,
-                name:`${def.displayName} ${index+1}`,
-                spriteId:def.id,
-                statId,
-                attackType:def.attackType,
-                mark:String(index+1),
-                stats:statsForEnemy(statId,stage,elite)
-              });'''
-          if old_stage_enemy not in content:
-              raise SystemExit('stage enemy object anchor not found')
-          content = content.replace(old_stage_enemy, new_stage_enemy, 1)
-
-          content = sub_once(
-              content,
-              r'MAX_STAGE,STAT_MAX,PLAYER_FOOT_PADDING,ENEMY_TERRAIN_PADDING,PLAYABLE_FLOOR,MAPS,BASE_ENEMY_STATS,',
-              'MAX_STAGE,STAT_MAX,PLAYER_FOOT_PADDING,ENEMY_TERRAIN_PADDING,PLAYABLE_FLOOR,MAPS,BASE_ENEMY_STATS,BASIC_ENEMIES,',
-              'export basic enemy definitions'
-          )
-          content_path.write_text(content)
-
-          # 2) Blazing Road shell integration: construct lightweight battlefield enemies
-          # directly rather than registering collectible/canonical roster units.
-          post_path = Path('scripts/blazing-road-postprocess.mjs')
-          post = post_path.read_text()
-          post = sub_once(
-              post,
-              r"const BOOT_ID='bb-blazing-road-bootstrap';",
-              "const BOOT_ID='bb-blazing-road-bootstrap';\nconst BASIC_ENEMY_SPRITES_ID='bb-basic-enemy-sprites-runtime';",
-              'add basic enemy script id'
-          )
-
-          old_ctor = "  const e=makeEnemyFromData(spec.id,spec.name,spec.x,spec.y,spec.mark),stats=spec.stats||{};"
-          new_ctor = """  const stats=spec.stats||{};
-            const e={name:spec.name,spriteKey:spec.name,bbBasicEnemyId:spec.spriteId||spec.id,mark:spec.mark,x:spec.x,y:spec.y,r:19,hp:1,maxHp:1,speed:1,attack:1,defense:1,gauge:0,shape:{type:'circle',r:43},archetype:'enemy_basic'};
-            window.BlazingBasicEnemySprites?.preload?.(e.bbBasicEnemyId);"""
-          if old_ctor not in post:
-              raise SystemExit('lightweight constructor anchor not found')
-          post = post.replace(old_ctor, new_ctor, 1)
-
-          post = sub_once(
-              post,
-              r"replaceUnique\(\n  /let sprite=name\?SPRITES\[name\]:null;/g,",
-              "replaceUnique(\n  /let sprite=name\\?SPRITES\\[name\\]:null;/g,",
-              'sprite patch pre-anchor safeguard'
-          ) if False else post
-
-          sprite_patch_anchor = "replaceUnique(\n  /function teamSpawnOptions\\(name\\)\\{[\\s\\S]*?(?=\\nfunction\\s+[A-Za-z_$][A-Za-z0-9_$]*\\s*\\()/g,"
-          if sprite_patch_anchor not in post:
-              raise SystemExit('team spawn replacement anchor not found')
-          sprite_patch = r'''
-
-          replaceUnique(
-            /let sprite=name\?SPRITES\[name\]:null;/g,
-            `const basicEnemyAttackState=(name&&S.anim?.attackPose)?S.anim.attackPose[name]:null;
-             if(isEnemy&&window.BlazingBasicEnemySprites?.draw?.(ctx,name,{attackState:basicEnemyAttackState,idlePhase,sizeScale,unitRenderScale:UNIT_RENDER_SCALE})){
-              ctx.restore();
-              return;
-             }
-             let sprite=name?SPRITES[name]:null;`,
-            'lightweight basic enemy sprite renderer'
-          );
-          '''
-          post = post.replace(sprite_patch_anchor, sprite_patch + '\n' + sprite_patch_anchor, 1)
-
-          post = sub_once(
-              post,
-              r'for\(const id of \[CONTENT_ID,RUNTIME_ID,BOOT_ID\]\)\{',
-              'for(const id of [CONTENT_ID,RUNTIME_ID,BOOT_ID,BASIC_ENEMY_SPRITES_ID]){',
-              'include basic enemy script cleanup'
-          )
-          old_tags = "const tags=`<script id=\"${CONTENT_ID}\" src=\"runtime/modes/blazing-road-content.js\"></script><script id=\"${RUNTIME_ID}\" src=\"runtime/modes/blazing-road-run.js\"></script><script id=\"${BOOT_ID}\">setTimeout(()=>{try{window.roadSyncCard?.(window.BlazingRoadRun?.loadRun?.())}catch(error){console.warn('Blazing Road card sync failed',error)}},0);<\\/script>`;"
-          new_tags = "const tags=`<script id=\"${BASIC_ENEMY_SPRITES_ID}\" src=\"runtime/modes/basic-enemy-sprites.js\"></script><script id=\"${CONTENT_ID}\" src=\"runtime/modes/blazing-road-content.js\"></script><script id=\"${RUNTIME_ID}\" src=\"runtime/modes/blazing-road-run.js\"></script><script id=\"${BOOT_ID}\">setTimeout(()=>{try{window.roadSyncCard?.(window.BlazingRoadRun?.loadRun?.())}catch(error){console.warn('Blazing Road card sync failed',error)}},0);<\\/script>`;"
-          if old_tags not in post:
-              raise SystemExit('runtime script tag anchor not found')
-          post = post.replace(old_tags, new_tags, 1)
-
-          post = sub_once(
-              post,
-              r'for\(const marker of \[\n',
-              'for(const marker of [\n  `id="${BASIC_ENEMY_SPRITES_ID}"`,\n  \'bbBasicEnemyId\',\n  \'BlazingBasicEnemySprites?.draw\',\n',
-              'add basic enemy build markers'
-          )
-          post_path.write_text(post)
-
-          # 3) Validation: verify all six lightweight IDs, installed sprite sheets, and
-          # the existing three-archetype difficulty curve without demanding inventory entries.
-          validator_path = Path('scripts/validate-blazing-road-content.mjs')
-          validator = validator_path.read_text()
-          insert_anchor = '\n\nconst stages=Array.from({length:10},(_,i)=>C.stageConfig(i+1));'
-          if insert_anchor not in validator:
-              raise SystemExit('validator stage anchor not found')
-          validation_block = r'''
-
-          const expectedBasicEnemyIds=['road_rookie','rogue_kunoichi','masked_scout','blond_rookie','purple_scarf_kunoichi','mist_rogue'];
-          const publishedBasicEnemyIds=Object.keys(C.BASIC_ENEMIES||{}).sort();
-          if(JSON.stringify(publishedBasicEnemyIds)!==JSON.stringify([...expectedBasicEnemyIds].sort()))throw new Error(`Basic enemy IDs mismatch: ${publishedBasicEnemyIds.join(', ')}`);
-          const packManifest=JSON.parse(await fs.readFile('assets/sprites/enemies/manifest.json','utf8'));
-          const manifestIds=(packManifest.units||[]).map(unit=>unit.id).sort();
-          if(JSON.stringify(manifestIds)!==JSON.stringify([...expectedBasicEnemyIds].sort()))throw new Error('Installed basic enemy manifest does not match runtime IDs');
-          for(const id of expectedBasicEnemyIds){
-           const def=C.BASIC_ENEMIES[id];
-           if(!def?.displayName||!C.BASE_ENEMY_STATS[def.statId])throw new Error(`Basic enemy ${id} has invalid display/stat mapping`);
-           for(const mode of ['idle','attack']){
-            const path=`assets/sprites/enemies/${id}/${id}_${mode}.png`;
-            const stat=await fs.stat(path);
-            if(stat.size<1024)throw new Error(`Basic enemy sheet is missing/empty: ${path}`);
-           }
-          }
-          '''
-          validator = validator.replace(insert_anchor, validation_block + insert_anchor, 1)
-
-          old_curve = " const a=first.enemies.find(enemy=>enemy.id===id)?.stats;\n const b=final.enemies.find(enemy=>enemy.id===id)?.stats;"
-          new_curve = " const a=first.enemies.find(enemy=>enemy.statId===id)?.stats;\n const b=final.enemies.find(enemy=>enemy.statId===id)?.stats;"
-          if old_curve not in validator:
-              raise SystemExit('curve validation anchor not found')
-          validator = validator.replace(old_curve, new_curve, 1)
-
-          stage_loop_anchor = "const first=stages[0],final=stages[9];"
-          seen_check = """const seenBasicEnemyIds=new Set(stages.flatMap(stage=>stage.enemies.map(enemy=>enemy.id)));
-          for(const id of expectedBasicEnemyIds)if(!seenBasicEnemyIds.has(id))throw new Error(`Basic enemy ${id} never appears in the 10-stage Road route`);
-
-          """
-          if stage_loop_anchor not in validator:
-              raise SystemExit('seen-enemy validation anchor not found')
-          validator = validator.replace(stage_loop_anchor, seen_check + stage_loop_anchor, 1)
-          validator_path.write_text(validator)
-          PY
-
           node scripts/validate-blazing-road-content.mjs
           node --check runtime/modes/basic-enemy-sprites.js
           node --check runtime/modes/blazing-road-content.js
           node --check scripts/blazing-road-postprocess.mjs
+          test ! -f blazing-battle-basic-enemy-sprites-v1.zip
+          test "$(find assets/sprites/enemies -mindepth 2 -maxdepth 2 -type f -name '*.png' | wc -l)" -eq 12
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add runtime/modes/blazing-road-content.js scripts/blazing-road-postprocess.mjs scripts/validate-blazing-road-content.mjs
-          if git diff --cached --quiet; then
-            echo "Runtime wiring already applied."
-            exit 0
-          fi
-          git commit -m "feat: wire six lightweight Road enemies"
-          git pull --rebase origin dev-next-2026-09-01
-          git push origin HEAD:dev-next-2026-09-01
+      - name: Full production build
+        run: npm run build
