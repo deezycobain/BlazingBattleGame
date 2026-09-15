@@ -29,8 +29,15 @@ jobs:
           test -f "$ZIP"
           TMP="$(mktemp -d)"
           unzip -q "$ZIP" -d "$TMP"
+          ROOT="$TMP/blazing-battle-basic-enemy-sprites-v1"
           echo "=== ARCHIVE FILES ==="
           find "$TMP" -type f -printf '%P\n' | sort
+          echo "=== README ==="
+          cat "$ROOT/README.md"
+          echo "=== MANIFEST ==="
+          cat "$ROOT/manifest.json"
+          echo "=== SHA256SUMS ==="
+          cat "$ROOT/SHA256SUMS.txt"
           echo "=== PNG METADATA ==="
           python3 - "$TMP" <<'PY'
           from pathlib import Path
