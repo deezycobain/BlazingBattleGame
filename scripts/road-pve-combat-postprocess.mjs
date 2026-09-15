@@ -32,7 +32,7 @@ delete units.senku.abilities.basic.presentation.close_retreat_max_px;
 delete units.senku.abilities.basic.presentation.close_retreat_duration_ms;
 delete units.senku.abilities.basic.presentation.close_retreat_frame_ms;
 delete units.senku.abilities.basic.presentation.close_bomb_release_ratio;
-units.senku.readiness={...(units.senku.readiness||{}),notes:'Road/PvE tuning: Explosive Bomb uses a 66 px circular range. After throwing, Senku retreats behind the nearest ally relative to the nearest living enemy and remains clamped to legal terrain.'};
+units.senku.readiness={...(units.senku.readiness||{}),notes:'Road/PvE tuning: Explosive Bomb uses a 66 px circular range. After throwing, Senku retreats behind the nearest ally relative to the enemy he attacked and remains clamped to legal terrain.'};
 html=html.replace(unitTag,(_,a,_json,c)=>a+JSON.stringify(units)+c);
 
 const retreatStart=html.indexOf('function animateSenkuRetreatBomb(');
@@ -55,7 +55,7 @@ const hideRetreat=`function animateSenkuRetreatBomb(unitName,pair,from,enemy,onH
   if(!allies.length){moveDone=true;finishIfReady();return;}
   const ally=[...allies].sort((a,b)=>d(pair,a)-d(pair,b))[0];
   const threats=(S.enemies||[]).filter(target=>target&&target.hp>0);
-  const threat=threats.length?[...threats].sort((a,b)=>d(ally,a)-d(ally,b))[0]:null;
+  const threat=enemy|| (threats.length?[...threats].sort((a,b)=>d(ally,a)-d(ally,b))[0]:null);
   let vx=threat?ally.x-threat.x:ally.x-pair.x;
   let vy=threat?ally.y-threat.y:ally.y-pair.y;
   let len=Math.hypot(vx,vy);
@@ -100,7 +100,7 @@ const tickCount=html.split(tickNeedle).length-1;
 if(tickCount!==1)throw new Error(`Road PvE tuning: expected one tick() anchor, found ${tickCount}`);
 html=html.replace(tickNeedle,"function tick(){\n window.BlazingRoadTurns?.beforeEngineTick?.(S);");
 
-for(const marker of ["basic_shape\":{\"type\":\"circle\",\"r\":58","basic_shape\":{\"type\":\"circle\",\"r\":66",'range_visual_scale":1','hide_distance_px','function animateSenkuRetreatBomb(unitName,pair,from,enemy,onHit,onFinish,kind)','BlazingRoadTurns?.beforeEngineTick?.(S)'])if(!html.includes(marker))throw new Error(`Road PvE tuning marker missing: ${marker}`);
+for(const marker of ["basic_shape\":{\"type\":\"circle\",\"r\":58","basic_shape\":{\"type\":\"circle\",\"r\":66",'range_visual_scale":1','hide_distance_px','const threat=enemy||','function animateSenkuRetreatBomb(unitName,pair,from,enemy,onHit,onFinish,kind)','BlazingRoadTurns?.beforeEngineTick?.(S)'])if(!html.includes(marker))throw new Error(`Road PvE tuning marker missing: ${marker}`);
 
 await fs.writeFile(file,html);
 console.log('Road PvE tuning PASS: speed-sorted round hook + compact aligned Sub-Zero range + circular Senku bomb + hide-behind-nearest-ally retreat installed.');
