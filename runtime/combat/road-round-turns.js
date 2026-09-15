@@ -2,10 +2,8 @@
 'use strict';
 
 const POLL_MS=12;
-const FORCED_SPEED=.01;
 const ROAD_COMBAT_SCALE=1.16;
 let stateRef=null,battleKey='',round=1,order=[],index=0,seenReady=false,timer=0;
-const originalSpeeds=new Map();
 
 const finite=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;
 const liveState=()=>{try{return globalThis.eval('S')}catch{return null}};
@@ -15,9 +13,9 @@ function normalizeName(value){return String(value||'').toLowerCase().replace(/[^
 function canonicalSpeed(unit){
  if(!unit)return 0;
  const match=Object.values(window.BLAZING_UNIT_DATA||{}).find(data=>normalizeName(data?.display_name)===normalizeName(unit.name));
- return Math.max(.01,finite(match?.stats?.speed,originalSpeeds.get(unit)??unit.speed??1));
+ return Math.max(.01,finite(match?.stats?.speed,unit.speed??1));
 }
-function authoredEnemySpeed(enemy){return Math.max(.01,finite(originalSpeeds.get(enemy)??enemy?.speed,1))}
+function authoredEnemySpeed(enemy){return Math.max(.01,finite(enemy?.speed,1))}
 function roadAlive(state){const shared=window.BlazingRoadSharedHp?.snapshot?.();if(shared?.active)return !!shared.alive;return finite(state?.bbRoadTeamHp,1)>0}
 function actorId(kind,ref,unit,index){const raw=String(unit?.id||unit?.name||`${kind}-${index}`).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');return `${kind}:${raw||index}`}
 function collect(state){
@@ -30,14 +28,9 @@ function sortInitiative(list){return list.slice().sort((a,b)=>b.speed-a.speed||(
 function keyFor(state){return `${state?.bbRoadRun?.run_id||'road'}:${state?.bbRoadStage||state?.bbRoadRun?.stage||1}`}
 function resetRound(state,{newBattle=false}={}){if(newBattle)round=1;else round++;order=sortInitiative(collect(state));index=0;seenReady=false}
 function current(state){while(index<order.length&&!isAlive(order[index],state))index++;if(index>=order.length){resetRound(state);while(index<order.length&&!isAlive(order[index],state))index++;}return order[index]||null}
-function rememberSpeed(actor){if(actor&&!originalSpeeds.has(actor))originalSpeeds.set(actor,finite(actor.speed,1))}
-function restoreSpeeds(){for(const [actor,speed] of originalSpeeds){if(actor)actor.speed=speed}originalSpeeds.clear()}
-function engineActors(state){return collect(state).map(entry=>({entry,gaugeOwner:entry.ref,speedOwner:entry.kind==='pair'?entry.unit:entry.ref}))}
+function engineActors(state){return collect(state).map(entry=>({entry,gaugeOwner:entry.ref}))}
 function enforce(state,selected){
- for(const item of engineActors(state)){
-  rememberSpeed(item.speedOwner);item.speedOwner.speed=FORCED_SPEED;
-  if(item.gaugeOwner)item.gaugeOwner.gauge=item.entry.ref===selected?.ref?100:0;
- }
+ for(const item of engineActors(state))if(item.gaugeOwner)item.gaugeOwner.gauge=item.entry.ref===selected?.ref?100:0;
 }
 function cancelWrongReady(state,selected){
  const ready=state?.ready;
@@ -62,12 +55,12 @@ function patchRoadScale(){
 }
 function syncState(state=liveState()){
  if(!state||state.bbRunMode!=='road'||!activeBattle()){
-  if(stateRef){restoreSpeeds();stateRef=null;battleKey='';order=[];index=0;seenReady=false;round=1}
+  if(stateRef){stateRef=null;battleKey='';order=[];index=0;seenReady=false;round=1}
   return null;
  }
  patchRoadScale();
  const key=keyFor(state);
- if(state!==stateRef||key!==battleKey){restoreSpeeds();stateRef=state;battleKey=key;resetRound(state,{newBattle:true})}
+ if(state!==stateRef||key!==battleKey){stateRef=state;battleKey=key;resetRound(state,{newBattle:true})}
  const selected=current(state);if(!selected)return null;
  if(window.BlazingRoadCamera?.isCombatLocked?.()){for(const item of engineActors(state))if(item.gaugeOwner)item.gaugeOwner.gauge=0;return selected}
  cancelWrongReady(state,selected);
@@ -96,5 +89,5 @@ function snapshot({limit=5}={}){
 window.BlazingRoadTurns=Object.freeze({snapshot,beforeEngineTick,sync:()=>syncState(),get round(){return round}});
 function boot(){patchRoadScale();syncState();timer=window.setInterval(()=>syncState(),POLL_MS)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-window.addEventListener('pagehide',()=>{window.clearInterval(timer);restoreSpeeds()},{once:true});
+window.addEventListener('pagehide',()=>window.clearInterval(timer),{once:true});
 })();
