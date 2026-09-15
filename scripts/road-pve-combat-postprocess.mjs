@@ -11,7 +11,8 @@ const units=JSON.parse(unitMatch[2]);
 if(!units.senku||!units.subzero)throw new Error('Road PvE tuning: Senku/Sub-Zero canonical data missing');
 
 units.subzero.combat.basic_shape={type:'circle',r:58};
-units.subzero.readiness={...(units.subzero.readiness||{}),notes:'Road/PvE tuning: Basic uses a compact 58 px close-range circle. Freeze Blast presentation is unchanged.'};
+units.subzero.abilities.basic.presentation={...(units.subzero.abilities.basic.presentation||{}),range_visual_scale:1};
+units.subzero.readiness={...(units.subzero.readiness||{}),notes:'Road/PvE tuning: Basic uses a compact 58 px close-range circle with matching visual/mechanical radius. Freeze Blast presentation is unchanged.'};
 units.senku.combat.basic_shape={type:'circle',r:66};
 units.senku.abilities.basic.delivery='hide_retreat_projectile';
 units.senku.abilities.basic.range_presentation='circular_bomb_range';
@@ -99,7 +100,7 @@ const tickCount=html.split(tickNeedle).length-1;
 if(tickCount!==1)throw new Error(`Road PvE tuning: expected one tick() anchor, found ${tickCount}`);
 html=html.replace(tickNeedle,"function tick(){\n window.BlazingRoadTurns?.beforeEngineTick?.(S);");
 
-for(const marker of ["basic_shape\":{\"type\":\"circle\",\"r\":58","basic_shape\":{\"type\":\"circle\",\"r\":66",'hide_distance_px','function animateSenkuRetreatBomb(unitName,pair,from,enemy,onHit,onFinish,kind)','BlazingRoadTurns?.beforeEngineTick?.(S)'])if(!html.includes(marker))throw new Error(`Road PvE tuning marker missing: ${marker}`);
+for(const marker of ["basic_shape\":{\"type\":\"circle\",\"r\":58","basic_shape\":{\"type\":\"circle\",\"r\":66",'range_visual_scale":1','hide_distance_px','function animateSenkuRetreatBomb(unitName,pair,from,enemy,onHit,onFinish,kind)','BlazingRoadTurns?.beforeEngineTick?.(S)'])if(!html.includes(marker))throw new Error(`Road PvE tuning marker missing: ${marker}`);
 
 await fs.writeFile(file,html);
-console.log('Road PvE tuning PASS: speed-sorted round hook + compact Sub-Zero range + circular Senku bomb + hide-behind-nearest-ally retreat installed.');
+console.log('Road PvE tuning PASS: speed-sorted round hook + compact aligned Sub-Zero range + circular Senku bomb + hide-behind-nearest-ally retreat installed.');
