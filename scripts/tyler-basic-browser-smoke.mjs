@@ -45,6 +45,12 @@ async function run(name,type){
    const pair=s.pairs.find(p=>front(p)?.name==='Tyler');
    const enemy=s.enemies.find(e=>e?.hp>0);
    if(!pair||!enemy)return {error:'Tyler or living enemy missing',fighters:s.pairs.map(p=>front(p)?.name),enemies:s.enemies.length};
+
+   // This test owns the animation lifecycle directly. Freeze the live battle engine so
+   // Road's real initiative scheduler cannot advance ACTIVE_ACTION_TOKEN underneath it.
+   // The Road initiative behavior is covered separately by road-gameplay-browser-smoke.
+   const wasPaused=window.BlazingBattlePause?.isPaused?.()||false;
+   if(!wasPaused)window.BlazingBattlePause?.pause?.();
    const wasReady=body.basic.ready;
    body.basic.ready=false;
    const before=enemy.hp,start=performance.now();
@@ -64,7 +70,8 @@ async function run(name,type){
     }catch(error){clearTimeout(timer);finish({error:String(error?.stack||error),impactCount,doneCount,hp:enemy.hp,elapsed:performance.now()-start})}
    });
    body.basic.ready=wasReady;
-   return {...outcome,before,after:enemy.hp,wasReady};
+   if(!wasPaused)window.BlazingBattlePause?.resume?.();
+   return {...outcome,before,after:enemy.hp,wasReady,isolated:true};
   },hardTimeoutMs);
   if(result.error)throw new Error(`runtime error: ${JSON.stringify(result)}`);
   if(result.timedOut)throw new Error(`Tyler Basic timed out after ${hardTimeoutMs}ms: ${JSON.stringify(result)}`);
@@ -72,7 +79,7 @@ async function run(name,type){
   if(!(result.after<result.before))throw new Error(`Tyler Basic impact did not apply damage: ${JSON.stringify(result)}`);
   if(result.elapsed>maxLifecycleMs)throw new Error(`Tyler Basic lifecycle exceeded ${name} CI ceiling ${maxLifecycleMs}ms: ${JSON.stringify(result)}`);
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Tyler Basic smoke PASS (${name}): impact + damage + completion succeeded with authored Basic readiness forced false in ${Math.round(result.elapsed)}ms.`);
+  console.log(`Tyler Basic smoke PASS (${name}): isolated impact + damage + completion succeeded with authored Basic readiness forced false in ${Math.round(result.elapsed)}ms.`);
   await context.close();
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
