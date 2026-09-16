@@ -16,9 +16,16 @@ const DEFINITIONS=Object.freeze({
   // sheet. Quarantine it until a corrected Rogue attack sheet replaces that asset so
   // the battlefield never flashes a different character mid-attack.
   rogue_kunoichi:Object.freeze({id:'rogue_kunoichi',displayName:'Rogue Kunoichi',attackType:'side_kick',attackFallback:'procedural_lunge'}),
-  masked_scout:Object.freeze({id:'masked_scout',displayName:'Masked Scout',attackType:'kunai_slash'}),
-  blond_rookie:Object.freeze({id:'blond_rookie',displayName:'Blond Rookie',attackType:'straight_punch'}),
-  purple_scarf_kunoichi:Object.freeze({id:'purple_scarf_kunoichi',displayName:'Purple Scarf Kunoichi',attackType:'palm_strike'}),
+  // Frame 2 contains a detached left-edge hand/kunai spill from the preceding source
+  // frame. Trim only that contaminated edge at render time; preserve the authored PNG.
+  masked_scout:Object.freeze({id:'masked_scout',displayName:'Masked Scout',attackType:'kunai_slash',attackFrameTrims:Object.freeze({2:Object.freeze({minLeft:72})})}),
+  // Frame 2 has a much smaller left-edge spill. A light trim removes the orphaned
+  // sliver without changing the actual punch silhouette or animation timing.
+  blond_rookie:Object.freeze({id:'blond_rookie',displayName:'Blond Rookie',attackType:'straight_punch',attackFrameTrims:Object.freeze({2:Object.freeze({minLeft:20})})}),
+  // The packaged Purple Scarf idle is the same contaminated red-Rogue kick sheet used
+  // by Rogue's bad attack. Keep the correct Purple Scarf attack art and derive a quiet
+  // breathing stance from its clean recovery frame until a real idle sheet is supplied.
+  purple_scarf_kunoichi:Object.freeze({id:'purple_scarf_kunoichi',displayName:'Purple Scarf Kunoichi',attackType:'palm_strike',idleFallback:'attack_stance'}),
   mist_rogue:Object.freeze({id:'mist_rogue',displayName:'Mist Rogue',attackType:'quick_strike'})
 });
 
@@ -149,14 +156,23 @@ function frameIndex(attackState,idlePhase=0){
   return IDLE_SEQUENCE[step];
 }
 
-function drawNormalizedFrame(ctx,sheet,frame,renderHeight){
+function drawNormalizedFrame(ctx,sheet,frame,renderHeight,trim=null){
   const baseScale=renderHeight/FRAME_HEIGHT;
   const metrics=metricsCache.get(sheet)||analyzeSheet(sheet);
-  const info=metrics&&metrics.frames?.[frame];
-  if(!info){
+  const rawInfo=metrics&&metrics.frames?.[frame];
+  if(!rawInfo){
     const w=renderHeight*(FRAME_WIDTH/FRAME_HEIGHT);
     ctx.drawImage(sheet,frame*FRAME_WIDTH,0,FRAME_WIDTH,FRAME_HEIGHT,-w/2,-renderHeight+12,w,renderHeight);
     return;
+  }
+
+  let info=rawInfo;
+  if(trim){
+    const requestedLeft=Number(trim.minLeft);
+    const left=Number.isFinite(requestedLeft)?Math.max(rawInfo.left,Math.min(rawInfo.right-1,requestedLeft)):rawInfo.left;
+    const right=rawInfo.right,top=rawInfo.top,bottom=rawInfo.bottom;
+    const width=Math.max(1,right-left+1),height=Math.max(1,bottom-top+1);
+    info={left,right,top,bottom,width,height,centerX:(left+right+1)/2};
   }
 
   // Generated sheets can carry slightly different transparent margins from frame to
@@ -192,6 +208,18 @@ function drawRogueFallbackAttack(ctx,record,attackState,renderHeight){
   return true;
 }
 
+function drawAttackStanceFallback(ctx,record,idlePhase,renderHeight){
+  if(!ready(record.attack))return false;
+  const t=(performance.now()+(Number(idlePhase)||0)*7)/1000;
+  const breathe=Math.sin(t*Math.PI*1.3);
+  ctx.save();
+  ctx.translate(0,-.45*breathe);
+  ctx.rotate(.004*breathe);
+  drawNormalizedFrame(ctx,record.attack,3,renderHeight);
+  ctx.restore();
+  return true;
+}
+
 function draw(ctx,name,{attackState=null,idlePhase=0,sizeScale=1,unitRenderScale=1}={}){
   const record=ensure(name);
   if(!record)return false;
@@ -201,11 +229,15 @@ function draw(ctx,name,{attackState=null,idlePhase=0,sizeScale=1,unitRenderScale
   if(attackState&&record.def.attackFallback==='procedural_lunge'){
     return drawRogueFallbackAttack(ctx,record,attackState,h);
   }
+  if(!attackState&&record.def.idleFallback==='attack_stance'){
+    return drawAttackStanceFallback(ctx,record,idlePhase,h);
+  }
 
   const sheet=attackState?record.attack:record.idle;
   if(!ready(sheet))return false;
   const frame=frameIndex(attackState,idlePhase);
-  drawNormalizedFrame(ctx,sheet,frame,h);
+  const trim=attackState?record.def.attackFrameTrims?.[frame]||null:null;
+  drawNormalizedFrame(ctx,sheet,frame,h,trim);
   return true;
 }
 
