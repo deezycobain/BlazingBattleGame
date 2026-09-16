@@ -5,13 +5,17 @@ const FRAME_WIDTH=543;
 const FRAME_HEIGHT=724;
 const FRAME_COUNT=4;
 const IDLE_SEQUENCE=Object.freeze([0,1,2,3,2,1]);
+const ROGUE_FALLBACK_ATTACK_SEQUENCE=Object.freeze([1,2,3,2]);
 const ROOT='assets/sprites/enemies';
 const ALPHA_THRESHOLD=18;
 const SAMPLE_STEP=2;
 
 const DEFINITIONS=Object.freeze({
   road_rookie:Object.freeze({id:'road_rookie',displayName:'Road Rookie',attackType:'straight_punch'}),
-  rogue_kunoichi:Object.freeze({id:'rogue_kunoichi',displayName:'Rogue Kunoichi',attackType:'side_kick'}),
+  // The packaged Rogue attack file is byte-for-byte the Purple Scarf Kunoichi idle
+  // sheet. Quarantine it until a corrected Rogue attack sheet replaces that asset so
+  // the battlefield never flashes a different character mid-attack.
+  rogue_kunoichi:Object.freeze({id:'rogue_kunoichi',displayName:'Rogue Kunoichi',attackType:'side_kick',attackFallback:'procedural_lunge'}),
   masked_scout:Object.freeze({id:'masked_scout',displayName:'Masked Scout',attackType:'kunai_slash'}),
   blond_rookie:Object.freeze({id:'blond_rookie',displayName:'Blond Rookie',attackType:'straight_punch'}),
   purple_scarf_kunoichi:Object.freeze({id:'purple_scarf_kunoichi',displayName:'Purple Scarf Kunoichi',attackType:'palm_strike'}),
@@ -123,18 +127,23 @@ function ensure(value){
 function preload(value){return !!ensure(value);}
 function preloadMany(values){for(const value of values||[])ensure(value);}
 
+function attackProgress(attackState){
+  const duration=Math.max(1,Number(attackState?.duration)||400);
+  const elapsed=Math.max(0,performance.now()-Number(attackState?.start||0));
+  return Math.max(0,Math.min(.9999,elapsed/duration));
+}
+
+function attackFrame(progress){
+  // Give the readable contact pose a little more screen time instead of flashing
+  // evenly through four generated frames.
+  if(progress<.22)return 0;
+  if(progress<.47)return 1;
+  if(progress<.72)return 2;
+  return 3;
+}
+
 function frameIndex(attackState,idlePhase=0){
-  if(attackState){
-    const duration=Math.max(1,Number(attackState.duration)||400);
-    const elapsed=Math.max(0,performance.now()-Number(attackState.start||0));
-    const progress=Math.max(0,Math.min(.9999,elapsed/duration));
-    // Give the readable contact pose a little more screen time instead of flashing
-    // evenly through four generated frames.
-    if(progress<.22)return 0;
-    if(progress<.47)return 1;
-    if(progress<.72)return 2;
-    return 3;
-  }
+  if(attackState)return attackFrame(attackProgress(attackState));
   const offset=(Number(idlePhase)||0)*7;
   const step=Math.floor((performance.now()+offset)/200)%IDLE_SEQUENCE.length;
   return IDLE_SEQUENCE[step];
@@ -166,14 +175,36 @@ function drawNormalizedFrame(ctx,sheet,frame,renderHeight){
   );
 }
 
+function drawRogueFallbackAttack(ctx,record,attackState,renderHeight){
+  if(!ready(record.idle))return false;
+  const progress=attackProgress(attackState);
+  const phase=attackFrame(progress);
+  const frame=ROGUE_FALLBACK_ATTACK_SEQUENCE[phase];
+  // Preserve the Rogue art while still giving the attack a readable wind-up/lunge/
+  // recovery beat. Caller-facing transforms make +X travel toward the target.
+  const thrust=Math.sin(Math.PI*progress);
+  const contact=Math.sin(Math.PI*Math.min(1,progress/.72));
+  ctx.save();
+  ctx.translate(5.5*thrust,-1.25*contact);
+  ctx.rotate(-.025*thrust);
+  drawNormalizedFrame(ctx,record.idle,frame,renderHeight);
+  ctx.restore();
+  return true;
+}
+
 function draw(ctx,name,{attackState=null,idlePhase=0,sizeScale=1,unitRenderScale=1}={}){
   const record=ensure(name);
   if(!record)return false;
+  const h=62*(Number(sizeScale)||1)*(Number(unitRenderScale)||1);
+  ctx.imageSmoothingEnabled=true;
+
+  if(attackState&&record.def.attackFallback==='procedural_lunge'){
+    return drawRogueFallbackAttack(ctx,record,attackState,h);
+  }
+
   const sheet=attackState?record.attack:record.idle;
   if(!ready(sheet))return false;
   const frame=frameIndex(attackState,idlePhase);
-  const h=62*(Number(sizeScale)||1)*(Number(unitRenderScale)||1);
-  ctx.imageSmoothingEnabled=true;
   drawNormalizedFrame(ctx,sheet,frame,h);
   return true;
 }
