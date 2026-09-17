@@ -4,7 +4,7 @@
 const KEY='blazing.unitProgression.v1';
 const LEGACY_KEY='blazing.progression.v1';
 const VERSION=1;
-const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler'];
+const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi'];
 const AWAKENING_COSTS=Object.freeze([1,1,1,1,2]);
 const CAPS=Object.freeze([10,20,30,40,50,50]);
 const MAX_LEVEL=50;
@@ -105,9 +105,6 @@ function grantXp(name,amount){
   return {name,earned,levelsGained:levels,level:next.level,xp:next.xp,cap:capForAwakening(next.awakening),locked:isAtGate(next),discarded:remaining,unit:clone(next)};
 }
 function battleXpFor({mode,stage=1,boss=1}={}){
-  // Road is intentionally front-loaded so a fresh fighter feels meaningful growth after
-  // the first clear. Natural per-level XP requirements still slow progression later,
-  // and Awakening gates hard-stop spillover between ten-level bands.
   if(mode==='road')return 650+Math.max(0,Math.floor(Number(stage)||1)-1)*60;
   if(mode==='castle')return 900+Math.max(0,Math.floor(Number(boss)||1)-1)*125;
   return 0;

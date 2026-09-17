@@ -223,6 +223,67 @@
       },
       "vfx": {}
     },
+    "itachi": {
+      "animations": {
+        "idle": {
+          "resource_id": "itachi.animation.idle",
+          "path": "assets/characters/itachi/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame authored Itachi idle with fixed 420x420 runtime anchor."
+        },
+        "basic_attack": {
+          "resource_id": "itachi.animation.basic_attack",
+          "path": "assets/characters/itachi/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Crow Chakra Strike body animation."
+        },
+        "tsukuyomi_cast": {
+          "resource_id": "itachi.animation.jutsu.tsukuyomi.cast",
+          "path": "assets/characters/itachi/sprites/runtime/jutsu/tsukuyomi/cast/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Tsukuyomi casting body animation; full-screen and target illusion artwork remain separate VFX resources."
+        }
+      },
+      "vfx": {
+        "crow_chakra_burst": {
+          "resource_id": "itachi.vfx.basic.crow_chakra_burst",
+          "path": "assets/characters/itachi/vfx/basic/crows/crow_chakra_burst.png"
+        },
+        "crow_swarm": {
+          "resource_id": "itachi.vfx.basic.crow_swarm",
+          "path": "assets/characters/itachi/vfx/basic/crows/crow_swarm.png"
+        },
+        "crow_vortex_ring": {
+          "resource_id": "itachi.vfx.basic.crow_vortex_ring",
+          "path": "assets/characters/itachi/vfx/basic/crows/crow_vortex_ring.png"
+        },
+        "crow_featherstorm": {
+          "resource_id": "itachi.vfx.basic.crow_featherstorm",
+          "path": "assets/characters/itachi/vfx/basic/crows/crow_featherstorm.png"
+        },
+        "tsukuyomi_overlay": {
+          "resource_id": "itachi.vfx.jutsu.tsukuyomi.overlay",
+          "path": "assets/characters/itachi/vfx/jutsu/tsukuyomi/overlay/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime"
+        },
+        "tsukuyomi_mandala": {
+          "resource_id": "itachi.vfx.jutsu.tsukuyomi.mandala",
+          "path": "assets/characters/itachi/vfx/jutsu/tsukuyomi/mandala/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime"
+        },
+        "tsukuyomi_target": {
+          "resource_id": "itachi.vfx.jutsu.tsukuyomi.target",
+          "path": "assets/characters/itachi/vfx/jutsu/tsukuyomi/target/",
+          "required_runtime_frames": 5,
+          "renderer": "BlazingFrameRuntime"
+        }
+      }
+    },
     "anubis": {
       "animations": {
         "idle": {
