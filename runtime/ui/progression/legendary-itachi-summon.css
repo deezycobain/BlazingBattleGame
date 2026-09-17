@@ -1,0 +1,59 @@
+/* Blazing Battle Legendary Itachi summon cinematic v1.0 */
+#summonPullScreen .bb-itachi-stage-vfx{position:absolute;left:50%;top:50%;z-index:6;width:100%;height:100%;pointer-events:none;overflow:visible;transform:translate3d(-50%,-50%,0);contain:layout style;opacity:0}
+#summonPullScreen .bb-itachi-stage-vfx img{position:absolute;left:50%;top:50%;display:block;height:auto;object-fit:contain;opacity:0;pointer-events:none;transform:translate3d(-50%,-50%,0);transform-origin:50% 50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;will-change:transform,opacity,filter}
+#summonPullScreen .bb-itachi-environment{width:158%;z-index:1}
+#summonPullScreen .bb-itachi-ring{width:151%;z-index:2}
+#summonPullScreen .bb-itachi-ring-flame{width:160%;z-index:2}
+#summonPullScreen .bb-itachi-ring-outer{width:150%;z-index:3}
+#summonPullScreen .bb-itachi-ring-middle{width:143%;z-index:4}
+#summonPullScreen .bb-itachi-ring-inner{width:133%;z-index:5}
+#summonPullScreen .bb-itachi-ring-orbit{width:128%;z-index:6}
+#summonPullScreen .bb-itachi-shadow-lotus{width:128%;z-index:7;mix-blend-mode:screen}
+#summonPullScreen .bb-itachi-character{width:132%;z-index:10}
+#summonPullScreen .bb-itachi-raven-burst{width:172%;z-index:13}
+#summonPullScreen .bb-itachi-feather-vortex{width:172%;z-index:14;mix-blend-mode:screen}
+#summonPullScreen .bb-itachi-flash{width:190%;z-index:20;mix-blend-mode:screen}
+#summonPullScreen .bb-itachi-reveal{z-index:12}
+#summonPullScreen .bb-itachi-silhouette{z-index:11}
+#summonPullScreen .pullScene[data-bb-special-reveal="itachi"] .bb-portal-stage-vfx,#summonPullScreen .pullScene[data-bb-special-reveal="itachi"] .bb-portal-charge-vfx,#summonPullScreen .pullScene[data-bb-special-reveal="itachi"] .bb-card-stage-vfx{display:none!important}
+#summonPullScreen .pullScene[data-bb-special-reveal="itachi"].bb-cinematic-preparing .bb-card-flipper,#summonPullScreen .pullScene[data-bb-special-reveal="itachi"].bb-cinematic-running .bb-card-flipper{opacity:0!important;animation:none!important}
+#summonPullScreen .pullScene[data-bb-special-reveal="itachi"].bb-cinematic-running .bb-itachi-stage-vfx{opacity:1}
+#summonPullScreen .pullScene[data-bb-special-reveal="itachi"] .pullCardWrap{filter:drop-shadow(0 0 26px rgba(128,11,16,.18))}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-environment{animation:bbItachiEnvironment 2.8s ease-out 0s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-flame{animation:bbItachiFlame 2.55s linear 0s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-outer{animation:bbItachiOuter 1.75s linear .80s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-middle{animation:bbItachiMiddle 1.75s linear .80s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-inner{animation:bbItachiInner 1.75s linear .80s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-orbit{animation:bbItachiOrbit .85s cubic-bezier(.18,.72,.22,1) 1.70s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-shadow-lotus{animation:bbItachiShadowLotus 1.02s ease-out 2.64s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-silhouette{animation:bbItachiSilhouette .68s cubic-bezier(.18,.72,.2,1) 2.86s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-raven-burst{animation:bbItachiRavens .92s cubic-bezier(.16,.75,.2,1) 3.34s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-feather-vortex{animation:bbItachiFeathers 1.72s ease-out 3.30s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-flash{animation:bbItachiFlash .54s ease-out 3.39s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-reveal{animation:bbItachiReveal 1.80s cubic-bezier(.16,.78,.18,1) 3.43s both!important}
+#summonPullScreen .pullScene[data-bb-itachi-stage="reveal"] .bb-itachi-ring-orbit,#summonPullScreen .pullScene[data-bb-itachi-stage="settle"] .bb-itachi-ring-orbit{opacity:.14!important;transition:opacity .26s ease-out!important}
+#summonPullScreen .pullScene[data-bb-itachi-stage="reveal"] .bb-itachi-ring-middle,#summonPullScreen .pullScene[data-bb-itachi-stage="settle"] .bb-itachi-ring-middle{filter:brightness(.72) saturate(.86)}
+#summonPullScreen .pullScene[data-bb-special-reveal="itachi"][data-bb-itachi-stage="handoff"] .bb-itachi-stage-vfx{opacity:0!important;transition:opacity .14s ease-out}
+#summonPullScreen .pullScene[data-bb-special-reveal="itachi"][data-bb-itachi-stage="handoff"] .bb-card-flipper{opacity:1!important;transform:rotateY(180deg)!important;animation:bbItachiCardHandoff .28s cubic-bezier(.16,.82,.2,1) both!important}
+#summonPullScreen .pullScene[data-bb-special-reveal="itachi"][data-bb-itachi-stage="handoff"] .bb-card-front .summonedTradingCard{opacity:1!important;transform:scale(1)!important}
+#summonPullScreen .pullScene[data-bb-special-reveal="itachi"] .bb-card-rarityplate{color:#f0b74b;text-shadow:0 1px 2px #000,0 0 10px rgba(222,47,31,.62)}
+#summonPullScreen #pullResultsGrid .bb-legendary-itachi-result{border-color:#a52b25!important;box-shadow:inset 0 1px rgba(255,255,255,.58),0 0 0 1px rgba(217,155,63,.32),0 7px 18px rgba(90,10,10,.22)!important}
+#summonPullScreen .bb-itachi-dev-summon,#summonScreen .bb-itachi-dev-summon{appearance:none;border:1px solid rgba(200,153,73,.72);border-radius:14px;background:linear-gradient(145deg,#28100f,#10090a 58%,#241413);color:#f6dfb6;min-height:66px;padding:10px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;box-shadow:inset 0 1px rgba(255,235,190,.12),0 7px 16px rgba(22,5,5,.2);cursor:pointer}
+#summonPullScreen .bb-itachi-dev-summon strong,#summonScreen .bb-itachi-dev-summon strong{font:800 clamp(12px,3.1vw,15px)/1.1 var(--bb-font-animeace,'AnimeAce2',sans-serif);letter-spacing:.05em;color:#f1c069}
+#summonPullScreen .bb-itachi-dev-summon span,#summonScreen .bb-itachi-dev-summon span{font:700 9px/1.2 system-ui,sans-serif;letter-spacing:.14em;color:#c7867b}
+#summonPullScreen .bb-itachi-dev-summon:active,#summonScreen .bb-itachi-dev-summon:active{transform:translateY(1px)}
+@keyframes bbItachiEnvironment{0%{opacity:0;transform:translate3d(-50%,-50%,0) scale(.88);filter:brightness(.65)}28%{opacity:.52}55%{opacity:.82;filter:brightness(.9)}100%{opacity:.72;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.8)}}
+@keyframes bbItachiFlame{0%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(0deg) scale(.90);filter:brightness(.65)}18%{opacity:.78}100%{opacity:.86;transform:translate3d(-50%,-50%,0) rotate(10.2deg) scale(1);filter:brightness(1)}}
+@keyframes bbItachiOuter{0%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(0deg) scale(.93)}18%{opacity:.9}100%{opacity:.94;transform:translate3d(-50%,-50%,0) rotate(-10.5deg) scale(1)}}
+@keyframes bbItachiMiddle{0%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(0deg) scale(.93)}20%{opacity:.78}100%{opacity:.88;transform:translate3d(-50%,-50%,0) rotate(15.75deg) scale(1)}}
+@keyframes bbItachiInner{0%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(0deg) scale(.92)}20%{opacity:.72}100%{opacity:.86;transform:translate3d(-50%,-50%,0) rotate(-24.5deg) scale(1)}}
+@keyframes bbItachiOrbit{0%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(0deg) scale(.88);filter:brightness(.7)}22%{opacity:.92}82%{opacity:1;filter:brightness(1.25)}100%{opacity:.96;transform:translate3d(-50%,-50%,0) rotate(17deg) scale(1);filter:brightness(1)}}
+@keyframes bbItachiShadowLotus{0%{opacity:0;transform:translate3d(-50%,-46%,0) scale(.72);filter:blur(4px)}45%{opacity:.48;filter:blur(0)}100%{opacity:.16;transform:translate3d(-50%,-50%,0) scale(1.08);filter:blur(0)}}
+@keyframes bbItachiSilhouette{0%{opacity:0;transform:translate3d(-50%,-48%,0) scale(.92);filter:brightness(.3)}30%{opacity:1}72%{opacity:1;filter:brightness(.8)}100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.01);filter:brightness(1.2)}}
+@keyframes bbItachiRavens{0%{opacity:0;transform:translate3d(-50%,-50%,0) scale(.55)}20%{opacity:1}62%{opacity:.94;transform:translate3d(-50%,-50%,0) scale(1.04)}100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.18)}}
+@keyframes bbItachiFeathers{0%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(-5deg) scale(.72)}16%{opacity:.85}56%{opacity:.68}100%{opacity:.16;transform:translate3d(-50%,-50%,0) rotate(8deg) scale(1.14)}}
+@keyframes bbItachiFlash{0%{opacity:0;transform:translate3d(-50%,-50%,0) scale(.45)}22%{opacity:1}43%{opacity:.86;transform:translate3d(-50%,-50%,0) scale(.98)}100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.18)}}
+@keyframes bbItachiReveal{0%{opacity:0;transform:translate3d(-50%,-47%,0) scale(.93);filter:brightness(1.8) saturate(.7)}16%{opacity:1;filter:brightness(1.16) saturate(1.08)}58%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1.018);filter:brightness(1)}100%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.96)}}
+@keyframes bbItachiCardHandoff{0%{opacity:0;transform:rotateY(180deg) translateY(9px) scale(.96)}100%{opacity:1;transform:rotateY(180deg) translateY(0) scale(1)}}
+@media (max-width:560px){#summonPullScreen .bb-itachi-stage-vfx{width:96%}#summonPullScreen .bb-itachi-character{width:138%}#summonPullScreen .bb-itachi-raven-burst,#summonPullScreen .bb-itachi-feather-vortex{width:178%}}
+@media (prefers-reduced-motion:reduce){#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-stage-vfx img{animation-duration:.16s!important;animation-delay:0s!important}}
