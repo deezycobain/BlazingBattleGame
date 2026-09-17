@@ -30,6 +30,13 @@ jobs:
           exit 1
       - name: Chromium + WebKit local boot smoke
         run: npm run smoke:browser
+      - name: Chromium + WebKit local Itachi integration smoke
+        if: always()
+        run: |
+          status=0
+          node scripts/legendary-itachi-browser-smoke.mjs || status=$?
+          node scripts/itachi-battle-browser-smoke.mjs || status=$?
+          exit $status
       - name: Save Home browser screenshots
         if: always()
         uses: actions/upload-artifact@v4
