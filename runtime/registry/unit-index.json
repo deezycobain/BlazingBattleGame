@@ -6,6 +6,7 @@
     {"id":"subzero","path":"assets/characters/subzero/data/unit.json"},
     {"id":"lebee","path":"assets/characters/lebee/data/unit.json"},
     {"id":"tyler","path":"assets/characters/tyler/data/unit.json"},
+    {"id":"itachi","path":"assets/characters/itachi/data/unit.json"},
     {"id":"anubis","path":"assets/characters/anubis/data/unit.json"}
   ]
 }
