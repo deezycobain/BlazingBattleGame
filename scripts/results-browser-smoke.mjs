@@ -19,6 +19,15 @@ async function waitMode(page,mode){
   },mode,{timeout:15000});
 }
 
+async function waitRoadSyntheticWinReady(page){
+  await page.waitForFunction(()=>{
+    try{
+      const s=globalThis.eval('S'),run=window.BlazingRoadRun?.loadRun?.(),camera=window.BlazingRoadCamera?.snapshot?.();
+      return s?.bbRunMode==='road'&&run?.status==='active'&&Number(run?.stage)===Number(s?.bbRoadStage||1)&&camera?.active&&camera?.mode==='combat'&&!window.BlazingRoadCamera?.isCombatLocked?.();
+    }catch{return false}
+  },null,{timeout:12000});
+}
+
 async function openBattle(page){
   const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');
   if(!await panel.isVisible())await page.locator('#bbHomeApproved [data-nav="battle"]').click();
@@ -29,6 +38,7 @@ async function launchMode(page,mode){
   await openBattle(page);
   await page.locator(`#bbHomeApproved [data-mode="${mode}"]`).click();
   await waitMode(page,mode==='road'?'road':'castle');
+  if(mode==='road')await waitRoadSyntheticWinReady(page);
 }
 
 async function win(page){
