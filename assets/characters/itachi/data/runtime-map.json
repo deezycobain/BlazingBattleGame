@@ -1,0 +1,69 @@
+{
+  "schema_version": 4,
+  "unit_id": "itachi",
+  "source_unit_data": "assets/characters/itachi/data/unit.json",
+  "abilities": {
+    "crow_chakra_strike": {
+      "slot": "basic",
+      "animation_id": "itachi.animation.basic_attack",
+      "runtime_handler": "animateItachiCrowStrike",
+      "gameplay_actions": [
+        {
+          "event": "on_crow_impact",
+          "action_id": "damage_target",
+          "parameters": {
+            "multiplier_source": "abilities.basic.damage_multiplier"
+          }
+        }
+      ],
+      "vfx": {
+        "release": "itachi.vfx.basic.crow_chakra_burst",
+        "swarm": "itachi.vfx.basic.crow_swarm"
+      },
+      "projectile_presentation": {
+        "trajectory": "direct",
+        "cast_duration_ms": 540,
+        "flight_duration_ms": 260,
+        "impact_duration_ms": 360
+      }
+    },
+    "tsukuyomi": {
+      "slot": "jutsu",
+      "animation_id": "itachi.animation.jutsu.tsukuyomi.cast",
+      "runtime_handler": "animateItachiTsukuyomi",
+      "cost_source": "abilities.jutsu.cost",
+      "gameplay_actions": [
+        {
+          "event": "on_target_impact",
+          "action_id": "damage_target",
+          "parameters": {
+            "multiplier_source": "abilities.jutsu.damage_multiplier"
+          }
+        },
+        {
+          "event": "on_target_impact",
+          "action_id": "reduce_target_gauge",
+          "parameters": {
+            "amount_source": "abilities.jutsu.gauge_reduction",
+            "minimum_gauge": 0
+          }
+        }
+      ],
+      "vfx": {
+        "overlay": "itachi.vfx.jutsu.tsukuyomi.overlay",
+        "mandala": "itachi.vfx.jutsu.tsukuyomi.mandala",
+        "target": "itachi.vfx.jutsu.tsukuyomi.target"
+      },
+      "projectile_presentation": {
+        "trajectory": "none",
+        "cast_duration_ms": 845,
+        "overlay_duration_ms": 690,
+        "target_duration_ms": 555,
+        "screen_dim_alpha": 0.38
+      }
+    }
+  },
+  "states": {
+    "idle": "itachi.animation.idle"
+  }
+}
