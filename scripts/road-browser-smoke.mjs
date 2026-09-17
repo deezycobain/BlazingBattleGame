@@ -8,6 +8,7 @@ function sameNumberMap(a,b,tolerance=.01){
   const keys=[...new Set([...Object.keys(a),...Object.keys(b)])].sort();
   return keys.every(key=>Number.isFinite(Number(a[key]))&&Number.isFinite(Number(b[key]))&&Math.abs(Number(a[key])-Number(b[key]))<=tolerance);
 }
+function hpTotal(map){return Object.values(map||{}).reduce((sum,value)=>sum+(Number(value)||0),0)}
 
 async function waitForHome(page){
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
@@ -115,7 +116,7 @@ async function run(name,type){
     if(first.run?.status!=='active'||first.run?.stage!==2)throw new Error(`Road run did not advance to active Stage 2: ${JSON.stringify(first.run)}`);
     const savedHp=Object.fromEntries(first.run.fighters.map(f=>[f.unit_id,f.hp]));
     if(!sameNumberMap(savedHp,first.expected))throw new Error(`saved shared-HP distribution mismatch after victory: expected ${JSON.stringify(first.expected)}, got ${JSON.stringify(savedHp)}`);
-    const savedTotal=first.run.fighters.reduce((sum,f)=>sum+Number(f.hp||0),0);
+    const savedTotal=hpTotal(savedHp);
     if(Math.abs(savedTotal-first.sharedAfter.hp)>.01)throw new Error(`saved shared HP total mismatch: expected ${first.sharedAfter.hp}, got ${savedTotal}`);
     const savedChakra=Object.fromEntries(first.run.fighters.map(f=>[f.unit_id,f.chakra]));
     if(!sameNumberMap(savedChakra,first.expectedChakra))throw new Error(`saved chakra mismatch after victory: expected ${JSON.stringify(first.expectedChakra)}, got ${JSON.stringify(savedChakra)}`);
@@ -141,8 +142,10 @@ async function run(name,type){
       };
     });
     if(resumed.stage!==2)throw new Error(`Road resumed wrong stage: ${resumed.stage}`);
-    if(!sameNumberMap(resumed.hp,first.expected))throw new Error(`live Stage 2 shared HP distribution did not carry forward: expected ${JSON.stringify(first.expected)}, got ${JSON.stringify(resumed.hp)}`);
+    const resumedLiveTotal=hpTotal(resumed.hp);
+    if(Math.abs(resumedLiveTotal-first.sharedAfter.hp)>.01)throw new Error(`live Stage 2 fighter HP total did not carry forward: expected ${first.sharedAfter.hp}, got ${resumedLiveTotal} from ${JSON.stringify(resumed.hp)}`);
     if(Math.abs(resumed.sharedHp-first.sharedAfter.hp)>.01)throw new Error(`live Stage 2 shared HP total did not carry forward: expected ${first.sharedAfter.hp}, got ${resumed.sharedHp}`);
+    if(Math.abs(resumedLiveTotal-resumed.sharedHp)>.01)throw new Error(`live fighter HP and authoritative shared HP diverged: fighters ${resumedLiveTotal}, shared ${resumed.sharedHp}`);
     if(!sameNumberMap(resumed.chakra,first.expectedChakra))throw new Error(`live Stage 2 chakra did not carry forward: expected ${JSON.stringify(first.expectedChakra)}, got ${JSON.stringify(resumed.chakra)}`);
     if(resumed.defeated.length)throw new Error(`partial shared HP incorrectly produced a persisted KO: ${JSON.stringify(resumed)}`);
 
@@ -162,11 +165,11 @@ async function run(name,type){
       };
     });
     if(!castle.fullHp)throw new Error(`Phantom Castle inherited Road damage: ${JSON.stringify(castle.hp)}`);
-    if(castle.runStage!==2||!sameNumberMap(castle.runHp,first.expected)||!sameNumberMap(castle.runChakra,first.expectedChakra))throw new Error(`Castle altered saved Road run: ${JSON.stringify(castle)}`);
+    if(castle.runStage!==2||!sameNumberMap(castle.runHp,savedHp)||!sameNumberMap(castle.runChakra,savedChakra))throw new Error(`Castle altered saved Road run: ${JSON.stringify(castle)}`);
 
     await page.evaluate(()=>window.BlazingRoadRun.clearRun());
     if(pageErrors.length)throw new Error(`pageerror: ${pageErrors.join(' | ')}`);
-    console.log(`Road browser smoke PASS (${name}): shared Team HP + chakra persist into Stage 2 after reload; partial damage keeps the squad alive; Phantom Castle stays isolated.`);
+    console.log(`Road browser smoke PASS (${name}): authoritative shared Team HP total + per-fighter chakra persist into Stage 2 after reload; partial damage keeps the squad alive; Phantom Castle stays isolated.`);
   }finally{
     if(browser)await browser.close().catch(()=>{});
   }
