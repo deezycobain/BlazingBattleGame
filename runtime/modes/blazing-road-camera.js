@@ -25,6 +25,7 @@ let activeTransitionMs=DEFAULT_TRANSITION_MS;
 const originalStyles=new WeakMap();
 
 function liveState(){try{return globalThis.eval('S')}catch{return null}}
+function activeRoadBattle(){return liveState()?.bbRunMode==='road'&&document.getElementById('battleScreen')?.classList.contains('active')}
 function visible(el){
   if(!el)return false;
   const r=el.getBoundingClientRect();
@@ -261,7 +262,7 @@ function snapshot(){
     active:!!currentCanvas,
     mode,
     introPhase,
-    locked:combatLocked,
+    locked:isCombatLocked(),
     word:overlayWord||null,
     stage:Number(state?.bbRoadStage)||null,
     mapKey:map?.key||null,
@@ -278,7 +279,11 @@ function snapshot(){
     rect:rect?Object.freeze({left:rect.left,top:rect.top,width:rect.width,height:rect.height}):null
   });
 }
-function isCombatLocked(){return !!currentCanvas&&mode==='intro'&&combatLocked}
+function isCombatLocked(){
+  if(!activeRoadBattle())return false;
+  if(!currentCanvas||mode==='idle')return true;
+  return mode==='intro'&&combatLocked;
+}
 
 window.BlazingRoadCamera=Object.freeze({sync:()=>sync(),snapshot,reset,isCombatLocked});
 window.addEventListener('pageshow',()=>sync(),{passive:true});
