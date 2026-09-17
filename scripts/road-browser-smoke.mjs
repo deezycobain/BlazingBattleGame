@@ -4,9 +4,9 @@ const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'')
 const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
 const TYPES={chromium,webkit};
 
-function sameHpMap(a,b){
+function sameNumberMap(a,b,tolerance=.01){
   const keys=[...new Set([...Object.keys(a),...Object.keys(b)])].sort();
-  return keys.every(key=>a[key]===b[key]);
+  return keys.every(key=>Number.isFinite(Number(a[key]))&&Number.isFinite(Number(b[key]))&&Math.abs(Number(a[key])-Number(b[key]))<=tolerance);
 }
 
 async function waitForHome(page){
@@ -59,7 +59,9 @@ async function enterMode(page,mode,pageErrors=[]){
   if(!await panel.isVisible())await page.locator('#bbHomeApproved [data-nav="battle"]').click();
   await panel.waitFor({state:'visible',timeout:5000});
   await page.locator(`#bbHomeApproved [data-mode="${mode}"]`).click();
-  return waitForMode(page,mode==='road'?'road':'castle',pageErrors);
+  const result=await waitForMode(page,mode==='road'?'road':'castle',pageErrors);
+  if(mode==='road')await page.waitForFunction(()=>window.BlazingRoadSharedHp?.snapshot?.()?.active===true,null,{timeout:5000});
+  return result;
 }
 
 async function run(name,type){
@@ -93,27 +95,32 @@ async function run(name,type){
       const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
       if(fighters.length<3)throw new Error(`expected 3 Road fighters, found ${fighters.length}`);
       if(fighters.some(unit=>!(Number(unit.maxChakra)>0)))throw new Error(`expected Road fighters to expose maxChakra: ${JSON.stringify(fighters.map(unit=>({name:unit.name,maxChakra:unit.maxChakra,chakra:unit.chakra})))}`);
-      fighters[0].hp=Math.max(1,Math.floor(fighters[0].maxHp*0.53));
-      fighters[1].hp=0;
-      fighters[2].hp=Math.max(1,fighters[2].maxHp-11);
+      const sharedBefore=window.BlazingRoadSharedHp?.snapshot?.();
+      if(!sharedBefore?.active||!(sharedBefore.maxHp>0)||!(sharedBefore.hp>0))throw new Error(`shared Road HP unavailable: ${JSON.stringify(sharedBefore)}`);
       fighters.forEach((unit,index)=>{unit.chakra=Math.min(unit.maxChakra,2+index*2);});
+      const rawDamage=Math.max(24,Math.round(sharedBefore.maxHp*.30));
+      const damageResult=window.BlazingCombatRuntime?.applyDamage?.(fighters[0],rawDamage);
+      const sharedAfter=window.BlazingRoadSharedHp?.snapshot?.();
+      if(!damageResult?.shared||!(sharedAfter?.hp<sharedBefore.hp)||!(sharedAfter.hp>0))throw new Error(`shared Road damage did not apply: ${JSON.stringify({sharedBefore,sharedAfter,damageResult})}`);
       const expected=Object.fromEntries(fighters.map(unit=>[window.BlazingRoadRun.stateUnitId(unit),unit.hp]));
       const expectedChakra=Object.fromEntries(fighters.map(unit=>[window.BlazingRoadRun.stateUnitId(unit),unit.chakra]));
       state.enemies.forEach(enemy=>{enemy.hp=0;});
       const victory=checkVictory();
       const run=window.BlazingRoadRun.loadRun();
-      return {victory,expected,expectedChakra,run,battleMode:state.bbRunMode,stage:state.bbRoadStage,log:state.log};
+      return {victory,expected,expectedChakra,sharedBefore,sharedAfter,damageResult,run,battleMode:state.bbRunMode,stage:state.bbRoadStage,log:state.log};
     });
 
     if(!first.victory)throw new Error('Road victory hook did not resolve');
     if(first.battleMode!=='road')throw new Error(`Road battle mode lost during victory: ${first.battleMode}`);
     if(first.run?.status!=='active'||first.run?.stage!==2)throw new Error(`Road run did not advance to active Stage 2: ${JSON.stringify(first.run)}`);
     const savedHp=Object.fromEntries(first.run.fighters.map(f=>[f.unit_id,f.hp]));
-    if(!sameHpMap(savedHp,first.expected))throw new Error(`saved HP mismatch after victory: expected ${JSON.stringify(first.expected)}, got ${JSON.stringify(savedHp)}`);
+    if(!sameNumberMap(savedHp,first.expected))throw new Error(`saved shared-HP distribution mismatch after victory: expected ${JSON.stringify(first.expected)}, got ${JSON.stringify(savedHp)}`);
+    const savedTotal=first.run.fighters.reduce((sum,f)=>sum+Number(f.hp||0),0);
+    if(Math.abs(savedTotal-first.sharedAfter.hp)>.01)throw new Error(`saved shared HP total mismatch: expected ${first.sharedAfter.hp}, got ${savedTotal}`);
     const savedChakra=Object.fromEntries(first.run.fighters.map(f=>[f.unit_id,f.chakra]));
-    if(!sameHpMap(savedChakra,first.expectedChakra))throw new Error(`saved chakra mismatch after victory: expected ${JSON.stringify(first.expectedChakra)}, got ${JSON.stringify(savedChakra)}`);
+    if(!sameNumberMap(savedChakra,first.expectedChakra))throw new Error(`saved chakra mismatch after victory: expected ${JSON.stringify(first.expectedChakra)}, got ${JSON.stringify(savedChakra)}`);
     const defeated=first.run.fighters.filter(f=>f.defeated);
-    if(defeated.length!==1||defeated[0].hp!==0)throw new Error(`expected exactly one persisted KO: ${JSON.stringify(first.run.fighters)}`);
+    if(defeated.length)throw new Error(`partial shared HP must keep the full Road squad alive: ${JSON.stringify(first.run.fighters)}`);
 
     await page.reload({waitUntil:'domcontentloaded'});
     await waitForHome(page);
@@ -124,17 +131,20 @@ async function run(name,type){
     const resumed=await page.evaluate(()=>{
       const state=globalThis.eval('S');
       const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
+      const shared=window.BlazingRoadSharedHp?.snapshot?.()||{};
       return {
         stage:state.bbRoadStage,
         hp:Object.fromEntries(fighters.map(unit=>[window.BlazingRoadRun.stateUnitId(unit),unit.hp])),
         chakra:Object.fromEntries(fighters.map(unit=>[window.BlazingRoadRun.stateUnitId(unit),unit.chakra])),
-        defeated:fighters.filter(unit=>unit.hp<=0).map(unit=>window.BlazingRoadRun.stateUnitId(unit))
+        defeated:fighters.filter(unit=>unit.hp<=0).map(unit=>window.BlazingRoadRun.stateUnitId(unit)),
+        sharedHp:Number(shared.hp),sharedMax:Number(shared.maxHp)
       };
     });
     if(resumed.stage!==2)throw new Error(`Road resumed wrong stage: ${resumed.stage}`);
-    if(!sameHpMap(resumed.hp,first.expected))throw new Error(`live Stage 2 HP did not carry forward: expected ${JSON.stringify(first.expected)}, got ${JSON.stringify(resumed.hp)}`);
-    if(!sameHpMap(resumed.chakra,first.expectedChakra))throw new Error(`live Stage 2 chakra did not carry forward: expected ${JSON.stringify(first.expectedChakra)}, got ${JSON.stringify(resumed.chakra)}`);
-    if(resumed.defeated.length!==1)throw new Error(`persisted KO was not preserved in live Stage 2 battle: ${JSON.stringify(resumed)}`);
+    if(!sameNumberMap(resumed.hp,first.expected))throw new Error(`live Stage 2 shared HP distribution did not carry forward: expected ${JSON.stringify(first.expected)}, got ${JSON.stringify(resumed.hp)}`);
+    if(Math.abs(resumed.sharedHp-first.sharedAfter.hp)>.01)throw new Error(`live Stage 2 shared HP total did not carry forward: expected ${first.sharedAfter.hp}, got ${resumed.sharedHp}`);
+    if(!sameNumberMap(resumed.chakra,first.expectedChakra))throw new Error(`live Stage 2 chakra did not carry forward: expected ${JSON.stringify(first.expectedChakra)}, got ${JSON.stringify(resumed.chakra)}`);
+    if(resumed.defeated.length)throw new Error(`partial shared HP incorrectly produced a persisted KO: ${JSON.stringify(resumed)}`);
 
     await page.reload({waitUntil:'domcontentloaded'});
     await waitForHome(page);
@@ -152,11 +162,11 @@ async function run(name,type){
       };
     });
     if(!castle.fullHp)throw new Error(`Phantom Castle inherited Road damage: ${JSON.stringify(castle.hp)}`);
-    if(castle.runStage!==2||!sameHpMap(castle.runHp,first.expected)||!sameHpMap(castle.runChakra,first.expectedChakra))throw new Error(`Castle altered saved Road run: ${JSON.stringify(castle)}`);
+    if(castle.runStage!==2||!sameNumberMap(castle.runHp,first.expected)||!sameNumberMap(castle.runChakra,first.expectedChakra))throw new Error(`Castle altered saved Road run: ${JSON.stringify(castle)}`);
 
     await page.evaluate(()=>window.BlazingRoadRun.clearRun());
     if(pageErrors.length)throw new Error(`pageerror: ${pageErrors.join(' | ')}`);
-    console.log(`Road browser smoke PASS (${name}): approved Battle selector preserves Stage 1 HP, KO, and chakra into Stage 2 after reload; Phantom Castle stayed isolated.`);
+    console.log(`Road browser smoke PASS (${name}): shared Team HP + chakra persist into Stage 2 after reload; partial damage keeps the squad alive; Phantom Castle stays isolated.`);
   }finally{
     if(browser)await browser.close().catch(()=>{});
   }
