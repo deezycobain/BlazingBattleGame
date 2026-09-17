@@ -53,8 +53,11 @@ function registerGaugeSuppression(target,detail={}){
 }
 function applyNonSelectedGauge(state,item){
  const record=suppressionFor(item.entry.ref);
- if(record?.preserve&&state?.phase==='resolve'){
-  item.gaugeOwner.gauge=clamp(finite(record.exact,item.gaugeOwner.gauge),0,100);
+ // Gauges are frozen while an authored action resolves. This prevents the Road
+ // round controller from erasing a status effect between its impact callback and
+ // the next charge window, while leaving normal round ownership unchanged.
+ if(state?.phase==='resolve'){
+  if(record?.preserve)item.gaugeOwner.gauge=clamp(finite(record.exact,item.gaugeOwner.gauge),0,100);
   return;
  }
  if(record)record.preserve=false;
