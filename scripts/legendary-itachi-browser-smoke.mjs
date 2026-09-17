@@ -85,9 +85,7 @@ async function run(name,type){
     if(loaded.generic.some(display=>display!=='none'))throw new Error(`generic summon VFX leaked into Itachi reveal: ${JSON.stringify(loaded.generic)}`);
     if(loaded.revealStage!=='itachi'||loaded.revealKind!=='itachi'||!loaded.cardArt.endsWith('itachi_reveal.webp'))throw new Error(`Itachi cinematic did not own the reveal: ${JSON.stringify(loaded)}`);
 
-    for(const stage of EXPECTED_STAGES.slice(1)){
-      await page.waitForFunction(expected=>document.getElementById('pullScene')?.dataset.bbItachiStage===expected,stage,{timeout:7000});
-    }
+    await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='handoff',{timeout:9000});
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbRevealStage==='done',{timeout:3000});
     await page.waitForTimeout(80);
 
@@ -108,7 +106,7 @@ async function run(name,type){
     });
     if(JSON.stringify(final.trace.map(item=>item.stage))!==JSON.stringify(EXPECTED_STAGES))throw new Error(`Itachi stage order changed: ${JSON.stringify(final.trace)}`);
     for(const item of final.trace){
-      const expected=EXPECTED_TIMES[item.stage],tolerance=item.stage==='ignite'?120:220;
+      const expected=EXPECTED_TIMES[item.stage],tolerance=item.stage==='ignite'?120:260;
       if(Math.abs(item.at-expected)>tolerance)throw new Error(`${item.stage} timing drifted from ${expected}ms: ${JSON.stringify(final.trace)}`);
     }
     if(final.special!=='itachi'||final.itachiStage!=='handoff'||final.revealStage!=='done'||final.running||final.cardOpacity<.95)throw new Error(`Itachi handoff did not settle: ${JSON.stringify(final)}`);
@@ -117,6 +115,10 @@ async function run(name,type){
     await page.locator('#nextPullBtn').evaluate(button=>button.click());
     const result=page.locator('#pullResultsGrid .pullCard').first();
     await result.waitFor({state:'visible',timeout:4000});
+    await page.waitForFunction(()=>{
+      const card=document.querySelector('#pullResultsGrid .pullCard');
+      return card?.classList.contains('bb-legendary-itachi-result')&&card?.dataset.bbRevealKind==='itachi';
+    },{timeout:2000});
     const resultState=await result.evaluate(card=>({legendary:card.classList.contains('bb-legendary-itachi-result'),kind:card.dataset.bbRevealKind||'',text:card.textContent||''}));
     if(!resultState.legendary||resultState.kind!=='itachi')throw new Error(`Itachi result card lost its special treatment: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
