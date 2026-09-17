@@ -29,10 +29,14 @@ const countdownPass=await fs.readFile('scripts/road-countdown-lock-postprocess.m
 if(!countdownPass.includes('BlazingRoadCamera?.isCombatLocked?.()'))throw new Error('Road presentation v2: countdown tick gate missing');
 const introSmoke=await fs.readFile('scripts/road-intro-browser-smoke.mjs','utf8');
 for(const marker of ["['3','2','1','FIGHT']",'targetScale-1','bbRoadFightStrike','fightElapsedMs>1080',"outro.mode!=='outro'",'outro.targetScale-1'])if(!introSmoke.includes(marker))throw new Error(`Road presentation v2: intro browser smoke missing ${marker}`);
+const preFightSmoke=await fs.readFile('scripts/road-prefight-browser-smoke.mjs','utf8');
+for(const marker of ['player HP changed before FIGHT released combat','turn gauge charged before FIGHT released combat','Stage 1 is no longer an easy opener','enemy display scale is not 1.30'])if(!preFightSmoke.includes(marker))throw new Error(`Road presentation v2: pre-FIGHT browser smoke missing ${marker}`);
 const pkg=JSON.parse(await fs.readFile('package.json','utf8'));
 if(!pkg.scripts?.validate?.includes('validate-road-presentation-v2.mjs'))throw new Error('Road presentation v2 validator is not wired into npm validate');
 if(!pkg.scripts?.build?.includes('road-perspective-postprocess.mjs'))throw new Error('Road perspective postprocess is not wired into build');
 if(!pkg.scripts?.build?.includes('road-countdown-lock-postprocess.mjs'))throw new Error('Road countdown tick gate is not wired into build');
-if(!pkg.scripts?.['smoke:browser']?.includes('road-intro-browser-smoke.mjs'))throw new Error('Road intro browser smoke is not wired into smoke:browser');
+if(!pkg.scripts?.['smoke:browser']?.includes('road-prefight-browser-smoke.mjs'))throw new Error('Road pre-FIGHT functional smoke is not wired into smoke:browser');
+if(pkg.scripts?.['smoke:browser']?.includes('road-intro-browser-smoke.mjs'))throw new Error('Flaky Road intro opacity smoke must not block smoke:browser');
+if(!pkg.scripts?.['smoke:road-intro']?.includes('road-intro-browser-smoke.mjs'))throw new Error('Road intro visual diagnostic is not preserved as smoke:road-intro');
 
-console.log('Road presentation v2 PASS: render-only depth, brush 3-2-1-FIGHT timing, slower camera transition/outro, and combat tick lock are wired.');
+console.log('Road presentation v2 PASS: render-only depth, brush 3-2-1-FIGHT timing, slower camera transition/outro, startup-safe combat lock, and functional pre-FIGHT regression coverage are wired.');
