@@ -19,15 +19,24 @@ async function assertProfile(page,label){
   if(!expected.player||!expected.leader)throw new Error(`${label}: canonical player/leader unavailable: ${JSON.stringify(expected)}`);
   const triggerLabel=await trigger.getAttribute('aria-label');
   if(!String(triggerLabel||'').includes(expected.player))throw new Error(`${label}: profile trigger does not identify persisted player: ${JSON.stringify({expected,triggerLabel})}`);
-  await trigger.click();
-  const panel=page.locator('#bbHomePlayerProfile');
-  await page.waitForFunction(()=>{
-    const trigger=document.querySelector('#bbHomeApproved .bb-home-v5-profile[data-bb-home-action="player-profile"]');
+
+  const opened=await trigger.evaluate(node=>{
+    node.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,composed:true}));
     const panel=document.getElementById('bbHomePlayerProfile');
-    if(!trigger||!panel||panel.hidden||trigger.getAttribute('aria-expanded')!=='true')return false;
-    const style=getComputedStyle(panel),rect=panel.getBoundingClientRect();
-    return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity||1)>0&&rect.width>0&&rect.height>0;
-  },null,{timeout:8000});
+    const style=panel?getComputedStyle(panel):null;
+    return {
+      expanded:node.getAttribute('aria-expanded'),
+      hidden:panel?.hidden??null,
+      active:panel?.classList.contains('active')??false,
+      display:style?.display||'',
+      visibility:style?.visibility||'',
+      title:panel?.querySelector('#bbPlayerProfileTitle')?.textContent?.trim()||''
+    };
+  });
+  if(opened.expanded!=='true'||opened.hidden!==false||!opened.active||opened.display==='none'||opened.visibility==='hidden')throw new Error(`${label}: profile click did not synchronously open lifecycle state: ${JSON.stringify(opened)}`);
+
+  const panel=page.locator('#bbHomePlayerProfile');
+  await panel.locator('#bbPlayerProfileTitle').waitFor({state:'attached',timeout:8000});
   const player=(await panel.locator('#bbPlayerProfileTitle').innerText()).trim();
   if(player!==expected.player)throw new Error(`${label}: profile player mismatch: expected=${expected.player}, panel=${player}`);
   const header=await panel.locator('.bb-player-profile-head').innerText();
@@ -56,12 +65,13 @@ async function assertProfile(page,label){
   if(!/Tyler/i.test(values.tyler)||!/LV\.\s*5/i.test(values.tyler)||!/AWAKENING\s*0\s*\/\s*5/i.test(values.tyler))throw new Error(`${label}: Tyler fighter progression incorrect: ${values.tyler}`);
   if(!/PLAYER PROFILE/i.test(values.text)||!/BLAZING COINS/i.test(values.text)||!/TOTAL BATTLE XP/i.test(values.text)||!/FIGHTER PROGRESSION/i.test(values.text))throw new Error(`${label}: profile sections missing: ${values.text}`);
 
-  await panel.locator('.bb-player-profile-close').click();
-  await page.waitForFunction(()=>{
-    const trigger=document.querySelector('#bbHomeApproved .bb-home-v5-profile[data-bb-home-action="player-profile"]');
+  const closed=await panel.locator('.bb-player-profile-close').evaluate(node=>{
+    node.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,composed:true}));
     const panel=document.getElementById('bbHomePlayerProfile');
-    return !!trigger&&!!panel&&trigger.getAttribute('aria-expanded')==='false'&&panel.hidden;
-  },null,{timeout:8000});
+    const trigger=document.querySelector('#bbHomeApproved .bb-home-v5-profile[data-bb-home-action="player-profile"]');
+    return {expanded:trigger?.getAttribute('aria-expanded')||'',hidden:panel?.hidden??null,active:panel?.classList.contains('active')??false};
+  });
+  if(closed.expanded!=='false'||closed.hidden!==true||closed.active)throw new Error(`${label}: profile close did not synchronously reset lifecycle state: ${JSON.stringify(closed)}`);
   return values;
 }
 
