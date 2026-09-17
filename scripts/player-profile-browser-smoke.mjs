@@ -21,7 +21,13 @@ async function assertProfile(page,label){
   if(!String(triggerLabel||'').includes(expected.player))throw new Error(`${label}: profile trigger does not identify persisted player: ${JSON.stringify({expected,triggerLabel})}`);
   await trigger.click();
   const panel=page.locator('#bbHomePlayerProfile');
-  await panel.waitFor({state:'visible',timeout:3000});
+  await page.waitForFunction(()=>{
+    const trigger=document.querySelector('#bbHomeApproved .bb-home-v5-profile[data-bb-home-action="player-profile"]');
+    const panel=document.getElementById('bbHomePlayerProfile');
+    if(!trigger||!panel||panel.hidden||trigger.getAttribute('aria-expanded')!=='true')return false;
+    const style=getComputedStyle(panel),rect=panel.getBoundingClientRect();
+    return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity||1)>0&&rect.width>0&&rect.height>0;
+  },null,{timeout:8000});
   const player=(await panel.locator('#bbPlayerProfileTitle').innerText()).trim();
   if(player!==expected.player)throw new Error(`${label}: profile player mismatch: expected=${expected.player}, panel=${player}`);
   const header=await panel.locator('.bb-player-profile-head').innerText();
@@ -51,9 +57,11 @@ async function assertProfile(page,label){
   if(!/PLAYER PROFILE/i.test(values.text)||!/BLAZING COINS/i.test(values.text)||!/TOTAL BATTLE XP/i.test(values.text)||!/FIGHTER PROGRESSION/i.test(values.text))throw new Error(`${label}: profile sections missing: ${values.text}`);
 
   await panel.locator('.bb-player-profile-close').click();
-  await panel.waitFor({state:'hidden',timeout:3000});
-  const expanded=await trigger.getAttribute('aria-expanded');
-  if(expanded!=='false')throw new Error(`${label}: profile trigger aria-expanded did not reset`);
+  await page.waitForFunction(()=>{
+    const trigger=document.querySelector('#bbHomeApproved .bb-home-v5-profile[data-bb-home-action="player-profile"]');
+    const panel=document.getElementById('bbHomePlayerProfile');
+    return !!trigger&&!!panel&&trigger.getAttribute('aria-expanded')==='false'&&panel.hidden;
+  },null,{timeout:8000});
   return values;
 }
 
