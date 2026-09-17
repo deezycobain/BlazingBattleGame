@@ -63,9 +63,15 @@
     if(!target)throw new Error('reduceGauge requires a target');
     const min=nonNegative(minimum);
     const before=nonNegative(target.gauge);
-    const after=Math.max(min,before-nonNegative(amount));
+    const requested=nonNegative(amount);
+    const after=Math.max(min,before-requested);
     target.gauge=after;
-    return {before,after,amount:before-after};
+    const result={before,after,amount:before-after,requested};
+    // Blazing Road uses an authored round controller that normally owns gauge values.
+    // Register the requested reduction so that controller can preserve the impact value
+    // and carry any unspent reduction forward to the target's next readiness window.
+    try{window.BlazingRoadTurns?.registerGaugeSuppression?.(target,result)}catch(error){console.error('Road gauge suppression registration failed:',error)}
+    return result;
   }
 
   function healPercentMaxHp(target,percent,{minimumHeal=1,ignoreDefeated=true}={}){
