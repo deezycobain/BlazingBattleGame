@@ -83,10 +83,11 @@ jobs:
             fi
           done
 
-          python3 - <<'PY'
+          SRC="$SRC" python3 - <<'PY'
           import json
+          import os
           from pathlib import Path
-          root = Path("$SRC")
+          root = Path(os.environ["SRC"])
           json.loads((root / "data/asset-manifest.json").read_text())
           json.loads((root / "data/asset-qa.json").read_text())
           print("Itachi asset manifests are valid JSON")
