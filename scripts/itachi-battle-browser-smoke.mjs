@@ -66,20 +66,21 @@ async function run(name,type){
   const jutsuPromise=page.evaluate(async()=>{
    const s=globalThis.eval('S'),front=globalThis.eval('front'),begin=globalThis.eval('beginActionToken'),animate=globalThis.eval('animateItachiTsukuyomi'),canonical=globalThis.eval('canonicalUnit');
    const pair=s.pairs.find(p=>front(p)?.name==='Itachi'),enemy=s.enemies.find(e=>e.hp>0);if(!pair||!enemy)return {error:'missing pair/enemy'};
-   s.phase='resolve';s.floaters=[];enemy.gauge=80;begin();const beforeHp=enemy.hp,beforeGauge=enemy.gauge,start=performance.now();let sawOverlay=false,sawMandala=false,sawTarget=false;
+   s.phase='resolve';s.floaters=[];enemy.gauge=80;begin();const beforeHp=enemy.hp,beforeGauge=enemy.gauge,start=performance.now();let sawOverlay=false,sawMandala=false,sawTarget=false,impactGauge=null;
    const outcome=await new Promise(resolve=>{
     const sample=setInterval(()=>{const kinds=s.floaters.map(f=>f.kind);sawOverlay||=kinds.includes('itachiTsukuyomiOverlay');sawMandala||=kinds.includes('itachiTsukuyomiMandala');sawTarget||=kinds.includes('itachiTsukuyomiTarget')},25);
-    animate('Itachi',{x:pair.x,y:pair.y},enemy,()=>{window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:1});window.BlazingCombatRuntime.execute('reduce_target_gauge',{target:enemy,parameters:{amount:canonical('itachi').abilities.jutsu.gauge_reduction??45,minimum_gauge:0}})},()=>{clearInterval(sample);resolve({elapsed:performance.now()-start})});
+    animate('Itachi',{x:pair.x,y:pair.y},enemy,()=>{window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:1});window.BlazingCombatRuntime.execute('reduce_target_gauge',{target:enemy,parameters:{amount:canonical('itachi').abilities.jutsu.gauge_reduction??45,minimum_gauge:0}});impactGauge=enemy.gauge},()=>{clearInterval(sample);resolve({elapsed:performance.now()-start})});
     setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},2200);
    });
-   return {...outcome,beforeHp,afterHp:enemy.hp,beforeGauge,afterGauge:enemy.gauge,sawOverlay,sawMandala,sawTarget,dim:!!s.jutsuDim};
+   return {...outcome,beforeHp,afterHp:enemy.hp,beforeGauge,impactGauge,afterGauge:enemy.gauge,sawOverlay,sawMandala,sawTarget,dim:!!s.jutsuDim};
   });
   await page.waitForTimeout(760);
   await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-${name}.png`,fullPage:true});
   const jutsuResult=await jutsuPromise;
-  if(jutsuResult.error||jutsuResult.timeout||!jutsuResult.sawOverlay||!jutsuResult.sawMandala||!jutsuResult.sawTarget||jutsuResult.afterHp!==jutsuResult.beforeHp-1||jutsuResult.afterGauge!==Math.max(0,jutsuResult.beforeGauge-45))throw new Error(`Tsukuyomi failed: ${JSON.stringify(jutsuResult)}`);
+  const expectedImpactGauge=Math.max(0,jutsuResult.beforeGauge-45);
+  if(jutsuResult.error||jutsuResult.timeout||!jutsuResult.sawOverlay||!jutsuResult.sawMandala||!jutsuResult.sawTarget||jutsuResult.afterHp!==jutsuResult.beforeHp-1||jutsuResult.impactGauge!==expectedImpactGauge||jutsuResult.afterGauge>expectedImpactGauge)throw new Error(`Tsukuyomi failed: ${JSON.stringify(jutsuResult)}`);
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Itachi battle smoke PASS (${name}): roster + 6/6/6 body frames, Crow Chakra Strike VFX/damage, and Tsukuyomi overlay/mandala/target + 45 gauge suppression verified.`);
+  console.log(`Itachi battle smoke PASS (${name}): roster + 6/6/6 body frames, Crow Chakra Strike VFX/damage, and Tsukuyomi overlay/mandala/target + 45 gauge suppression at impact verified.`);
   await context.close();
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
