@@ -3,9 +3,10 @@
 
 const POLL_MS=12;
 const ROAD_COMBAT_SCALE=1.16;
-let stateRef=null,battleKey='',round=1,order=[],index=0,seenReady=false,timer=0;
+let stateRef=null,battleKey='',round=1,order=[],index=0,seenReady=false,timer=0,suppressions=new WeakMap();
 
 const finite=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;
+const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const liveState=()=>{try{return globalThis.eval('S')}catch{return null}};
 const activeBattle=()=>document.getElementById('battleScreen')?.classList.contains('active');
 function front(pair){if(!pair||!Array.isArray(pair.units))return null;const idx=Number.isInteger(pair.active)?pair.active:0;return pair.units[idx]||pair.units.find(u=>u&&u.name&&u.name!=='—')||null}
@@ -37,8 +38,45 @@ function refreshOpeningRoster(state){
 }
 function current(state){while(index<order.length&&!isAlive(order[index],state))index++;if(index>=order.length){resetRound(state);while(index<order.length&&!isAlive(order[index],state))index++;}return order[index]||null}
 function engineActors(state){return collect(state).map(entry=>({entry,gaugeOwner:entry.ref}))}
+function suppressionFor(ref){return ref?suppressions.get(ref)||null:null}
+function registerGaugeSuppression(target,detail={}){
+ if(!target)return {ok:false,amount:0,gauge:0};
+ const requested=clamp(finite(detail.requested??detail.amount,0),0,100);
+ if(requested<=0)return {ok:false,amount:0,gauge:clamp(finite(target.gauge,0),0,100)};
+ const previous=suppressionFor(target);
+ const amount=clamp(finite(previous?.amount,0)+requested,0,100);
+ const exact=clamp(finite(detail.after,target.gauge),0,100);
+ const record={amount,active:false,preserve:true,exact};
+ suppressions.set(target,record);
+ target.gauge=exact;
+ return {ok:true,amount,gauge:exact};
+}
+function applyNonSelectedGauge(state,item){
+ const record=suppressionFor(item.entry.ref);
+ if(record?.preserve&&state?.phase==='resolve'){
+  item.gaugeOwner.gauge=clamp(finite(record.exact,item.gaugeOwner.gauge),0,100);
+  return;
+ }
+ if(record)record.preserve=false;
+ item.gaugeOwner.gauge=0;
+}
 function enforce(state,selected){
- for(const item of engineActors(state))if(item.gaugeOwner)item.gaugeOwner.gauge=item.entry.ref===selected?.ref?100:0;
+ for(const item of engineActors(state)){
+  if(!item.gaugeOwner)continue;
+  if(item.entry.ref!==selected?.ref){applyNonSelectedGauge(state,item);continue}
+  const record=suppressionFor(item.entry.ref);
+  if(!record){item.gaugeOwner.gauge=100;continue}
+  if(!record.active){
+   record.active=true;
+   record.preserve=false;
+   item.gaugeOwner.gauge=Math.max(0,100-record.amount);
+   continue;
+  }
+  if(state?.ready?.ref===item.entry.ref||finite(item.gaugeOwner.gauge,0)>=100){
+   suppressions.delete(item.entry.ref);
+   item.gaugeOwner.gauge=100;
+  }
+ }
 }
 function cancelWrongReady(state,selected){
  const ready=state?.ready;
@@ -63,19 +101,20 @@ function patchRoadScale(){
 }
 function syncState(state=liveState()){
  if(!state||state.bbRunMode!=='road'||!activeBattle()){
-  if(stateRef){stateRef=null;battleKey='';order=[];index=0;seenReady=false;round=1}
+  if(stateRef){stateRef=null;battleKey='';order=[];index=0;seenReady=false;round=1;suppressions=new WeakMap()}
   return null;
  }
  patchRoadScale();
  const key=keyFor(state);
- if(state!==stateRef||key!==battleKey){stateRef=state;battleKey=key;resetRound(state,{newBattle:true})}
+ if(state!==stateRef||key!==battleKey){stateRef=state;battleKey=key;suppressions=new WeakMap();resetRound(state,{newBattle:true})}
  refreshOpeningRoster(state);
  const selected=current(state);if(!selected)return null;
  if(window.BlazingRoadCamera?.isCombatLocked?.()){for(const item of engineActors(state))if(item.gaugeOwner)item.gaugeOwner.gauge=0;return selected}
  cancelWrongReady(state,selected);
  advanceIfCompleted(state,selected);
  const now=current(state);if(!now)return null;
- if(!seenReady||state.phase==='charge')enforce(state,now);else for(const item of engineActors(state))if(item.entry.ref!==now.ref&&item.gaugeOwner)item.gaugeOwner.gauge=0;
+ if(!seenReady||state.phase==='charge')enforce(state,now);
+ else for(const item of engineActors(state))if(item.entry.ref!==now.ref&&item.gaugeOwner)applyNonSelectedGauge(state,item);
  return now;
 }
 function beforeEngineTick(state){if(state?.bbRunMode==='road')syncState(state)}
@@ -95,7 +134,7 @@ function snapshot({limit=5}={}){
  return Object.freeze({active:true,mode:'round',round,phase:phaseFor(state,selected),queue,current:queue[0]||null,key:battleKey});
 }
 
-window.BlazingRoadTurns=Object.freeze({snapshot,beforeEngineTick,sync:()=>syncState(),get round(){return round}});
+window.BlazingRoadTurns=Object.freeze({snapshot,beforeEngineTick,registerGaugeSuppression,sync:()=>syncState(),get round(){return round}});
 function boot(){patchRoadScale();syncState();timer=window.setInterval(()=>syncState(),POLL_MS)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 window.addEventListener('pagehide',()=>window.clearInterval(timer),{once:true});
