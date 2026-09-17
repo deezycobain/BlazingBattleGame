@@ -82,7 +82,7 @@ async function dragLebeeAcrossOpenLane(page){
   if(!lebee||lebee.name!=='Lebee')return {error:'Lebee could not become the active pair fighter',roster,pairIndex,index,active:lebee?.name||null};
   if(!C.isWalkablePoint(s.bbRoadContent?.map,start,{padding})||!C.isWalkablePoint(s.bbRoadContent?.map,end,{padding}))return {error:'authored Stage 1 lane endpoints are not walkable',start,end,padding};
   lebee.hp=Math.max(1,Number(lebee.hp)||Number(lebee.maxHp)||1);pair.x=start.x;pair.y=start.y;
-  s.anim=null;s.drag=false;s.dragOrigin=null;s.dragVisual=null;s.dragGrabOffset=null;
+  s.drag=false;s.dragOrigin=null;s.dragVisual=null;s.dragGrabOffset=null;
   pair.gauge=100;s.ready={kind:'pair',ref:pair,g:100};s.phase='player';
   window.BlazingRoadTurns.sync();
   const readyShape={phase:s.phase,kind:s.ready?.kind||null,refIsPair:s.ready?.ref===pair,pairX:pair.x,pairY:pair.y};
