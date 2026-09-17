@@ -1,0 +1,104 @@
+{
+  "id": "legendary-itachi-summon-v1",
+  "runtimePath": "assets/vfx/summon/legendary-itachi",
+  "canvas": {
+    "width": 960,
+    "height": 960,
+    "pivot": {
+      "x": 480,
+      "y": 480
+    }
+  },
+  "durationMs": 5200,
+  "assets": [
+    {
+      "file": "itachi_ring_flame_halo.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 241526,
+      "alpha": true
+    },
+    {
+      "file": "itachi_ring_outer_compass.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 121334,
+      "alpha": true
+    },
+    {
+      "file": "itachi_ring_middle_enamel.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 172468,
+      "alpha": true
+    },
+    {
+      "file": "itachi_ring_inner_aperture.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 82012,
+      "alpha": true
+    },
+    {
+      "file": "itachi_ring_sharingan_orbit.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 100102,
+      "alpha": true
+    },
+    {
+      "file": "itachi_environment_lotus_clouds.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 284412,
+      "alpha": true
+    },
+    {
+      "file": "itachi_silhouette.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 160070,
+      "alpha": true
+    },
+    {
+      "file": "itachi_reveal.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 211726,
+      "alpha": true
+    },
+    {
+      "file": "itachi_fx_raven_burst.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 368586,
+      "alpha": true
+    },
+    {
+      "file": "itachi_fx_feather_vortex.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 350488,
+      "alpha": true
+    },
+    {
+      "file": "itachi_fx_shadow_lotus.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 330382,
+      "alpha": true
+    },
+    {
+      "file": "itachi_fx_legendary_flash.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 352258,
+      "alpha": true
+    }
+  ],
+  "notes": [
+    "Optimized WebP test/runtime derivatives of the approved high-resolution PNG masters.",
+    "Keep the original PNG master package archived for future 4K/export work.",
+    "All files are flat in one runtime folder because summon-cinematic.js expects these exact paths."
+  ]
+}
