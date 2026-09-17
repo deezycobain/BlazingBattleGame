@@ -25,8 +25,16 @@ function collect(state){
 }
 function isAlive(entry,state){if(!entry)return false;if(entry.kind==='enemy')return finite(entry.ref?.hp,0)>0;return roadAlive(state)&&!!front(entry.ref)}
 function sortInitiative(list){return list.slice().sort((a,b)=>b.speed-a.speed||(a.kind===b.kind?a.index-b.index:(a.kind==='pair'?-1:1))||a.name.localeCompare(b.name))}
+function actorSetKey(list){return list.map(entry=>entry.id).slice().sort().join('|')}
 function keyFor(state){return `${state?.bbRoadRun?.run_id||'road'}:${state?.bbRoadStage||state?.bbRoadRun?.stage||1}`}
 function resetRound(state,{newBattle=false}={}){if(newBattle)round=1;else round++;order=sortInitiative(collect(state));index=0;seenReady=false}
+function refreshOpeningRoster(state){
+ if(round!==1||index!==0||seenReady||state?.ready?.ref||state?.phase!=='charge')return false;
+ const next=sortInitiative(collect(state));
+ if(actorSetKey(next)===actorSetKey(order))return false;
+ order=next;
+ return true;
+}
 function current(state){while(index<order.length&&!isAlive(order[index],state))index++;if(index>=order.length){resetRound(state);while(index<order.length&&!isAlive(order[index],state))index++;}return order[index]||null}
 function engineActors(state){return collect(state).map(entry=>({entry,gaugeOwner:entry.ref}))}
 function enforce(state,selected){
@@ -61,6 +69,7 @@ function syncState(state=liveState()){
  patchRoadScale();
  const key=keyFor(state);
  if(state!==stateRef||key!==battleKey){stateRef=state;battleKey=key;resetRound(state,{newBattle:true})}
+ refreshOpeningRoster(state);
  const selected=current(state);if(!selected)return null;
  if(window.BlazingRoadCamera?.isCombatLocked?.()){for(const item of engineActors(state))if(item.gaugeOwner)item.gaugeOwner.gauge=0;return selected}
  cancelWrongReady(state,selected);
