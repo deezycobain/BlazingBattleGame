@@ -1,0 +1,112 @@
+name: Install Legendary Itachi unit assets
+
+on:
+  push:
+    branches:
+      - feature/legendary-itachi-summon
+    paths:
+      - legendary-itachi-unit-upload.zip
+      - .github/workflows/install-legendary-itachi-unit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/legendary-itachi-summon
+          fetch-depth: 0
+
+      - name: Install Legendary Itachi unit assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="legendary-itachi-unit-upload.zip"
+          DEST="assets/characters/itachi"
+          TMP="$(mktemp -d)"
+
+          if [[ ! -f "$ZIP" ]]; then
+            echo "No $ZIP present; nothing to install."
+            exit 0
+          fi
+
+          unzip -q "$ZIP" -d "$TMP"
+          SRC="$TMP/assets/characters/itachi"
+
+          REQUIRED=(
+            art/itachi_full_art.png
+            art/shiny_foreground_cutout_v1.webp
+            cards/itachi_card.png
+            data/asset-manifest.json
+            data/asset-qa.json
+            sprites/source/idle_sheet.png
+            sprites/source/basic_attack_sheet.png
+            sprites/source/tsukuyomi_character_sheet.png
+            sprites/runtime/idle/frame_01.png
+            sprites/runtime/idle/frame_06.png
+            sprites/runtime/attack/basic/frame_01.png
+            sprites/runtime/attack/basic/frame_06.png
+            sprites/runtime/jutsu/tsukuyomi/cast/frame_01.png
+            sprites/runtime/jutsu/tsukuyomi/cast/frame_06.png
+            vfx/jutsu/tsukuyomi/overlay/frame_01.png
+            vfx/jutsu/tsukuyomi/overlay/frame_06.png
+            vfx/jutsu/tsukuyomi/target/frame_01.png
+            vfx/jutsu/tsukuyomi/target/frame_05.png
+            vfx/basic/crows/crow_swarm.png
+          )
+
+          for file in "${REQUIRED[@]}"; do
+            test -f "$SRC/$file" || {
+              echo "Missing required Itachi unit asset: $file" >&2
+              exit 1
+            }
+          done
+
+          for dir_count in \
+            "sprites/runtime/idle:6" \
+            "sprites/runtime/attack/basic:6" \
+            "sprites/runtime/jutsu/tsukuyomi/cast:6" \
+            "vfx/jutsu/tsukuyomi/overlay:6" \
+            "vfx/jutsu/tsukuyomi/mandala:6" \
+            "vfx/jutsu/tsukuyomi/target:5"; do
+            dir="${dir_count%%:*}"
+            expected="${dir_count##*:}"
+            actual="$(find "$SRC/$dir" -maxdepth 1 -type f -name 'frame_*.png' | wc -l | tr -d ' ')"
+            if [[ "$actual" != "$expected" ]]; then
+              echo "Unexpected frame count for $dir: expected $expected, got $actual" >&2
+              exit 1
+            fi
+          done
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("$SRC")
+          json.loads((root / "data/asset-manifest.json").read_text())
+          json.loads((root / "data/asset-qa.json").read_text())
+          print("Itachi asset manifests are valid JSON")
+          PY
+
+          rm -rf "$DEST"
+          mkdir -p "$(dirname "$DEST")"
+          cp -R "$SRC" "$DEST"
+          rm -f "$ZIP"
+
+      - name: Commit installed assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No unit asset changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Install Legendary Itachi unit assets"
+          git push origin HEAD:feature/legendary-itachi-summon
