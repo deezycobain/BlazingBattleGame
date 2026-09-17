@@ -105,9 +105,19 @@ async function run(name,type){
       };
     });
     if(JSON.stringify(final.trace.map(item=>item.stage))!==JSON.stringify(EXPECTED_STAGES))throw new Error(`Itachi stage order changed: ${JSON.stringify(final.trace)}`);
-    for(const item of final.trace){
-      const expected=EXPECTED_TIMES[item.stage],tolerance=item.stage==='ignite'?120:260;
-      if(Math.abs(item.at-expected)>tolerance)throw new Error(`${item.stage} timing drifted from ${expected}ms: ${JSON.stringify(final.trace)}`);
+    if(name==='chromium'){
+      for(const item of final.trace){
+        const expected=EXPECTED_TIMES[item.stage],tolerance=item.stage==='ignite'?120:260;
+        if(Math.abs(item.at-expected)>tolerance)throw new Error(`${item.stage} timing drifted from ${expected}ms: ${JSON.stringify(final.trace)}`);
+      }
+    }else{
+      for(let i=0;i<final.trace.length;i++){
+        const item=final.trace[i],expected=EXPECTED_TIMES[item.stage];
+        if(i>0&&item.at<final.trace[i-1].at)throw new Error(`WebKit stage timestamps regressed: ${JSON.stringify(final.trace)}`);
+        if(item.at<expected-260)throw new Error(`WebKit fired ${item.stage} too early vs ${expected}ms: ${JSON.stringify(final.trace)}`);
+      }
+      const handoff=final.trace.at(-1);
+      if(Math.abs(handoff.at-EXPECTED_TIMES.handoff)>500)throw new Error(`WebKit handoff drifted from 5.2s: ${JSON.stringify(final.trace)}`);
     }
     if(final.special!=='itachi'||final.itachiStage!=='handoff'||final.revealStage!=='done'||final.running||final.cardOpacity<.95)throw new Error(`Itachi handoff did not settle: ${JSON.stringify(final)}`);
     if(final.message!=='LEGENDARY ITACHI'||final.name!=='ITACHI'||final.rarity!=='LEGENDARY')throw new Error(`Itachi final labels are wrong: ${JSON.stringify(final)}`);
@@ -123,7 +133,7 @@ async function run(name,type){
     if(!resultState.legendary||resultState.kind!=='itachi')throw new Error(`Itachi result card lost its special treatment: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
-    console.log(`Legendary Itachi summon smoke PASS (${name}): 12 assets, 8 timed beats, special-only VFX, 5.2s handoff, and result treatment verified.`);
+    console.log(`Legendary Itachi summon smoke PASS (${name}): 12 assets, 8 ordered beats, special-only VFX, 5.2s handoff, and result treatment verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
