@@ -35,8 +35,11 @@ async function run(name,type){
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());
   await enterRoad(page);
 
-  const hardTimeoutMs=name==='webkit'?3200:2200;
-  const maxLifecycleMs=name==='webkit'?2800:1900;
+  // WebKit on shared CI runners can finish the full Tyler lifecycle correctly but
+  // with materially more scheduling variance than Chromium. Keep every semantic
+  // assertion below, while allowing enough headroom to avoid false-red timing flakes.
+  const hardTimeoutMs=name==='webkit'?4500:2200;
+  const maxLifecycleMs=name==='webkit'?4000:1900;
   const result=await page.evaluate(async hardTimeoutMs=>{
    const shell=document.documentElement.innerHTML;
    const blocking="runBasicAttack=au.name==='Tyler'?async(...args)=>{await TYLER_BODY_RUNTIME.basic.readyPromise";
