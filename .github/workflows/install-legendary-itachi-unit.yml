@@ -5,7 +5,8 @@ on:
     branches:
       - feature/legendary-itachi-summon
     paths:
-      - legendary-itachi-unit-upload.zip
+      - legendary-itachi-unit-runtime.zip
+      - legendary-itachi-unit-sources.zip
       - .github/workflows/install-legendary-itachi-unit.yml
   workflow_dispatch:
 
@@ -26,16 +27,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ZIP="legendary-itachi-unit-upload.zip"
+          RUNTIME_ZIP="legendary-itachi-unit-runtime.zip"
+          SOURCES_ZIP="legendary-itachi-unit-sources.zip"
           DEST="assets/characters/itachi"
           TMP="$(mktemp -d)"
 
-          if [[ ! -f "$ZIP" ]]; then
-            echo "No $ZIP present; nothing to install."
+          if [[ ! -f "$RUNTIME_ZIP" || ! -f "$SOURCES_ZIP" ]]; then
+            echo "Waiting for both Itachi upload ZIPs."
+            echo "Required: $RUNTIME_ZIP and $SOURCES_ZIP"
             exit 0
           fi
 
-          unzip -q "$ZIP" -d "$TMP"
+          unzip -q "$RUNTIME_ZIP" -d "$TMP"
+          unzip -q "$SOURCES_ZIP" -d "$TMP"
           SRC="$TMP/assets/characters/itachi"
 
           REQUIRED=(
@@ -96,7 +100,7 @@ jobs:
           rm -rf "$DEST"
           mkdir -p "$(dirname "$DEST")"
           cp -R "$SRC" "$DEST"
-          rm -f "$ZIP"
+          rm -f "$RUNTIME_ZIP" "$SOURCES_ZIP"
 
       - name: Commit installed assets
         shell: bash
