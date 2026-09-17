@@ -8,7 +8,8 @@ const tempPath=path.join(root,'scripts','.validate-progression-itachi-runtime.mj
 let source=await fs.readFile(sourcePath,'utf8');
 const replacements=[
   ["\"const VERSION='5.7.0'\"","\"const VERSION='5.8.0-itachi'\""],
-  ["\"FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler']\"","\"FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi']\""]
+  ["\"FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler']\"","\"FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi']\""],
+  ["'summon-cinematic-browser-smoke.mjs'","'summon-cinematic-browser-smoke-itachi.mjs'"]
 ];
 for(const [from,to] of replacements){
   const hits=source.split(from).length-1;
