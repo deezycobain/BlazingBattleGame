@@ -112,7 +112,21 @@ function syncState(state=liveState()){
  if(state!==stateRef||key!==battleKey){stateRef=state;battleKey=key;suppressions=new WeakMap();resetRound(state,{newBattle:true})}
  refreshOpeningRoster(state);
  const selected=current(state);if(!selected)return null;
- if(window.BlazingRoadCamera?.isCombatLocked?.()){for(const item of engineActors(state))if(item.gaugeOwner)item.gaugeOwner.gauge=0;return selected}
+ if(window.BlazingRoadCamera?.isCombatLocked?.()){
+  // The pre-FIGHT camera lock owns gauges only before combat begins. During an
+  // authored resolve animation, preserve the live gauge value so status effects
+  // such as Tsukuyomi can calculate from the true pre-impact gauge instead of 0.
+  if(state?.phase==='resolve'){
+   for(const item of engineActors(state)){
+    if(!item.gaugeOwner)continue;
+    const record=suppressionFor(item.entry.ref);
+    if(record?.preserve)item.gaugeOwner.gauge=clamp(finite(record.exact,item.gaugeOwner.gauge),0,100);
+   }
+   return selected;
+  }
+  for(const item of engineActors(state))if(item.gaugeOwner)item.gaugeOwner.gauge=0;
+  return selected;
+ }
  cancelWrongReady(state,selected);
  advanceIfCompleted(state,selected);
  const now=current(state);if(!now)return null;
