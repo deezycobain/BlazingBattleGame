@@ -33,6 +33,10 @@ async function run(name,type){
   if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());
   await enterRoad(page);
+
+  // The Road dock is intentionally hidden until the 3-2-1-FIGHT/camera intro clears.
+  // Pause/Reset should be validated only once that presentation lock has released.
+  await waitRoadCombatReady(page);
   await page.locator('#bbBattlePauseButton.visible').waitFor({state:'visible',timeout:5000});
 
   const before=await page.evaluate(()=>{const s=globalThis.eval('S');return {stage:s.bbRoadStage,map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,gauges:[...s.pairs.map(p=>p.gauge),...s.enemies.map(e=>e.gauge)],reward:window.BlazingEconomy?.balance?.()??0}});
@@ -44,11 +48,11 @@ async function run(name,type){
   if(afterReset.stage!==before.stage||afterReset.runStage!==before.stage||afterReset.runStatus!=='active'||afterReset.mapSource!==afterReset.map)throw new Error(`Reset did not preserve Road stage/map: ${JSON.stringify({before,afterReset})}`);
 
   if(await page.locator('#battleScreen #reset').isVisible())throw new Error('Reset leaked onto battlefield');
-  if(!(await page.locator('#bbBattleDock #bbBattlePauseButton').isVisible()))throw new Error('Pause missing from bottom dock');
-
-  // Road now intentionally freezes the combat tick through the 3-2-1-FIGHT/camera intro.
-  // Wait for that independent presentation lock to clear before testing Pause/Resume itself.
+  // Reset starts a fresh Road presentation lock, so wait for the dock to return before
+  // asserting its placement and testing the normal Pause/Resume lifecycle.
   await waitRoadCombatReady(page);
+  await page.locator('#bbBattlePauseButton.visible').waitFor({state:'visible',timeout:5000});
+  if(!(await page.locator('#bbBattleDock #bbBattlePauseButton').isVisible()))throw new Error('Pause missing from bottom dock');
 
   await page.locator('#bbBattlePauseButton').click();await page.locator('#bbBattlePause.active').waitFor({state:'visible',timeout:3000});
   if(!(await page.evaluate(()=>window.BlazingBattlePause.isPaused())))throw new Error('pause API did not enter paused state');
