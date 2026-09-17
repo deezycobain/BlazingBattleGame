@@ -100,7 +100,14 @@ const tickCount=html.split(tickNeedle).length-1;
 if(tickCount!==1)throw new Error(`Road PvE tuning: expected one tick() anchor, found ${tickCount}`);
 html=html.replace(tickNeedle,"function tick(){\n window.BlazingRoadTurns?.beforeEngineTick?.(S);");
 
-for(const marker of ["basic_shape\":{\"type\":\"circle\",\"r\":58","basic_shape\":{\"type\":\"circle\",\"r\":66",'range_visual_scale":1','hide_distance_px','const threat=enemy||','function animateSenkuRetreatBomb(unitName,pair,from,enemy,onHit,onFinish,kind)','BlazingRoadTurns?.beforeEngineTick?.(S)'])if(!html.includes(marker))throw new Error(`Road PvE tuning marker missing: ${marker}`);
+// A delayed enemy-range cleanup can outlive battle teardown on slower WebKit frames.
+// Keep the cleanup idempotent instead of dereferencing a cleared animation state.
+const staleRangeNeedle='S.anim.showEnemyRange=null';
+const staleRangeCount=html.split(staleRangeNeedle).length-1;
+if(staleRangeCount<1)throw new Error('Road PvE tuning: enemy-range teardown anchor missing');
+html=html.split(staleRangeNeedle).join('(S?.anim&&(S.anim.showEnemyRange=null))');
+
+for(const marker of ["basic_shape\":{\"type\":\"circle\",\"r\":58","basic_shape\":{\"type\":\"circle\",\"r\":66",'range_visual_scale":1','hide_distance_px','const threat=enemy||','function animateSenkuRetreatBomb(unitName,pair,from,enemy,onHit,onFinish,kind)','BlazingRoadTurns?.beforeEngineTick?.(S)','S?.anim&&(S.anim.showEnemyRange=null)'])if(!html.includes(marker))throw new Error(`Road PvE tuning marker missing: ${marker}`);
 
 await fs.writeFile(file,html);
-console.log('Road PvE tuning PASS: speed-sorted round hook + compact aligned Sub-Zero range + circular Senku bomb + hide-behind-nearest-ally retreat installed.');
+console.log(`Road PvE tuning PASS: speed-sorted round hook + compact aligned Sub-Zero range + circular Senku bomb + hide-behind-nearest-ally retreat installed; guarded ${staleRangeCount} stale enemy-range cleanup callback(s).`);
