@@ -59,24 +59,34 @@ async function advanceInitiativeTo(page,{name=null,kind=null}={}){
 
 async function dragLebeeAcrossOpenLane(page){
  await waitRoadCombatReady(page);
- const advance=await advanceInitiativeTo(page,{name:'Lebee',kind:'pair'});
- if(!advance.ok)return {error:'Could not advance Road initiative to Lebee',advance};
- return page.evaluate(async()=>{
+ const slot=await page.evaluate(()=>{
+  const s=globalThis.eval('S'),front=globalThis.eval('front');
+  const roster=s.pairs.flatMap(pair=>(pair.units||[]).filter(unit=>unit&&unit.name&&unit.name!=='—').map(unit=>unit.name));
+  for(let pairIndex=0;pairIndex<s.pairs.length;pairIndex++){
+   const pair=s.pairs[pairIndex],index=(pair.units||[]).findIndex(unit=>unit?.name==='Lebee');
+   if(index>=0)return {pairIndex,index,scheduledName:front(pair)?.name||null,roster};
+  }
+  return {error:'Lebee is not present in the Road battle roster',roster};
+ });
+ if(slot.error)return slot;
+ if(!slot.scheduledName)return {error:'Lebee pair has no active fighter for round initiative',slot};
+ const advance=await advanceInitiativeTo(page,{name:slot.scheduledName,kind:'pair'});
+ if(!advance.ok)return {error:'Could not advance Road initiative to Lebee pair',slot,advance};
+ return page.evaluate(async({pairIndex,index})=>{
   const s=globalThis.eval('S'),front=globalThis.eval('front'),inputPoint=globalThis.eval('inputPoint'),tick=globalThis.eval('tick'),C=window.BlazingRoadContent;
   const roster=s.pairs.flatMap(pair=>(pair.units||[]).filter(unit=>unit&&unit.name&&unit.name!=='—').map(unit=>unit.name));
-  let pair=null,index=-1;
-  for(const candidate of s.pairs){const found=(candidate.units||[]).findIndex(unit=>unit?.name==='Lebee');if(found>=0){pair=candidate;index=found;break;}}
-  if(!pair)return {error:'Lebee is not present in the Road battle roster',roster};
+  const pair=s.pairs[pairIndex];
+  if(!pair)return {error:'Lebee pair disappeared before drag setup',roster,pairIndex};
   pair.active=index;
   const lebee=front(pair),start={x:90,y:300},end={x:390,y:300},padding=C.PLAYER_FOOT_PADDING;
-  if(!lebee)return {error:'Lebee could not become the active pair fighter',roster};
+  if(!lebee||lebee.name!=='Lebee')return {error:'Lebee could not become the active pair fighter',roster,pairIndex,index,active:lebee?.name||null};
   if(!C.isWalkablePoint(s.bbRoadContent?.map,start,{padding})||!C.isWalkablePoint(s.bbRoadContent?.map,end,{padding}))return {error:'authored Stage 1 lane endpoints are not walkable',start,end,padding};
   lebee.hp=Math.max(1,Number(lebee.hp)||Number(lebee.maxHp)||1);pair.x=start.x;pair.y=start.y;
   s.anim=null;s.drag=false;s.dragOrigin=null;s.dragVisual=null;s.dragGrabOffset=null;s.phase='charge';s.ready=null;s._chargeSince=performance.now();
   window.BlazingRoadTurns.sync();
   for(let i=0;i<80&&s.phase==='charge';i++)tick();
   const readyShape={phase:s.phase,kind:s.ready?.kind||null,refIsPair:s.ready?.ref===pair,pairX:pair.x,pairY:pair.y};
-  if(s.phase!=='player'||s.ready?.kind!=='pair'||s.ready?.ref!==pair)return {error:'round initiative did not produce Lebee player turn',roster,readyShape,round:window.BlazingRoadTurns.snapshot({limit:20})};
+  if(s.phase!=='player'||s.ready?.kind!=='pair'||s.ready?.ref!==pair)return {error:'round initiative did not produce the scheduled Lebee pair turn',roster,readyShape,round:window.BlazingRoadTurns.snapshot({limit:20})};
 
   const cvs=document.getElementById('game');if(!(cvs instanceof HTMLCanvasElement))return {error:'battle canvas #game missing'};
   const rect=cvs.getBoundingClientRect();if(!(rect.width>0&&rect.height>0))return {error:'battle canvas has no visible bounds',rect:{width:rect.width,height:rect.height}};
@@ -91,7 +101,7 @@ async function dragLebeeAcrossOpenLane(page){
   const endClient=dispatch('pointerup',end,0);await new Promise(resolve=>setTimeout(resolve,20));
   if(captureShim){try{delete cvs.setPointerCapture;delete cvs.releasePointerCapture;delete cvs.hasPointerCapture}catch(_){}}
   return {name:lebee.name,start,end,startClient,endClient,logicalTL,logicalBR,readyShape,dragStarted,dragEnded:s.drag===false,final:{x:pair.x,y:pair.y},samples,padding,endpointWalkable:C.isWalkablePoint(s.bbRoadContent?.map,{x:pair.x,y:pair.y},{padding})};
- });
+ },slot);
 }
 
 async function run(name,type){
