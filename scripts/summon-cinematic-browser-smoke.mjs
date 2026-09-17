@@ -52,7 +52,8 @@ async function run(name,type){
     for(const key of Object.keys(portal.bounds))assertCentered(key,portal.bounds[key],portal.cardBounds,portal.viewport);
 
     const slow=await waitStage(page,'circle-slow');await page.waitForTimeout(100);const slowMoving=await stageState(page);
-    if(slow.cardOpacity!==0||slowMoving.effects.ornate.animation!=='bbOrnateRingBuild'||slowMoving.effects.outer.animation!=='bbOuterRingCharge'||!visible(slowMoving.effects.ornate)||!visible(slowMoving.effects.outer)||visible(slowMoving.effects.energy))throw new Error(`slow charge layering is wrong: ${JSON.stringify({slow,slowMoving})}`);
+    const slowEnergy=Number(slowMoving.effects.energy.opacity)||0,slowOuter=Number(slowMoving.effects.outer.opacity)||0,slowOrnate=Number(slowMoving.effects.ornate.opacity)||0;
+    if(slow.cardOpacity!==0||slowMoving.effects.ornate.animation!=='bbOrnateRingBuild'||slowMoving.effects.outer.animation!=='bbOuterRingCharge'||slowMoving.effects.energy.animation!=='bbEnergyRingCharge'||!visible(slowMoving.effects.ornate)||!visible(slowMoving.effects.outer)||slowEnergy>=Math.min(slowOuter,slowOrnate)*0.5)throw new Error(`slow charge layering is wrong: ${JSON.stringify({slow,slowMoving})}`);
     const fast=await waitStage(page,'circle-fast');await page.waitForTimeout(100);const fastMoving=await stageState(page);
     if(fast.cardOpacity!==0||fastMoving.effects.outer.animation!=='bbOuterRingCharge'||fastMoving.effects.energy.animation!=='bbEnergyRingCharge'||!visible(fastMoving.effects.outer)||!visible(fastMoving.effects.energy))throw new Error(`accelerated charge layering is wrong: ${JSON.stringify({fast,fastMoving})}`);
     if(slowMoving.effects.outer.start!==null&&fastMoving.effects.outer.start!==null&&Math.abs(slowMoving.effects.outer.start-fastMoving.effects.outer.start)>2)throw new Error(`outer ring restarted during acceleration: ${JSON.stringify({slowMoving,fastMoving})}`);
