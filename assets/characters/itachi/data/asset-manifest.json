@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "unit_id": "itachi",
+  "purpose": "asset_install_only",
+  "repo_standard": {
+    "character_root": "assets/characters/<character>/",
+    "runtime_body_frames": "individual PNG files",
+    "body_vfx_separation": true,
+    "runtime_canvas": {
+      "width": 420,
+      "height": 420,
+      "anchor_x": 210,
+      "anchor_y": 392
+    }
+  },
+  "art": {
+    "full_art": "art/itachi_full_art.png",
+    "card": "cards/itachi_card.png",
+    "shiny_foreground": "art/shiny_foreground_cutout_v1.webp",
+    "shiny_foreground_source": "art/shiny_foreground_cutout_source.png"
+  },
+  "source_sheets": {
+    "idle": "sprites/source/idle_sheet.png",
+    "basic_attack": "sprites/source/basic_attack_sheet.png",
+    "tsukuyomi_character": "sprites/source/tsukuyomi_character_sheet.png"
+  },
+  "runtime": {
+    "idle": {
+      "frames": [
+        "sprites/runtime/idle/frame_01.png",
+        "sprites/runtime/idle/frame_02.png",
+        "sprites/runtime/idle/frame_03.png",
+        "sprites/runtime/idle/frame_04.png",
+        "sprites/runtime/idle/frame_05.png",
+        "sprites/runtime/idle/frame_06.png"
+      ],
+      "frame_ms": [
+        140,
+        140,
+        150,
+        140,
+        150,
+        140
+      ],
+      "loop": true
+    },
+    "basic_attack": {
+      "frames": [
+        "sprites/runtime/attack/basic/frame_01.png",
+        "sprites/runtime/attack/basic/frame_02.png",
+        "sprites/runtime/attack/basic/frame_03.png",
+        "sprites/runtime/attack/basic/frame_04.png",
+        "sprites/runtime/attack/basic/frame_05.png",
+        "sprites/runtime/attack/basic/frame_06.png"
+      ],
+      "frame_ms": [
+        90,
+        80,
+        75,
+        90,
+        95,
+        110
+      ],
+      "loop": false,
+      "events": [
+        {
+          "frame": 4,
+          "event": "basic_attack_release"
+        }
+      ]
+    },
+    "tsukuyomi": {
+      "cast_frames": [
+        "sprites/runtime/jutsu/tsukuyomi/cast/frame_01.png",
+        "sprites/runtime/jutsu/tsukuyomi/cast/frame_02.png",
+        "sprites/runtime/jutsu/tsukuyomi/cast/frame_03.png",
+        "sprites/runtime/jutsu/tsukuyomi/cast/frame_04.png",
+        "sprites/runtime/jutsu/tsukuyomi/cast/frame_05.png",
+        "sprites/runtime/jutsu/tsukuyomi/cast/frame_06.png"
+      ],
+      "frame_ms": [
+        110,
+        120,
+        130,
+        165,
+        180,
+        140
+      ],
+      "loop": false,
+      "events": [
+        {
+          "frame": 4,
+          "event": "eye_activation"
+        },
+        {
+          "frame": 4,
+          "event": "start_genjutsu_overlay"
+        },
+        {
+          "frame": 5,
+          "event": "target_impact"
+        }
+      ],
+      "overlay_frames": [
+        "vfx/jutsu/tsukuyomi/overlay/frame_01.png",
+        "vfx/jutsu/tsukuyomi/overlay/frame_02.png",
+        "vfx/jutsu/tsukuyomi/overlay/frame_03.png",
+        "vfx/jutsu/tsukuyomi/overlay/frame_04.png",
+        "vfx/jutsu/tsukuyomi/overlay/frame_05.png",
+        "vfx/jutsu/tsukuyomi/overlay/frame_06.png"
+      ],
+      "mandala_frames": [
+        "vfx/jutsu/tsukuyomi/mandala/frame_01.png",
+        "vfx/jutsu/tsukuyomi/mandala/frame_02.png",
+        "vfx/jutsu/tsukuyomi/mandala/frame_03.png",
+        "vfx/jutsu/tsukuyomi/mandala/frame_04.png",
+        "vfx/jutsu/tsukuyomi/mandala/frame_05.png",
+        "vfx/jutsu/tsukuyomi/mandala/frame_06.png"
+      ],
+      "target_frames": [
+        "vfx/jutsu/tsukuyomi/target/frame_01.png",
+        "vfx/jutsu/tsukuyomi/target/frame_02.png",
+        "vfx/jutsu/tsukuyomi/target/frame_03.png",
+        "vfx/jutsu/tsukuyomi/target/frame_04.png",
+        "vfx/jutsu/tsukuyomi/target/frame_05.png"
+      ]
+    }
+  },
+  "integration_status": {
+    "assets_ready": true,
+    "unit_json_created": false,
+    "runtime_map_created": false,
+    "game_registry_wired": false,
+    "reason": "Gameplay stats, targeting, damage/status behavior, and registry wiring should be authored against the current branch after assets install."
+  }
+}

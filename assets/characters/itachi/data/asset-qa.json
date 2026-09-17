@@ -1,0 +1,179 @@
+{
+  "runtime_canvas": [
+    420,
+    420
+  ],
+  "anchor": [
+    210,
+    392
+  ],
+  "source_scale_used": 0.56,
+  "idle": [
+    {
+      "file": "sprites/runtime/idle/frame_01.png",
+      "runtime_bbox": [
+        122,
+        63,
+        310,
+        392
+      ]
+    },
+    {
+      "file": "sprites/runtime/idle/frame_02.png",
+      "runtime_bbox": [
+        124,
+        63,
+        310,
+        390
+      ]
+    },
+    {
+      "file": "sprites/runtime/idle/frame_03.png",
+      "runtime_bbox": [
+        124,
+        63,
+        306,
+        390
+      ]
+    },
+    {
+      "file": "sprites/runtime/idle/frame_04.png",
+      "runtime_bbox": [
+        114,
+        68,
+        296,
+        390
+      ]
+    },
+    {
+      "file": "sprites/runtime/idle/frame_05.png",
+      "runtime_bbox": [
+        111,
+        66,
+        297,
+        390
+      ]
+    },
+    {
+      "file": "sprites/runtime/idle/frame_06.png",
+      "runtime_bbox": [
+        113,
+        63,
+        300,
+        390
+      ]
+    }
+  ],
+  "basic_attack": [
+    {
+      "file": "sprites/runtime/attack/basic/frame_01.png",
+      "runtime_bbox": [
+        118,
+        123,
+        312,
+        392
+      ]
+    },
+    {
+      "file": "sprites/runtime/attack/basic/frame_02.png",
+      "runtime_bbox": [
+        109,
+        133,
+        312,
+        392
+      ]
+    },
+    {
+      "file": "sprites/runtime/attack/basic/frame_03.png",
+      "runtime_bbox": [
+        109,
+        139,
+        312,
+        392
+      ]
+    },
+    {
+      "file": "sprites/runtime/attack/basic/frame_04.png",
+      "runtime_bbox": [
+        109,
+        112,
+        312,
+        392
+      ]
+    },
+    {
+      "file": "sprites/runtime/attack/basic/frame_05.png",
+      "runtime_bbox": [
+        109,
+        140,
+        312,
+        392
+      ]
+    },
+    {
+      "file": "sprites/runtime/attack/basic/frame_06.png",
+      "runtime_bbox": [
+        109,
+        126,
+        304,
+        392
+      ]
+    }
+  ],
+  "tsukuyomi_cast": [
+    {
+      "file": "sprites/runtime/jutsu/tsukuyomi/cast/frame_01.png",
+      "runtime_bbox": [
+        124,
+        79,
+        312,
+        391
+      ]
+    },
+    {
+      "file": "sprites/runtime/jutsu/tsukuyomi/cast/frame_02.png",
+      "runtime_bbox": [
+        109,
+        92,
+        310,
+        391
+      ]
+    },
+    {
+      "file": "sprites/runtime/jutsu/tsukuyomi/cast/frame_03.png",
+      "runtime_bbox": [
+        117,
+        96,
+        299,
+        390
+      ]
+    },
+    {
+      "file": "sprites/runtime/jutsu/tsukuyomi/cast/frame_04.png",
+      "runtime_bbox": [
+        109,
+        89,
+        312,
+        390
+      ]
+    },
+    {
+      "file": "sprites/runtime/jutsu/tsukuyomi/cast/frame_05.png",
+      "runtime_bbox": [
+        109,
+        93,
+        309,
+        391
+      ]
+    },
+    {
+      "file": "sprites/runtime/jutsu/tsukuyomi/cast/frame_06.png",
+      "runtime_bbox": [
+        109,
+        93,
+        300,
+        391
+      ]
+    }
+  ]
+}
