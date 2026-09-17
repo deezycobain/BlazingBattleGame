@@ -148,7 +148,7 @@ async function run(name,type){
   });
   if(stage1.stage!==1||stage1.elite)throw new Error(`Stage 1 content wrong: ${JSON.stringify(stage1)}`);
   if(!/stage-01-south-sac\.webp$/.test(stage1.map||'')||stage1.mapSource!==stage1.map)throw new Error(`Stage 1 map routing wrong: ${JSON.stringify(stage1)}`);
-  if(stage1.enemies.length<3||stage1.enemies.some(e=>e.attack<24||!e.ai))throw new Error(`Stage 1 enemies are not combat-ready: ${JSON.stringify(stage1.enemies)}`);
+  if(stage1.enemies.length<3||stage1.enemies.some(e=>e.attack<=0||e.attack>18||!e.ai))throw new Error(`Stage 1 opening balance/combat readiness regressed: ${JSON.stringify(stage1.enemies)}`);
   if(stage1.chakra.some(u=>u.chakra>Math.min(2,u.max)))throw new Error(`development full-chakra shortcut survived: ${JSON.stringify(stage1.chakra)}`);
   if(stage1.playerFootPadding!==4||stage1.enemyTerrainPadding!==18||stage1.broadWalkable.some(value=>!value))throw new Error(`Road terrain footprint/broad field regressed: ${JSON.stringify(stage1)}`);
 
