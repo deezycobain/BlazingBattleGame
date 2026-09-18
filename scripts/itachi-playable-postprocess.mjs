@@ -142,7 +142,7 @@ const itachiVfx=String.raw`}else if(f.kind==='itachiCrowStrike'){
       if(img?.complete&&img.naturalWidth){
        ctx.setTransform(1,0,0,1,0,0);
        const fade=t<.16?t/.16:(t>.84?Math.max(0,(1-t)/.16):1),pulse=.86+.14*Math.sin(t*Math.PI*2),redPulse=.25+.09*(.5+.5*Math.sin(t*Math.PI*2.2)),size=Math.max(W,H)*1.42;
-       ctx.globalCompositeOperation='source-over';ctx.globalAlpha*=1;ctx.fillStyle=\`rgba(92,0,14,\${redPulse*fade})\`;ctx.fillRect(0,0,W,H);
+       ctx.globalCompositeOperation='source-over';ctx.globalAlpha*=1;ctx.fillStyle='rgba(92,0,14,'+(redPulse*fade)+')';ctx.fillRect(0,0,W,H);
        ctx.globalCompositeOperation='screen';ctx.globalAlpha*=.46*fade*pulse;ctx.drawImage(img,(W-size)/2,(H-size)/2,size,size);
       }
     }else if(f.kind==='itachiTsukuyomiMandala'){
@@ -157,7 +157,7 @@ const itachiVfx=String.raw`}else if(f.kind==='itachiCrowStrike'){
       if(img?.complete&&img.naturalWidth){
        ctx.setTransform(1,0,0,1,0,0);
        const fade=t<.18?t/.18:(t>.74?Math.max(0,(1-t)/.26):1),w=Math.min(W*.88,H*.72)*(1+.04*Math.sin(Math.PI*t)),h=w*(img.naturalHeight/img.naturalWidth);
-       ctx.globalCompositeOperation='source-over';ctx.fillStyle=\`rgba(116,0,18,\${.22*fade})\`;ctx.fillRect(0,0,W,H);
+       ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(116,0,18,'+(.22*fade)+')';ctx.fillRect(0,0,W,H);
        ctx.translate(W/2,H/2);ctx.globalCompositeOperation='screen';ctx.globalAlpha*=.96*fade;ctx.shadowColor='#ff1638';ctx.shadowBlur=28;ctx.drawImage(img,-w/2,-h/2,w,h);
       }
     `+vfxAnchor;
@@ -203,5 +203,6 @@ for(const marker of [
   "canonicalUnit('itachi').abilities.jutsu.gauge_reduction??45"
 ])if(!html.includes(marker))fail(`final shell missing ${marker}`);
 
+if(html.includes('\\\\`')||html.includes('\\\\${'))fail('generated runtime contains escaped template syntax');
 await fs.writeFile(file,html);
 console.log('Itachi playable integration PASS: enlarged battle presentation, readable Crow Chakra Strike timing, and centered full-screen AoE Tsukuyomi with deep-red takeover, multi-enemy damage, and 45-gauge suppression are wired.');
