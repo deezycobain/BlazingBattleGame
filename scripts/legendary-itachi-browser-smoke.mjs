@@ -85,6 +85,15 @@ async function run(name,type){
     const sequentialStarts=startOrder.length===4&&startOrder.every((value,index)=>value===index);
     const separatedStarts=ringStarts.slice(1).every(item=>item.gap>=170);
     if(!sequentialStarts||!separatedStarts)throw new Error(`Itachi ring snap starts are not isolated layer-by-layer: ${JSON.stringify(ringStarts)}`);
+    await page.waitForTimeout(80);
+    const assembled=await page.evaluate(()=>{
+      const scene=document.getElementById('pullScene');
+      return {
+        ringOpacities:[...scene.querySelectorAll('.bb-itachi-ring-shell')].map(node=>Number.parseFloat(getComputedStyle(node).opacity)||0),
+        environmentOpacity:Number.parseFloat(getComputedStyle(scene.querySelector('.bb-itachi-environment')).opacity)||0
+      };
+    });
+    if(assembled.ringOpacities.length!==4||assembled.ringOpacities.some(value=>value<.99)||assembled.environmentOpacity>.01)throw new Error(`Itachi ring assembly still contains translucent overlap: ${JSON.stringify(assembled)}`);
 
     const loaded=await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
