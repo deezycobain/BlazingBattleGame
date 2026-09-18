@@ -7,7 +7,7 @@ const sourcePath=path.join(root,'scripts','validate-progression.mjs');
 const tempPath=path.join(root,'scripts','.validate-progression-itachi-runtime.mjs');
 let source=await fs.readFile(sourcePath,'utf8');
 const replacements=[
-  ["\"const VERSION='5.7.0'\"","\"const VERSION='5.8.0-itachi'\""],
+  ["\"const VERSION='5.7.0'\"","\"const VERSION='5.8.1-itachi'\""],
   ["\"FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler']\"","\"FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi']\""],
   ["'summon-cinematic-browser-smoke.mjs'","'summon-cinematic-browser-smoke-itachi.mjs'"]
 ];
