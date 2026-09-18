@@ -1,0 +1,30 @@
+name: Validate Legendary Itachi feature
+
+on:
+  push:
+    branches:
+      - feature/legendary-itachi-summon
+    paths:
+      - assets/characters/itachi/**
+      - runtime/registry/unit-index.json
+      - runtime/registry/asset-manifest.json
+      - scripts/itachi-*.mjs
+      - package.json
+      - .github/workflows/validate-legendary-itachi.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - name: Validate canonical runtime and Itachi assets
+        run: npm run validate

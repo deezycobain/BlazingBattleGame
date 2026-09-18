@@ -1,0 +1,229 @@
+{
+  "schema_version": 3,
+  "id": "itachi",
+  "display_name": "Itachi",
+  "title": "Crimson Moon",
+  "role": "playable",
+  "archetype": "genjutsu_controller",
+  "element": "Fire",
+  "rarity": "Legendary",
+  "collection": {
+    "owned": true,
+    "inventory_visible": true,
+    "battle_ready": true
+  },
+  "stats": {
+    "level": 1,
+    "hp": 74,
+    "attack": 40,
+    "defense": 32,
+    "speed": 78
+  },
+  "combat": {
+    "mark": "I",
+    "movement_range": 94,
+    "basic_shape": {
+      "type": "circle",
+      "r": 112
+    },
+    "jutsu_shape": {
+      "type": "circle",
+      "r": 220
+    },
+    "chakra_max": 8,
+    "chakra_start": 2
+  },
+  "render": {
+    "scale": 1.0
+  },
+  "abilities": {
+    "basic": {
+      "id": "crow_chakra_strike",
+      "name": "Crow Chakra Strike",
+      "damage_multiplier": 1.0,
+      "chakra_gain": 1,
+      "delivery": "short_range_cast",
+      "target_mode": "single",
+      "single_target_selector": "nearest_in_shape",
+      "presentation": {
+        "runtime_driver": "animateItachiCrowStrike",
+        "animation_kind": "basic_attack",
+        "melee_animation_kind": "basic_attack",
+        "cast_duration_ms": 540,
+        "impact_duration_ms": 360,
+        "screen_dim_alpha": 0.0
+      }
+    },
+    "jutsu": {
+      "id": "tsukuyomi",
+      "name": "Tsukuyomi",
+      "cost": 4,
+      "damage_multiplier": 1.75,
+      "delivery": "targeted_genjutsu",
+      "category": "jutsu",
+      "ultimate": false,
+      "target_mode": "single",
+      "single_target_selector": "nearest_in_shape",
+      "gauge_reduction": 45,
+      "presentation": {
+        "runtime_driver": "animateItachiTsukuyomi",
+        "cast_duration_ms": 845,
+        "overlay_duration_ms": 690,
+        "target_duration_ms": 555,
+        "screen_dim_alpha": 0.38,
+        "body_facing_mode": "target_locked",
+        "freeze_caster_position": true
+      }
+    }
+  },
+  "assets": {
+    "art": "art/itachi_full_art.png",
+    "card": "cards/itachi_card.png",
+    "portrait": "art/itachi_full_art.png",
+    "icon": null,
+    "shiny_foreground": "art/shiny_foreground_cutout_v1.webp",
+    "sprites": {
+      "idle": "sprites/runtime/idle/",
+      "attack_basic": "sprites/runtime/attack/basic/",
+      "jutsu": "sprites/runtime/jutsu/tsukuyomi/cast/"
+    },
+    "vfx": "vfx/"
+  },
+  "readiness": {
+    "collection": true,
+    "battle": true,
+    "idle": true,
+    "basic_attack": true,
+    "jutsu": true,
+    "recoil": false,
+    "notes": "Initial Legendary Itachi integration. Tsukuyomi is a single-target genjutsu that combines damage with turn-gauge suppression. Balance values are provisional pending in-engine testing. Dedicated recoil art is not yet authored.",
+    "animation_map": true
+  },
+  "balance": {
+    "status": "provisional",
+    "pass": "itachi-initial-integration",
+    "notes": "Initial gameplay values for development validation. HP 74 / ATK 40 / DEF 32 / SPD 78; Tsukuyomi costs 4 chakra, deals 1.75x attack damage, and reduces target gauge by 45."
+  },
+  "animation_standard": {
+    "version": "v0.7-itachi-initial",
+    "canvas": {
+      "width": 420,
+      "height": 420,
+      "anchor_x": 210,
+      "anchor_y": 392
+    },
+    "animations": {
+      "idle": {
+        "frames": [
+          "sprites/runtime/idle/frame_01.png",
+          "sprites/runtime/idle/frame_02.png",
+          "sprites/runtime/idle/frame_03.png",
+          "sprites/runtime/idle/frame_04.png",
+          "sprites/runtime/idle/frame_05.png",
+          "sprites/runtime/idle/frame_06.png"
+        ],
+        "frame_ms": 145,
+        "loop": true,
+        "events": []
+      },
+      "basic_attack": {
+        "frames": [
+          "sprites/runtime/attack/basic/frame_01.png",
+          "sprites/runtime/attack/basic/frame_02.png",
+          "sprites/runtime/attack/basic/frame_03.png",
+          "sprites/runtime/attack/basic/frame_04.png",
+          "sprites/runtime/attack/basic/frame_05.png",
+          "sprites/runtime/attack/basic/frame_06.png"
+        ],
+        "frame_ms": 90,
+        "loop": false,
+        "events": [
+          {
+            "frame": 4,
+            "event": "release_crow_chakra"
+          },
+          {
+            "event": "on_crow_impact",
+            "action": "apply_damage"
+          }
+        ]
+      },
+      "jutsu": {
+        "tsukuyomi": {
+          "frames": [
+            "sprites/runtime/jutsu/tsukuyomi/cast/frame_01.png",
+            "sprites/runtime/jutsu/tsukuyomi/cast/frame_02.png",
+            "sprites/runtime/jutsu/tsukuyomi/cast/frame_03.png",
+            "sprites/runtime/jutsu/tsukuyomi/cast/frame_04.png",
+            "sprites/runtime/jutsu/tsukuyomi/cast/frame_05.png",
+            "sprites/runtime/jutsu/tsukuyomi/cast/frame_06.png"
+          ],
+          "frame_ms": 140,
+          "loop": false,
+          "events": [
+            {
+              "frame": 4,
+              "event": "eye_activation"
+            },
+            {
+              "frame": 4,
+              "event": "start_genjutsu_overlay"
+            },
+            {
+              "frame": 5,
+              "event": "target_impact"
+            }
+          ]
+        }
+      }
+    },
+    "vfx": {
+      "basic/crow_burst": {
+        "frames": [
+          "vfx/basic/crows/crow_chakra_burst.png"
+        ],
+        "frame_ms": 360,
+        "loop": false,
+        "body_asset": false
+      },
+      "jutsu/tsukuyomi/overlay": {
+        "frames": [
+          "vfx/jutsu/tsukuyomi/overlay/frame_01.png",
+          "vfx/jutsu/tsukuyomi/overlay/frame_02.png",
+          "vfx/jutsu/tsukuyomi/overlay/frame_03.png",
+          "vfx/jutsu/tsukuyomi/overlay/frame_04.png",
+          "vfx/jutsu/tsukuyomi/overlay/frame_05.png",
+          "vfx/jutsu/tsukuyomi/overlay/frame_06.png"
+        ],
+        "frame_ms": 115,
+        "loop": false,
+        "body_asset": false
+      },
+      "jutsu/tsukuyomi/mandala": {
+        "frames": [
+          "vfx/jutsu/tsukuyomi/mandala/frame_01.png",
+          "vfx/jutsu/tsukuyomi/mandala/frame_02.png",
+          "vfx/jutsu/tsukuyomi/mandala/frame_03.png",
+          "vfx/jutsu/tsukuyomi/mandala/frame_04.png",
+          "vfx/jutsu/tsukuyomi/mandala/frame_05.png",
+          "vfx/jutsu/tsukuyomi/mandala/frame_06.png"
+        ],
+        "frame_ms": 115,
+        "loop": false,
+        "body_asset": false
+      },
+      "jutsu/tsukuyomi/target": {
+        "frames": [
+          "vfx/jutsu/tsukuyomi/target/frame_01.png",
+          "vfx/jutsu/tsukuyomi/target/frame_02.png",
+          "vfx/jutsu/tsukuyomi/target/frame_03.png",
+          "vfx/jutsu/tsukuyomi/target/frame_04.png",
+          "vfx/jutsu/tsukuyomi/target/frame_05.png"
+        ],
+        "frame_ms": 111,
+        "loop": false,
+        "body_asset": false
+      }
+    }
+  }
+}

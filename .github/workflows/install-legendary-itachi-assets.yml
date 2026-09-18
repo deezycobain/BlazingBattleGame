@@ -1,0 +1,108 @@
+name: Install Legendary Itachi summon assets
+
+on:
+  push:
+    branches:
+      - feature/legendary-itachi-summon
+    paths:
+      - legendary-itachi-game-upload.zip
+      - .github/workflows/install-legendary-itachi-assets.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/legendary-itachi-summon
+          fetch-depth: 0
+
+      - name: Install Legendary Itachi runtime assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="legendary-itachi-game-upload.zip"
+          DEST="assets/vfx/summon/legendary-itachi"
+          TMP="$(mktemp -d)"
+
+          if [[ ! -f "$ZIP" ]]; then
+            echo "No $ZIP present; nothing to install."
+            exit 0
+          fi
+
+          unzip -q "$ZIP" -d "$TMP"
+          SRC="$TMP/assets/vfx/summon/legendary-itachi"
+
+          REQUIRED=(
+            itachi_environment_lotus_clouds.webp
+            itachi_ring_flame_halo.webp
+            itachi_ring_outer_compass.webp
+            itachi_ring_middle_enamel.webp
+            itachi_ring_inner_aperture.webp
+            itachi_ring_sharingan_orbit.webp
+            itachi_fx_shadow_lotus.webp
+            itachi_silhouette.webp
+            itachi_fx_raven_burst.webp
+            itachi_fx_feather_vortex.webp
+            itachi_reveal.webp
+            itachi_fx_legendary_flash.webp
+          )
+
+          for file in "${REQUIRED[@]}"; do
+            test -f "$SRC/$file" || {
+              echo "Missing required Itachi asset: $file" >&2
+              exit 1
+            }
+          done
+
+          rm -rf "$DEST"
+          mkdir -p "$DEST"
+          cp "$SRC"/*.webp "$DEST"/
+          [[ -f "$SRC/manifest.json" ]] && cp "$SRC/manifest.json" "$DEST/manifest.json"
+          [[ -f "$SRC/README_UPLOAD.txt" ]] && cp "$SRC/README_UPLOAD.txt" "$DEST/README_UPLOAD.txt"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          required = [
+              'itachi_environment_lotus_clouds.webp',
+              'itachi_ring_flame_halo.webp',
+              'itachi_ring_outer_compass.webp',
+              'itachi_ring_middle_enamel.webp',
+              'itachi_ring_inner_aperture.webp',
+              'itachi_ring_sharingan_orbit.webp',
+              'itachi_fx_shadow_lotus.webp',
+              'itachi_silhouette.webp',
+              'itachi_fx_raven_burst.webp',
+              'itachi_fx_feather_vortex.webp',
+              'itachi_reveal.webp',
+              'itachi_fx_legendary_flash.webp',
+          ]
+          root = Path('assets/vfx/summon/legendary-itachi')
+          for name in required:
+              path = root / name
+              data = path.read_bytes()
+              if data[:4] != b'RIFF' or data[8:12] != b'WEBP':
+                  raise SystemExit(f'Not a valid WebP: {path}')
+              print(f'{path}: {len(data)} bytes')
+          PY
+
+          rm -f "$ZIP"
+
+      - name: Commit installed assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No asset changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Install Legendary Itachi summon assets"
+          git push origin HEAD:feature/legendary-itachi-summon
