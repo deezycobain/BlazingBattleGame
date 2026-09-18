@@ -96,8 +96,32 @@ async function exerciseSummon(page,label){
  if(top.nav!=='summon')throw new Error(`${label}: summon target is obstructed :: ${JSON.stringify(top)}`);
  await nav.click();
  await page.waitForFunction(()=>document.getElementById('summonScreen')?.classList.contains('active'),null,{timeout:5000});
- const state=await page.evaluate(()=>({summon:document.getElementById('summonScreen')?.classList.contains('active'),menuDisplay:getComputedStyle(document.getElementById('menuScreen')).display}));
- if(!state.summon||state.menuDisplay!=='none')throw new Error(`${label}: summon route did not leave Home :: ${JSON.stringify(state)}`);
+ const state=await page.evaluate(()=>({summon:document.getElementById('summonScreen')?.classList.contains('active'),menuDisplay:getComputedStyle(document.getElementById('menuScreen')).display,battlePointer:getComputedStyle(document.getElementById('battleScreen')).pointerEvents,battleVisibility:getComputedStyle(document.getElementById('battleScreen')).visibility}));
+ if(!state.summon||state.menuDisplay!=='none'||state.battlePointer!=='none'||state.battleVisibility!=='hidden')throw new Error(`${label}: summon route did not own input :: ${JSON.stringify(state)}`);
+
+ const single=page.locator('#summonScreen.active #singleSummonBtn');await single.waitFor({state:'visible',timeout:5000});
+ const singleBox=await single.boundingBox();if(!singleBox)throw new Error(`${label}: single summon target has no box`);
+ const singleTop=await page.evaluate(({x,y})=>{const el=document.elementFromPoint(x,y);return {id:el?.id||'',button:el?.closest?.('button')?.id||'',screen:el?.closest?.('.screen')?.id||''}}, {x:singleBox.x+singleBox.width/2,y:singleBox.y+singleBox.height/2});
+ if(singleTop.button!=='singleSummonBtn'||singleTop.screen!=='summonScreen')throw new Error(`${label}: single summon is obstructed :: ${JSON.stringify(singleTop)}`);
+
+ const back=await page.evaluate(()=>{
+  const screen=document.getElementById('summonScreen');
+  const visible=node=>{if(!node)return false;const s=getComputedStyle(node),r=node.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity||1)>0&&r.width>0&&r.height>0};
+  const buttons=[...screen.querySelectorAll('button')].filter(visible);
+  const node=buttons.find(button=>/\b(?:back|home)\b/i.test(`${button.getAttribute('aria-label')||''} ${button.textContent||''}`)&&button.id!=='returnToSummonsBtn');
+  if(!node)return null;
+  if(!node.id)node.id='bbSmokeSummonHomeBack';
+  return node.id;
+ });
+ if(!back)throw new Error(`${label}: Summon screen has no accessible Back/Home control`);
+ await page.locator(`#${back}`).click();
+ await page.waitForFunction(()=>getComputedStyle(document.getElementById('menuScreen')).display!=='none'&&!document.getElementById('summonScreen')?.classList.contains('active'),null,{timeout:5000});
+ await page.waitForFunction(()=>document.getElementById('bbHomeApproved')?.dataset?.bbHomeLayout==='v9-polish',null,{timeout:5000});
+
+ await page.locator('#bbHomeApproved [data-nav="summon"]').click();
+ await page.locator('#summonScreen.active #singleSummonBtn').waitFor({state:'visible',timeout:5000});
+ await page.locator('#singleSummonBtn').click();
+ await page.waitForFunction(()=>document.getElementById('summonPullScreen')?.classList.contains('active'),null,{timeout:5000});
 }
 async function exerciseBattle(page,label){
  await page.locator('#bbHomeApproved [data-nav="battle"]').click();const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');await panel.waitFor({state:'visible',timeout:5000});
