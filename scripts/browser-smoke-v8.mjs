@@ -89,6 +89,35 @@ async function assertHome(page,label){
  for(const required of Object.keys(state.legacy))if(!state.legacy[required])throw new Error(`${label}: legacy route anchor ${required} missing`);
  console.log(`Home v9 smoke PASS (${label}): raised 2x2 parchment dock + mobile viewport fill + escaped-newline cleanup + Blazing Coins/Embers`);
 }
+async function assertBattleCanvasShield(page,label){
+ const state=await page.evaluate(()=>{
+  const game=document.getElementById('game'),style=game?getComputedStyle(game):null;
+  return {exists:!!game,pointer:style?.pointerEvents||'',visibility:style?.visibility||'',shield:game?.dataset?.bbInputShield||''};
+ });
+ if(!state.exists||state.pointer!=='none'||state.visibility!=='hidden'||state.shield!=='on')throw new Error(`${label}: battle canvas can still own non-battle input :: ${JSON.stringify(state)}`);
+}
+async function assertNavTop(page,selector,label){
+ const box=await page.locator(selector).boundingBox();if(!box)throw new Error(`${label}: navigation target missing`);
+ const top=await page.evaluate(({x,y})=>{const node=document.elementFromPoint(x,y);return {tag:node?.tagName||'',nav:node?.closest?.('[data-nav]')?.getAttribute('data-nav')||'',id:node?.id||'',battle:!!node?.closest?.('#battleScreen')};},{x:box.x+box.width/2,y:box.y+box.height/2});
+ if(top.battle)throw new Error(`${label}: stale battle layer still covers navigation :: ${JSON.stringify(top)}`);
+ return top;
+}
+async function exerciseNonBattleRoutes(page,label){
+ await assertBattleCanvasShield(page,`${label}/home`);
+ await assertNavTop(page,'#bbHomeApproved [data-nav="summon"]',`${label}/summon-nav`);
+ await page.locator('#bbHomeApproved [data-nav="summon"]').click();
+ await page.locator('#summonScreen.active #singleSummonBtn').waitFor({state:'visible',timeout:7000});
+ await assertBattleCanvasShield(page,`${label}/summon`);
+ const singleBox=await page.locator('#summonScreen.active #singleSummonBtn').boundingBox();if(!singleBox)throw new Error(`${label}: single summon target missing`);
+ const singleTop=await page.evaluate(({x,y})=>{const node=document.elementFromPoint(x,y);return {id:node?.id||'',button:node?.closest?.('button')?.id||'',battle:!!node?.closest?.('#battleScreen')};},{x:singleBox.x+singleBox.width/2,y:singleBox.y+singleBox.height/2});
+ if(singleTop.button!=='singleSummonBtn'||singleTop.battle)throw new Error(`${label}: single summon is still intercepted :: ${JSON.stringify(singleTop)}`);
+ await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});await waitHome(page);
+ await assertBattleCanvasShield(page,`${label}/home-after-summon`);
+ await assertNavTop(page,'#bbHomeApproved [data-nav="units"]',`${label}/inventory-nav`);
+ await page.locator('#bbHomeApproved [data-nav="units"]').click();
+ await page.waitForFunction(()=>document.getElementById('inventoryScreen')?.classList.contains('active')||!!document.querySelector('#bbInventory:not([hidden])'),null,{timeout:7000});
+ await assertBattleCanvasShield(page,`${label}/inventory`);
+}
 async function exerciseBattle(page,label){
  await page.locator('#bbHomeApproved [data-nav="battle"]').click();const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');await panel.waitFor({state:'visible',timeout:5000});
  const labels=await page.locator('#bbHomeApproved .bb-home-v4-modes').innerText();if(!/BLAZING\s+ROAD/i.test(labels)||!/PHANTOM\s+CASTLE/i.test(labels))throw new Error(`${label}: battle mode labels missing`);
@@ -96,7 +125,7 @@ async function exerciseBattle(page,label){
 }
 async function exerciseViewport(browser,name,label,contextOptions){
  const errors=[],context=await browser.newContext(contextOptions);
- try{const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));const response=await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);await waitHome(page);const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);await assertHome(page,`${name}/${label}`);await exerciseBattle(page,`${name}/${label}`);if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`)}finally{await context.close().catch(()=>{})}
+ try{const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));const response=await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);await waitHome(page);const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);await assertHome(page,`${name}/${label}`);await exerciseNonBattleRoutes(page,`${name}/${label}`);await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});await waitHome(page);await exerciseBattle(page,`${name}/${label}`);if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`)}finally{await context.close().catch(()=>{})}
 }
 async function run(name,type){let browser;try{browser=await type.launch({headless:true,timeout:15000});await exerciseViewport(browser,name,'phone',{viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:name==='webkit'});await exerciseViewport(browser,name,'desktop',{viewport:{width:1366,height:900},isMobile:false,hasTouch:false})}finally{if(browser)await browser.close().catch(()=>{})}}
 if(!SELECT){let ok=true;for(const name of Object.keys(TYPES))if(!await runIsolated(name))ok=false;if(!ok)process.exit(1);process.exit(0)}
