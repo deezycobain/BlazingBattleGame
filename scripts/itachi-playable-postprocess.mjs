@@ -234,8 +234,8 @@ for(const marker of [
   'crow_chakra_burst.png','crow_swarm.png','crow_vortex_ring.png','crow_featherstorm.png',
   "if(name==='Itachi')return ITACHI_IDLE_FRAMES",
   "if(name==='Itachi'){if(kind==='tsukuyomi'",
-  'function animateItachiCrowStrike(','function animateItachiTsukuyomi(',
-  "f.kind==='itachiCrowStrike'","f.kind==='itachiTsukuyomiOverlay'","f.kind==='itachiTsukuyomiMandala'","f.kind==='itachiTsukuyomiTarget'",
+  'function animateItachiCrowStrike(','function animateItachiTsukuyomi(','function ensureItachiTsukuyomiCinematic(','function startItachiTsukuyomiCinematic(',
+  "f.kind==='itachiCrowStrike'","bb-itachi-tsukuyomi-cinematic","bb-tsu-overlay","bb-tsu-mandala","bb-tsu-target",
   "au.name==='Itachi'",
   "u.name==='Itachi'?animateItachiTsukuyomi",
   "canonicalUnit('itachi').abilities.jutsu.gauge_reduction??45"
