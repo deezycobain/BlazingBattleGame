@@ -65,10 +65,10 @@
       "gauge_reduction": 45,
       "presentation": {
         "runtime_driver": "animateItachiTsukuyomi",
-        "cast_duration_ms": 2200,
-        "overlay_duration_ms": 2600,
-        "target_duration_ms": 900,
-        "screen_dim_alpha": 0.68,
+        "cast_duration_ms": 2600,
+        "overlay_duration_ms": 3380,
+        "target_duration_ms": 1200,
+        "screen_dim_alpha": 0.42,
         "body_facing_mode": "target_locked",
         "freeze_caster_position": true
       },
@@ -96,13 +96,13 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": false,
-    "notes": "Legendary Itachi presentation v2: Crow Chakra Strike is a compact upright flock with red smoke and direction-safe mirroring; Tsukuyomi uses a controlled ritual setup that collapses into an oppressive nightmare takeover, then resolves as a procedural battlefield-wide AoE bind with 45-point gauge suppression.",
+    "notes": "Legendary Itachi presentation v3: Crow Chakra Strike is a compact direction-safe crow flock with red smoke. Tsukuyomi now uses the authored overlay, mandala, and target VFX in a fixed full-viewport cinematic layer centered over the entire battle screen, then resolves battlefield-wide AoE damage and 45-point gauge suppression.",
     "animation_map": true
   },
   "balance": {
     "status": "provisional",
-    "pass": "itachi-legendary-nightmare-v2",
-    "notes": "Gameplay values remain provisional. Tsukuyomi is now presented and resolved as battlefield AoE while retaining 4 chakra cost, 1.75x damage, and 45-point gauge suppression."
+    "pass": "itachi-legendary-fullscreen-tsukuyomi-v3",
+    "notes": "Gameplay values remain provisional. Tsukuyomi presentation is now full-viewport and authored-asset driven while retaining 4 chakra cost, 1.75x damage, and 45-point gauge suppression."
   },
   "animation_standard": {
     "version": "v0.7-itachi-initial",
