@@ -22,8 +22,8 @@
       },
       "projectile_presentation": {
         "trajectory": "direct",
-        "cast_duration_ms": 780,
-        "flight_duration_ms": 500,
+        "cast_duration_ms": 380,
+        "flight_duration_ms": 520,
         "impact_duration_ms": 300
       }
     },
@@ -56,11 +56,13 @@
       },
       "projectile_presentation": {
         "trajectory": "none",
-        "cast_duration_ms": 1450,
-        "overlay_duration_ms": 1450,
-        "target_duration_ms": 900,
-        "screen_dim_alpha": 0.56,
-        "centered_screen_takeover": true
+        "cast_duration_ms": 1800,
+        "overlay_duration_ms": 2380,
+        "target_duration_ms": 1000,
+        "screen_dim_alpha": 0.62,
+        "centered_screen_takeover": true,
+        "cinematic_takeover": true,
+        "enemy_side_distortion": true
       },
       "area": "battlefield_rectangle",
       "aoe": true
