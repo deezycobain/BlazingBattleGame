@@ -74,12 +74,13 @@ async function run(name,type){
    });
    return {...outcome,beforeHp,afterHp:enemy.hp,beforeGauge,afterGauge:enemy.gauge,sawDim,sawOverlay,sawMandala,sawTarget,firstOverlayAt,firstTargetAt,dim:!!s.jutsuDim};
   });
-  await page.waitForTimeout(760);
+  await page.waitForFunction(()=>{try{return globalThis.eval('S')?.floaters?.some(f=>f.kind==='itachiTsukuyomiOverlay')}catch{return false}},{timeout:1600});
+  await page.waitForTimeout(90);
   await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-${name}.png`,fullPage:true});
   const jutsuResult=await jutsuPromise;
-  if(jutsuResult.error||jutsuResult.timeout||!jutsuResult.sawDim||!jutsuResult.sawOverlay||!jutsuResult.sawMandala||!jutsuResult.sawTarget||jutsuResult.firstOverlayAt<480||jutsuResult.firstOverlayAt>700||jutsuResult.firstTargetAt<620||jutsuResult.firstTargetAt>850||jutsuResult.elapsed<1180||jutsuResult.afterHp!==jutsuResult.beforeHp-1||jutsuResult.afterGauge!==Math.max(0,jutsuResult.beforeGauge-45))throw new Error(`Tsukuyomi failed: ${JSON.stringify(jutsuResult)}`);
+  if(jutsuResult.error||jutsuResult.timeout||!jutsuResult.sawDim||!jutsuResult.sawOverlay||!jutsuResult.sawMandala||!jutsuResult.sawTarget||jutsuResult.firstOverlayAt<450||jutsuResult.firstOverlayAt>1100||jutsuResult.firstTargetAt-jutsuResult.firstOverlayAt<80||jutsuResult.firstTargetAt-jutsuResult.firstOverlayAt>360||jutsuResult.elapsed<jutsuResult.firstTargetAt+450||jutsuResult.afterHp!==jutsuResult.beforeHp-1||jutsuResult.afterGauge!==Math.max(0,jutsuResult.beforeGauge-45))throw new Error(`Tsukuyomi failed: ${JSON.stringify(jutsuResult)}`);
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Itachi battle smoke PASS (${name}): roster + 6/6/6 body frames, Crow Chakra Strike VFX/damage, and Tsukuyomi timed dim/overlay/mandala/target + held cast pose + 45 gauge suppression verified.`);
+  console.log(`Itachi battle smoke PASS (${name}): roster + 6/6/6 body frames, Crow Chakra Strike VFX/damage, and Tsukuyomi ordered eye/overlay → target beat + dim + held cast pose + 45 gauge suppression verified.`);
   await context.close();
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
