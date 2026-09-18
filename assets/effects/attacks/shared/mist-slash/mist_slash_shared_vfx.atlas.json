@@ -1,0 +1,64 @@
+{
+  "format": "blazing-battle-vfx-atlas-v1",
+  "image": "mist_slash_shared_vfx.png",
+  "image_size": {
+    "width": 1536,
+    "height": 1024
+  },
+  "coordinate_system": {
+    "origin": "top-left",
+    "x_positive": "right",
+    "y_positive": "down",
+    "units": "pixels"
+  },
+  "namespace": "shared.mist",
+  "regions": {
+    "mist_crescent_01": {"rect":{"x":9,"y":26,"width":191,"height":290},"pivot":{"x":0.5,"y":0.5},"category":"slash_arc","reusable":true},
+    "mist_crescent_02": {"rect":{"x":200,"y":14,"width":156,"height":312},"pivot":{"x":0.5,"y":0.5},"category":"slash_arc","reusable":true},
+    "mist_crescent_03": {"rect":{"x":356,"y":16,"width":192,"height":308},"pivot":{"x":0.5,"y":0.5},"category":"slash_arc","reusable":true},
+    "mist_crescent_04": {"rect":{"x":548,"y":14,"width":228,"height":304},"pivot":{"x":0.5,"y":0.5},"category":"slash_arc","reusable":true},
+    "mist_crescent_05": {"rect":{"x":776,"y":13,"width":248,"height":317},"pivot":{"x":0.5,"y":0.5},"category":"slash_arc","reusable":true},
+    "mist_crescent_06": {"rect":{"x":1024,"y":15,"width":253,"height":315},"pivot":{"x":0.5,"y":0.5},"category":"slash_arc","reusable":true},
+    "mist_crescent_07": {"rect":{"x":1277,"y":16,"width":259,"height":314},"pivot":{"x":0.5,"y":0.5},"category":"slash_arc","reusable":true},
+    "mist_horizontal_01": {"rect":{"x":10,"y":351,"width":388,"height":124},"pivot":{"x":0.5,"y":0.5},"category":"slash_trail","reusable":true},
+    "mist_horizontal_02": {"rect":{"x":398,"y":334,"width":423,"height":141},"pivot":{"x":0.5,"y":0.5},"category":"slash_trail","reusable":true},
+    "mist_horizontal_03": {"rect":{"x":821,"y":330,"width":403,"height":145},"pivot":{"x":0.5,"y":0.5},"category":"slash_trail","reusable":true},
+    "mist_horizontal_04": {"rect":{"x":1224,"y":330,"width":300,"height":139},"pivot":{"x":0.5,"y":0.5},"category":"slash_trail","reusable":true},
+    "mist_ring_01": {"rect":{"x":9,"y":449,"width":329,"height":211},"pivot":{"x":0.5,"y":0.5},"category":"vortex","reusable":true},
+    "mist_ring_02": {"rect":{"x":345,"y":445,"width":345,"height":214},"pivot":{"x":0.5,"y":0.5},"category":"vortex","reusable":true},
+    "mist_burst_cloud_01": {"rect":{"x":690,"y":445,"width":305,"height":215},"pivot":{"x":0.5,"y":0.5},"category":"impact_cloud","reusable":true},
+    "mist_ring_03": {"rect":{"x":995,"y":445,"width":275,"height":215},"pivot":{"x":0.5,"y":0.5},"category":"vortex","reusable":true},
+    "mist_burst_cloud_02": {"rect":{"x":1270,"y":445,"width":259,"height":215},"pivot":{"x":0.5,"y":0.5},"category":"impact_cloud","reusable":true},
+    "mist_ground_impact_01": {"rect":{"x":10,"y":645,"width":168,"height":182},"pivot":{"x":0.5,"y":1.0},"category":"ground_impact","reusable":true},
+    "mist_ground_impact_02": {"rect":{"x":178,"y":645,"width":204,"height":188},"pivot":{"x":0.5,"y":1.0},"category":"ground_impact","reusable":true},
+    "mist_ground_impact_03": {"rect":{"x":382,"y":645,"width":239,"height":189},"pivot":{"x":0.5,"y":1.0},"category":"ground_impact","reusable":true},
+    "mist_ground_impact_04": {"rect":{"x":623,"y":646,"width":272,"height":187},"pivot":{"x":0.5,"y":1.0},"category":"ground_impact","reusable":true},
+    "mist_ground_impact_05": {"rect":{"x":895,"y":645,"width":261,"height":188},"pivot":{"x":0.5,"y":1.0},"category":"ground_impact","reusable":true},
+    "mist_ground_impact_06": {"rect":{"x":1156,"y":645,"width":201,"height":187},"pivot":{"x":0.5,"y":1.0},"category":"ground_impact","reusable":true},
+    "mist_ground_impact_07": {"rect":{"x":1357,"y":645,"width":162,"height":186},"pivot":{"x":0.5,"y":1.0},"category":"ground_impact","reusable":true},
+    "mist_ribbon_cluster_01": {"rect":{"x":4,"y":825,"width":251,"height":185},"pivot":{"x":0.5,"y":0.5},"category":"ambient_trail","reusable":true},
+    "mist_ribbon_cluster_02": {"rect":{"x":255,"y":825,"width":240,"height":181},"pivot":{"x":0.5,"y":0.5},"category":"ambient_trail","reusable":true},
+    "mist_bubble_cluster_01": {"rect":{"x":495,"y":825,"width":330,"height":181},"pivot":{"x":0.5,"y":0.5},"category":"particles","reusable":true},
+    "mist_cloud_cluster_01": {"rect":{"x":825,"y":825,"width":220,"height":179},"pivot":{"x":0.5,"y":0.5},"category":"particles","reusable":true},
+    "mist_cloud_cluster_02": {"rect":{"x":1045,"y":825,"width":235,"height":187},"pivot":{"x":0.5,"y":0.5},"category":"particles","reusable":true},
+    "mist_cloud_cluster_03": {"rect":{"x":1280,"y":825,"width":251,"height":173},"pivot":{"x":0.5,"y":0.5},"category":"particles","reusable":true}
+  },
+  "sequences": {
+    "mist_crescent_build": {
+      "frames": ["mist_crescent_01","mist_crescent_02","mist_crescent_03","mist_crescent_04","mist_crescent_05","mist_crescent_06","mist_crescent_07"],
+      "suggested_fps": 14,
+      "loop": false
+    },
+    "mist_ground_impact_build": {
+      "frames": ["mist_ground_impact_01","mist_ground_impact_02","mist_ground_impact_03","mist_ground_impact_04","mist_ground_impact_05","mist_ground_impact_06","mist_ground_impact_07"],
+      "suggested_fps": 14,
+      "loop": false
+    }
+  },
+  "usage_notes": [
+    "Reference effect IDs from unit animation data instead of hard-coding pixel coordinates in unit files.",
+    "The VFX atlas is shared; do not duplicate it into individual character folders.",
+    "A unit can reference a single named region or a named sequence.",
+    "If this PNG is regenerated or repacked, update this atlas file in the same commit."
+  ]
+}
