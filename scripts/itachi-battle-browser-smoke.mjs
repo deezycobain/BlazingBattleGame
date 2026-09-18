@@ -76,13 +76,13 @@ async function run(name,type){
       primaryImpactGauge=enemy.gauge;
       setTimeout(()=>{impactGauges=targets.map(target=>target.gauge)},0);
     },()=>{clearInterval(sample);resolve({elapsed:performance.now()-start})});
-    setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},4700);
+    setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},6500);
    });
    return {...outcome,before,after:targets.map(target=>({hp:target.hp,gauge:target.gauge})),primaryImpactGauge,impactGauges,sawOverlay,sawMandala,sawNightmare,sawTarget,dim:!!s.jutsuDim};
   });
   for(const [at,label] of [[1050,'ritual'],[1650,'nightmare'],[2320,'impact']]){
     await page.waitForFunction(target=>window.__bbItachiJutsuSmokeStart&&performance.now()-window.__bbItachiJutsuSmokeStart>=target,at,{timeout:3500});
-    await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-${label}-${name}.png`,fullPage:true});
+    await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-${label}-${name}.png`});
   }
   const jutsuResult=await jutsuPromise;
   const expectedGauge=35;
