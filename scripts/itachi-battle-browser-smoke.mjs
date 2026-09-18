@@ -67,7 +67,7 @@ async function run(name,type){
    const s=globalThis.eval('S'),front=globalThis.eval('front'),begin=globalThis.eval('beginActionToken'),animate=globalThis.eval('animateItachiTsukuyomi'),canonical=globalThis.eval('canonicalUnit');
    const pair=s.pairs.find(p=>front(p)?.name==='Itachi'),targets=s.enemies.filter(e=>e.hp>0).slice(0,3),enemy=targets[0];if(!pair||!enemy||targets.length<2)return {error:'missing pair/enemies'};
    for(const target of targets){target.maxHp=Math.max(Number(target.maxHp)||0,200);target.hp=200;target.gauge=80}
-   s.phase='resolve';s.floaters=[];begin();const before=targets.map(target=>({hp:target.hp,gauge:target.gauge})),start=performance.now();let sawOverlay=false,sawMandala=false,sawNightmare=false,sawTarget=false,primaryImpactGauge=null,impactGauges=null;
+   s.phase='resolve';s.floaters=[];begin();const before=targets.map(target=>({hp:target.hp,gauge:target.gauge})),start=performance.now();window.__bbItachiJutsuSmokeStart=start;let sawOverlay=false,sawMandala=false,sawNightmare=false,sawTarget=false,primaryImpactGauge=null,impactGauges=null;
    const outcome=await new Promise(resolve=>{
     const sample=setInterval(()=>{const kinds=s.floaters.map(f=>f.kind);sawOverlay||=kinds.includes('itachiTsukuyomiOverlay');sawMandala||=kinds.includes('itachiTsukuyomiMandala');sawNightmare||=kinds.includes('itachiTsukuyomiNightmare');sawTarget||=kinds.includes('itachiTsukuyomiTarget')},25);
     animate('Itachi',{x:pair.x,y:pair.y},enemy,()=>{
@@ -80,12 +80,10 @@ async function run(name,type){
    });
    return {...outcome,before,after:targets.map(target=>({hp:target.hp,gauge:target.gauge})),primaryImpactGauge,impactGauges,sawOverlay,sawMandala,sawNightmare,sawTarget,dim:!!s.jutsuDim};
   });
-  await page.waitForTimeout(1150);
-  await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-ritual-${name}.png`,fullPage:true});
-  await page.waitForTimeout(650);
-  await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-nightmare-${name}.png`,fullPage:true});
-  await page.waitForTimeout(700);
-  await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-impact-${name}.png`,fullPage:true});
+  for(const [at,label] of [[1050,'ritual'],[1650,'nightmare'],[2320,'impact']]){
+    await page.waitForFunction(target=>window.__bbItachiJutsuSmokeStart&&performance.now()-window.__bbItachiJutsuSmokeStart>=target,at,{timeout:3500});
+    await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-${label}-${name}.png`,fullPage:true});
+  }
   const jutsuResult=await jutsuPromise;
   const expectedGauge=35;
   const aoeDamaged=jutsuResult.after?.every((state,index)=>state.hp<jutsuResult.before[index].hp);
