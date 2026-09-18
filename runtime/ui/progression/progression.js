@@ -10,7 +10,7 @@ const CARD_ART={
  'Lebee':'assets/characters/lebee/art/full_art_cosmic_wish.jpeg',
  'Senku':'assets/characters/senku/cards/senku_card.jpeg',
  'Tyler':'assets/characters/tyler/cards/current_collection_card.png',
- 'Itachi':'assets/characters/itachi/cards/itachi_card.png'
+ 'Itachi':'assets/characters/itachi/art/itachi_full_art.png'
 };
 const FORGE_ART={
  'Crimson':'assets/characters/crimson/art/current_collection_art.jpg',
