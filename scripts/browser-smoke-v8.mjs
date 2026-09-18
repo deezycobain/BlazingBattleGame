@@ -89,14 +89,30 @@ async function assertHome(page,label){
  for(const required of Object.keys(state.legacy))if(!state.legacy[required])throw new Error(`${label}: legacy route anchor ${required} missing`);
  console.log(`Home v9 smoke PASS (${label}): raised 2x2 parchment dock + mobile viewport fill + escaped-newline cleanup + Blazing Coins/Embers`);
 }
+async function exerciseSummon(page,label){
+ const nav=page.locator('#bbHomeApproved [data-nav="summon"]');
+ const box=await nav.boundingBox();if(!box)throw new Error(`${label}: summon target has no box`);
+ const top=await page.evaluate(({x,y})=>{const el=document.elementFromPoint(x,y);return {tag:el?.tagName||'',nav:el?.closest?.('[data-nav]')?.getAttribute('data-nav')||'',id:el?.id||''}}, {x:box.x+box.width/2,y:box.y+box.height/2});
+ if(top.nav!=='summon')throw new Error(`${label}: summon target is obstructed :: ${JSON.stringify(top)}`);
+ await nav.click();
+ await page.waitForFunction(()=>document.getElementById('summonScreen')?.classList.contains('active'),null,{timeout:5000});
+ const state=await page.evaluate(()=>({summon:document.getElementById('summonScreen')?.classList.contains('active'),menuDisplay:getComputedStyle(document.getElementById('menuScreen')).display}));
+ if(!state.summon||state.menuDisplay!=='none')throw new Error(`${label}: summon route did not leave Home :: ${JSON.stringify(state)}`);
+}
 async function exerciseBattle(page,label){
  await page.locator('#bbHomeApproved [data-nav="battle"]').click();const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');await panel.waitFor({state:'visible',timeout:5000});
  const labels=await page.locator('#bbHomeApproved .bb-home-v4-modes').innerText();if(!/BLAZING\s+ROAD/i.test(labels)||!/PHANTOM\s+CASTLE/i.test(labels))throw new Error(`${label}: battle mode labels missing`);
- await page.locator('#bbHomeApproved [data-close-battle]').click();await panel.waitFor({state:'hidden',timeout:5000});
+ const road=page.locator('#bbHomeApproved [data-mode="road"]'),box=await road.boundingBox();if(!box)throw new Error(`${label}: Road target has no box`);
+ const top=await page.evaluate(({x,y})=>{const el=document.elementFromPoint(x,y);return {tag:el?.tagName||'',mode:el?.closest?.('[data-mode]')?.getAttribute('data-mode')||'',id:el?.id||''}}, {x:box.x+box.width/2,y:box.y+box.height/2});
+ if(top.mode!=='road')throw new Error(`${label}: Road target is obstructed by a stale battle layer :: ${JSON.stringify(top)}`);
+ await road.click();
+ await page.waitForFunction(()=>{try{const s=globalThis.eval('S');return document.getElementById('battleScreen')?.classList.contains('active')&&s?.bbRunMode==='road'}catch{return false}},null,{timeout:12000});
+ const route=await page.evaluate(()=>({menuDisplay:getComputedStyle(document.getElementById('menuScreen')).display,battleVisibility:getComputedStyle(document.getElementById('battleScreen')).visibility,battlePointer:getComputedStyle(document.getElementById('battleScreen')).pointerEvents}));
+ if(route.menuDisplay!=='none'||route.battleVisibility==='hidden'||route.battlePointer==='none')throw new Error(`${label}: battle route retained Home shield :: ${JSON.stringify(route)}`);
 }
 async function exerciseViewport(browser,name,label,contextOptions){
  const errors=[],context=await browser.newContext(contextOptions);
- try{const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));const response=await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);await waitHome(page);const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);await assertHome(page,`${name}/${label}`);await exerciseBattle(page,`${name}/${label}`);if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`)}finally{await context.close().catch(()=>{})}
+ try{const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));const response=await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);await waitHome(page);const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);await assertHome(page,`${name}/${label}`);await exerciseSummon(page,`${name}/${label}`);await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});await waitHome(page);await exerciseBattle(page,`${name}/${label}`);if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`)}finally{await context.close().catch(()=>{})}
 }
 async function run(name,type){let browser;try{browser=await type.launch({headless:true,timeout:15000});await exerciseViewport(browser,name,'phone',{viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:name==='webkit'});await exerciseViewport(browser,name,'desktop',{viewport:{width:1366,height:900},isMobile:false,hasTouch:false})}finally{if(browser)await browser.close().catch(()=>{})}}
 if(!SELECT){let ok=true;for(const name of Object.keys(TYPES))if(!await runIsolated(name))ok=false;if(!ok)process.exit(1);process.exit(0)}
