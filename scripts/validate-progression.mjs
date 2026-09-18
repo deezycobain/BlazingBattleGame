@@ -17,7 +17,7 @@ try{new vm.Script(cinematicJs)}catch(error){fail(`summon cinematic syntax error:
 
 const runtimeMarkers=[
  "KEY='blazing.progression.v1'",'MAX_RESONANCE=5','STAT_BUDGET=12',
- "FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler']",'u.resonance<MAX_RESONANCE','u.shards++','u.shiny=true',
+ "FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi']",'u.resonance<MAX_RESONANCE','u.shards++','u.shiny=true',
  'candidate=rollStats(u.locks,u.roll)','KEEP CURRENT','ACCEPT NEW','summonEmbers=999999','spendEmbers=function()',
  'localStorage.setItem','function applyCombatBonuses()','target.jutsuDamage=Math.round','RESET DEV PROGRESSION',
  "multiSummonBtn.addEventListener('click'",'Array.from({length:10}','CORE RESONANCE BANNER','SKIP TO RESULTS',
@@ -26,7 +26,7 @@ const runtimeMarkers=[
  "'Lebee':'lebee-hand-hair'","'Senku':'senku-hand-hair'",'syncRevealArt','syncResultArt','dataset.popoutProfile',
  'assets/characters/crimson/art/current_collection_art.jpg','assets/characters/subzero/art/full_art_absolute_zero_v2.jpeg',
  'assets/characters/lebee/art/full_art_cosmic_wish.jpeg','assets/characters/senku/cards/senku_card.jpeg',
- 'assets/characters/tyler/cards/current_collection_card.png','assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
+ 'assets/characters/tyler/cards/current_collection_card.png','assets/characters/itachi/art/itachi_full_art.png','assets/characters/subzero/art/shiny_foreground_cutout_v2.webp',
  'assets/characters/tyler/art/shiny_foreground_cutout_v1.webp','assets/characters/lebee/art/shiny_foreground_cutout_v3.png',
  'assets/characters/senku/art/shiny_foreground_cutout_v5.png','forgeArtDepth','forgePopout','hasPopout','forgeHoloTexture',
  'summonPullScreen.scrollTop=0','PULL${pulls.length===1','function fitForgeArtwork(image)',
