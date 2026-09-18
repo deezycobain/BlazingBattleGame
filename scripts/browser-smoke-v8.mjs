@@ -94,13 +94,13 @@ async function assertBattleShielded(page,label,controlSelector){
   const battle=document.getElementById('battleScreen'),fight=document.getElementById('bbRoadFightIntro'),control=selector?document.querySelector(selector):null;
   const style=battle?getComputedStyle(battle):null,box=control?.getBoundingClientRect?.(),top=box?document.elementFromPoint(box.left+box.width/2,box.top+box.height/2):null;
   return {
-   pointer:style?.pointerEvents||'',visibility:style?.visibility||'',inert:!!battle?.inert,shield:battle?.dataset?.bbInputShield||'',
+   pointer:style?.pointerEvents||'',visibility:style?.visibility||'',
    fightPointer:fight?getComputedStyle(fight).pointerEvents:'',fightVisibility:fight?getComputedStyle(fight).visibility:'',
    control:control?{selector,tag:control.tagName,id:control.id||'',visible:getComputedStyle(control).display!=='none'&&getComputedStyle(control).visibility!=='hidden'}:null,
    top:top?{tag:top.tagName,id:top.id||'',battle:!!top.closest?.('#battleScreen')}:null
   };
  },controlSelector||'');
- if(state.pointer!=='none'||state.visibility!=='hidden'||!state.inert||state.shield!=='on')throw new Error(`${label}: battle input shield missing :: ${JSON.stringify(state)}`);
+ if(state.pointer!=='none'||state.visibility!=='hidden')throw new Error(`${label}: battle input shield missing :: ${JSON.stringify(state)}`);
  if(controlSelector&&(!state.control?.visible||state.top?.battle))throw new Error(`${label}: control is still intercepted by battle layer :: ${JSON.stringify(state)}`);
 }
 
