@@ -46,9 +46,9 @@ async function run(name,type){
    const idle=globalThis.eval("unitIdleFrames('Itachi')"),basic=globalThis.eval("unitAttackFrames('Itachi','basic_attack')"),jutsu=globalThis.eval("unitAttackFrames('Itachi','tsukuyomi')");
    const pair=s.pairs.find(p=>front(p)?.name==='Itachi');
    const waitLoaded=async frames=>{for(let i=0;i<30;i++){if(frames.length&&frames.every(img=>img.complete&&img.naturalWidth>0))return true;await new Promise(r=>setTimeout(r,100))}return false};
-   return {registered:!!roster.Itachi,active:[...active],team:s.pairs.map(p=>front(p)?.name),pair:pair?{x:pair.x,y:pair.y}:null,idleCount:idle.length,basicCount:basic.length,jutsuCount:jutsu.length,idleLoaded:await waitLoaded(idle),basicLoaded:await waitLoaded(basic),jutsuLoaded:await waitLoaded(jutsu),markers:{basic:html.includes('animateItachiCrowStrike'),jutsu:html.includes('animateItachiTsukuyomi'),gauge:html.includes("canonicalUnit('itachi').abilities.jutsu.gauge_reduction??45")}};
+   return {registered:!!roster.Itachi,active:[...active],team:s.pairs.map(p=>front(p)?.name),pair:pair?{x:pair.x,y:pair.y}:null,idleCount:idle.length,basicCount:basic.length,jutsuCount:jutsu.length,idleLoaded:await waitLoaded(idle),basicLoaded:await waitLoaded(basic),jutsuLoaded:await waitLoaded(jutsu),markers:{basic:html.includes('animateItachiCrowStrike'),jutsu:html.includes('animateItachiTsukuyomi'),gauge:html.includes("canonicalUnit('itachi').abilities.jutsu.gauge_reduction??45"),scale:html.includes("name==='Itachi'?1.28:1"),aoe:html.includes('Itachi Tsukuyomi AoE resolution failed')}};
   });
-  if(!contract.registered||!contract.active.includes('Itachi')||!contract.team.includes('Itachi')||contract.idleCount!==6||contract.basicCount!==6||contract.jutsuCount!==6||!contract.idleLoaded||!contract.basicLoaded||!contract.jutsuLoaded||!contract.markers.basic||!contract.markers.jutsu||!contract.markers.gauge)throw new Error(`Itachi battle contract incomplete: ${JSON.stringify(contract)}`);
+  if(!contract.registered||!contract.active.includes('Itachi')||!contract.team.includes('Itachi')||contract.idleCount!==6||contract.basicCount!==6||contract.jutsuCount!==6||!contract.idleLoaded||!contract.basicLoaded||!contract.jutsuLoaded||!contract.markers.basic||!contract.markers.jutsu||!contract.markers.gauge||!contract.markers.scale||!contract.markers.aoe)throw new Error(`Itachi battle contract incomplete: ${JSON.stringify(contract)}`);
 
   const basicResult=await page.evaluate(async()=>{
    const s=globalThis.eval('S'),front=globalThis.eval('front'),begin=globalThis.eval('beginActionToken'),animate=globalThis.eval('animateItachiCrowStrike');
@@ -57,30 +57,37 @@ async function run(name,type){
    const outcome=await new Promise(resolve=>{
     const sample=setInterval(()=>{if(s.floaters.some(f=>f.kind==='itachiCrowStrike'))sawCrow=true},25);
     animate('Itachi',{x:pair.x,y:pair.y},enemy,()=>window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:1}),()=>{clearInterval(sample);resolve({elapsed:performance.now()-start})},'basic_attack');
-    setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},1800);
+    setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},2300);
    });
    return {...outcome,before,after:enemy.hp,sawCrow,floaters:s.floaters.map(f=>f.kind)};
   });
-  if(basicResult.error||basicResult.timeout||!basicResult.sawCrow||basicResult.after!==basicResult.before-1)throw new Error(`Crow Chakra Strike failed: ${JSON.stringify(basicResult)}`);
+  if(basicResult.error||basicResult.timeout||!basicResult.sawCrow||basicResult.after!==basicResult.before-1||basicResult.elapsed<1050)throw new Error(`Crow Chakra Strike failed: ${JSON.stringify(basicResult)}`);
 
   const jutsuPromise=page.evaluate(async()=>{
    const s=globalThis.eval('S'),front=globalThis.eval('front'),begin=globalThis.eval('beginActionToken'),animate=globalThis.eval('animateItachiTsukuyomi'),canonical=globalThis.eval('canonicalUnit');
-   const pair=s.pairs.find(p=>front(p)?.name==='Itachi'),enemy=s.enemies.find(e=>e.hp>0);if(!pair||!enemy)return {error:'missing pair/enemy'};
-   s.phase='resolve';s.floaters=[];enemy.gauge=80;begin();const beforeHp=enemy.hp,beforeGauge=enemy.gauge,start=performance.now();let sawOverlay=false,sawMandala=false,sawTarget=false,impactGauge=null;
+   const pair=s.pairs.find(p=>front(p)?.name==='Itachi'),targets=s.enemies.filter(e=>e.hp>0).slice(0,3),enemy=targets[0];if(!pair||!enemy||targets.length<2)return {error:'missing pair/enemies'};
+   for(const target of targets){target.maxHp=Math.max(Number(target.maxHp)||0,200);target.hp=200;target.gauge=80}
+   s.phase='resolve';s.floaters=[];begin();const before=targets.map(target=>({hp:target.hp,gauge:target.gauge})),start=performance.now();let sawOverlay=false,sawMandala=false,sawTarget=false,impactGauges=null;
    const outcome=await new Promise(resolve=>{
     const sample=setInterval(()=>{const kinds=s.floaters.map(f=>f.kind);sawOverlay||=kinds.includes('itachiTsukuyomiOverlay');sawMandala||=kinds.includes('itachiTsukuyomiMandala');sawTarget||=kinds.includes('itachiTsukuyomiTarget')},25);
-    animate('Itachi',{x:pair.x,y:pair.y},enemy,()=>{window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:1});window.BlazingCombatRuntime.execute('reduce_target_gauge',{target:enemy,parameters:{amount:canonical('itachi').abilities.jutsu.gauge_reduction??45,minimum_gauge:0}});impactGauge=enemy.gauge},()=>{clearInterval(sample);resolve({elapsed:performance.now()-start})});
-    setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},2200);
+    animate('Itachi',{x:pair.x,y:pair.y},enemy,()=>{
+      window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:1});
+      window.BlazingCombatRuntime.execute('reduce_target_gauge',{target:enemy,parameters:{amount:canonical('itachi').abilities.jutsu.gauge_reduction??45,minimum_gauge:0}});
+      setTimeout(()=>{impactGauges=targets.map(target=>target.gauge)},0);
+    },()=>{clearInterval(sample);resolve({elapsed:performance.now()-start})});
+    setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},3600);
    });
-   return {...outcome,beforeHp,afterHp:enemy.hp,beforeGauge,impactGauge,afterGauge:enemy.gauge,sawOverlay,sawMandala,sawTarget,dim:!!s.jutsuDim};
+   return {...outcome,before,after:targets.map(target=>({hp:target.hp,gauge:target.gauge})),impactGauges,sawOverlay,sawMandala,sawTarget,dim:!!s.jutsuDim};
   });
-  await page.waitForTimeout(760);
+  await page.waitForTimeout(1650);
   await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-${name}.png`,fullPage:true});
   const jutsuResult=await jutsuPromise;
-  const expectedImpactGauge=Math.max(0,jutsuResult.beforeGauge-45);
-  if(jutsuResult.error||jutsuResult.timeout||!jutsuResult.sawOverlay||!jutsuResult.sawMandala||!jutsuResult.sawTarget||jutsuResult.afterHp!==jutsuResult.beforeHp-1||jutsuResult.impactGauge!==expectedImpactGauge||jutsuResult.afterGauge>expectedImpactGauge)throw new Error(`Tsukuyomi failed: ${JSON.stringify(jutsuResult)}`);
+  const expectedGauge=35;
+  const aoeDamaged=jutsuResult.after?.every((state,index)=>state.hp<jutsuResult.before[index].hp);
+  const gaugesAtImpact=Array.isArray(jutsuResult.impactGauges)&&jutsuResult.impactGauges.every(value=>value===expectedGauge);
+  if(jutsuResult.error||jutsuResult.timeout||!jutsuResult.sawOverlay||!jutsuResult.sawMandala||!jutsuResult.sawTarget||!aoeDamaged||!gaugesAtImpact||jutsuResult.elapsed<2200)throw new Error(`Tsukuyomi failed: ${JSON.stringify(jutsuResult)}`);
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Itachi battle smoke PASS (${name}): roster + 6/6/6 body frames, Crow Chakra Strike VFX/damage, and Tsukuyomi overlay/mandala/target + 45 gauge suppression at impact verified.`);
+  console.log(`Itachi battle smoke PASS (${name}): 1.28x presentation scale, readable Crow Chakra Strike pacing, and centered AoE Tsukuyomi with multi-enemy damage + 45 gauge suppression verified.`);
   await context.close();
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
