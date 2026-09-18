@@ -59,6 +59,7 @@ function ensureItachiTsukuyomiCinematic(){
  return {root,overlay:root.querySelector('.bb-tsu-overlay'),mandala:root.querySelector('.bb-tsu-mandala'),target:root.querySelector('.bb-tsu-target')};
 }
 function startItachiTsukuyomiCinematic(totalDuration,nightmareAt,impactAt){
+ window.__bbItachiTsukuyomiStop?.();
  const refs=ensureItachiTsukuyomiCinematic(),started=performance.now();
  refs.root.classList.add('bb-active');refs.root.dataset.phase='ritual';
  let raf=0,stopped=false,lastOverlay=-1,lastMandala=-1,lastTarget=-1;
@@ -77,10 +78,13 @@ function startItachiTsukuyomiCinematic(totalDuration,nightmareAt,impactAt){
   if(elapsed<totalDuration)raf=requestAnimationFrame(tick);
  };
  tick();
- return ()=>{
-  stopped=true;if(raf)cancelAnimationFrame(raf);
+ const stop=()=>{
+  if(stopped)return;stopped=true;if(raf)cancelAnimationFrame(raf);
   refs.root.classList.remove('bb-active');refs.root.dataset.phase='ritual';
+  if(window.__bbItachiTsukuyomiStop===stop)window.__bbItachiTsukuyomiStop=null;
  };
+ window.__bbItachiTsukuyomiStop=stop;
+ return stop;
 }
 const ITACHI_CROW_BURST=new Image();ITACHI_CROW_BURST.src='assets/characters/itachi/vfx/basic/crows/crow_chakra_burst.png';
 const ITACHI_CROW_SWARM=new Image();ITACHI_CROW_SWARM.src='assets/characters/itachi/vfx/basic/crows/crow_swarm.png';
