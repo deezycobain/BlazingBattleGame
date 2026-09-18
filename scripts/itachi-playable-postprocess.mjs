@@ -203,6 +203,6 @@ for(const marker of [
   "canonicalUnit('itachi').abilities.jutsu.gauge_reduction??45"
 ])if(!html.includes(marker))fail(`final shell missing ${marker}`);
 
-if(html.includes('\\\\`')||html.includes('\\\\${'))fail('generated runtime contains escaped template syntax');
+if(html.includes("\\`")||html.includes("\\${"))fail("generated runtime contains escaped template syntax");
 await fs.writeFile(file,html);
 console.log('Itachi playable integration PASS: enlarged battle presentation, readable Crow Chakra Strike timing, and centered full-screen AoE Tsukuyomi with deep-red takeover, multi-enemy damage, and 45-gauge suppression are wired.');
