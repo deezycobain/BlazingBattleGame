@@ -4,7 +4,7 @@ const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'')
 const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
 const TYPES={chromium,webkit};
 const EXPECTED_STAGES=['ignite','rings','orbit','stop','silhouette','reveal','settle','handoff'];
-const EXPECTED_TIMES={ignite:0,rings:800,orbit:1700,stop:2550,silhouette:3050,reveal:3420,settle:3900,handoff:5200};
+const EXPECTED_TIMES={ignite:0,rings:800,orbit:1940,stop:2680,silhouette:3180,reveal:3420,settle:4300,handoff:6100};
 
 async function waitHome(page){
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
@@ -40,7 +40,7 @@ async function run(name,type){
       hasTestHook:typeof window.BlazingSummonCinematic?.testItachi==='function',
       styleHref:document.querySelector('link[data-bb-itachi-summon]')?.getAttribute('href')||''
     }));
-    if(contract.version!=='5.8.0-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
+    if(contract.version!=='5.9.0-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
     if(JSON.stringify(contract.timeline)!==JSON.stringify(EXPECTED_TIMES))throw new Error(`Itachi timeline contract changed: ${JSON.stringify(contract.timeline)}`);
     if(Object.keys(contract.itachiVfx||{}).length!==12)throw new Error(`expected 12 Itachi VFX mappings: ${JSON.stringify(contract.itachiVfx)}`);
     if(!contract.hasTestHook||!contract.styleHref.includes('legendary-itachi-summon.css')||!String(contract.itachiCardArt||'').endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi test/style hook missing: ${JSON.stringify(contract)}`);
@@ -73,7 +73,7 @@ async function run(name,type){
       });
       const art=scene.querySelector('.bb-card-front .summonedTradingCard');
       const ringSelectors=['.bb-itachi-ring-flame','.bb-itachi-ring-outer','.bb-itachi-ring-middle','.bb-itachi-ring-inner','.bb-itachi-ring-orbit'];
-      const rings=ringSelectors.map(selector=>{const node=scene.querySelector(selector),box=node?.getBoundingClientRect(),style=node?getComputedStyle(node):null;return {selector,cx:box?box.left+box.width/2:null,cy:box?box.top+box.height/2:null,width:box?.width||0,duration:style?.animationDuration||'',name:style?.animationName||''}});
+      const rings=ringSelectors.map(selector=>{const node=scene.querySelector(selector),shell=node?.closest('.bb-itachi-ring-shell'),box=node?.getBoundingClientRect(),style=node?getComputedStyle(node):null,shellStyle=shell?getComputedStyle(shell):null;return {selector,cx:box?box.left+box.width/2:null,cy:box?box.top+box.height/2:null,width:box?.width||0,duration:style?.animationDuration||'',name:style?.animationName||'',shellName:shellStyle?.animationName||'',shellDuration:shellStyle?.animationDuration||'',shellDelay:shellStyle?.animationDelay||''}});
       return {
         count:images.length,
         bad:images.filter(img=>!img.complete||!img.naturalWidth||img.classList.contains('bb-vfx-missing')).map(img=>img.getAttribute('src')),
@@ -92,8 +92,10 @@ async function run(name,type){
     const centersOk=loaded.rings.every(r=>Math.abs(r.cx-loaded.rings[0].cx)<1.5&&Math.abs(r.cy-loaded.rings[0].cy)<1.5);
     const widths=loaded.rings.map(r=>r.width),nested=widths.every((value,index)=>index===0||value<widths[index-1]);
     const speeds=loaded.rings.map(r=>Number.parseFloat(r.duration)||0),tiered=speeds[0]>speeds[1]&&speeds[1]>speeds[2]&&speeds[2]>speeds[3]&&speeds[3]>speeds[4];
-    const directions=loaded.rings.map(r=>r.name),directionOk=directions[0].includes('bbItachiSpinCW')&&directions[1].includes('bbItachiSpinCW')&&directions.slice(2).every(name=>name.includes('bbItachiSpinCCW'));
-    if(!centersOk||!nested||!tiered||!directionOk)throw new Error(`Itachi ring geometry/direction/speed hierarchy is wrong: ${JSON.stringify(loaded.rings)}`);
+    const directions=loaded.rings.map(r=>r.name),directionOk=directions[0].includes('bbItachiSpinCCW')&&directions[1].includes('bbItachiSpinCCW')&&directions.slice(2).every(name=>name.includes('bbItachiSpinCW'));
+    const snapOk=loaded.rings.every(r=>r.shellName.includes('bbItachiRingSnap')&&(Number.parseFloat(r.shellDuration)||9)<=.14);
+    const snapDelays=loaded.rings.map(r=>Number.parseFloat(r.shellDelay)||0),staged=snapDelays.every((value,index)=>index===0||value>snapDelays[index-1]+.20);
+    if(!centersOk||!nested||!tiered||!directionOk||!snapOk||!staged)throw new Error(`Itachi ring geometry/snap/direction/speed hierarchy is wrong: ${JSON.stringify(loaded.rings)}`);
     if(loaded.revealStage!=='itachi'||loaded.revealKind!=='itachi'||!loaded.cardArt.endsWith('itachi_reveal.webp'))throw new Error(`Itachi cinematic did not own the reveal: ${JSON.stringify(loaded)}`);
 
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='handoff',{timeout:9000});
@@ -129,7 +131,7 @@ async function run(name,type){
         if(item.at<expected-260)throw new Error(`WebKit fired ${item.stage} too early vs ${expected}ms: ${JSON.stringify(final.trace)}`);
       }
       const handoff=final.trace.at(-1);
-      if(Math.abs(handoff.at-EXPECTED_TIMES.handoff)>500)throw new Error(`WebKit handoff drifted from 5.2s: ${JSON.stringify(final.trace)}`);
+      if(Math.abs(handoff.at-EXPECTED_TIMES.handoff)>560)throw new Error(`WebKit handoff drifted from 6.1s: ${JSON.stringify(final.trace)}`);
     }
     if(final.special!=='itachi'||final.itachiStage!=='handoff'||final.revealStage!=='done'||final.running||final.cardOpacity<.95)throw new Error(`Itachi handoff did not settle: ${JSON.stringify(final)}`);
     if(final.message!=='LEGENDARY ITACHI'||final.name!=='ITACHI'||final.rarity!=='LEGENDARY'||!final.cardArt.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi final card/labels are wrong: ${JSON.stringify(final)}`);
@@ -145,7 +147,7 @@ async function run(name,type){
     if(!resultState.legendary||resultState.kind!=='itachi'||!resultState.art.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi result card lost its special treatment/full-background art: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
-    console.log(`Legendary Itachi summon smoke PASS (${name}): two slow clockwise outer rings, progressively faster counterclockwise inner rings, concentric geometry, 5.2s handoff, and full-background card art verified.`);
+    console.log(`Legendary Itachi summon smoke PASS (${name}): snap-in nested layers, slow counterclockwise outer rings, fast clockwise core, 6.1s reveal handoff, and full-background card art verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
