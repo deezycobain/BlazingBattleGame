@@ -34,11 +34,27 @@ let activeCanvas=null;
 let bridgedPointerId=4242;
 const interactive=target=>!!target?.closest?.('button,a,input,select,textarea,[role="button"]');
 const inside=(rect,x,y)=>x>=rect.left&&x<=rect.right&&y>=rect.top&&y<=rect.bottom;
+function battleIsInteractive(){
+ const battle=document.getElementById('battleScreen'),menu=document.getElementById('menuScreen');
+ if(!battle?.classList.contains('active'))return false;
+ const bs=getComputedStyle(battle),br=battle.getBoundingClientRect();
+ if(bs.display==='none'||bs.visibility==='hidden'||br.width<=0||br.height<=0)return false;
+ if(menu){
+  const ms=getComputedStyle(menu),mr=menu.getBoundingClientRect();
+  if(ms.display!=='none'&&ms.visibility!=='hidden'&&Number(ms.opacity||1)>0&&mr.width>0&&mr.height>0)return false;
+ }
+ if([...document.querySelectorAll('.screen.active')].some(screen=>screen!==battle))return false;
+ if(['#bbInventory','#bbUnitDetails','#resonanceScreen.active','#summonScreen.active','#summonPullScreen.active','#teamScreen.active'].some(selector=>{
+  const node=document.querySelector(selector);if(!node||node.hidden)return false;const s=getComputedStyle(node),r=node.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity||1)>0&&r.width>0&&r.height>0;
+ }))return false;
+ return true;
+}
 function visibleBattleCanvas(){
+ if(!battleIsInteractive())return null;
  const game=document.getElementById('game');
  if(game instanceof HTMLCanvasElement){
   const rect=game.getBoundingClientRect(),style=getComputedStyle(game);
-  if(rect.width>0&&rect.height>0&&style.display!=='none'&&style.visibility!=='hidden')return game;
+  if(rect.width>0&&rect.height>0&&style.display!=='none'&&style.visibility!=='hidden'&&style.pointerEvents!=='none')return game;
  }
  const candidates=[...document.querySelectorAll('canvas')].filter(canvas=>{
   const rect=canvas.getBoundingClientRect(),style=getComputedStyle(canvas);
@@ -78,6 +94,7 @@ function dispatchPointer(type,source,target){
 }
 document.addEventListener('pointerdown',event=>{
  if(event.__bbMouseBridge||event.pointerType!=='mouse'||event.button!==0)return;
+ if(!battleIsInteractive()){activeCanvas=null;return;}
  if(interactive(event.target))return;
  const canvas=visibleBattleCanvas();
  if(!canvas)return;
@@ -91,6 +108,7 @@ document.addEventListener('pointerdown',event=>{
 },true);
 document.addEventListener('pointermove',event=>{
  if(event.__bbMouseBridge||event.pointerType!=='mouse'||!activeCanvas)return;
+ if(!battleIsInteractive()){activeCanvas=null;return;}
  if((event.buttons&1)===0){
   dispatchPointer('pointerup',event,activeCanvas);
   activeCanvas=null;
@@ -102,6 +120,7 @@ document.addEventListener('pointermove',event=>{
 },true);
 document.addEventListener('pointerup',event=>{
  if(event.__bbMouseBridge||event.pointerType!=='mouse'||event.button!==0||!activeCanvas)return;
+ if(!battleIsInteractive()){activeCanvas=null;return;}
  const canvas=activeCanvas;
  activeCanvas=null;
  event.preventDefault();
@@ -110,6 +129,7 @@ document.addEventListener('pointerup',event=>{
 },true);
 document.addEventListener('pointercancel',event=>{
  if(event.__bbMouseBridge||event.pointerType!=='mouse'||!activeCanvas)return;
+ if(!battleIsInteractive()){activeCanvas=null;return;}
  const canvas=activeCanvas;
  activeCanvas=null;
  event.stopImmediatePropagation();
@@ -150,4 +170,4 @@ else if(!html.includes('S.drag=false;\n S.dragGrabOffset=null;'))throw new Error
 if(html.includes('new TouchEvent(')||html.includes("dispatchTouch('touchstart'"))throw new Error('Browser mouse input: obsolete mouse-to-touch adapter survived');
 
 await fs.writeFile(file,html);
-console.log('Desktop browser input applied: full visible fighter body is mouse-pickable, grab offset is preserved, latest pointer samples drive movement, and touch/pen remain unchanged.');
+console.log('Desktop browser input applied: battle-only pointer bridge, full visible fighter body pickup, preserved grab offset, and no Home/Summon/Inventory interception.');
