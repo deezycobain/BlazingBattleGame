@@ -170,8 +170,14 @@ function clearBattleGestureState(){
 
 function prepareRoute(shell){
  closeBattle(shell);
- setBattleLayerShield(false);
  clearBattleGestureState();
+}
+
+function syncBattleLayerShield(){
+ const battle=$('battleScreen');
+ const battleActive=!!battle?.classList.contains('active')&&getComputedStyle(battle).display!=='none'&&getComputedStyle(battle).visibility!=='hidden';
+ setBattleLayerShield(!battleActive);
+ return battleActive;
 }
 
 function forceScreen(screenId,shell){
@@ -187,6 +193,7 @@ function forceScreen(screenId,shell){
 
 function routeBattle(kind,shell){
  prepareRoute(shell);
+ setBattleLayerShield(false);
  try{
   const direct=globalThis.startBattle;
   if(typeof direct==='function'){direct(kind==='castle'?'boss':'level');}
@@ -205,6 +212,7 @@ function routeBattle(kind,shell){
 
 function routeScreen(screenId,legacyId,shell){
  prepareRoute(shell);
+ setBattleLayerShield(true);
  const target=$(screenId);
  try{
   clickLegacy(legacyId,shell);
@@ -347,7 +355,7 @@ function apply(){
  const root=homeRoot&&document.body.contains(homeRoot)&&visible(homeRoot)?homeRoot:null;
  if(!root)return false;
  const shell=ensureShell(root);
- setBattleLayerShield(true);
+ syncBattleLayerShield();
  shell?.removeAttribute('aria-hidden');
  return true;
 }
@@ -359,9 +367,14 @@ function schedule(){
  requestAnimationFrame(()=>{queued=false;apply();});
 }
 
-new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
-document.addEventListener('click',()=>setTimeout(apply,0),true);
+new MutationObserver(records=>{
+ schedule();
+ if(records.some(record=>record.type==='attributes'&&record.target?.classList?.contains('screen')))requestAnimationFrame(syncBattleLayerShield);
+}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
+document.addEventListener('click',()=>setTimeout(()=>{apply();syncBattleLayerShield();},0),true);
 window.addEventListener('resize',schedule,{passive:true});
-setTimeout(apply,0);
-window.BlazingHomeSkin=Object.freeze({apply,findHome,openBattle:()=>openBattle($(SHELL_ID)),closeBattle:()=>closeBattle($(SHELL_ID))});
+window.addEventListener('pageshow',()=>requestAnimationFrame(syncBattleLayerShield));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)requestAnimationFrame(syncBattleLayerShield)});
+setTimeout(()=>{apply();syncBattleLayerShield();},0);
+window.BlazingHomeSkin=Object.freeze({apply,findHome,openBattle:()=>openBattle($(SHELL_ID)),closeBattle:()=>closeBattle($(SHELL_ID)),syncBattleLayerShield});
 })();
