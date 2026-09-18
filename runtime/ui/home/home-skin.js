@@ -256,39 +256,14 @@ function ensureShell(root){
  return shell;
 }
 
-function battleInputSafety(){
- const battle=$('battleScreen'),fight=$('bbRoadFightIntro');
- const nodeVisible=node=>{if(!node||node.hidden)return false;const s=getComputedStyle(node),r=node.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity||1)>0&&r.width>0&&r.height>0};
- const menuVisible=nodeVisible($('menuScreen'));
- const otherActive=[...document.querySelectorAll('.screen.active')].some(screen=>screen!==battle);
- const customNonBattle=['#bbInventory','#bbUnitDetails','#resonanceScreen.active','#summonScreen.active','#summonPullScreen.active','#teamScreen.active']
-  .some(selector=>nodeVisible(document.querySelector(selector)));
- const shield=menuVisible||otherActive||customNonBattle;
- const canvases=battle?[...battle.querySelectorAll('canvas')]:[];
- if(shield){
-  battle?.style.setProperty('pointer-events','none','important');
-  battle?.style.setProperty('visibility','hidden','important');
-  for(const canvas of canvases)canvas.style.setProperty('pointer-events','none','important');
-  fight?.style.setProperty('pointer-events','none','important');
-  fight?.style.setProperty('visibility','hidden','important');
- }else{
-  battle?.style.removeProperty('pointer-events');
-  battle?.style.removeProperty('visibility');
-  for(const canvas of canvases)canvas.style.removeProperty('pointer-events');
-  fight?.style.removeProperty('pointer-events');
-  fight?.style.removeProperty('visibility');
- }
- return shield;
-}
-
 let homeRoot=null;
 function apply(){
  const found=findHome();
  if(found)homeRoot=found;
  const root=homeRoot&&document.body.contains(homeRoot)&&visible(homeRoot)?homeRoot:null;
- if(root)ensureShell(root);
- battleInputSafety();
- return !!root;
+ if(!root)return false;
+ ensureShell(root);
+ return true;
 }
 
 let queued=false;
@@ -299,10 +274,8 @@ function schedule(){
 }
 
 new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
-document.addEventListener('click',()=>setTimeout(()=>{apply();battleInputSafety();},0),true);
+document.addEventListener('click',()=>setTimeout(apply,0),true);
 window.addEventListener('resize',schedule,{passive:true});
-window.addEventListener('pageshow',()=>requestAnimationFrame(battleInputSafety));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)requestAnimationFrame(battleInputSafety)});
-setTimeout(()=>{apply();battleInputSafety();},0);
-window.BlazingHomeSkin=Object.freeze({apply,findHome,openBattle:()=>openBattle($(SHELL_ID)),closeBattle:()=>closeBattle($(SHELL_ID)),battleInputSafety});
+setTimeout(apply,0);
+window.BlazingHomeSkin=Object.freeze({apply,findHome,openBattle:()=>openBattle($(SHELL_ID)),closeBattle:()=>closeBattle($(SHELL_ID))});
 })();
