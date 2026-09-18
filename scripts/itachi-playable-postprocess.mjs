@@ -40,6 +40,48 @@ const ITACHI_TSUKUYOMI_MANDALA_FRAMES=makeImageFrames([
 const ITACHI_TSUKUYOMI_TARGET_FRAMES=makeImageFrames([
  'assets/characters/itachi/vfx/jutsu/tsukuyomi/target/frame_01.png','assets/characters/itachi/vfx/jutsu/tsukuyomi/target/frame_02.png','assets/characters/itachi/vfx/jutsu/tsukuyomi/target/frame_03.png','assets/characters/itachi/vfx/jutsu/tsukuyomi/target/frame_04.png','assets/characters/itachi/vfx/jutsu/tsukuyomi/target/frame_05.png'
 ]);
+function ensureItachiTsukuyomiCinematic(){
+ let style=document.getElementById('bb-itachi-tsukuyomi-style');
+ if(!style){
+  style=document.createElement('style');style.id='bb-itachi-tsukuyomi-style';
+  style.textContent='.bb-itachi-tsukuyomi-cinematic{position:fixed;inset:0;width:100vw;height:100dvh;z-index:2147483000;pointer-events:none;overflow:hidden;isolation:isolate;visibility:hidden;opacity:0;background:#050002;transition:opacity .12s linear}.bb-itachi-tsukuyomi-cinematic.bb-active{visibility:visible;opacity:1}.bb-itachi-tsukuyomi-cinematic .bb-tsu-shade{position:absolute;inset:-8%;background:radial-gradient(circle at 50% 48%,rgba(105,0,24,.42) 0%,rgba(34,0,10,.76) 46%,rgba(2,0,1,.98) 82%);transform:scale(1.08)}.bb-itachi-tsukuyomi-cinematic img{position:absolute;left:50%;top:50%;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none;transform-origin:50% 50%}.bb-itachi-tsukuyomi-cinematic .bb-tsu-overlay{width:112vw;height:112dvh;object-fit:cover;transform:translate(-50%,-50%) scale(1.02);opacity:.82;mix-blend-mode:screen;filter:saturate(1.22) contrast(1.08)}.bb-itachi-tsukuyomi-cinematic .bb-tsu-mandala{width:min(112vw,96dvh);height:min(112vw,96dvh);object-fit:contain;transform:translate(-50%,-50%) scale(.96);opacity:.96;mix-blend-mode:screen;filter:saturate(1.18) contrast(1.08);animation:bbTsuMandalaPulse 1.5s ease-in-out infinite alternate}.bb-itachi-tsukuyomi-cinematic .bb-tsu-target{width:min(122vw,104dvh);height:min(122vw,104dvh);object-fit:contain;transform:translate(-50%,-50%) scale(.88);opacity:0;mix-blend-mode:screen}.bb-itachi-tsukuyomi-cinematic[data-phase="nightmare"] .bb-tsu-overlay{opacity:.96;filter:saturate(1.48) contrast(1.16)}.bb-itachi-tsukuyomi-cinematic[data-phase="nightmare"] .bb-tsu-mandala{transform:translate(-50%,-50%) scale(1.03);opacity:1}.bb-itachi-tsukuyomi-cinematic[data-phase="impact"] .bb-tsu-overlay{opacity:.9}.bb-itachi-tsukuyomi-cinematic[data-phase="impact"] .bb-tsu-mandala{opacity:.7}.bb-itachi-tsukuyomi-cinematic[data-phase="impact"] .bb-tsu-target{opacity:1;animation:bbTsuTargetImpact .72s cubic-bezier(.12,.76,.18,1) both}@keyframes bbTsuMandalaPulse{0%{filter:saturate(1.08) contrast(1.04) brightness(.88)}100%{filter:saturate(1.42) contrast(1.16) brightness(1.16)}}@keyframes bbTsuTargetImpact{0%{opacity:0;transform:translate(-50%,-50%) scale(.72);filter:brightness(1.7)}18%{opacity:1}62%{opacity:1;transform:translate(-50%,-50%) scale(1.02);filter:brightness(1.12)}100%{opacity:.86;transform:translate(-50%,-50%) scale(1);filter:brightness(.92)}}';
+  document.head.append(style);
+ }
+ let root=document.getElementById('bb-itachi-tsukuyomi-cinematic');
+ if(!root){
+  root=document.createElement('div');root.id='bb-itachi-tsukuyomi-cinematic';root.className='bb-itachi-tsukuyomi-cinematic';root.dataset.phase='ritual';root.setAttribute('aria-hidden','true');
+  const shade=document.createElement('div');shade.className='bb-tsu-shade';
+  const overlay=document.createElement('img');overlay.className='bb-tsu-overlay';overlay.alt='';
+  const mandala=document.createElement('img');mandala.className='bb-tsu-mandala';mandala.alt='';
+  const target=document.createElement('img');target.className='bb-tsu-target';target.alt='';
+  root.append(shade,overlay,mandala,target);document.body.append(root);
+ }
+ return {root,overlay:root.querySelector('.bb-tsu-overlay'),mandala:root.querySelector('.bb-tsu-mandala'),target:root.querySelector('.bb-tsu-target')};
+}
+function startItachiTsukuyomiCinematic(totalDuration,nightmareAt,impactAt){
+ const refs=ensureItachiTsukuyomiCinematic(),started=performance.now();
+ refs.root.classList.add('bb-active');refs.root.dataset.phase='ritual';
+ let raf=0,stopped=false,lastOverlay=-1,lastMandala=-1,lastTarget=-1;
+ const setFrame=(node,frames,index,key)=>{const img=frames[index];if(!img?.src||key===index)return index;node.src=img.src;return index};
+ const tick=()=>{
+  if(stopped)return;
+  const elapsed=performance.now()-started;
+  refs.root.dataset.phase=elapsed>=impactAt?'impact':elapsed>=nightmareAt?'nightmare':'ritual';
+  const overlayIndex=Math.min(ITACHI_TSUKUYOMI_OVERLAY_FRAMES.length-1,Math.floor(elapsed/250)%ITACHI_TSUKUYOMI_OVERLAY_FRAMES.length);
+  const mandalaIndex=Math.min(ITACHI_TSUKUYOMI_MANDALA_FRAMES.length-1,Math.floor(elapsed/290)%ITACHI_TSUKUYOMI_MANDALA_FRAMES.length);
+  const targetElapsed=Math.max(0,elapsed-impactAt);
+  const targetIndex=Math.min(ITACHI_TSUKUYOMI_TARGET_FRAMES.length-1,Math.floor(targetElapsed/170));
+  lastOverlay=setFrame(refs.overlay,ITACHI_TSUKUYOMI_OVERLAY_FRAMES,overlayIndex,lastOverlay);
+  lastMandala=setFrame(refs.mandala,ITACHI_TSUKUYOMI_MANDALA_FRAMES,mandalaIndex,lastMandala);
+  if(elapsed>=impactAt)lastTarget=setFrame(refs.target,ITACHI_TSUKUYOMI_TARGET_FRAMES,targetIndex,lastTarget);
+  if(elapsed<totalDuration)raf=requestAnimationFrame(tick);
+ };
+ tick();
+ return ()=>{
+  stopped=true;if(raf)cancelAnimationFrame(raf);
+  refs.root.classList.remove('bb-active');refs.root.dataset.phase='ritual';
+ };
+}
 const ITACHI_CROW_BURST=new Image();ITACHI_CROW_BURST.src='assets/characters/itachi/vfx/basic/crows/crow_chakra_burst.png';
 const ITACHI_CROW_SWARM=new Image();ITACHI_CROW_SWARM.src='assets/characters/itachi/vfx/basic/crows/crow_swarm.png';
 const ITACHI_CROW_VORTEX=new Image();ITACHI_CROW_VORTEX.src='assets/characters/itachi/vfx/basic/crows/crow_vortex_ring.png';
