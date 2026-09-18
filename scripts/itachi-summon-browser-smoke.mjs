@@ -8,7 +8,7 @@ async function waitHome(page){
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
   const loading=page.locator('#bb-loading-screen');
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
-  await page.waitForFunction(()=>typeof window.BlazingSummonCinematic==='object'&&window.BlazingSummonCinematic.version==='5.8.0-itachi',{timeout:30000});
+  await page.waitForFunction(()=>typeof window.BlazingSummonCinematic==='object'&&window.BlazingSummonCinematic.version==='5.8.1-itachi',{timeout:30000});
 }
 async function waitItachiStage(page,stage,timeout=7000){
   await page.waitForFunction(expected=>document.getElementById('pullScene')?.dataset.bbItachiStage===expected,stage,{timeout});
@@ -36,7 +36,7 @@ async function run(name,type){
     await page.locator('#bbHomeApproved [data-nav="summon"]').click();
     await page.locator('#summonScreen.active #bbTestLegendaryItachi').waitFor({state:'visible',timeout:5000});
     const contract=await page.evaluate(()=>({version:window.BlazingSummonCinematic.version,timeline:window.BlazingSummonCinematic.timeline?.itachi,itachiVfx:window.BlazingSummonCinematic.itachiVfx}));
-    if(contract.version!=='5.8.0-itachi'||contract.timeline?.handoff!==5200||Object.keys(contract.itachiVfx||{}).length!==12)throw new Error(`Itachi cinematic contract mismatch: ${JSON.stringify(contract)}`);
+    if(contract.version!=='5.8.1-itachi'||contract.timeline?.handoff!==5200||Object.keys(contract.itachiVfx||{}).length!==12)throw new Error(`Itachi cinematic contract mismatch: ${JSON.stringify(contract)}`);
     await page.locator('#bbTestLegendaryItachi').click();
     const ignite=await waitItachiStage(page,'ignite');
     const assets=await page.evaluate(()=>[...document.querySelectorAll('#pullScene .bb-itachi-stage-vfx img')].map(node=>({src:node.getAttribute('src')||'',missing:node.classList.contains('bb-vfx-missing'),w:node.naturalWidth,h:node.naturalHeight})));
