@@ -146,15 +146,19 @@ function setBattleLayerShield(active){
  const fight=$('bbRoadFightIntro');
  const canvases=battle?[...battle.querySelectorAll('canvas')]:[];
  if(active){
+  if(battle){battle.inert=true;battle.setAttribute('aria-hidden','true');battle.dataset.bbInputShield='on'}
   battle?.style.setProperty('pointer-events','none','important');
   battle?.style.setProperty('visibility','hidden','important');
   for(const canvas of canvases)canvas.style.setProperty('pointer-events','none','important');
+  if(fight){fight.inert=true;fight.setAttribute('aria-hidden','true');fight.dataset.bbInputShield='on'}
   fight?.style.setProperty('pointer-events','none','important');
   fight?.style.setProperty('visibility','hidden','important');
  }else{
+  if(battle){battle.inert=false;battle.removeAttribute('aria-hidden');delete battle.dataset.bbInputShield}
   battle?.style.removeProperty('pointer-events');
   battle?.style.removeProperty('visibility');
   for(const canvas of canvases)canvas.style.removeProperty('pointer-events');
+  if(fight){fight.inert=false;fight.removeAttribute('aria-hidden');delete fight.dataset.bbInputShield}
   fight?.style.removeProperty('pointer-events');
   fight?.style.removeProperty('visibility');
  }
@@ -175,7 +179,9 @@ function prepareRoute(shell){
 
 function syncBattleLayerShield(){
  const battle=$('battleScreen');
- const battleActive=!!battle?.classList.contains('active')&&getComputedStyle(battle).display!=='none'&&getComputedStyle(battle).visibility!=='hidden';
+ const otherActive=[...document.querySelectorAll('.screen.active')].some(screen=>screen!==battle);
+ const menu=$('menuScreen'),menuVisible=!!menu&&getComputedStyle(menu).display!=='none'&&getComputedStyle(menu).visibility!=='hidden';
+ const battleActive=!!battle?.classList.contains('active')&&!otherActive&&!menuVisible&&getComputedStyle(battle).display!=='none';
  setBattleLayerShield(!battleActive);
  return battleActive;
 }
