@@ -191,6 +191,17 @@ function forceScreen(screenId,shell){
  return true;
 }
 
+function routeHome(shell=$(SHELL_ID)){
+ document.querySelectorAll('.screen').forEach(node=>node.classList.remove('active'));
+ const menu=$('menuScreen');
+ if(menu){menu.style.display='grid';menu.classList.remove('leaving')}
+ shell?.removeAttribute('aria-hidden');
+ clearBattleGestureState();
+ setBattleLayerShield(true);
+ requestAnimationFrame(()=>{apply();syncBattleLayerShield();shell?.querySelector('[data-nav="battle"]')?.focus?.({preventScroll:true})});
+ return true;
+}
+
 function routeBattle(kind,shell){
  prepareRoute(shell);
  setBattleLayerShield(false);
@@ -371,10 +382,22 @@ new MutationObserver(records=>{
  schedule();
  if(records.some(record=>record.type==='attributes'&&record.target?.classList?.contains('screen')))requestAnimationFrame(syncBattleLayerShield);
 }).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
-document.addEventListener('click',()=>setTimeout(()=>{apply();syncBattleLayerShield();},0),true);
+document.addEventListener('click',event=>{
+ const button=event.target?.closest?.('#summonScreen button,#summonPullScreen button');
+ if(button&&button.id!=='returnToSummonsBtn'){
+  const intent=`${button.getAttribute('aria-label')||''} ${button.textContent||''}`.trim();
+  if(/\b(?:back|home)\b/i.test(intent)){
+   setTimeout(()=>{
+    const stillInSummons=document.getElementById('summonScreen')?.classList.contains('active')||document.getElementById('summonPullScreen')?.classList.contains('active');
+    if(stillInSummons)routeHome();
+   },40);
+  }
+ }
+ setTimeout(()=>{apply();syncBattleLayerShield();},0);
+},true);
 window.addEventListener('resize',schedule,{passive:true});
 window.addEventListener('pageshow',()=>requestAnimationFrame(syncBattleLayerShield));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)requestAnimationFrame(syncBattleLayerShield)});
 setTimeout(()=>{apply();syncBattleLayerShield();},0);
-window.BlazingHomeSkin=Object.freeze({apply,findHome,openBattle:()=>openBattle($(SHELL_ID)),closeBattle:()=>closeBattle($(SHELL_ID)),syncBattleLayerShield});
+window.BlazingHomeSkin=Object.freeze({apply,findHome,openBattle:()=>openBattle($(SHELL_ID)),closeBattle:()=>closeBattle($(SHELL_ID)),syncBattleLayerShield,routeHome});
 })();
