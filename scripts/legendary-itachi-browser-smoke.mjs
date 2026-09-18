@@ -140,8 +140,8 @@ async function run(name,type){
       const card=document.querySelector('#pullResultsGrid .pullCard');
       return card?.classList.contains('bb-legendary-itachi-result')&&card?.dataset.bbRevealKind==='itachi';
     },{timeout:2000});
-    const resultState=await result.evaluate(card=>({legendary:card.classList.contains('bb-legendary-itachi-result'),kind:card.dataset.bbRevealKind||'',text:card.textContent||''}));
-    if(!resultState.legendary||resultState.kind!=='itachi')throw new Error(`Itachi result card lost its special treatment: ${JSON.stringify(resultState)}`);
+    const resultState=await result.evaluate(card=>{const image=card.querySelector('.resultTradingCard')||card.querySelector('img');return {legendary:card.classList.contains('bb-legendary-itachi-result'),kind:card.dataset.bbRevealKind||'',text:card.textContent||'',art:image?.getAttribute('src')||''}});
+    if(!resultState.legendary||resultState.kind!=='itachi'||!resultState.art.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi result card lost its special treatment/full-background art: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
     console.log(`Legendary Itachi summon smoke PASS (${name}): concentric nested ring geometry with tiered speeds, 12 assets, 5.2s handoff, and full-background final card art verified.`);
