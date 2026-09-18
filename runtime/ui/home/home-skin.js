@@ -141,119 +141,6 @@ function clickLegacy(id,shell){
  try{el.click();return true;}catch(err){console.error('Home route click failed',id,err);showToast(shell,'That route could not open.');return false;}
 }
 
-function setBattleLayerShield(active){
- const battle=$('battleScreen');
- const fight=$('bbRoadFightIntro');
- const canvases=battle?[...battle.querySelectorAll('canvas')]:[];
- if(active){
-  if(battle){battle.inert=true;battle.setAttribute('aria-hidden','true');battle.dataset.bbInputShield='on'}
-  battle?.style.setProperty('pointer-events','none','important');
-  battle?.style.setProperty('visibility','hidden','important');
-  for(const canvas of canvases)canvas.style.setProperty('pointer-events','none','important');
-  if(fight){fight.inert=true;fight.setAttribute('aria-hidden','true');fight.dataset.bbInputShield='on'}
-  fight?.style.setProperty('pointer-events','none','important');
-  fight?.style.setProperty('visibility','hidden','important');
- }else{
-  if(battle){battle.inert=false;battle.removeAttribute('aria-hidden');delete battle.dataset.bbInputShield}
-  battle?.style.removeProperty('pointer-events');
-  battle?.style.removeProperty('visibility');
-  for(const canvas of canvases)canvas.style.removeProperty('pointer-events');
-  if(fight){fight.inert=false;fight.removeAttribute('aria-hidden');delete fight.dataset.bbInputShield}
-  fight?.style.removeProperty('pointer-events');
-  fight?.style.removeProperty('visibility');
- }
-}
-
-function clearBattleGestureState(){
- try{
-  const state=globalThis.eval('S');
-  if(!state)return;
-  state.drag=false;state.dragOrigin=null;state.dragVisual=null;state.dragGrabOffset=null;
- }catch(_){}
-}
-
-function prepareRoute(shell){
- closeBattle(shell);
- clearBattleGestureState();
-}
-
-function syncBattleLayerShield(){
- const battle=$('battleScreen');
- const nodeVisible=node=>{if(!node||node.hidden)return false;const style=getComputedStyle(node),box=node.getBoundingClientRect();return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity||1)>0&&box.width>0&&box.height>0};
- const otherScreenActive=[...document.querySelectorAll('.screen.active')].some(screen=>screen!==battle);
- const nonBattleUiActive=[
-  '#bbInventory','#bbUnitDetails','#resonanceScreen.active','#summonScreen.active','#summonPullScreen.active','#teamScreen.active'
- ].some(selector=>nodeVisible(document.querySelector(selector)));
- const menu=$('menuScreen'),menuVisible=nodeVisible(menu);
- const battleActive=!!battle?.classList.contains('active')&&!otherScreenActive&&!nonBattleUiActive&&!menuVisible&&getComputedStyle(battle).display!=='none';
- setBattleLayerShield(!battleActive);
- return battleActive;
-}
-
-function forceScreen(screenId,shell){
- const screen=$(screenId),menu=$('menuScreen');
- if(!screen)return false;
- document.querySelectorAll('.screen').forEach(node=>node.classList.toggle('active',node===screen));
- if(menu){menu.style.display='none';menu.classList.remove('active','leaving')}
- shell?.setAttribute('aria-hidden','true');
- screen.scrollTop=0;
- window.scrollTo(0,0);
- return true;
-}
-
-function routeHome(shell=$(SHELL_ID)){
- document.querySelectorAll('.screen').forEach(node=>node.classList.remove('active'));
- const menu=$('menuScreen');
- if(menu){menu.style.display='grid';menu.classList.remove('leaving')}
- shell?.removeAttribute('aria-hidden');
- clearBattleGestureState();
- setBattleLayerShield(true);
- requestAnimationFrame(()=>{apply();syncBattleLayerShield();shell?.querySelector('[data-nav="battle"]')?.focus?.({preventScroll:true})});
- return true;
-}
-
-function routeBattle(kind,shell){
- prepareRoute(shell);
- setBattleLayerShield(false);
- try{
-  const direct=globalThis.startBattle;
-  if(typeof direct==='function'){direct(kind==='castle'?'boss':'level');}
-  else if(!clickLegacy(kind==='castle'?'boss1Btn':'level1Btn',shell))throw new Error('legacy battle route unavailable');
-  const menu=$('menuScreen');
-  if(menu)menu.style.display='none';
-  return true;
- }catch(err){
-  console.error('Home direct battle route failed',kind,err);
-  setBattleLayerShield(true);
-  shell?.removeAttribute('aria-hidden');
-  showToast(shell,'Battle route could not open.');
-  return false;
- }
-}
-
-function routeScreen(screenId,legacyId,shell){
- prepareRoute(shell);
- setBattleLayerShield(true);
- const target=$(screenId);
- try{
-  clickLegacy(legacyId,shell);
-  requestAnimationFrame(()=>{
-   if(target?.classList.contains('active'))return;
-   forceScreen(screenId,shell);
-  });
-  return true;
- }catch(err){
-  console.error('Home direct screen route failed',screenId,err);
-  if(!forceScreen(screenId,shell)){
-   setBattleLayerShield(true);
-   shell?.removeAttribute('aria-hidden');
-   showToast(shell,'That route could not open.');
-   return false;
-  }
-  return true;
- }
-}
-
 function clickSemantic(root,shell,regex,label){
  const candidates=[...root.querySelectorAll('button,a,[role="button"],[onclick]')].filter(el=>!shell.contains(el));
  const target=candidates.find(el=>regex.test(copy(el)));
@@ -349,12 +236,12 @@ function ensureShell(root){
 
  shell.querySelector('[data-open-battle]')?.addEventListener('click',()=>openBattle(shell));
  shell.querySelector('[data-nav="battle"]')?.addEventListener('click',()=>openBattle(shell));
- shell.querySelector('[data-nav="summon"]')?.addEventListener('click',()=>routeScreen('summonScreen','summonsBtn',shell));
- shell.querySelector('[data-nav="units"]')?.addEventListener('click',()=>routeScreen('inventoryScreen','inventoryBtn',shell));
- shell.querySelector('[data-nav="forge"]')?.addEventListener('click',()=>routeScreen('resonanceScreen','forgeBtn',shell));
+ shell.querySelector('[data-nav="summon"]')?.addEventListener('click',()=>clickLegacy('summonsBtn',shell));
+ shell.querySelector('[data-nav="units"]')?.addEventListener('click',()=>clickLegacy('inventoryBtn',shell));
+ shell.querySelector('[data-nav="forge"]')?.addEventListener('click',()=>clickLegacy('forgeBtn',shell));
  shell.querySelector('[data-close-battle]')?.addEventListener('click',()=>closeBattle(shell));
- shell.querySelector('[data-mode="road"]')?.addEventListener('click',()=>routeBattle('road',shell));
- shell.querySelector('[data-mode="castle"]')?.addEventListener('click',()=>routeBattle('castle',shell));
+ shell.querySelector('[data-mode="road"]')?.addEventListener('click',()=>clickLegacy('level1Btn',shell));
+ shell.querySelector('[data-mode="castle"]')?.addEventListener('click',()=>clickLegacy('boss1Btn',shell));
  shell.querySelector('.bb-home-v4-battle')?.addEventListener('click',event=>{if(event.target===event.currentTarget)closeBattle(shell);});
  shell.addEventListener('keydown',event=>{if(event.key==='Escape'&&!shell.querySelector('.bb-home-v4-battle')?.hidden){event.preventDefault();closeBattle(shell);}});
 
@@ -369,16 +256,39 @@ function ensureShell(root){
  return shell;
 }
 
+function battleInputSafety(){
+ const battle=$('battleScreen'),fight=$('bbRoadFightIntro');
+ const nodeVisible=node=>{if(!node||node.hidden)return false;const s=getComputedStyle(node),r=node.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity||1)>0&&r.width>0&&r.height>0};
+ const menuVisible=nodeVisible($('menuScreen'));
+ const otherActive=[...document.querySelectorAll('.screen.active')].some(screen=>screen!==battle);
+ const customNonBattle=['#bbInventory','#bbUnitDetails','#resonanceScreen.active','#summonScreen.active','#summonPullScreen.active','#teamScreen.active']
+  .some(selector=>nodeVisible(document.querySelector(selector)));
+ const shield=menuVisible||otherActive||customNonBattle;
+ const canvases=battle?[...battle.querySelectorAll('canvas')]:[];
+ if(shield){
+  battle?.style.setProperty('pointer-events','none','important');
+  battle?.style.setProperty('visibility','hidden','important');
+  for(const canvas of canvases)canvas.style.setProperty('pointer-events','none','important');
+  fight?.style.setProperty('pointer-events','none','important');
+  fight?.style.setProperty('visibility','hidden','important');
+ }else{
+  battle?.style.removeProperty('pointer-events');
+  battle?.style.removeProperty('visibility');
+  for(const canvas of canvases)canvas.style.removeProperty('pointer-events');
+  fight?.style.removeProperty('pointer-events');
+  fight?.style.removeProperty('visibility');
+ }
+ return shield;
+}
+
 let homeRoot=null;
 function apply(){
  const found=findHome();
  if(found)homeRoot=found;
  const root=homeRoot&&document.body.contains(homeRoot)&&visible(homeRoot)?homeRoot:null;
- if(!root)return false;
- const shell=ensureShell(root);
- syncBattleLayerShield();
- shell?.removeAttribute('aria-hidden');
- return true;
+ if(root)ensureShell(root);
+ battleInputSafety();
+ return !!root;
 }
 
 let queued=false;
@@ -388,26 +298,11 @@ function schedule(){
  requestAnimationFrame(()=>{queued=false;apply();});
 }
 
-new MutationObserver(records=>{
- schedule();
- if(records.some(record=>record.type==='attributes'&&record.target?.classList?.contains('screen')))requestAnimationFrame(syncBattleLayerShield);
-}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
-document.addEventListener('click',event=>{
- const button=event.target?.closest?.('#summonScreen button,#summonPullScreen button');
- if(button&&button.id!=='returnToSummonsBtn'){
-  const intent=`${button.getAttribute('aria-label')||''} ${button.textContent||''}`.trim();
-  if(/\b(?:back|home)\b/i.test(intent)){
-   setTimeout(()=>{
-    const stillInSummons=document.getElementById('summonScreen')?.classList.contains('active')||document.getElementById('summonPullScreen')?.classList.contains('active');
-    if(stillInSummons)routeHome();
-   },40);
-  }
- }
- setTimeout(()=>{apply();syncBattleLayerShield();},0);
-},true);
+new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
+document.addEventListener('click',()=>setTimeout(()=>{apply();battleInputSafety();},0),true);
 window.addEventListener('resize',schedule,{passive:true});
-window.addEventListener('pageshow',()=>requestAnimationFrame(syncBattleLayerShield));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)requestAnimationFrame(syncBattleLayerShield)});
-setTimeout(()=>{apply();syncBattleLayerShield();},0);
-window.BlazingHomeSkin=Object.freeze({apply,findHome,openBattle:()=>openBattle($(SHELL_ID)),closeBattle:()=>closeBattle($(SHELL_ID)),syncBattleLayerShield,routeHome});
+window.addEventListener('pageshow',()=>requestAnimationFrame(battleInputSafety));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)requestAnimationFrame(battleInputSafety)});
+setTimeout(()=>{apply();battleInputSafety();},0);
+window.BlazingHomeSkin=Object.freeze({apply,findHome,openBattle:()=>openBattle($(SHELL_ID)),closeBattle:()=>closeBattle($(SHELL_ID)),battleInputSafety});
 })();
