@@ -22,9 +22,11 @@
       },
       "projectile_presentation": {
         "trajectory": "direct",
-        "cast_duration_ms": 380,
-        "flight_duration_ms": 520,
-        "impact_duration_ms": 300
+        "cast_duration_ms": 360,
+        "flight_duration_ms": 560,
+        "impact_duration_ms": 280,
+        "presentation_style": "compact_crow_flock_red_smoke",
+        "direction_safe_orientation": true
       }
     },
     "tsukuyomi": {
@@ -56,13 +58,15 @@
       },
       "projectile_presentation": {
         "trajectory": "none",
-        "cast_duration_ms": 1800,
-        "overlay_duration_ms": 2380,
-        "target_duration_ms": 1000,
-        "screen_dim_alpha": 0.62,
+        "cast_duration_ms": 2200,
+        "overlay_duration_ms": 2600,
+        "target_duration_ms": 900,
+        "screen_dim_alpha": 0.68,
         "centered_screen_takeover": true,
         "cinematic_takeover": true,
-        "enemy_side_distortion": true
+        "enemy_side_distortion": true,
+        "ritual_to_nightmare": true,
+        "target_png_rendered": false
       },
       "area": "battlefield_rectangle",
       "aoe": true
