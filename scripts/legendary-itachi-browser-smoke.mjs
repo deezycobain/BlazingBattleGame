@@ -72,8 +72,8 @@ async function run(name,type){
         const node=scene.querySelector(selector);return node?getComputedStyle(node).display:'missing';
       });
       const art=scene.querySelector('.bb-card-front .summonedTradingCard');
-      const ringSelectors=['.bb-itachi-ring-outer','.bb-itachi-ring-middle','.bb-itachi-ring-inner','.bb-itachi-ring-orbit'];
-      const rings=ringSelectors.map(selector=>{const node=scene.querySelector(selector),box=node?.getBoundingClientRect(),style=node?getComputedStyle(node):null;return {selector,cx:box?box.left+box.width/2:null,cy:box?box.top+box.height/2:null,width:box?.width||0,duration:style?.animationDuration||''}});
+      const ringSelectors=['.bb-itachi-ring-flame','.bb-itachi-ring-outer','.bb-itachi-ring-middle','.bb-itachi-ring-inner','.bb-itachi-ring-orbit'];
+      const rings=ringSelectors.map(selector=>{const node=scene.querySelector(selector),box=node?.getBoundingClientRect(),style=node?getComputedStyle(node):null;return {selector,cx:box?box.left+box.width/2:null,cy:box?box.top+box.height/2:null,width:box?.width||0,duration:style?.animationDuration||'',name:style?.animationName||''}});
       return {
         count:images.length,
         bad:images.filter(img=>!img.complete||!img.naturalWidth||img.classList.contains('bb-vfx-missing')).map(img=>img.getAttribute('src')),
@@ -91,8 +91,9 @@ async function run(name,type){
     if(loaded.ringShells!==5)throw new Error(`Itachi rings are not isolated in concentric shells: ${JSON.stringify(loaded)}`);
     const centersOk=loaded.rings.every(r=>Math.abs(r.cx-loaded.rings[0].cx)<1.5&&Math.abs(r.cy-loaded.rings[0].cy)<1.5);
     const widths=loaded.rings.map(r=>r.width),nested=widths.every((value,index)=>index===0||value<widths[index-1]);
-    const speeds=loaded.rings.map(r=>Number.parseFloat(r.duration)||0),tiered=speeds[0]>speeds[1]&&speeds[1]>speeds[2]&&speeds[2]>speeds[3];
-    if(!centersOk||!nested||!tiered)throw new Error(`Itachi ring geometry/speed hierarchy is wrong: ${JSON.stringify(loaded.rings)}`);
+    const speeds=loaded.rings.map(r=>Number.parseFloat(r.duration)||0),tiered=speeds[0]>speeds[1]&&speeds[1]>speeds[2]&&speeds[2]>speeds[3]&&speeds[3]>speeds[4];
+    const directions=loaded.rings.map(r=>r.name),directionOk=directions[0].includes('bbItachiSpinCW')&&directions[1].includes('bbItachiSpinCW')&&directions.slice(2).every(name=>name.includes('bbItachiSpinCCW'));
+    if(!centersOk||!nested||!tiered||!directionOk)throw new Error(`Itachi ring geometry/direction/speed hierarchy is wrong: ${JSON.stringify(loaded.rings)}`);
     if(loaded.revealStage!=='itachi'||loaded.revealKind!=='itachi'||!loaded.cardArt.endsWith('itachi_reveal.webp'))throw new Error(`Itachi cinematic did not own the reveal: ${JSON.stringify(loaded)}`);
 
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='handoff',{timeout:9000});
@@ -144,7 +145,7 @@ async function run(name,type){
     if(!resultState.legendary||resultState.kind!=='itachi'||!resultState.art.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi result card lost its special treatment/full-background art: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
-    console.log(`Legendary Itachi summon smoke PASS (${name}): concentric nested ring geometry with tiered speeds, 12 assets, 5.2s handoff, and full-background final card art verified.`);
+    console.log(`Legendary Itachi summon smoke PASS (${name}): two slow clockwise outer rings, progressively faster counterclockwise inner rings, concentric geometry, 5.2s handoff, and full-background card art verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
