@@ -4,11 +4,13 @@
 const ENEMY_PADDING=28;
 const KEY='south-sac';
 const POINTS=Object.freeze([
-  Object.freeze({x:88,y:188}),Object.freeze({x:392,y:188}),
-  Object.freeze({x:398,y:220}),Object.freeze({x:406,y:300}),Object.freeze({x:414,y:380}),
-  Object.freeze({x:430,y:470}),Object.freeze({x:452,y:560}),
-  Object.freeze({x:28,y:560}),Object.freeze({x:48,y:470}),Object.freeze({x:60,y:380}),
-  Object.freeze({x:66,y:300}),Object.freeze({x:74,y:220})
+  // Keep combatants on the authored street plane. The skyline / bridge horizon
+  // is visual depth only and must never become reachable movement space.
+  Object.freeze({x:96,y:248}),Object.freeze({x:384,y:248}),
+  Object.freeze({x:396,y:276}),Object.freeze({x:406,y:332}),Object.freeze({x:416,y:402}),
+  Object.freeze({x:432,y:486}),Object.freeze({x:452,y:560}),
+  Object.freeze({x:28,y:560}),Object.freeze({x:46,y:486}),Object.freeze({x:58,y:402}),
+  Object.freeze({x:68,y:332}),Object.freeze({x:78,y:276})
 ]);
 const ALLOWED=Object.freeze([Object.freeze({type:'polygon',points:POINTS})]);
 const MOVEMENT=Object.freeze({allowed:ALLOWED,blocked:Object.freeze([])});
