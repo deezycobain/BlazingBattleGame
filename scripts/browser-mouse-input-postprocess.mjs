@@ -49,6 +49,29 @@ function battleIsInteractive(){
  }))return false;
  return true;
 }
+function battleCanvases(){
+ const battle=document.getElementById('battleScreen'),game=document.getElementById('game');
+ return [...new Set([game,...(battle?[...battle.querySelectorAll('canvas')]:[])].filter(node=>node instanceof HTMLCanvasElement))];
+}
+function syncBattleCanvasInput(){
+ const active=battleIsInteractive();
+ for(const canvas of battleCanvases()){
+  if(active){
+   canvas.style.removeProperty('pointer-events');
+   canvas.style.removeProperty('visibility');
+   delete canvas.dataset.bbInputShield;
+  }else{
+   canvas.style.setProperty('pointer-events','none','important');
+   canvas.style.setProperty('visibility','hidden','important');
+   canvas.dataset.bbInputShield='on';
+  }
+ }
+ return active;
+}
+function battleInputTarget(target){
+ if(!(target instanceof HTMLCanvasElement))return false;
+ return battleCanvases().includes(target);
+}
 function visibleBattleCanvas(){
  if(!battleIsInteractive())return null;
  const game=document.getElementById('game');
@@ -93,8 +116,13 @@ function dispatchPointer(type,source,target){
  target.dispatchEvent(event);
 }
 document.addEventListener('pointerdown',event=>{
- if(event.__bbMouseBridge||event.pointerType!=='mouse'||event.button!==0)return;
- if(!battleIsInteractive()){activeCanvas=null;return;}
+ if(event.__bbMouseBridge)return;
+ if(!battleIsInteractive()){
+  activeCanvas=null;
+  if(battleInputTarget(event.target)){event.preventDefault();event.stopImmediatePropagation();}
+  return;
+ }
+ if(event.pointerType!=='mouse'||event.button!==0)return;
  if(interactive(event.target))return;
  const canvas=visibleBattleCanvas();
  if(!canvas)return;
@@ -107,8 +135,13 @@ document.addEventListener('pointerdown',event=>{
  dispatchPointer('pointerdown',event,canvas);
 },true);
 document.addEventListener('pointermove',event=>{
- if(event.__bbMouseBridge||event.pointerType!=='mouse'||!activeCanvas)return;
- if(!battleIsInteractive()){activeCanvas=null;return;}
+ if(event.__bbMouseBridge)return;
+ if(!battleIsInteractive()){
+  activeCanvas=null;
+  if(battleInputTarget(event.target)){event.preventDefault();event.stopImmediatePropagation();}
+  return;
+ }
+ if(event.pointerType!=='mouse'||!activeCanvas)return;
  if((event.buttons&1)===0){
   dispatchPointer('pointerup',event,activeCanvas);
   activeCanvas=null;
@@ -119,8 +152,13 @@ document.addEventListener('pointermove',event=>{
  dispatchPointer('pointermove',event,activeCanvas);
 },true);
 document.addEventListener('pointerup',event=>{
- if(event.__bbMouseBridge||event.pointerType!=='mouse'||event.button!==0||!activeCanvas)return;
- if(!battleIsInteractive()){activeCanvas=null;return;}
+ if(event.__bbMouseBridge)return;
+ if(!battleIsInteractive()){
+  activeCanvas=null;
+  if(battleInputTarget(event.target)){event.preventDefault();event.stopImmediatePropagation();}
+  return;
+ }
+ if(event.pointerType!=='mouse'||event.button!==0||!activeCanvas)return;
  const canvas=activeCanvas;
  activeCanvas=null;
  event.preventDefault();
@@ -128,13 +166,25 @@ document.addEventListener('pointerup',event=>{
  dispatchPointer('pointerup',event,canvas);
 },true);
 document.addEventListener('pointercancel',event=>{
- if(event.__bbMouseBridge||event.pointerType!=='mouse'||!activeCanvas)return;
- if(!battleIsInteractive()){activeCanvas=null;return;}
+ if(event.__bbMouseBridge)return;
+ if(!battleIsInteractive()){
+  activeCanvas=null;
+  if(battleInputTarget(event.target))event.stopImmediatePropagation();
+  return;
+ }
+ if(event.pointerType!=='mouse'||!activeCanvas)return;
  const canvas=activeCanvas;
  activeCanvas=null;
  event.stopImmediatePropagation();
  dispatchPointer('pointercancel',event,canvas);
 },true);
+const scheduleCanvasSync=()=>requestAnimationFrame(syncBattleCanvasInput);
+new MutationObserver(scheduleCanvasSync).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
+document.addEventListener('click',()=>setTimeout(syncBattleCanvasInput,0),true);
+window.addEventListener('pageshow',scheduleCanvasSync);
+window.addEventListener('resize',scheduleCanvasSync,{passive:true});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleCanvasSync()});
+syncBattleCanvasInput();
 })();</script>`;
 
 const at=html.toLowerCase().lastIndexOf('</body>');
@@ -170,4 +220,4 @@ else if(!html.includes('S.drag=false;\n S.dragGrabOffset=null;'))throw new Error
 if(html.includes('new TouchEvent(')||html.includes("dispatchTouch('touchstart'"))throw new Error('Browser mouse input: obsolete mouse-to-touch adapter survived');
 
 await fs.writeFile(file,html);
-console.log('Desktop browser input applied: battle-only pointer bridge, full visible fighter body pickup, preserved grab offset, and no Home/Summon/Inventory interception.');
+console.log('Desktop browser input applied: battle canvas is hidden/inert outside combat, mouse bridge is combat-only, and Home/Summon/Inventory input stays native.');
