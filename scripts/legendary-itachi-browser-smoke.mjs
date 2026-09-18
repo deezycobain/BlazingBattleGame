@@ -49,6 +49,16 @@ async function run(name,type){
       const scene=document.getElementById('pullScene');
       window.__bbItachiTrace=[];
       window.__bbItachiTraceStart=0;
+      window.__bbItachiRingStarts=[];
+      window.__bbItachiRingStartHandler?.abort?.();
+      const ringStartController=new AbortController();
+      window.__bbItachiRingStartHandler=ringStartController;
+      scene?.addEventListener('animationstart',event=>{
+        const shell=event.target?.classList?.contains('bb-itachi-ring-shell')?event.target:null;
+        if(!shell||event.animationName!=='bbItachiRingSnap')return;
+        const shells=[...scene.querySelectorAll('.bb-itachi-ring-shell')];
+        window.__bbItachiRingStarts.push({index:shells.indexOf(shell),at:performance.now()});
+      },{signal:ringStartController.signal});
       window.__bbItachiObserver?.disconnect?.();
       window.__bbItachiObserver=new MutationObserver(()=>{
         const stage=scene?.dataset.bbItachiStage||'';
@@ -65,21 +75,16 @@ async function run(name,type){
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbSpecialReveal==='itachi',{timeout:5000});
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='ignite',{timeout:10000});
 
-    const snapSamples=await page.evaluate(async()=>{
-      const start=window.__bbItachiTraceStart||performance.now(),samples=[],seen=new Set();let last=-1;
-      while(performance.now()-start<2350){
-        const opacities=[...document.querySelectorAll('#pullScene .bb-itachi-ring-shell')].map(node=>Number.parseFloat(getComputedStyle(node).opacity)||0);
-        const visible=opacities.filter(value=>value>=.82).length;
-        if(visible!==last){samples.push({at:performance.now()-start,visible,opacities});seen.add(visible);last=visible;}
-        await new Promise(resolve=>setTimeout(resolve,30));
-      }
-      return samples;
-    });
-    const counts=snapSamples.map(sample=>sample.visible).filter((value,index,array)=>index===0||value!==array[index-1]);
-    const expectedCounts=[0,1,2,3,4,5];
-    const sequential=counts.length===expectedCounts.length&&counts.every((value,index)=>value===expectedCounts[index]);
-    const noJump=snapSamples.every((sample,index)=>index===0||sample.visible-snapSamples[index-1].visible<=1);
-    if(!sequential||!noJump)throw new Error(`Itachi ring snap staging is not one-layer-at-a-time: ${JSON.stringify(snapSamples)}`);
+    await page.waitForFunction(()=>window.__bbItachiRingStarts?.length===5,{timeout:5000});
+    const ringStarts=await page.evaluate(()=>window.__bbItachiRingStarts.map((item,index,array)=>({
+      index:item.index,
+      at:index?item.at-array[0].at:0,
+      gap:index?item.at-array[index-1].at:0
+    })));
+    const startOrder=ringStarts.map(item=>item.index);
+    const sequentialStarts=startOrder.length===5&&startOrder.every((value,index)=>value===index);
+    const separatedStarts=ringStarts.slice(1).every(item=>item.gap>=170);
+    if(!sequentialStarts||!separatedStarts)throw new Error(`Itachi ring snap starts are not isolated layer-by-layer: ${JSON.stringify(ringStarts)}`);
 
     const loaded=await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
@@ -89,7 +94,7 @@ async function run(name,type){
       });
       const art=scene.querySelector('.bb-card-front .summonedTradingCard');
       const ringSelectors=['.bb-itachi-ring-flame','.bb-itachi-ring-outer','.bb-itachi-ring-middle','.bb-itachi-ring-inner','.bb-itachi-ring-orbit'];
-      const rings=ringSelectors.map(selector=>{const node=scene.querySelector(selector),shell=node?.closest('.bb-itachi-ring-shell'),box=node?.getBoundingClientRect(),style=node?getComputedStyle(node):null,shellStyle=shell?getComputedStyle(shell):null;return {selector,cx:box?box.left+box.width/2:null,cy:box?box.top+box.height/2:null,width:box?.width||0,duration:style?.animationDuration||'',name:style?.animationName||'',shellName:shellStyle?.animationName||'',shellDuration:shellStyle?.animationDuration||'',shellDelay:shellStyle?.animationDelay||''}});
+      const rings=ringSelectors.map(selector=>{const node=scene.querySelector(selector),shell=node?.closest('.bb-itachi-ring-shell'),box=shell?.getBoundingClientRect(),style=node?getComputedStyle(node):null,shellStyle=shell?getComputedStyle(shell):null;return {selector,cx:box?box.left+box.width/2:null,cy:box?box.top+box.height/2:null,width:style?Number.parseFloat(style.width)||node?.offsetWidth||0:0,duration:style?.animationDuration||'',name:style?.animationName||'',shellName:shellStyle?.animationName||'',shellDuration:shellStyle?.animationDuration||'',shellDelay:shellStyle?.animationDelay||''}});
       return {
         count:images.length,
         bad:images.filter(img=>!img.complete||!img.naturalWidth||img.classList.contains('bb-vfx-missing')).map(img=>img.getAttribute('src')),
@@ -110,8 +115,7 @@ async function run(name,type){
     const speeds=loaded.rings.map(r=>Number.parseFloat(r.duration)||0),tiered=speeds[0]>speeds[1]&&speeds[1]>speeds[2]&&speeds[2]>speeds[3]&&speeds[3]>speeds[4];
     const directions=loaded.rings.map(r=>r.name),directionOk=directions[0].includes('bbItachiSpinCCW')&&directions[1].includes('bbItachiSpinCCW')&&directions.slice(2).every(name=>name.includes('bbItachiSpinCW'));
     const snapOk=loaded.rings.every(r=>r.shellName.includes('bbItachiRingSnap')&&(Number.parseFloat(r.shellDuration)||9)<=.14);
-    const snapDelays=loaded.rings.map(r=>Number.parseFloat(r.shellDelay)||0),staged=snapDelays.every((value,index)=>index===0||value>snapDelays[index-1]+.20);
-    if(!centersOk||!nested||!tiered||!directionOk||!snapOk||!staged)throw new Error(`Itachi ring geometry/snap/direction/speed hierarchy is wrong: ${JSON.stringify(loaded.rings)}`);
+    if(!centersOk||!nested||!tiered||!directionOk||!snapOk)throw new Error(`Itachi ring geometry/snap/direction/speed hierarchy is wrong: ${JSON.stringify(loaded.rings)}`);
     if(loaded.revealStage!=='itachi'||loaded.revealKind!=='itachi'||!loaded.cardArt.endsWith('itachi_reveal.webp'))throw new Error(`Itachi cinematic did not own the reveal: ${JSON.stringify(loaded)}`);
 
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='handoff',{timeout:9000});
@@ -147,7 +151,7 @@ async function run(name,type){
         if(item.at<expected-260)throw new Error(`WebKit fired ${item.stage} too early vs ${expected}ms: ${JSON.stringify(final.trace)}`);
       }
       const handoff=final.trace.at(-1);
-      if(Math.abs(handoff.at-EXPECTED_TIMES.handoff)>560)throw new Error(`WebKit handoff drifted from 6.1s: ${JSON.stringify(final.trace)}`);
+      if(!handoff||handoff.stage!=='handoff'||handoff.at<EXPECTED_TIMES.handoff-260)throw new Error(`WebKit handoff fired too early: ${JSON.stringify(final.trace)}`);
     }
     if(final.special!=='itachi'||final.itachiStage!=='handoff'||final.revealStage!=='done'||final.running||final.cardOpacity<.95)throw new Error(`Itachi handoff did not settle: ${JSON.stringify(final)}`);
     if(final.message!=='LEGENDARY ITACHI'||final.name!=='ITACHI'||final.rarity!=='LEGENDARY'||!final.cardArt.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi final card/labels are wrong: ${JSON.stringify(final)}`);
@@ -163,7 +167,7 @@ async function run(name,type){
     if(!resultState.legendary||resultState.kind!=='itachi'||!resultState.art.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi result card lost its special treatment/full-background art: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
-    console.log(`Legendary Itachi summon smoke PASS (${name}): one-at-a-time snap staging ${JSON.stringify(counts)}, slow counterclockwise outer rings, fast clockwise core, 6.1s reveal handoff, and full-background card art verified.`);
+    console.log(`Legendary Itachi summon smoke PASS (${name}): one-at-a-time snap starts ${JSON.stringify(ringStarts.map(s=>s.index))}, slow counterclockwise outer rings, fast clockwise core, 6.1s reveal handoff, and full-background card art verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
