@@ -46,9 +46,9 @@ async function run(name,type){
    const idle=globalThis.eval("unitIdleFrames('Itachi')"),basic=globalThis.eval("unitAttackFrames('Itachi','basic_attack')"),jutsu=globalThis.eval("unitAttackFrames('Itachi','tsukuyomi')");
    const pair=s.pairs.find(p=>front(p)?.name==='Itachi');
    const waitLoaded=async frames=>{for(let i=0;i<30;i++){if(frames.length&&frames.every(img=>img.complete&&img.naturalWidth>0))return true;await new Promise(r=>setTimeout(r,100))}return false};
-   return {registered:!!roster.Itachi,active:[...active],team:s.pairs.map(p=>front(p)?.name),pair:pair?{x:pair.x,y:pair.y}:null,idleCount:idle.length,basicCount:basic.length,jutsuCount:jutsu.length,idleLoaded:await waitLoaded(idle),basicLoaded:await waitLoaded(basic),jutsuLoaded:await waitLoaded(jutsu),markers:{basic:html.includes('animateItachiCrowStrike'),jutsu:html.includes('animateItachiTsukuyomi'),gauge:html.includes("canonicalUnit('itachi').abilities.jutsu.gauge_reduction??45"),scale:html.includes("name==='Itachi'?1.28:1"),aoe:html.includes('Itachi Tsukuyomi AoE resolution failed'),crowFlock:html.includes('drawSmallCrow')&&html.includes('const flock=[[0,0,28,1]'),directionSafe:html.includes('Math.atan2(f.to.y-f.from.y,Math.max(1,Math.abs(f.to.x-f.from.x)))'),redSmoke:html.includes("rgba(150,8,32,"),nightmare:html.includes("f.kind==='itachiTsukuyomiNightmare'"),cinematic:html.includes('nightmareAt=1450,impactAt=2200,holdAfterImpact=900'),centered:html.includes('ctx.translate(W/2,H/2)'),targetPngRemoved:!html.includes('ctx.drawImage(img,-size/2,-size/2,size,size)'),enemyDistortion:html.includes('createRadialGradient(cx,cy,0,cx,cy,r)')}};
+   return {registered:!!roster.Itachi,active:[...active],team:s.pairs.map(p=>front(p)?.name),pair:pair?{x:pair.x,y:pair.y}:null,idleCount:idle.length,basicCount:basic.length,jutsuCount:jutsu.length,idleLoaded:await waitLoaded(idle),basicLoaded:await waitLoaded(basic),jutsuLoaded:await waitLoaded(jutsu),markers:{basic:html.includes('animateItachiCrowStrike'),jutsu:html.includes('animateItachiTsukuyomi'),gauge:html.includes("canonicalUnit('itachi').abilities.jutsu.gauge_reduction??45"),scale:html.includes("name==='Itachi'?1.28:1"),aoe:html.includes('Itachi Tsukuyomi AoE resolution failed'),crowFlock:html.includes('drawSmallCrow')&&html.includes('const flock=[[0,0,28,1]'),directionSafe:html.includes('Math.atan2(f.to.y-f.from.y,Math.max(1,Math.abs(f.to.x-f.from.x)))'),redSmoke:html.includes("rgba(150,8,32,"),fullscreenDom:html.includes('ensureItachiTsukuyomiCinematic')&&html.includes('position:fixed;inset:0;width:100vw;height:100dvh'),authoredOverlay:html.includes('ITACHI_TSUKUYOMI_OVERLAY_FRAMES')&&html.includes(".bb-tsu-overlay"),authoredMandala:html.includes('ITACHI_TSUKUYOMI_MANDALA_FRAMES')&&html.includes(".bb-tsu-mandala"),authoredTarget:html.includes('ITACHI_TSUKUYOMI_TARGET_FRAMES')&&html.includes(".bb-tsu-target"),cinematic:html.includes('nightmareAt=1500,impactAt=2600,holdAfterImpact=1200'),canvasTsukuyomiRemoved:!html.includes("f.kind==='itachiTsukuyomiOverlay'")&&!html.includes("f.kind==='itachiTsukuyomiMandala'")&&!html.includes("f.kind==='itachiTsukuyomiNightmare'")&&!html.includes("f.kind==='itachiTsukuyomiTarget'")}};
   });
-  if(!contract.registered||!contract.active.includes('Itachi')||!contract.team.includes('Itachi')||contract.idleCount!==6||contract.basicCount!==6||contract.jutsuCount!==6||!contract.idleLoaded||!contract.basicLoaded||!contract.jutsuLoaded||!contract.markers.basic||!contract.markers.jutsu||!contract.markers.gauge||!contract.markers.scale||!contract.markers.aoe||!contract.markers.crowFlock||!contract.markers.directionSafe||!contract.markers.redSmoke||!contract.markers.nightmare||!contract.markers.cinematic||!contract.markers.centered||!contract.markers.targetPngRemoved||!contract.markers.enemyDistortion)throw new Error(`Itachi battle contract incomplete: ${JSON.stringify(contract)}`);
+  if(!contract.registered||!contract.active.includes('Itachi')||!contract.team.includes('Itachi')||contract.idleCount!==6||contract.basicCount!==6||contract.jutsuCount!==6||!contract.idleLoaded||!contract.basicLoaded||!contract.jutsuLoaded||!contract.markers.basic||!contract.markers.jutsu||!contract.markers.gauge||!contract.markers.scale||!contract.markers.aoe||!contract.markers.crowFlock||!contract.markers.directionSafe||!contract.markers.redSmoke||!contract.markers.fullscreenDom||!contract.markers.authoredOverlay||!contract.markers.authoredMandala||!contract.markers.authoredTarget||!contract.markers.cinematic||!contract.markers.canvasTsukuyomiRemoved)throw new Error(`Itachi battle contract incomplete: ${JSON.stringify(contract)}`);
 
   const basicResult=await page.evaluate(async()=>{
    const s=globalThis.eval('S'),front=globalThis.eval('front'),begin=globalThis.eval('beginActionToken'),animate=globalThis.eval('animateItachiCrowStrike');
@@ -67,22 +67,37 @@ async function run(name,type){
    const s=globalThis.eval('S'),front=globalThis.eval('front'),begin=globalThis.eval('beginActionToken'),animate=globalThis.eval('animateItachiTsukuyomi'),canonical=globalThis.eval('canonicalUnit');
    const pair=s.pairs.find(p=>front(p)?.name==='Itachi'),targets=s.enemies.filter(e=>e.hp>0).slice(0,3),enemy=targets[0];if(!pair||!enemy||targets.length<2)return {error:'missing pair/enemies'};
    for(const target of targets){target.maxHp=Math.max(Number(target.maxHp)||0,200);target.hp=200;target.gauge=80}
-   s.phase='resolve';s.floaters=[];begin();const before=targets.map(target=>({hp:target.hp,gauge:target.gauge})),start=performance.now();window.__bbItachiJutsuSmokeStart=start;let sawOverlay=false,sawMandala=false,sawNightmare=false,sawTarget=false,primaryImpactGauge=null,impactGauges=null;
+   s.phase='resolve';s.floaters=[];begin();const before=targets.map(target=>({hp:target.hp,gauge:target.gauge})),start=performance.now();window.__bbItachiJutsuSmokeStart=start;let localCanvasTsukuyomi=false,primaryImpactGauge=null,impactGauges=null;
    const outcome=await new Promise(resolve=>{
-    const sample=setInterval(()=>{const kinds=s.floaters.map(f=>f.kind);sawOverlay||=kinds.includes('itachiTsukuyomiOverlay');sawMandala||=kinds.includes('itachiTsukuyomiMandala');sawNightmare||=kinds.includes('itachiTsukuyomiNightmare');sawTarget||=kinds.includes('itachiTsukuyomiTarget')},25);
+    const sample=setInterval(()=>{localCanvasTsukuyomi||=s.floaters.some(f=>String(f?.kind||'').startsWith('itachiTsukuyomi'))},25);
     animate('Itachi',{x:pair.x,y:pair.y},enemy,()=>{
       window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:1});
       window.BlazingCombatRuntime.execute('reduce_target_gauge',{target:enemy,parameters:{amount:canonical('itachi').abilities.jutsu.gauge_reduction??45,minimum_gauge:0}});
       primaryImpactGauge=enemy.gauge;
       setTimeout(()=>{impactGauges=targets.map(target=>target.gauge)},0);
     },()=>{clearInterval(sample);resolve({elapsed:performance.now()-start})});
-    setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},6500);
+    setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},7000);
    });
-   return {...outcome,before,after:targets.map(target=>({hp:target.hp,gauge:target.gauge})),primaryImpactGauge,impactGauges,sawOverlay,sawMandala,sawNightmare,sawTarget,dim:!!s.jutsuDim};
+   const root=document.getElementById('bb-itachi-tsukuyomi-cinematic');
+   return {...outcome,before,after:targets.map(target=>({hp:target.hp,gauge:target.gauge})),primaryImpactGauge,impactGauges,localCanvasTsukuyomi,dim:!!s.jutsuDim,domStillActive:!!root?.classList.contains('bb-active')};
   });
+
+  await page.waitForFunction(()=>document.getElementById('bb-itachi-tsukuyomi-cinematic')?.classList.contains('bb-active'),null,{timeout:2500});
+  const takeover=await page.evaluate(()=>{
+    const root=document.getElementById('bb-itachi-tsukuyomi-cinematic'),rect=root?.getBoundingClientRect(),style=root?getComputedStyle(root):null;
+    const overlay=root?.querySelector('.bb-tsu-overlay'),mandala=root?.querySelector('.bb-tsu-mandala'),target=root?.querySelector('.bb-tsu-target');
+    return {active:!!root?.classList.contains('bb-active'),position:style?.position||'',width:rect?.width||0,height:rect?.height||0,viewportW:innerWidth,viewportH:innerHeight,phase:root?.dataset.phase||'',overlay:overlay?.getAttribute('src')||'',mandala:mandala?.getAttribute('src')||'',target:target?.getAttribute('src')||''};
+  });
+  if(!takeover.active||takeover.position!=='fixed'||takeover.width<takeover.viewportW*.98||takeover.height<takeover.viewportH*.98||!takeover.overlay.includes('/tsukuyomi/overlay/')||!takeover.mandala.includes('/tsukuyomi/mandala/'))throw new Error(`Tsukuyomi did not take over full viewport with authored assets: ${JSON.stringify(takeover)}`);
+
   if(name==='chromium'){
-    for(const [at,label] of [[1050,'ritual'],[1650,'nightmare'],[2320,'impact']]){
-      await page.waitForFunction(target=>window.__bbItachiJutsuSmokeStart&&performance.now()-window.__bbItachiJutsuSmokeStart>=target,at,{timeout:5000});
+    for(const [at,label,phase] of [[1050,'ritual','ritual'],[1800,'nightmare','nightmare'],[2850,'impact','impact']]){
+      await page.waitForFunction(target=>window.__bbItachiJutsuSmokeStart&&performance.now()-window.__bbItachiJutsuSmokeStart>=target,at,{timeout:5500});
+      await page.waitForFunction(expected=>document.getElementById('bb-itachi-tsukuyomi-cinematic')?.dataset.phase===expected,phase,{timeout:1500});
+      if(phase==='impact'){
+        const targetSrc=await page.locator('#bb-itachi-tsukuyomi-cinematic .bb-tsu-target').getAttribute('src');
+        if(!String(targetSrc||'').includes('/tsukuyomi/target/'))throw new Error(`Tsukuyomi impact did not use authored target frames: ${targetSrc}`);
+      }
       await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-${label}-${name}.png`});
     }
   }
@@ -90,9 +105,9 @@ async function run(name,type){
   const expectedGauge=35;
   const aoeDamaged=jutsuResult.after?.every((state,index)=>state.hp<jutsuResult.before[index].hp);
   const gaugesAtImpact=jutsuResult.primaryImpactGauge===expectedGauge&&Array.isArray(jutsuResult.impactGauges)&&jutsuResult.impactGauges.every(value=>value<=expectedGauge);
-  if(jutsuResult.error||jutsuResult.timeout||!jutsuResult.sawOverlay||!jutsuResult.sawMandala||!jutsuResult.sawNightmare||!jutsuResult.sawTarget||!aoeDamaged||!gaugesAtImpact||jutsuResult.elapsed<3000)throw new Error(`Tsukuyomi failed: ${JSON.stringify(jutsuResult)}`);
+  if(jutsuResult.error||jutsuResult.timeout||jutsuResult.localCanvasTsukuyomi||jutsuResult.domStillActive||!aoeDamaged||!gaugesAtImpact||jutsuResult.elapsed<3700)throw new Error(`Tsukuyomi failed: ${JSON.stringify(jutsuResult)}`);
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Itachi battle smoke PASS (${name}): compact direction-safe crow flock with red smoke plus ritual, nightmare, and impact Tsukuyomi v2 stages verified with AoE damage and 45 gauge suppression.`);
+  console.log(`Itachi battle smoke PASS (${name}): crow flock plus full-viewport authored Tsukuyomi overlay/mandala/target cinematic, AoE damage, and 45 gauge suppression verified.`);
   await context.close();
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
