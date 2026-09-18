@@ -143,10 +143,12 @@ async function run(name,type){
 
   const stage1=await page.evaluate(()=>{
    const s=globalThis.eval('S'),front=globalThis.eval('front'),C=window.BlazingRoadContent;
-   const players=s.pairs.filter(p=>front(p)?.name&&front(p).name!=='—').map(p=>front(p)),broadPoints=[{x:90,y:300},{x:240,y:300},{x:390,y:300}];
-   return {stage:s.bbRoadContent?.stage,name:s.bbRoadContent?.name,elite:s.bbRoadContent?.elite,map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,mapAudit:window.BlazingRoadMapAudit||null,enemies:s.enemies.map(e=>({hp:e.maxHp,attack:e.attack,defense:e.defense,ai:!!e.bbRoadAi})),chakra:players.map(u=>({name:u.name,chakra:u.chakra,max:u.maxChakra})),playerFootPadding:C.PLAYER_FOOT_PADDING,enemyTerrainPadding:C.ENEMY_TERRAIN_PADDING,broadWalkable:broadPoints.map(point=>C.isWalkablePoint(s.bbRoadContent?.map,point,{padding:C.PLAYER_FOOT_PADDING}))};
+   const players=s.pairs.filter(p=>front(p)?.name&&front(p).name!=='—').map(p=>front(p)),broadPoints=[{x:90,y:300},{x:240,y:300},{x:390,y:300}],horizonPoints=[{x:120,y:220},{x:240,y:220},{x:360,y:220}],map=s.bbRoadContent?.map;
+   const horizonClamp=C.constrainMovementPoint(map,{x:240,y:180},{x:240,y:320},{padding:C.PLAYER_FOOT_PADDING});
+   return {stage:s.bbRoadContent?.stage,name:s.bbRoadContent?.name,elite:s.bbRoadContent?.elite,map:map?.src,mapSource:s.bbRoadMapSource,mapAudit:window.BlazingRoadMapAudit||null,enemies:s.enemies.map(e=>({hp:e.maxHp,attack:e.attack,defense:e.defense,ai:!!e.bbRoadAi})),chakra:players.map(u=>({name:u.name,chakra:u.chakra,max:u.maxChakra})),playerFootPadding:C.PLAYER_FOOT_PADDING,enemyTerrainPadding:C.ENEMY_TERRAIN_PADDING,broadWalkable:broadPoints.map(point=>C.isWalkablePoint(map,point,{padding:C.PLAYER_FOOT_PADDING})),horizonWalkable:horizonPoints.map(point=>C.isWalkablePoint(map,point,{padding:C.PLAYER_FOOT_PADDING})),horizonClamp};
   });
   if(stage1.stage!==1||stage1.elite)throw new Error(`Stage 1 content wrong: ${JSON.stringify(stage1)}`);
+  if(stage1.horizonWalkable.some(Boolean)||!stage1.horizonClamp||stage1.horizonClamp.y<245)throw new Error(`South Sac horizon leaked into playable movement: ${JSON.stringify(stage1)}`);
   if(!/stage-01-south-sac\.webp$/.test(stage1.map||'')||stage1.mapSource!==stage1.map)throw new Error(`Stage 1 map routing wrong: ${JSON.stringify(stage1)}`);
   if(stage1.enemies.length<3||stage1.enemies.some(e=>e.attack<=0||e.attack>18||!e.ai))throw new Error(`Stage 1 opening balance/combat readiness regressed: ${JSON.stringify(stage1.enemies)}`);
   if(stage1.chakra.some(u=>u.chakra>Math.min(2,u.max)))throw new Error(`development full-chakra shortcut survived: ${JSON.stringify(stage1.chakra)}`);
@@ -178,7 +180,7 @@ async function run(name,type){
   await page.getByRole('button',{name:'MAIN MENU'}).click();await waitHome(page);const card=await page.locator('#bbHomeApproved [data-mode="road"] span:last-child').textContent();if(!/Road Complete/i.test(card||'')||!/10\/10/.test(card||''))throw new Error(`approved Home Road completion status wrong: ${card}`);
 
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Road gameplay smoke PASS (${name}): round Speed initiative, segmented chakra HUD, compact Sub-Zero/Senku ranges, reduced 1.16 combat zoom, native touch drag, enemy AI, map routing, and Stage 10 completion verified.`);
+  console.log(`Road gameplay smoke PASS (${name}): round Speed initiative, South Sac horizon clamp, segmented chakra HUD, compact Sub-Zero/Senku ranges, reduced 1.16 combat zoom, native touch drag, enemy AI, map routing, and Stage 10 completion verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
