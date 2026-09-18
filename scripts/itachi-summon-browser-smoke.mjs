@@ -47,9 +47,9 @@ async function run(name,type){
     const handoff=await waitItachiStage(page,'handoff');
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbRevealStage==='done',{timeout:2000});
     const settled=await page.evaluate(()=>({running:document.getElementById('pullScene')?.classList.contains('bb-itachi-running')||false,message:document.getElementById('pullMessage')?.textContent?.trim()||'',art:document.querySelector('#pullScene .summonedTradingCard')?.getAttribute('src')||'',name:document.querySelector('#pullScene .bb-card-nameplate')?.textContent?.trim()||'',rarity:document.querySelector('#pullScene .bb-card-rarityplate')?.textContent?.trim()||''}));
-    if(handoff.special!=='itachi'||settled.running||settled.message!=='LEGENDARY ITACHI'||!settled.art.endsWith('itachi_reveal.webp')||settled.name!=='ITACHI'||settled.rarity!=='LEGENDARY')throw new Error(`Itachi reveal did not settle correctly: ${JSON.stringify({handoff,settled})}`);
+    if(handoff.special!=='itachi'||settled.running||settled.message!=='LEGENDARY ITACHI'||!settled.art.endsWith('itachi_card.png')||settled.name!=='ITACHI'||settled.rarity!=='LEGENDARY')throw new Error(`Itachi reveal did not settle correctly: ${JSON.stringify({handoff,settled})}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Itachi summon smoke PASS (${name}): all 12 dedicated layers loaded and the 5.2s Legendary Itachi reveal completed.`);
+    console.log(`Itachi summon smoke PASS (${name}): all 12 dedicated layers loaded, the 5.2s reveal completed, and the cinematic handed off to Itachi's real card art.`);
     await context.close();
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
