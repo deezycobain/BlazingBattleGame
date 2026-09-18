@@ -82,7 +82,10 @@ async function run(name,type){
    return {...outcome,before,after:targets.map(target=>({hp:target.hp,gauge:target.gauge})),primaryImpactGauge,impactGauges,localCanvasTsukuyomi,dim:!!s.jutsuDim,domStillActive:!!root?.classList.contains('bb-active')};
   });
 
-  await page.waitForFunction(()=>document.getElementById('bb-itachi-tsukuyomi-cinematic')?.classList.contains('bb-active'),null,{timeout:2500});
+  await page.waitForFunction(()=>{
+    const root=document.getElementById('bb-itachi-tsukuyomi-cinematic'),overlay=root?.querySelector('.bb-tsu-overlay'),mandala=root?.querySelector('.bb-tsu-mandala');
+    return root?.classList.contains('bb-active')&&overlay?.complete&&overlay.naturalWidth>0&&mandala?.complete&&mandala.naturalWidth>0;
+  },null,{timeout:3000});
   const takeover=await page.evaluate(()=>{
     const root=document.getElementById('bb-itachi-tsukuyomi-cinematic'),rect=root?.getBoundingClientRect(),style=root?getComputedStyle(root):null;
     const overlay=root?.querySelector('.bb-tsu-overlay'),mandala=root?.querySelector('.bb-tsu-mandala'),target=root?.querySelector('.bb-tsu-target');
@@ -95,6 +98,7 @@ async function run(name,type){
       await page.waitForFunction(target=>window.__bbItachiJutsuSmokeStart&&performance.now()-window.__bbItachiJutsuSmokeStart>=target,at,{timeout:5500});
       await page.waitForFunction(expected=>document.getElementById('bb-itachi-tsukuyomi-cinematic')?.dataset.phase===expected,phase,{timeout:1500});
       if(phase==='impact'){
+        await page.waitForFunction(()=>{const img=document.querySelector('#bb-itachi-tsukuyomi-cinematic .bb-tsu-target');return img?.complete&&img.naturalWidth>0},{timeout:1800});
         const targetSrc=await page.locator('#bb-itachi-tsukuyomi-cinematic .bb-tsu-target').getAttribute('src');
         if(!String(targetSrc||'').includes('/tsukuyomi/target/'))throw new Error(`Tsukuyomi impact did not use authored target frames: ${targetSrc}`);
       }
