@@ -49,8 +49,8 @@
         "runtime_driver": "animateItachiCrowStrike",
         "animation_kind": "basic_attack",
         "melee_animation_kind": "basic_attack",
-        "cast_duration_ms": 380,
-        "impact_duration_ms": 820,
+        "cast_duration_ms": 360,
+        "impact_duration_ms": 840,
         "screen_dim_alpha": 0
       }
     },
@@ -65,10 +65,10 @@
       "gauge_reduction": 45,
       "presentation": {
         "runtime_driver": "animateItachiTsukuyomi",
-        "cast_duration_ms": 1800,
-        "overlay_duration_ms": 2380,
-        "target_duration_ms": 1000,
-        "screen_dim_alpha": 0.62,
+        "cast_duration_ms": 2200,
+        "overlay_duration_ms": 2600,
+        "target_duration_ms": 900,
+        "screen_dim_alpha": 0.68,
         "body_facing_mode": "target_locked",
         "freeze_caster_position": true
       },
@@ -96,12 +96,12 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": false,
-    "notes": "Legendary Itachi presentation pass: Crow Chakra Strike reads as one solid black crow with a red chakra rim; Tsukuyomi is a dramatic 2.8s battlefield-wide AoE illusion takeover with centered ritual imagery, enemy-side distortion, and 45-point gauge suppression.",
+    "notes": "Legendary Itachi presentation v2: Crow Chakra Strike is a compact upright flock with red smoke and direction-safe mirroring; Tsukuyomi uses a controlled ritual setup that collapses into an oppressive nightmare takeover, then resolves as a procedural battlefield-wide AoE bind with 45-point gauge suppression.",
     "animation_map": true
   },
   "balance": {
     "status": "provisional",
-    "pass": "itachi-legendary-cinematic-polish",
+    "pass": "itachi-legendary-nightmare-v2",
     "notes": "Gameplay values remain provisional. Tsukuyomi is now presented and resolved as battlefield AoE while retaining 4 chakra cost, 1.75x damage, and 45-point gauge suppression."
   },
   "animation_standard": {
@@ -135,7 +135,7 @@
           "sprites/runtime/attack/basic/frame_05.png",
           "sprites/runtime/attack/basic/frame_06.png"
         ],
-        "frame_ms": 135,
+        "frame_ms": 132,
         "loop": false,
         "events": [
           {
@@ -158,7 +158,7 @@
             "sprites/runtime/jutsu/tsukuyomi/cast/frame_05.png",
             "sprites/runtime/jutsu/tsukuyomi/cast/frame_06.png"
           ],
-          "frame_ms": 280,
+          "frame_ms": 300,
           "loop": false,
           "events": [
             {
@@ -195,7 +195,7 @@
           "vfx/jutsu/tsukuyomi/overlay/frame_05.png",
           "vfx/jutsu/tsukuyomi/overlay/frame_06.png"
         ],
-        "frame_ms": 360,
+        "frame_ms": 420,
         "loop": false,
         "body_asset": false
       },
@@ -208,7 +208,7 @@
           "vfx/jutsu/tsukuyomi/mandala/frame_05.png",
           "vfx/jutsu/tsukuyomi/mandala/frame_06.png"
         ],
-        "frame_ms": 360,
+        "frame_ms": 420,
         "loop": false,
         "body_asset": false
       },
@@ -220,7 +220,7 @@
           "vfx/jutsu/tsukuyomi/target/frame_04.png",
           "vfx/jutsu/tsukuyomi/target/frame_05.png"
         ],
-        "frame_ms": 220,
+        "frame_ms": 240,
         "loop": false,
         "body_asset": false
       }
