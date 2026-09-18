@@ -7,7 +7,7 @@ const sourcePath=path.join(root,'scripts','summon-cinematic-browser-smoke.mjs');
 const tempPath=path.join(root,'scripts','.summon-cinematic-browser-smoke-itachi-runtime.mjs');
 let source=await fs.readFile(sourcePath,'utf8');
 const replacements=[
-  ["runtime.version!=='5.7.0'","runtime.version!=='5.8.0-itachi'"],
+  ["runtime.version!=='5.7.0'","runtime.version!=='5.8.1-itachi'"],
   ["await page.locator('#singleSummonBtn').click();","await page.evaluate(()=>{Math.random=()=>0});\n    await page.locator('#singleSummonBtn').click();"]
 ];
 for(const [from,to] of replacements){
