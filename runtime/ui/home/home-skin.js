@@ -179,9 +179,13 @@ function prepareRoute(shell){
 
 function syncBattleLayerShield(){
  const battle=$('battleScreen');
- const otherActive=[...document.querySelectorAll('.screen.active')].some(screen=>screen!==battle);
- const menu=$('menuScreen'),menuVisible=!!menu&&getComputedStyle(menu).display!=='none'&&getComputedStyle(menu).visibility!=='hidden';
- const battleActive=!!battle?.classList.contains('active')&&!otherActive&&!menuVisible&&getComputedStyle(battle).display!=='none';
+ const nodeVisible=node=>{if(!node||node.hidden)return false;const style=getComputedStyle(node),box=node.getBoundingClientRect();return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity||1)>0&&box.width>0&&box.height>0};
+ const otherScreenActive=[...document.querySelectorAll('.screen.active')].some(screen=>screen!==battle);
+ const nonBattleUiActive=[
+  '#bbInventory','#bbUnitDetails','#resonanceScreen.active','#summonScreen.active','#summonPullScreen.active','#teamScreen.active'
+ ].some(selector=>nodeVisible(document.querySelector(selector)));
+ const menu=$('menuScreen'),menuVisible=nodeVisible(menu);
+ const battleActive=!!battle?.classList.contains('active')&&!otherScreenActive&&!nonBattleUiActive&&!menuVisible&&getComputedStyle(battle).display!=='none';
  setBattleLayerShield(!battleActive);
  return battleActive;
 }
