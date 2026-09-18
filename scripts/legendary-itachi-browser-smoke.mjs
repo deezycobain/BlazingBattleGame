@@ -36,13 +36,14 @@ async function run(name,type){
       version:window.BlazingSummonCinematic?.version,
       timeline:window.BlazingSummonCinematic?.timeline?.itachi,
       itachiVfx:window.BlazingSummonCinematic?.itachiVfx,
+      itachiCardArt:window.BlazingSummonCinematic?.itachiCardArt,
       hasTestHook:typeof window.BlazingSummonCinematic?.testItachi==='function',
       styleHref:document.querySelector('link[data-bb-itachi-summon]')?.getAttribute('href')||''
     }));
     if(contract.version!=='5.8.0-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
     if(JSON.stringify(contract.timeline)!==JSON.stringify(EXPECTED_TIMES))throw new Error(`Itachi timeline contract changed: ${JSON.stringify(contract.timeline)}`);
     if(Object.keys(contract.itachiVfx||{}).length!==12)throw new Error(`expected 12 Itachi VFX mappings: ${JSON.stringify(contract.itachiVfx)}`);
-    if(!contract.hasTestHook||!contract.styleHref.includes('legendary-itachi-summon.css'))throw new Error(`Itachi test/style hook missing: ${JSON.stringify(contract)}`);
+    if(!contract.hasTestHook||!contract.styleHref.includes('legendary-itachi-summon.css')||!String(contract.itachiCardArt||'').endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi test/style hook missing: ${JSON.stringify(contract)}`);
 
     await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
@@ -71,6 +72,8 @@ async function run(name,type){
         const node=scene.querySelector(selector);return node?getComputedStyle(node).display:'missing';
       });
       const art=scene.querySelector('.bb-card-front .summonedTradingCard');
+      const ringSelectors=['.bb-itachi-ring-outer','.bb-itachi-ring-middle','.bb-itachi-ring-inner','.bb-itachi-ring-orbit'];
+      const rings=ringSelectors.map(selector=>{const node=scene.querySelector(selector),box=node?.getBoundingClientRect(),style=node?getComputedStyle(node):null;return {selector,cx:box?box.left+box.width/2:null,cy:box?box.top+box.height/2:null,width:box?.width||0,duration:style?.animationDuration||''}});
       return {
         count:images.length,
         bad:images.filter(img=>!img.complete||!img.naturalWidth||img.classList.contains('bb-vfx-missing')).map(img=>img.getAttribute('src')),
@@ -78,11 +81,18 @@ async function run(name,type){
         generic,
         revealStage:scene.dataset.bbRevealStage||'',
         revealKind:scene.dataset.bbRevealKind||'',
-        cardArt:art?.getAttribute('src')||''
+        cardArt:art?.getAttribute('src')||'',
+        ringShells:scene.querySelectorAll('.bb-itachi-ring-shell').length,
+        rings
       };
     });
     if(loaded.count!==12||loaded.bad.length)throw new Error(`Itachi VFX failed to load: ${JSON.stringify(loaded)}`);
     if(loaded.generic.some(display=>display!=='none'))throw new Error(`generic summon VFX leaked into Itachi reveal: ${JSON.stringify(loaded.generic)}`);
+    if(loaded.ringShells!==5)throw new Error(`Itachi rings are not isolated in concentric shells: ${JSON.stringify(loaded)}`);
+    const centersOk=loaded.rings.every(r=>Math.abs(r.cx-loaded.rings[0].cx)<1.5&&Math.abs(r.cy-loaded.rings[0].cy)<1.5);
+    const widths=loaded.rings.map(r=>r.width),nested=widths.every((value,index)=>index===0||value<widths[index-1]);
+    const speeds=loaded.rings.map(r=>Number.parseFloat(r.duration)||0),tiered=speeds[0]>speeds[1]&&speeds[1]>speeds[2]&&speeds[2]>speeds[3];
+    if(!centersOk||!nested||!tiered)throw new Error(`Itachi ring geometry/speed hierarchy is wrong: ${JSON.stringify(loaded.rings)}`);
     if(loaded.revealStage!=='itachi'||loaded.revealKind!=='itachi'||!loaded.cardArt.endsWith('itachi_reveal.webp'))throw new Error(`Itachi cinematic did not own the reveal: ${JSON.stringify(loaded)}`);
 
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='handoff',{timeout:9000});
@@ -101,7 +111,8 @@ async function run(name,type){
         cardTransform:getComputedStyle(flipper).transform,
         message:message?.textContent?.trim()||'',
         name:scene.querySelector('.bb-card-nameplate')?.textContent?.trim()||'',
-        rarity:scene.querySelector('.bb-card-rarityplate')?.textContent?.trim()||''
+        rarity:scene.querySelector('.bb-card-rarityplate')?.textContent?.trim()||'',
+        cardArt:scene.querySelector('.bb-card-front .summonedTradingCard')?.getAttribute('src')||''
       };
     });
     if(JSON.stringify(final.trace.map(item=>item.stage))!==JSON.stringify(EXPECTED_STAGES))throw new Error(`Itachi stage order changed: ${JSON.stringify(final.trace)}`);
@@ -120,7 +131,7 @@ async function run(name,type){
       if(Math.abs(handoff.at-EXPECTED_TIMES.handoff)>500)throw new Error(`WebKit handoff drifted from 5.2s: ${JSON.stringify(final.trace)}`);
     }
     if(final.special!=='itachi'||final.itachiStage!=='handoff'||final.revealStage!=='done'||final.running||final.cardOpacity<.95)throw new Error(`Itachi handoff did not settle: ${JSON.stringify(final)}`);
-    if(final.message!=='LEGENDARY ITACHI'||final.name!=='ITACHI'||final.rarity!=='LEGENDARY')throw new Error(`Itachi final labels are wrong: ${JSON.stringify(final)}`);
+    if(final.message!=='LEGENDARY ITACHI'||final.name!=='ITACHI'||final.rarity!=='LEGENDARY'||!final.cardArt.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi final card/labels are wrong: ${JSON.stringify(final)}`);
 
     await page.locator('#nextPullBtn').evaluate(button=>button.click());
     const result=page.locator('#pullResultsGrid .pullCard').first();
@@ -133,7 +144,7 @@ async function run(name,type){
     if(!resultState.legendary||resultState.kind!=='itachi')throw new Error(`Itachi result card lost its special treatment: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
-    console.log(`Legendary Itachi summon smoke PASS (${name}): 12 assets, 8 ordered beats, special-only VFX, 5.2s handoff, and result treatment verified.`);
+    console.log(`Legendary Itachi summon smoke PASS (${name}): concentric nested ring geometry with tiered speeds, 12 assets, 5.2s handoff, and full-background final card art verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
