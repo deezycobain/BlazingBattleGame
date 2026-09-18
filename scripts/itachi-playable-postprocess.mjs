@@ -59,8 +59,8 @@ const itachiAnimations=String.raw`
 function animateItachiCrowStrike(unitName,from,enemy,onImpact,onDone,attackKind='basic_attack'){
  const token=ACTIVE_ACTION_TOKEN;
  const state=ensureAnimState();if(!state.attackPose)state.attackPose={};
- const bodyDuration=540,releaseDelay=300,flightDuration=360,impactHold=180;
- state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration};
+ const releaseDelay=420,flightDuration=500,impactHold=300,totalDuration=releaseDelay+flightDuration+impactHold;
+ state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:totalDuration};
  window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);
  setTimeout(()=>{
   if(!actionTokenAlive(token))return;
@@ -82,24 +82,35 @@ function animateItachiCrowStrike(unitName,from,enemy,onImpact,onDone,attackKind=
 function animateItachiTsukuyomi(unitName,from,enemy,onImpact,onDone){
  const token=ACTIVE_ACTION_TOKEN;
  const state=ensureAnimState();if(!state.attackPose)state.attackPose={};
- const castDuration=845,overlayDelay=260,impactAt=650,holdAfterImpact=500;
- state.attackPose[unitName]={kind:'tsukuyomi',start:performance.now(),duration:castDuration};
+ const overlayDelay=320,impactAt=1450,holdAfterImpact=900,totalDuration=impactAt+holdAfterImpact;
+ state.attackPose[unitName]={kind:'tsukuyomi',start:performance.now(),duration:totalDuration};
  window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);
- const meta=canonicalUnit('itachi')?.abilities?.jutsu?.presentation||{};
- S.jutsuDim={start:performance.now(),alpha:meta.screen_dim_alpha??.38,end:null};
+ const data=canonicalUnit('itachi'),meta=data?.abilities?.jutsu?.presentation||{};
+ S.jutsuDim={start:performance.now(),alpha:meta.screen_dim_alpha??.56,end:null};
  const active=[];
  setTimeout(()=>{
   if(!actionTokenAlive(token))return;
   const start=performance.now(),duration=(impactAt-overlayDelay)+holdAfterImpact;
   const overlay={kind:'itachiTsukuyomiOverlay',start,duration,life:1};
-  const mandala={kind:'itachiTsukuyomiMandala',x:enemy.x,y:enemy.y-18,start,duration,life:1};
+  const mandala={kind:'itachiTsukuyomiMandala',start,duration,life:1};
   active.push(overlay,mandala);S.floaters.push(overlay,mandala);
  },overlayDelay);
  setTimeout(()=>{
   if(!actionTokenAlive(token))return;
-  const targetFx={kind:'itachiTsukuyomiTarget',x:enemy.x,y:enemy.y-18,start:performance.now(),duration:holdAfterImpact,life:1};
+  const targetFx={kind:'itachiTsukuyomiTarget',start:performance.now(),duration:holdAfterImpact,life:1};
   active.push(targetFx);S.floaters.push(targetFx);
-  try{onImpact&&onImpact()}catch(err){console.error('Itachi Tsukuyomi impact failed:',err);return recoverAction('Itachi Tsukuyomi impact')}
+  try{onImpact&&onImpact()}catch(err){console.error('Itachi Tsukuyomi primary impact failed:',err);return recoverAction('Itachi Tsukuyomi impact')}
+  try{
+   const pair=(S.pairs||[]).find(p=>front(p)?.name===unitName),actor=pair?front(pair):null;
+   const multiplier=Number(data?.abilities?.jutsu?.damage_multiplier)||1.75;
+   const aoeDamage=Math.max(1,Number(actor?.jutsuDamage)||window.BlazingCombatRuntime.computeScaledDamage(actor?.attack??data?.stats?.attack??40,multiplier));
+   const gaugeCut=Number(data?.abilities?.jutsu?.gauge_reduction)||45;
+   for(const target of (S.enemies||[])){
+    if(!target||target===enemy||target.hp<=0)continue;
+    window.BlazingCombatRuntime.execute('damage_target',{target,damage:aoeDamage});
+    window.BlazingCombatRuntime.execute('reduce_target_gauge',{target,parameters:{amount:gaugeCut,minimum_gauge:0}});
+   }
+  }catch(err){console.error('Itachi Tsukuyomi AoE resolution failed:',err)}
   setTimeout(()=>{
    S.floaters=S.floaters.filter(x=>!active.includes(x));
    if(S.jutsuDim)S.jutsuDim.end=performance.now();
@@ -128,13 +139,27 @@ const itachiVfx=String.raw`}else if(f.kind==='itachiCrowStrike'){
       draw(ITACHI_CROW_FEATHERSTORM,f.to.x,f.to.y-8,132,.78*burst,-burst*.7);
     }else if(f.kind==='itachiTsukuyomiOverlay'){
       const t=clamp((performance.now()-f.start)/f.duration,0,1),idx=Math.min(ITACHI_TSUKUYOMI_OVERLAY_FRAMES.length-1,Math.floor(t*ITACHI_TSUKUYOMI_OVERLAY_FRAMES.length)),img=ITACHI_TSUKUYOMI_OVERLAY_FRAMES[idx];
-      if(img?.complete&&img.naturalWidth){ctx.setTransform(1,0,0,1,0,0);const size=Math.max(W,H)*1.22;ctx.globalCompositeOperation='screen';ctx.globalAlpha*=.34*Math.sin(Math.PI*Math.min(1,t*1.18));ctx.drawImage(img,(W-size)/2,(H-size)/2,size,size);}
+      if(img?.complete&&img.naturalWidth){
+       ctx.setTransform(1,0,0,1,0,0);
+       const fade=t<.16?t/.16:(t>.84?Math.max(0,(1-t)/.16):1),pulse=.86+.14*Math.sin(t*Math.PI*2),size=Math.max(W,H)*1.42;
+       ctx.globalCompositeOperation='source-over';ctx.globalAlpha*=1;ctx.fillStyle=\`rgba(86,0,12,\${.30*fade})\`;ctx.fillRect(0,0,W,H);
+       ctx.globalCompositeOperation='screen';ctx.globalAlpha*=.46*fade*pulse;ctx.drawImage(img,(W-size)/2,(H-size)/2,size,size);
+      }
     }else if(f.kind==='itachiTsukuyomiMandala'){
       const t=clamp((performance.now()-f.start)/f.duration,0,1),idx=Math.min(ITACHI_TSUKUYOMI_MANDALA_FRAMES.length-1,Math.floor(t*ITACHI_TSUKUYOMI_MANDALA_FRAMES.length)),img=ITACHI_TSUKUYOMI_MANDALA_FRAMES[idx];
-      if(img?.complete&&img.naturalWidth){const pulse=.92+.12*Math.sin(t*Math.PI*3),w=178*pulse,h=w*(img.naturalHeight/img.naturalWidth);ctx.translate(f.x,f.y);ctx.rotate(-.20+t*.48);ctx.globalCompositeOperation='screen';ctx.globalAlpha*=.88;ctx.drawImage(img,-w/2,-h/2,w,h);}
+      if(img?.complete&&img.naturalWidth){
+       ctx.setTransform(1,0,0,1,0,0);
+       const fade=t<.18?t/.18:(t>.88?Math.max(0,(1-t)/.12):1),pulse=.92+.06*Math.sin(t*Math.PI*2.4),w=Math.min(W*.94,H*.78)*pulse,h=w*(img.naturalHeight/img.naturalWidth);
+       ctx.translate(W/2,H*.43);ctx.rotate(-.10+t*.22);ctx.globalCompositeOperation='screen';ctx.globalAlpha*=.92*fade;ctx.shadowColor='#9d0016';ctx.shadowBlur=22;ctx.drawImage(img,-w/2,-h/2,w,h);
+      }
     }else if(f.kind==='itachiTsukuyomiTarget'){
       const t=clamp((performance.now()-f.start)/f.duration,0,1),idx=Math.min(ITACHI_TSUKUYOMI_TARGET_FRAMES.length-1,Math.floor(t*ITACHI_TSUKUYOMI_TARGET_FRAMES.length)),img=ITACHI_TSUKUYOMI_TARGET_FRAMES[idx];
-      if(img?.complete&&img.naturalWidth){const w=150+22*Math.sin(Math.PI*t),h=w*(img.naturalHeight/img.naturalWidth);ctx.translate(f.x,f.y);ctx.globalCompositeOperation='screen';ctx.globalAlpha*=t<.72?1:Math.max(0,(1-t)/.28);ctx.shadowColor='#ff233d';ctx.shadowBlur=14;ctx.drawImage(img,-w/2,-h/2,w,h);}
+      if(img?.complete&&img.naturalWidth){
+       ctx.setTransform(1,0,0,1,0,0);
+       const fade=t<.18?t/.18:(t>.74?Math.max(0,(1-t)/.26):1),w=Math.min(W*.88,H*.72)*(1+.04*Math.sin(Math.PI*t)),h=w*(img.naturalHeight/img.naturalWidth);
+       ctx.globalCompositeOperation='source-over';ctx.fillStyle=\`rgba(116,0,18,\${.22*fade})\`;ctx.fillRect(0,0,W,H);
+       ctx.translate(W/2,H*.43);ctx.globalCompositeOperation='screen';ctx.globalAlpha*=.96*fade;ctx.shadowColor='#ff1638';ctx.shadowBlur=28;ctx.drawImage(img,-w/2,-h/2,w,h);
+      }
     `+vfxAnchor;
 html=html.replace(vfxAnchor,itachiVfx);
 
@@ -179,4 +204,4 @@ for(const marker of [
 ])if(!html.includes(marker))fail(`final shell missing ${marker}`);
 
 await fs.writeFile(file,html);
-console.log('Itachi playable integration PASS: roster/team access, six-frame idle/basic/Tsukuyomi bodies, crow strike VFX, Tsukuyomi overlay/mandala/target VFX, damage, and 45-gauge suppression are wired.');
+console.log('Itachi playable integration PASS: enlarged battle presentation, readable Crow Chakra Strike timing, and centered full-screen AoE Tsukuyomi with deep-red takeover, multi-enemy damage, and 45-gauge suppression are wired.');
