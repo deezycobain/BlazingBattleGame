@@ -51,9 +51,9 @@ html=html.replace(anchor,replacement);
 // target so their final screen size remains unchanged. Actor radii, hitboxes, walkable
 // geometry, targeting, movement and shadow logic stay unchanged.
 const perspectiveSpriteScaleAnchor='ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale,scale*activePulse*bbRoadDepthScale);';
-const perspectiveSpriteScaleReplacement='const bbRoadCameraCompensation=S.bbRunMode===\'road\'?1/Math.max(1,Number(S.bbRoadContent?.map?.presentation?.combatScale)||1.18):1;ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation,scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation);ctx.translate(0,5);';
+const perspectiveSpriteScaleReplacement='const bbRoadCameraCompensation=S.bbRunMode===\'road\'?1/Math.max(1,Number(S.bbRoadContent?.map?.presentation?.combatScale)||1.18):1;const bbUnitPresentationScale=name===\'Itachi\'?1.28:1;ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation*bbUnitPresentationScale,scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation*bbUnitPresentationScale);ctx.translate(0,5);';
 const legacySpriteScaleAnchor='ctx.scale(directionalFlip*scale*activePulse,scale*activePulse);';
-const legacySpriteScaleReplacement='ctx.scale(directionalFlip*scale*activePulse*1.15,scale*activePulse*1.15);ctx.translate(0,5);';
+const legacySpriteScaleReplacement='const bbUnitPresentationScale=name===\'Itachi\'?1.28:1;ctx.scale(directionalFlip*scale*activePulse*1.15*bbUnitPresentationScale,scale*activePulse*1.15*bbUnitPresentationScale);ctx.translate(0,5);';
 const perspectiveScaleHits=html.split(perspectiveSpriteScaleAnchor).length-1;
 const legacyScaleHits=html.split(legacySpriteScaleAnchor).length-1;
 if(perspectiveScaleHits===1&&legacyScaleHits===0)html=html.replace(perspectiveSpriteScaleAnchor,perspectiveSpriteScaleReplacement);
