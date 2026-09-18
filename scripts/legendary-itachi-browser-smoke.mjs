@@ -94,6 +94,7 @@ async function run(name,type){
       };
     });
     if(assembled.ringOpacities.length!==4||assembled.ringOpacities.some(value=>value<.99)||assembled.environmentOpacity>.01)throw new Error(`Itachi ring assembly still contains translucent overlap: ${JSON.stringify(assembled)}`);
+    if(name==='chromium')await page.screenshot({path:'test-artifacts/itachi-summon-four-ring-assembly-chromium.png'});
 
     const loaded=await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
