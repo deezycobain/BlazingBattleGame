@@ -46,9 +46,9 @@ async function run(name,type){
    const idle=globalThis.eval("unitIdleFrames('Itachi')"),basic=globalThis.eval("unitAttackFrames('Itachi','basic_attack')"),jutsu=globalThis.eval("unitAttackFrames('Itachi','tsukuyomi')");
    const pair=s.pairs.find(p=>front(p)?.name==='Itachi');
    const waitLoaded=async frames=>{for(let i=0;i<30;i++){if(frames.length&&frames.every(img=>img.complete&&img.naturalWidth>0))return true;await new Promise(r=>setTimeout(r,100))}return false};
-   return {registered:!!roster.Itachi,active:[...active],team:s.pairs.map(p=>front(p)?.name),pair:pair?{x:pair.x,y:pair.y}:null,idleCount:idle.length,basicCount:basic.length,jutsuCount:jutsu.length,idleLoaded:await waitLoaded(idle),basicLoaded:await waitLoaded(basic),jutsuLoaded:await waitLoaded(jutsu),markers:{basic:html.includes('animateItachiCrowStrike'),jutsu:html.includes('animateItachiTsukuyomi'),gauge:html.includes("canonicalUnit('itachi').abilities.jutsu.gauge_reduction??45")}};
+   return {registered:!!roster.Itachi,active:[...active],team:s.pairs.map(p=>front(p)?.name),pair:pair?{x:pair.x,y:pair.y}:null,idleCount:idle.length,basicCount:basic.length,jutsuCount:jutsu.length,idleLoaded:await waitLoaded(idle),basicLoaded:await waitLoaded(basic),jutsuLoaded:await waitLoaded(jutsu),markers:{basic:html.includes('animateItachiCrowStrike'),jutsu:html.includes('animateItachiTsukuyomi'),dim:html.includes("f.kind==='itachiTsukuyomiDim'"),hold:html.includes('ITACHI_TSUKUYOMI_HOLD_FRAMES'),gauge:html.includes("canonicalUnit('itachi').abilities.jutsu.gauge_reduction??45")}};
   });
-  if(!contract.registered||!contract.active.includes('Itachi')||!contract.team.includes('Itachi')||contract.idleCount!==6||contract.basicCount!==6||contract.jutsuCount!==6||!contract.idleLoaded||!contract.basicLoaded||!contract.jutsuLoaded||!contract.markers.basic||!contract.markers.jutsu||!contract.markers.gauge)throw new Error(`Itachi battle contract incomplete: ${JSON.stringify(contract)}`);
+  if(!contract.registered||!contract.active.includes('Itachi')||!contract.team.includes('Itachi')||contract.idleCount!==6||contract.basicCount!==6||contract.jutsuCount!==6||!contract.idleLoaded||!contract.basicLoaded||!contract.jutsuLoaded||!contract.markers.basic||!contract.markers.jutsu||!contract.markers.dim||!contract.markers.hold||!contract.markers.gauge)throw new Error(`Itachi battle contract incomplete: ${JSON.stringify(contract)}`);
 
   const basicResult=await page.evaluate(async()=>{
    const s=globalThis.eval('S'),front=globalThis.eval('front'),begin=globalThis.eval('beginActionToken'),animate=globalThis.eval('animateItachiCrowStrike');
@@ -66,20 +66,20 @@ async function run(name,type){
   const jutsuPromise=page.evaluate(async()=>{
    const s=globalThis.eval('S'),front=globalThis.eval('front'),begin=globalThis.eval('beginActionToken'),animate=globalThis.eval('animateItachiTsukuyomi'),canonical=globalThis.eval('canonicalUnit');
    const pair=s.pairs.find(p=>front(p)?.name==='Itachi'),enemy=s.enemies.find(e=>e.hp>0);if(!pair||!enemy)return {error:'missing pair/enemy'};
-   s.phase='resolve';s.floaters=[];enemy.gauge=80;begin();const beforeHp=enemy.hp,beforeGauge=enemy.gauge,start=performance.now();let sawOverlay=false,sawMandala=false,sawTarget=false;
+   s.phase='resolve';s.floaters=[];enemy.gauge=80;begin();const beforeHp=enemy.hp,beforeGauge=enemy.gauge,start=performance.now();let sawDim=false,sawOverlay=false,sawMandala=false,sawTarget=false,firstOverlayAt=null,firstTargetAt=null;
    const outcome=await new Promise(resolve=>{
-    const sample=setInterval(()=>{const kinds=s.floaters.map(f=>f.kind);sawOverlay||=kinds.includes('itachiTsukuyomiOverlay');sawMandala||=kinds.includes('itachiTsukuyomiMandala');sawTarget||=kinds.includes('itachiTsukuyomiTarget')},25);
+    const sample=setInterval(()=>{const kinds=s.floaters.map(f=>f.kind),elapsed=performance.now()-start;sawDim||=kinds.includes('itachiTsukuyomiDim');if(kinds.includes('itachiTsukuyomiOverlay')){sawOverlay=true;if(firstOverlayAt===null)firstOverlayAt=elapsed}if(kinds.includes('itachiTsukuyomiMandala'))sawMandala=true;if(kinds.includes('itachiTsukuyomiTarget')){sawTarget=true;if(firstTargetAt===null)firstTargetAt=elapsed}},20);
     animate('Itachi',{x:pair.x,y:pair.y},enemy,()=>{window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:1});window.BlazingCombatRuntime.execute('reduce_target_gauge',{target:enemy,parameters:{amount:canonical('itachi').abilities.jutsu.gauge_reduction??45,minimum_gauge:0}})},()=>{clearInterval(sample);resolve({elapsed:performance.now()-start})});
     setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},2200);
    });
-   return {...outcome,beforeHp,afterHp:enemy.hp,beforeGauge,afterGauge:enemy.gauge,sawOverlay,sawMandala,sawTarget,dim:!!s.jutsuDim};
+   return {...outcome,beforeHp,afterHp:enemy.hp,beforeGauge,afterGauge:enemy.gauge,sawDim,sawOverlay,sawMandala,sawTarget,firstOverlayAt,firstTargetAt,dim:!!s.jutsuDim};
   });
   await page.waitForTimeout(760);
   await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-${name}.png`,fullPage:true});
   const jutsuResult=await jutsuPromise;
-  if(jutsuResult.error||jutsuResult.timeout||!jutsuResult.sawOverlay||!jutsuResult.sawMandala||!jutsuResult.sawTarget||jutsuResult.afterHp!==jutsuResult.beforeHp-1||jutsuResult.afterGauge!==Math.max(0,jutsuResult.beforeGauge-45))throw new Error(`Tsukuyomi failed: ${JSON.stringify(jutsuResult)}`);
+  if(jutsuResult.error||jutsuResult.timeout||!jutsuResult.sawDim||!jutsuResult.sawOverlay||!jutsuResult.sawMandala||!jutsuResult.sawTarget||jutsuResult.firstOverlayAt<480||jutsuResult.firstOverlayAt>700||jutsuResult.firstTargetAt<620||jutsuResult.firstTargetAt>850||jutsuResult.elapsed<1180||jutsuResult.afterHp!==jutsuResult.beforeHp-1||jutsuResult.afterGauge!==Math.max(0,jutsuResult.beforeGauge-45))throw new Error(`Tsukuyomi failed: ${JSON.stringify(jutsuResult)}`);
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Itachi battle smoke PASS (${name}): roster + 6/6/6 body frames, Crow Chakra Strike VFX/damage, and Tsukuyomi overlay/mandala/target + 45 gauge suppression verified.`);
+  console.log(`Itachi battle smoke PASS (${name}): roster + 6/6/6 body frames, Crow Chakra Strike VFX/damage, and Tsukuyomi timed dim/overlay/mandala/target + held cast pose + 45 gauge suppression verified.`);
   await context.close();
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
