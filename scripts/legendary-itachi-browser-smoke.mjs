@@ -65,17 +65,21 @@ async function run(name,type){
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbSpecialReveal==='itachi',{timeout:5000});
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='ignite',{timeout:10000});
 
-    const snapSamples=[];
-    for(const [at,expected] of [[650,0],[930,1],[1230,2],[1530,3],[1810,4],[2070,5]]){
-      await page.waitForFunction(target=>window.__bbItachiTraceStart&&performance.now()-window.__bbItachiTraceStart>=target,at,{timeout:4000});
-      const sample=await page.evaluate(()=>({
-        elapsed:performance.now()-window.__bbItachiTraceStart,
-        opacities:[...document.querySelectorAll('#pullScene .bb-itachi-ring-shell')].map(node=>Number.parseFloat(getComputedStyle(node).opacity)||0)
-      }));
-      const visible=sample.opacities.filter(value=>value>=.82).length;
-      snapSamples.push({at:sample.elapsed,expected,visible,opacities:sample.opacities});
-      if(visible!==expected)throw new Error(`Itachi ring snap staging overlapped at ${Math.round(sample.elapsed)}ms: expected ${expected} visible, got ${visible}; ${JSON.stringify(sample.opacities)}`);
-    }
+    const snapSamples=await page.evaluate(async()=>{
+      const start=window.__bbItachiTraceStart||performance.now(),samples=[],seen=new Set();let last=-1;
+      while(performance.now()-start<2350){
+        const opacities=[...document.querySelectorAll('#pullScene .bb-itachi-ring-shell')].map(node=>Number.parseFloat(getComputedStyle(node).opacity)||0);
+        const visible=opacities.filter(value=>value>=.82).length;
+        if(visible!==last){samples.push({at:performance.now()-start,visible,opacities});seen.add(visible);last=visible;}
+        await new Promise(resolve=>setTimeout(resolve,30));
+      }
+      return samples;
+    });
+    const counts=snapSamples.map(sample=>sample.visible).filter((value,index,array)=>index===0||value!==array[index-1]);
+    const expectedCounts=[0,1,2,3,4,5];
+    const sequential=counts.length===expectedCounts.length&&counts.every((value,index)=>value===expectedCounts[index]);
+    const noJump=snapSamples.every((sample,index)=>index===0||sample.visible-snapSamples[index-1].visible<=1);
+    if(!sequential||!noJump)throw new Error(`Itachi ring snap staging is not one-layer-at-a-time: ${JSON.stringify(snapSamples)}`);
 
     const loaded=await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
@@ -159,7 +163,7 @@ async function run(name,type){
     if(!resultState.legendary||resultState.kind!=='itachi'||!resultState.art.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi result card lost its special treatment/full-background art: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
-    console.log(`Legendary Itachi summon smoke PASS (${name}): one-at-a-time snap staging ${JSON.stringify(snapSamples.map(s=>s.visible))}, slow counterclockwise outer rings, fast clockwise core, 6.1s reveal handoff, and full-background card art verified.`);
+    console.log(`Legendary Itachi summon smoke PASS (${name}): one-at-a-time snap staging ${JSON.stringify(counts)}, slow counterclockwise outer rings, fast clockwise core, 6.1s reveal handoff, and full-background card art verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
