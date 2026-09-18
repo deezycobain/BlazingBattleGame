@@ -14,5 +14,26 @@ jobs:
         with:
           node-version: '22'
       - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
       - name: Build and inspect Itachi runtime
         run: npm run build
+      - name: Start built game
+        run: |
+          npm run serve:dist > /tmp/bb-itachi-server.log 2>&1 &
+          echo $! > /tmp/bb-itachi-server.pid
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 0.5
+          done
+          cat /tmp/bb-itachi-server.log
+          exit 1
+      - name: Verify Legendary Itachi summon cinematic
+        run: node scripts/itachi-summon-browser-smoke.mjs
+      - name: Verify Itachi Crow Strike and Tsukuyomi
+        run: node scripts/itachi-battle-browser-smoke.mjs
+      - name: Save Itachi validation screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: itachi-playtest-screenshots
+          path: test-artifacts/itachi-*.png
