@@ -65,16 +65,17 @@ async function run(name,type){
 
   const jutsuPromise=page.evaluate(async()=>{
    const s=globalThis.eval('S'),front=globalThis.eval('front'),begin=globalThis.eval('beginActionToken'),animate=globalThis.eval('animateItachiTsukuyomi'),canonical=globalThis.eval('canonicalUnit');
+   window.__bbItachiOverlaySeen=false;
    const pair=s.pairs.find(p=>front(p)?.name==='Itachi'),enemy=s.enemies.find(e=>e.hp>0);if(!pair||!enemy)return {error:'missing pair/enemy'};
    s.phase='resolve';s.floaters=[];enemy.gauge=80;begin();const beforeHp=enemy.hp,beforeGauge=enemy.gauge,start=performance.now();let sawDim=false,sawOverlay=false,sawMandala=false,sawTarget=false,firstOverlayAt=null,firstTargetAt=null;
    const outcome=await new Promise(resolve=>{
-    const sample=setInterval(()=>{const kinds=s.floaters.map(f=>f.kind),elapsed=performance.now()-start;sawDim||=kinds.includes('itachiTsukuyomiDim');if(kinds.includes('itachiTsukuyomiOverlay')){sawOverlay=true;if(firstOverlayAt===null)firstOverlayAt=elapsed}if(kinds.includes('itachiTsukuyomiMandala'))sawMandala=true;if(kinds.includes('itachiTsukuyomiTarget')){sawTarget=true;if(firstTargetAt===null)firstTargetAt=elapsed}},20);
+    const sample=setInterval(()=>{const kinds=s.floaters.map(f=>f.kind),elapsed=performance.now()-start;sawDim||=kinds.includes('itachiTsukuyomiDim');if(kinds.includes('itachiTsukuyomiOverlay')){sawOverlay=true;window.__bbItachiOverlaySeen=true;if(firstOverlayAt===null)firstOverlayAt=elapsed}if(kinds.includes('itachiTsukuyomiMandala'))sawMandala=true;if(kinds.includes('itachiTsukuyomiTarget')){sawTarget=true;if(firstTargetAt===null)firstTargetAt=elapsed}},20);
     animate('Itachi',{x:pair.x,y:pair.y},enemy,()=>{window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:1});window.BlazingCombatRuntime.execute('reduce_target_gauge',{target:enemy,parameters:{amount:canonical('itachi').abilities.jutsu.gauge_reduction??45,minimum_gauge:0}})},()=>{clearInterval(sample);resolve({elapsed:performance.now()-start})});
     setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},2200);
    });
    return {...outcome,beforeHp,afterHp:enemy.hp,beforeGauge,afterGauge:enemy.gauge,sawDim,sawOverlay,sawMandala,sawTarget,firstOverlayAt,firstTargetAt,dim:!!s.jutsuDim};
   });
-  await page.waitForFunction(()=>{try{return globalThis.eval('S')?.floaters?.some(f=>f.kind==='itachiTsukuyomiOverlay')}catch{return false}},{timeout:1600});
+  await page.waitForFunction(()=>window.__bbItachiOverlaySeen===true,null,{timeout:2200});
   await page.waitForTimeout(90);
   await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-${name}.png`,fullPage:true});
   const jutsuResult=await jutsuPromise;
