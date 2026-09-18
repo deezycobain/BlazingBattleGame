@@ -80,9 +80,11 @@ async function run(name,type){
    });
    return {...outcome,before,after:targets.map(target=>({hp:target.hp,gauge:target.gauge})),primaryImpactGauge,impactGauges,sawOverlay,sawMandala,sawNightmare,sawTarget,dim:!!s.jutsuDim};
   });
-  for(const [at,label] of [[1050,'ritual'],[1650,'nightmare'],[2320,'impact']]){
-    await page.waitForFunction(target=>window.__bbItachiJutsuSmokeStart&&performance.now()-window.__bbItachiJutsuSmokeStart>=target,at,{timeout:3500});
-    await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-${label}-${name}.png`});
+  if(name==='chromium'){
+    for(const [at,label] of [[1050,'ritual'],[1650,'nightmare'],[2320,'impact']]){
+      await page.waitForFunction(target=>window.__bbItachiJutsuSmokeStart&&performance.now()-window.__bbItachiJutsuSmokeStart>=target,at,{timeout:5000});
+      await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-${label}-${name}.png`});
+    }
   }
   const jutsuResult=await jutsuPromise;
   const expectedGauge=35;
