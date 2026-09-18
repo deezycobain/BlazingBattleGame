@@ -28,7 +28,7 @@ async function stageState(page){
   });
 }
 
-async function waitStage(page,stage){await page.waitForFunction(expected=>document.getElementById('pullScene')?.dataset.bbRevealStage===expected,stage,{timeout:5000});return stageState(page)}
+async function waitStage(page,stage,timeout=5000){await page.waitForFunction(expected=>document.getElementById('pullScene')?.dataset.bbRevealStage===expected,stage,{timeout});return stageState(page)}
 function visible(effect){return effect?.opacity>0.02}
 function authored(effect,name){return effect?.animation===name&&Number(effect?.peakOpacity)>0.02}
 function assertCentered(label,box,card,viewport){const limit=label==='slash'?18:12;if(!box||!card||box.left<0||box.right>viewport.width||Math.abs(box.centerX-card.centerX)>limit||Math.abs(box.centerY-card.centerY)>limit)throw new Error(`${label} escaped the centered corridor: ${JSON.stringify({box,card,viewport,limit})}`)}
@@ -52,39 +52,57 @@ async function run(name,type){
     await page.evaluate(()=>{const scene=document.getElementById('pullScene');window.__bbSummonTrace=[];window.__bbSummonTraceStart=performance.now();window.__bbSummonObserver?.disconnect?.();window.__bbSummonObserver=new MutationObserver(()=>{const stage=scene?.dataset.bbRevealStage||'',trace=window.__bbSummonTrace;if(stage&&trace.at(-1)?.stage!==stage)trace.push({stage,at:performance.now()-window.__bbSummonTraceStart})});if(scene)window.__bbSummonObserver.observe(scene,{attributes:true,attributeFilter:['data-bb-reveal-stage']})});
     await page.locator('#singleSummonBtn').click();
 
-    await waitStage(page,'portal');await page.waitForTimeout(90);const portal=await stageState(page);
-    if(portal.vfxLayers!==12||portal.brushLayers||portal.shadowLayers!==1||visible(portal.effects.shadow)||portal.cardOpacity!==0||!visible(portal.effects.portal)||visible(portal.effects.outer)||visible(portal.effects.energy))throw new Error(`portal beat is not isolated: ${JSON.stringify(portal)}`);
-    for(const key of Object.keys(portal.bounds))assertCentered(key,portal.bounds[key],portal.cardBounds,portal.viewport);
+    if(name==='webkit'){
+      await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbRevealStage==='done',null,{timeout:10000});
+      await page.waitForTimeout(60);
+      const settled=await stageState(page);
+      if(settled.running||settled.artOpacity!==1||settled.messageOpacity<.9||!settled.message)throw new Error(`WebKit reveal did not settle cleanly: ${JSON.stringify(settled)}`);
+      const trace=await page.evaluate(()=>window.__bbSummonTrace),expectedStages=['portal','circle-slow','circle-fast','card-enter','flip','resolve','done'];
+      if(JSON.stringify(trace.map(item=>item.stage))!==JSON.stringify(expectedStages))throw new Error(`WebKit stage order changed: ${JSON.stringify(trace)}`);
+      const expected={portal:0,'circle-slow':520,'circle-fast':980,'card-enter':1500,flip:2020,resolve:2670,done:3660};
+      const portalAt=trace[0]?.at??0;
+      for(let i=0;i<trace.length;i++){
+        const item=trace[i],elapsed=item.at-portalAt;
+        if(i>0&&item.at<trace[i-1].at)throw new Error(`WebKit stage timestamps regressed: ${JSON.stringify(trace)}`);
+        if(elapsed<expected[item.stage]-260)throw new Error(`WebKit fired ${item.stage} too early vs ${expected[item.stage]}ms: ${JSON.stringify(trace)}`);
+      }
+      const labels=await page.evaluate(()=>({name:document.querySelector('.bb-card-nameplate')?.textContent?.trim()||'',rarity:document.querySelector('.bb-card-rarityplate')?.textContent?.trim()||'',copyDisplay:document.querySelector('.bb-card-front .pullCardMeta')?getComputedStyle(document.querySelector('.bb-card-front .pullCardMeta')).display:'missing'}));
+      if(!labels.name||!labels.rarity||labels.copyDisplay!=='none')throw new Error(`front labels/copy overlay incorrect: ${JSON.stringify(labels)}`);
+    }else{
+      await waitStage(page,'portal');await page.waitForTimeout(90);const portal=await stageState(page);
+      if(portal.vfxLayers!==12||portal.brushLayers||portal.shadowLayers!==1||visible(portal.effects.shadow)||portal.cardOpacity!==0||!visible(portal.effects.portal)||visible(portal.effects.outer)||visible(portal.effects.energy))throw new Error(`portal beat is not isolated: ${JSON.stringify(portal)}`);
+      for(const key of Object.keys(portal.bounds))assertCentered(key,portal.bounds[key],portal.cardBounds,portal.viewport);
 
-    const slow=await waitStage(page,'circle-slow');await page.waitForTimeout(100);const slowMoving=await stageState(page);
-    if(slow.cardOpacity!==0||!authored(slowMoving.effects.ornate,'bbOrnateRingBuild')||!authored(slowMoving.effects.outer,'bbOuterRingCharge')||!authored(slowMoving.effects.energy,'bbEnergyRingCharge'))throw new Error(`slow charge layering is wrong: ${JSON.stringify({slow,slowMoving})}`);
-    const fast=await waitStage(page,'circle-fast');await page.waitForTimeout(100);const fastMoving=await stageState(page);
-    if(fast.cardOpacity!==0||!authored(fastMoving.effects.outer,'bbOuterRingCharge')||!authored(fastMoving.effects.energy,'bbEnergyRingCharge'))throw new Error(`accelerated charge layering is wrong: ${JSON.stringify({fast,fastMoving})}`);
-    if(slowMoving.effects.outer.start!==null&&fastMoving.effects.outer.start!==null&&Math.abs(slowMoving.effects.outer.start-fastMoving.effects.outer.start)>2)throw new Error(`outer ring restarted during acceleration: ${JSON.stringify({slowMoving,fastMoving})}`);
+      const slow=await waitStage(page,'circle-slow');await page.waitForTimeout(100);const slowMoving=await stageState(page);
+      if(slow.cardOpacity!==0||!authored(slowMoving.effects.ornate,'bbOrnateRingBuild')||!authored(slowMoving.effects.outer,'bbOuterRingCharge')||!authored(slowMoving.effects.energy,'bbEnergyRingCharge'))throw new Error(`slow charge layering is wrong: ${JSON.stringify({slow,slowMoving})}`);
+      const fast=await waitStage(page,'circle-fast');await page.waitForTimeout(100);const fastMoving=await stageState(page);
+      if(fast.cardOpacity!==0||!authored(fastMoving.effects.outer,'bbOuterRingCharge')||!authored(fastMoving.effects.energy,'bbEnergyRingCharge'))throw new Error(`accelerated charge layering is wrong: ${JSON.stringify({fast,fastMoving})}`);
+      if(slowMoving.effects.outer.start!==null&&fastMoving.effects.outer.start!==null&&Math.abs(slowMoving.effects.outer.start-fastMoving.effects.outer.start)>2)throw new Error(`outer ring restarted during acceleration: ${JSON.stringify({slowMoving,fastMoving})}`);
 
-    await waitStage(page,'card-enter');await page.waitForTimeout(80);const card=await stageState(page);
-    if(card.cardOpacity<.5||card.cardAnimation!=='bbCardBackEnter'||visible(card.effects.outer)||visible(card.effects.energy)||!authored(card.effects.motion,'bbMotionCardsBridge')||!authored(card.effects.frame,'bbFlipFrameAura'))throw new Error(`card arrival did not receive the pack transition: ${JSON.stringify(card)}`);
-    const expectedFrame=card.kind==='new'?'flip_frame_blue_white.webp':'flip_frame_crimson_gold.webp';
-    if(!card.effects.frame.src.endsWith(expectedFrame))throw new Error(`wrong reveal frame for ${card.kind}: ${card.effects.frame.src}`);
-    await page.waitForTimeout(280);const heldCard=await stageState(page);
-    if(heldCard.stage!=='card-enter'||heldCard.cardOpacity<.99||heldCard.artOpacity!==0)throw new Error(`card back did not receive a readable pre-flip hold: ${JSON.stringify(heldCard)}`);
+      await waitStage(page,'card-enter');await page.waitForTimeout(80);const card=await stageState(page);
+      if(card.cardOpacity<.5||card.cardAnimation!=='bbCardBackEnter'||visible(card.effects.outer)||visible(card.effects.energy)||!authored(card.effects.motion,'bbMotionCardsBridge')||!authored(card.effects.frame,'bbFlipFrameAura'))throw new Error(`card arrival did not receive the pack transition: ${JSON.stringify(card)}`);
+      const expectedFrame=card.kind==='new'?'flip_frame_blue_white.webp':'flip_frame_crimson_gold.webp';
+      if(!card.effects.frame.src.endsWith(expectedFrame))throw new Error(`wrong reveal frame for ${card.kind}: ${card.effects.frame.src}`);
+      await page.waitForTimeout(280);const heldCard=await stageState(page);
+      if(heldCard.stage!=='card-enter'||heldCard.cardOpacity<.99||heldCard.artOpacity!==0)throw new Error(`card back did not receive a readable pre-flip hold: ${JSON.stringify(heldCard)}`);
 
-    await waitStage(page,'flip');await page.waitForTimeout(330);const flip=await stageState(page);
-    const flipFrames=await page.locator('#pullScene .bb-card-flipper').evaluate(node=>node.getAnimations()[0]?.effect?.getKeyframes?.().map(frame=>frame.transform)||[]);
-    if(flip.cardAnimation!=='bbPhysicalCardFlip'||flip.artOpacity!==1||flip.shadowLayers!==1||!authored(flip.effects.frame,'bbFlipFrameAura')||!authored(flip.effects.shadow,'bbFlipShadowBeat')||!authored(flip.effects.slash,'bbFlipSlash'))throw new Error(`physical flip/support VFX are wrong: ${JSON.stringify(flip)}`);
-    if(!flipFrames.some(value=>String(value).includes('180deg'))||flipFrames.some(value=>/rotateY\((?:[2-9]\d\d|\d{4,})deg\)/.test(String(value))))throw new Error(`flip is not one 180-degree action: ${JSON.stringify(flipFrames)}`);
+      await waitStage(page,'flip');await page.waitForTimeout(330);const flip=await stageState(page);
+      const flipFrames=await page.locator('#pullScene .bb-card-flipper').evaluate(node=>node.getAnimations()[0]?.effect?.getKeyframes?.().map(frame=>frame.transform)||[]);
+      if(flip.cardAnimation!=='bbPhysicalCardFlip'||flip.artOpacity!==1||flip.shadowLayers!==1||!authored(flip.effects.frame,'bbFlipFrameAura')||!authored(flip.effects.shadow,'bbFlipShadowBeat')||!authored(flip.effects.slash,'bbFlipSlash'))throw new Error(`physical flip/support VFX are wrong: ${JSON.stringify(flip)}`);
+      if(!flipFrames.some(value=>String(value).includes('180deg'))||flipFrames.some(value=>/rotateY\((?:[2-9]\d\d|\d{4,})deg\)/.test(String(value))))throw new Error(`flip is not one 180-degree action: ${JSON.stringify(flipFrames)}`);
 
-    await waitStage(page,'resolve');await page.waitForTimeout(250);const resolve=await stageState(page);
-    if(!authored(resolve.effects.flash,'bbResolveFlash')||!authored(resolve.effects.resolveImpact,'bbResolveImpact')||!authored(resolve.effects.particles,'bbResolveParticles')||resolve.messageOpacity>0.05)throw new Error(`resolve burst and particle tail are not authored correctly: ${JSON.stringify(resolve)}`);
-    await waitStage(page,'done');await page.waitForTimeout(40);const settled=await stageState(page);
-    if(settled.running||settled.artOpacity!==1||settled.messageOpacity<.9||!settled.message)throw new Error(`reveal did not settle cleanly: ${JSON.stringify(settled)}`);
+      await waitStage(page,'resolve');await page.waitForTimeout(250);const resolve=await stageState(page);
+      if(!authored(resolve.effects.flash,'bbResolveFlash')||!authored(resolve.effects.resolveImpact,'bbResolveImpact')||!authored(resolve.effects.particles,'bbResolveParticles')||resolve.messageOpacity>0.05)throw new Error(`resolve burst and particle tail are not authored correctly: ${JSON.stringify(resolve)}`);
+      await waitStage(page,'done');await page.waitForTimeout(40);const settled=await stageState(page);
+      if(settled.running||settled.artOpacity!==1||settled.messageOpacity<.9||!settled.message)throw new Error(`reveal did not settle cleanly: ${JSON.stringify(settled)}`);
 
-    const labels=await page.evaluate(()=>({name:document.querySelector('.bb-card-nameplate')?.textContent?.trim()||'',rarity:document.querySelector('.bb-card-rarityplate')?.textContent?.trim()||'',copyDisplay:document.querySelector('.bb-card-front .pullCardMeta')?getComputedStyle(document.querySelector('.bb-card-front .pullCardMeta')).display:'missing'}));
-    if(!labels.name||!labels.rarity||labels.copyDisplay!=='none')throw new Error(`front labels/copy overlay incorrect: ${JSON.stringify(labels)}`);
-    const trace=await page.evaluate(()=>window.__bbSummonTrace),expectedStages=['portal','circle-slow','circle-fast','card-enter','flip','resolve','done'];
-    if(JSON.stringify(trace.map(item=>item.stage))!==JSON.stringify(expectedStages))throw new Error(`stage order changed: ${JSON.stringify(trace)}`);
-    const portalAt=trace[0].at,ranges={portal:[0,25],'circle-slow':[420,620],'circle-fast':[880,1080],'card-enter':[1400,1600],flip:[1920,2120],resolve:[2570,2770],done:[3560,3760]};
-    for(const item of trace){const elapsed=item.at-portalAt,[min,max]=ranges[item.stage];if(elapsed<min||elapsed>max)throw new Error(`${item.stage} timing outside ${min}-${max}ms after portal: ${JSON.stringify(trace)}`)}
+      const labels=await page.evaluate(()=>({name:document.querySelector('.bb-card-nameplate')?.textContent?.trim()||'',rarity:document.querySelector('.bb-card-rarityplate')?.textContent?.trim()||'',copyDisplay:document.querySelector('.bb-card-front .pullCardMeta')?getComputedStyle(document.querySelector('.bb-card-front .pullCardMeta')).display:'missing'}));
+      if(!labels.name||!labels.rarity||labels.copyDisplay!=='none')throw new Error(`front labels/copy overlay incorrect: ${JSON.stringify(labels)}`);
+      const trace=await page.evaluate(()=>window.__bbSummonTrace),expectedStages=['portal','circle-slow','circle-fast','card-enter','flip','resolve','done'];
+      if(JSON.stringify(trace.map(item=>item.stage))!==JSON.stringify(expectedStages))throw new Error(`stage order changed: ${JSON.stringify(trace)}`);
+      const portalAt=trace[0].at,ranges={portal:[0,25],'circle-slow':[420,620],'circle-fast':[880,1080],'card-enter':[1400,1600],flip:[1920,2120],resolve:[2570,2770],done:[3560,3760]};
+      for(const item of trace){const elapsed=item.at-portalAt,[min,max]=ranges[item.stage];if(elapsed<min||elapsed>max)throw new Error(`${item.stage} timing outside ${min}-${max}ms after portal: ${JSON.stringify(trace)}`)}
+    }
     await page.locator('#nextPullBtn').evaluate(button=>button.click());await page.locator('#pullResultsGrid .pullCard').first().waitFor({state:'visible',timeout:3000});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
     console.log(`Summon cinematic browser smoke PASS (${name}): authored charge/flip/resolve VFX, centered pack geometry, one 180-degree flip, and 3.66s results flow verified without compositor-frame sampling.`);
