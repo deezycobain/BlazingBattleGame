@@ -84,33 +84,37 @@ function animateItachiTsukuyomi(unitName,from,enemy,onImpact,onDone){
  const token=ACTIVE_ACTION_TOKEN;
  const state=ensureAnimState();if(!state.attackPose)state.attackPose={};
  const meta=canonicalUnit('itachi')?.abilities?.jutsu?.presentation||{};
- const frameMs=140,eyeAt=frameMs*4,impactAt=frameMs*5;
+ const frameMs=140,eyeAt=frameMs*4,impactGap=frameMs;
  const castDuration=meta.cast_duration_ms??845,overlayDuration=meta.overlay_duration_ms??690,targetDuration=meta.target_duration_ms??555;
- const totalDuration=Math.max(castDuration,eyeAt+overlayDuration,impactAt+targetDuration);
- state.attackPose[unitName]={kind:'tsukuyomi_hold',start:performance.now(),duration:totalDuration};
+ const totalDuration=Math.max(castDuration,eyeAt+overlayDuration,eyeAt+impactGap+targetDuration);
+ const poseStart=performance.now();
+ state.attackPose[unitName]={kind:'tsukuyomi_hold',start:poseStart,duration:totalDuration};
  window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);
- const dimStart=performance.now(),dim={kind:'itachiTsukuyomiDim',start:dimStart,duration:totalDuration,alpha:meta.screen_dim_alpha??.38,life:1};
- const active=[dim];S.floaters.push(dim);S.jutsuDim={start:dimStart,alpha:dim.alpha,end:null};
+ const dim={kind:'itachiTsukuyomiDim',start:poseStart,duration:totalDuration,alpha:meta.screen_dim_alpha??.38,life:1};
+ const active=[dim];S.floaters.push(dim);S.jutsuDim={start:poseStart,alpha:dim.alpha,end:null};
  setTimeout(()=>{
   if(!actionTokenAlive(token))return;
-  const start=performance.now();
-  const overlay={kind:'itachiTsukuyomiOverlay',start,duration:overlayDuration,life:1};
-  const mandala={kind:'itachiTsukuyomiMandala',x:enemy.x,y:enemy.y-18,start,duration:overlayDuration,life:1};
+  const overlayStart=performance.now(),elapsed=overlayStart-poseStart;
+  const requiredDuration=Math.max(totalDuration,elapsed+impactGap+targetDuration);
+  const pose=ensureAnimState().attackPose?.[unitName];if(pose)pose.duration=requiredDuration;
+  dim.duration=requiredDuration;
+  const overlay={kind:'itachiTsukuyomiOverlay',start:overlayStart,duration:overlayDuration,life:1};
+  const mandala={kind:'itachiTsukuyomiMandala',x:enemy.x,y:enemy.y-18,start:overlayStart,duration:overlayDuration,life:1};
   active.push(overlay,mandala);S.floaters.push(overlay,mandala);
- },eyeAt);
- setTimeout(()=>{
-  if(!actionTokenAlive(token))return;
-  const targetFx={kind:'itachiTsukuyomiTarget',x:enemy.x,y:enemy.y-18,start:performance.now(),duration:targetDuration,life:1};
-  active.push(targetFx);S.floaters.push(targetFx);
-  try{onImpact&&onImpact()}catch(err){console.error('Itachi Tsukuyomi impact failed:',err);return recoverAction('Itachi Tsukuyomi impact')}
   setTimeout(()=>{
-   S.floaters=S.floaters.filter(x=>!active.includes(x));
-   if(S.jutsuDim)S.jutsuDim.end=performance.now();
-   const st=ensureAnimState();if(st.attackPose)delete st.attackPose[unitName];
-   window.BlazingAttackPresentation.clearFacing(st,unitName);
-   if(actionTokenAlive(token)){try{onDone&&onDone()}catch(err){recoverAction('Itachi Tsukuyomi completion')}}
-  },targetDuration);
- },impactAt);
+   if(!actionTokenAlive(token))return;
+   const targetFx={kind:'itachiTsukuyomiTarget',x:enemy.x,y:enemy.y-18,start:performance.now(),duration:targetDuration,life:1};
+   active.push(targetFx);S.floaters.push(targetFx);
+   try{onImpact&&onImpact()}catch(err){console.error('Itachi Tsukuyomi impact failed:',err);return recoverAction('Itachi Tsukuyomi impact')}
+   setTimeout(()=>{
+    S.floaters=S.floaters.filter(x=>!active.includes(x));
+    if(S.jutsuDim)S.jutsuDim.end=performance.now();
+    const st=ensureAnimState();if(st.attackPose)delete st.attackPose[unitName];
+    window.BlazingAttackPresentation.clearFacing(st,unitName);
+    if(actionTokenAlive(token)){try{onDone&&onDone()}catch(err){recoverAction('Itachi Tsukuyomi completion')}}
+   },targetDuration);
+  },impactGap);
+ },eyeAt);
 }
 
 `;
