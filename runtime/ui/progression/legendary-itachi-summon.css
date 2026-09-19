@@ -7,8 +7,8 @@
 #summonPullScreen .bb-itachi-ring{z-index:2}
 #summonPullScreen .bb-itachi-ring-flame{width:148%;z-index:2}
 #summonPullScreen .bb-itachi-ring-outer{width:130%;z-index:3}
-#summonPullScreen .bb-itachi-ring-inner{width:104%;z-index:5}
-#summonPullScreen .bb-itachi-ring-orbit{width:80%;z-index:6}
+#summonPullScreen .bb-itachi-ring-inner{width:118%;z-index:5}
+#summonPullScreen .bb-itachi-ring-orbit{width:98%;z-index:6}
 #summonPullScreen .bb-itachi-shadow-lotus{width:128%;z-index:7;mix-blend-mode:screen}
 #summonPullScreen .bb-itachi-character{width:132%;z-index:10}
 #summonPullScreen .bb-itachi-raven-burst{width:172%;z-index:13}
@@ -56,5 +56,5 @@
 @keyframes bbItachiFlash{0%{opacity:0;transform:translate3d(-50%,-50%,0) scale(.45)}22%{opacity:1}43%{opacity:.86;transform:translate3d(-50%,-50%,0) scale(.98)}100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.18)}}
 @keyframes bbItachiReveal{0%{opacity:0;transform:translate3d(-50%,-47%,0) scale(.93);filter:brightness(1.8) saturate(.7)}16%{opacity:1;filter:brightness(1.16) saturate(1.08)}58%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1.018);filter:brightness(1)}100%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.96)}}
 @keyframes bbItachiCardHandoff{0%{opacity:0;transform:rotateY(180deg) translateY(9px) scale(.96)}100%{opacity:1;transform:rotateY(180deg) translateY(0) scale(1)}}
-@media (max-width:560px){#summonPullScreen .bb-itachi-stage-vfx{width:96%}#summonPullScreen .bb-itachi-ring-flame{width:148%}#summonPullScreen .bb-itachi-ring-outer{width:130%}#summonPullScreen .bb-itachi-ring-inner{width:104%}#summonPullScreen .bb-itachi-ring-orbit{width:80%}#summonPullScreen .bb-itachi-character{width:138%}#summonPullScreen .bb-itachi-raven-burst,#summonPullScreen .bb-itachi-feather-vortex{width:178%}}
+@media (max-width:560px){#summonPullScreen .bb-itachi-stage-vfx{width:96%}#summonPullScreen .bb-itachi-ring-flame{width:148%}#summonPullScreen .bb-itachi-ring-outer{width:130%}#summonPullScreen .bb-itachi-ring-inner{width:118%}#summonPullScreen .bb-itachi-ring-orbit{width:98%}#summonPullScreen .bb-itachi-character{width:138%}#summonPullScreen .bb-itachi-raven-burst,#summonPullScreen .bb-itachi-feather-vortex{width:178%}}
 @media (prefers-reduced-motion:reduce){#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-stage-vfx img{animation-duration:.16s!important;animation-delay:0s!important}}
