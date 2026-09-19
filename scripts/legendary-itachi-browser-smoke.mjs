@@ -4,7 +4,7 @@ const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'')
 const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
 const TYPES={chromium,webkit};
 const EXPECTED_STAGES=['ignite','rings','orbit','stop','silhouette','reveal','settle','handoff'];
-const EXPECTED_TIMES={ignite:0,rings:950,orbit:2270,stop:2920,silhouette:3340,reveal:4030,settle:5000,handoff:6900};
+const EXPECTED_TIMES={ignite:0,rings:1050,orbit:2730,stop:3300,silhouette:3650,reveal:5300,settle:6350,handoff:8000};
 
 async function waitHome(page){
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
@@ -40,7 +40,7 @@ async function run(name,type){
       hasTestHook:typeof window.BlazingSummonCinematic?.testItachi==='function',
       styleHref:document.querySelector('link[data-bb-itachi-summon]')?.getAttribute('href')||''
     }));
-    if(contract.version!=='6.2.0-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
+    if(contract.version!=='6.3.0-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
     if(JSON.stringify(contract.timeline)!==JSON.stringify(EXPECTED_TIMES))throw new Error(`Itachi timeline contract changed: ${JSON.stringify(contract.timeline)}`);
     if(Object.keys(contract.itachiVfx||{}).length!==12||!String(contract.itachiVfx?.middle||'').endsWith('itachi_ring_middle_enamel.webp'))throw new Error(`expected 12 Itachi VFX mappings with the enamel connector restored: ${JSON.stringify(contract.itachiVfx)}`);
     if(!contract.hasTestHook||!contract.styleHref.includes('legendary-itachi-summon.css')||!String(contract.itachiCardArt||'').endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi test/style hook missing: ${JSON.stringify(contract)}`);
@@ -83,8 +83,8 @@ async function run(name,type){
     })));
     const startOrder=ringStarts.map(item=>item.index);
     const sequentialStarts=startOrder.length===5&&startOrder.every((value,index)=>value===index);
-    const separatedStarts=ringStarts.slice(1).every(item=>item.gap>=250);
-    if(!sequentialStarts||!separatedStarts)throw new Error(`Itachi ring snap starts are not isolated layer-by-layer: ${JSON.stringify(ringStarts)}`);
+    const gaps=ringStarts.slice(1).map(item=>item.gap),separatedStarts=gaps.every(gap=>gap>=250),irregularStarts=(Math.max(...gaps)-Math.min(...gaps))>=150;
+    if(!sequentialStarts||!separatedStarts||!irregularStarts)throw new Error(`Itachi ring starts lost their staggered irregular cadence: ${JSON.stringify(ringStarts)}`);
     await page.waitForTimeout(80);
     const assembled=await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
@@ -123,9 +123,9 @@ async function run(name,type){
     if(loaded.ringShells!==5)throw new Error(`Itachi rings are not isolated in concentric shells: ${JSON.stringify(loaded)}`);
     const centersOk=loaded.rings.every(r=>Math.abs(r.cx-loaded.rings[0].cx)<1.5&&Math.abs(r.cy-loaded.rings[0].cy)<1.5);
     const widths=loaded.rings.map(r=>r.width),nested=widths.every((value,index)=>index===0||value<widths[index-1]);
-    const speeds=loaded.rings.map(r=>Number.parseFloat(r.duration)||0),tiered=speeds[0]>speeds[1]&&speeds[1]>speeds[2]&&speeds[2]>speeds[3];
-    const directions=loaded.rings.map(r=>r.name),directionOk=directions[0].includes('bbItachiSpinCCW')&&directions[1].includes('bbItachiSpinCCW')&&directions[2].includes('bbItachiSpinCW')&&directions[3].includes('bbItachiSpinCW')&&directions[4].includes('bbItachiSpinCW');
-    const snapOk=loaded.rings.every(r=>r.shellName.includes('bbItachiRingSnap')&&(Number.parseFloat(r.shellDuration)||9)<=.20);
+    const speeds=loaded.rings.map(r=>Number.parseFloat(r.duration)||0),tiered=speeds.every((value,index)=>index===0||value<speeds[index-1]);
+    const directions=loaded.rings.map(r=>r.name),directionOk=directions[0].includes('bbItachiSpinCCW')&&directions[1].includes('bbItachiSpinCCW')&&directions[2].includes('bbItachiSpinCW')&&directions[3].includes('bbItachiSpinCCW')&&directions[4].includes('bbItachiSpinCW');
+    const snapDurations=loaded.rings.map(r=>Number.parseFloat(r.shellDuration)||9),snapOk=loaded.rings.every(r=>r.shellName.includes('bbItachiRingSnap'))&&snapDurations[0]>=.30&&snapDurations[1]>=.26&&snapDurations[4]<=.18;
     if(!centersOk||!nested||!tiered||!directionOk||!snapOk)throw new Error(`Itachi ring geometry/snap/direction/speed hierarchy is wrong: ${JSON.stringify(loaded.rings)}`);
     if(loaded.revealStage!=='itachi'||loaded.revealKind!=='itachi'||!loaded.cardArt.endsWith('itachi_reveal.webp'))throw new Error(`Itachi cinematic did not own the reveal: ${JSON.stringify(loaded)}`);
 
@@ -178,7 +178,7 @@ async function run(name,type){
     if(!resultState.legendary||resultState.kind!=='itachi'||!resultState.art.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi result card lost its special treatment/full-background art: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
-    console.log(`Legendary Itachi summon smoke PASS (${name}): five-ring locked snap starts ${JSON.stringify(ringStarts.map(s=>s.index))}, slow counterclockwise outer rings, graduated clockwise inner core, 6.9s reveal handoff, and full-background card art verified.`);
+    console.log(`Legendary Itachi summon smoke PASS (${name}): five-ring locked snap starts ${JSON.stringify(ringStarts.map(s=>s.index))}, slow counterclockwise outer rings, alternating faster inner core with irregular cadence, 8.0s reveal handoff, and full-background card art verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
