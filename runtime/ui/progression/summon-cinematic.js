@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const VERSION='6.1.0-itachi';
+const VERSION='6.2.0-itachi';
 const PORTAL_ROOT='assets/vfx/summon/portal-reveal';
 const ITACHI_ROOT='assets/vfx/summon/legendary-itachi';
 const ITACHI_CARD_ART_SRC='assets/characters/itachi/art/itachi_full_art.png';
@@ -41,7 +41,7 @@ const TIMELINES=Object.freeze({
  resonance:Object.freeze({portal:0,circleSlow:520,circleFast:980,cardEnter:1500,flip:2020,resolve:2670,done:3660}),
  new:Object.freeze({portal:0,circleSlow:520,circleFast:980,cardEnter:1500,flip:2020,resolve:2670,done:3660}),
  shiny:Object.freeze({portal:0,circleSlow:520,circleFast:980,cardEnter:1500,flip:2020,resolve:2670,done:3660}),
- itachi:Object.freeze({ignite:0,rings:800,orbit:1940,stop:2680,silhouette:3180,reveal:3420,settle:4300,handoff:6100})
+ itachi:Object.freeze({ignite:0,rings:950,orbit:2270,stop:2920,silhouette:3340,reveal:4030,settle:5000,handoff:6900})
 });
 const REDUCED_MOTION=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
 let cinematicRun=0;
