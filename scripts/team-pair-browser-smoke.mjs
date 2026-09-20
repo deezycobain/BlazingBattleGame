@@ -25,7 +25,8 @@ for(const [name,type] of Object.entries({chromium,webkit})){
 
   const ui=await page.evaluate(()=>{
    const get=globalThis.eval;
-   get('showTeamEditor()');
+   const edit=[...document.querySelectorAll('button,[role="button"]')].find(el=>/EDIT TEAM/i.test(el.textContent||''));
+   if(edit)edit.click();else{const screen=document.getElementById('teamScreen');if(screen){document.querySelectorAll('.screen.active').forEach(node=>node.classList.remove('active'));screen.classList.add('active');screen.style.display='block'}}
    const slots=[...document.querySelectorAll('#teamScreen .teamSlot[data-team-slot]')];
    const team=get('getActiveTeam()');
    return {visible:getComputedStyle(document.getElementById('teamScreen')).display!=='none',slots:slots.length,pairs:document.querySelectorAll('#teamScreen .bb-team-pair').length,labels:slots.map(s=>s.dataset.slotLabel),names:slots.map(s=>s.querySelector('.teamSlotName')?.textContent?.trim()||''),team,save:document.getElementById('saveTeamBtn')?.textContent?.trim()};
