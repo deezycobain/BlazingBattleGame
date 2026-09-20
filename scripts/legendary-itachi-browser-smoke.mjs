@@ -40,7 +40,7 @@ async function run(name,type){
       hasTestHook:typeof window.BlazingSummonCinematic?.testItachi==='function',
       styleHref:document.querySelector('link[data-bb-itachi-summon]')?.getAttribute('href')||''
     }));
-    if(contract.version!=='6.4.1-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
+    if(contract.version!=='6.5.0-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
     if(JSON.stringify(contract.timeline)!==JSON.stringify(EXPECTED_TIMES))throw new Error(`Itachi timeline contract changed: ${JSON.stringify(contract.timeline)}`);
     if(Object.keys(contract.itachiVfx||{}).length!==12||!String(contract.itachiVfx?.middle||'').endsWith('itachi_ring_middle_enamel.webp'))throw new Error(`expected 12 Itachi VFX mappings with the enamel connector restored: ${JSON.stringify(contract.itachiVfx)}`);
     if(!contract.hasTestHook||!contract.styleHref.includes('legendary-itachi-summon.css')||!String(contract.itachiCardArt||'').endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi test/style hook missing: ${JSON.stringify(contract)}`);
@@ -78,7 +78,8 @@ async function run(name,type){
     await page.waitForTimeout(720);
     const blackout=await page.evaluate(()=>{
       const screen=document.getElementById('summonPullScreen'),layer=screen?.querySelector(':scope > .bb-itachi-blackout');
-      const hero=screen?.querySelector('.pullHeroArea'),scene=screen?.querySelector('.pullScene'),stage=screen?.querySelector('.bb-itachi-stage-vfx');
+      const hero=screen?.querySelector('.pullHeroArea'),scene=screen?.querySelector('.pullScene'),stage=screen?.querySelector('.bb-itachi-stage-vfx'),wrap=screen?.querySelector('.pullCardWrap');
+      const outline=wrap?getComputedStyle(wrap,'::before'):null,smoke=getComputedStyle(stage,'::before');
       return {
         active:screen?.classList.contains('bb-itachi-blackout-active')||false,
         opacity:layer?Number.parseFloat(getComputedStyle(layer).opacity)||0:0,
@@ -86,10 +87,12 @@ async function run(name,type){
         blackoutZ:layer?Number.parseInt(getComputedStyle(layer).zIndex,10)||0:0,
         heroZ:hero?Number.parseInt(getComputedStyle(hero).zIndex,10)||0:0,
         sceneZ:scene?Number.parseInt(getComputedStyle(scene).zIndex,10)||0:0,
-        stageZ:stage?Number.parseInt(getComputedStyle(stage).zIndex,10)||0:0
+        stageZ:stage?Number.parseInt(getComputedStyle(stage).zIndex,10)||0:0,
+        outlineHidden:!outline||outline.display==='none'||outline.content==='none'||(Number.parseFloat(outline.opacity)||0)<.01,
+        smokeAnimation:smoke.animationName||''
       };
     });
-    if(!blackout.active||blackout.opacity<.7||blackout.visibleRings!==0||blackout.blackoutZ>=blackout.heroZ||blackout.heroZ>=blackout.sceneZ||blackout.stageZ<6)throw new Error(`Itachi blackout is not isolated behind the cinematic: ${JSON.stringify(blackout)}`);
+    if(!blackout.active||blackout.opacity<.7||blackout.visibleRings!==0||blackout.blackoutZ>=blackout.heroZ||blackout.heroZ>=blackout.sceneZ||blackout.stageZ<6||!blackout.outlineHidden||!blackout.smokeAnimation.includes('bbItachiSmokeBloom'))throw new Error(`Itachi blackout/smoke/card-frame intro is wrong: ${JSON.stringify(blackout)}`);
     await page.waitForFunction(()=>window.__bbItachiRingStarts?.length===5,{timeout:5000});
     const ringStarts=await page.evaluate(()=>window.__bbItachiRingStarts.map((item,index,array)=>({
       index:item.index,
@@ -146,7 +149,17 @@ async function run(name,type){
 
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='handoff',{timeout:9000});
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbRevealStage==='done',{timeout:3000});
-    await page.waitForTimeout(80);
+    await page.waitForTimeout(840);
+    const restored=await page.evaluate(()=>{
+      const screen=document.getElementById('summonPullScreen'),layer=screen?.querySelector(':scope > .bb-itachi-blackout'),header=screen?.querySelector('.summonShopHeader');
+      return {
+        blackoutOpacity:layer?Number.parseFloat(getComputedStyle(layer).opacity)||0:0,
+        active:screen?.classList.contains('bb-itachi-blackout-active')||false,
+        exiting:screen?.classList.contains('bb-itachi-blackout-exiting')||false,
+        headerOpacity:header?Number.parseFloat(getComputedStyle(header).opacity)||0:0
+      };
+    });
+    if(restored.blackoutOpacity>.05||restored.active||restored.exiting||restored.headerOpacity<.9)throw new Error(`Itachi blackout did not fade back to the normal summon screen after handoff: ${JSON.stringify(restored)}`);
 
     const final=await page.evaluate(()=>{
       const scene=document.getElementById('pullScene'),flipper=scene.querySelector('.bb-card-flipper'),message=document.getElementById('pullMessage');
@@ -193,7 +206,7 @@ async function run(name,type){
     if(!resultState.legendary||resultState.kind!=='itachi'||!resultState.art.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi result card lost its special treatment/full-background art: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
-    console.log(`Legendary Itachi summon smoke PASS (${name}): five-ring locked snap starts ${JSON.stringify(ringStarts.map(s=>s.index))}, slow counterclockwise outer rings, alternating faster inner core with irregular cadence, 8.0s reveal handoff, and full-background card art verified.`);
+    console.log(`Legendary Itachi summon smoke PASS (${name}): five-ring locked snap starts ${JSON.stringify(ringStarts.map(s=>s.index))}, slow counterclockwise outer rings, alternating faster inner core with irregular cadence, 8.0s reveal handoff, smoke-backed gear intro, blackout fade-back, and full-background card art verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
