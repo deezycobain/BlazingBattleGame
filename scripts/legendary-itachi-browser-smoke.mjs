@@ -103,7 +103,7 @@ async function run(name,type){
     const sequentialStarts=startOrder.length===5&&startOrder.every((value,index)=>value===index);
     const gaps=ringStarts.slice(1).map(item=>item.gap),separatedStarts=gaps.every(gap=>gap>=250),irregularStarts=(Math.max(...gaps)-Math.min(...gaps))>=150;
     if(!sequentialStarts||!separatedStarts||!irregularStarts)throw new Error(`Itachi ring starts lost their staggered irregular cadence: ${JSON.stringify(ringStarts)}`);
-    await page.waitForTimeout(80);
+    await page.waitForTimeout(560);
     const assembled=await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
       return {

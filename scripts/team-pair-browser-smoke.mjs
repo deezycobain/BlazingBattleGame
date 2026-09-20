@@ -26,9 +26,10 @@ for(const [name,type] of Object.entries({chromium,webkit})){
   const ui=await page.evaluate(()=>{
    globalThis.eval('showTeamEditor()');
    const slots=[...document.querySelectorAll('#teamScreen .teamSlot[data-team-slot]')];
-   return {visible:getComputedStyle(document.getElementById('teamScreen')).display!=='none',slots:slots.length,pairs:document.querySelectorAll('#teamScreen .bb-team-pair').length,labels:slots.map(s=>s.dataset.slotLabel),save:document.getElementById('saveTeamBtn')?.textContent?.trim()};
+   const team=get('getActiveTeam()');
+   return {visible:getComputedStyle(document.getElementById('teamScreen')).display!=='none',slots:slots.length,pairs:document.querySelectorAll('#teamScreen .bb-team-pair').length,labels:slots.map(s=>s.dataset.slotLabel),names:slots.map(s=>s.querySelector('.teamSlotName')?.textContent?.trim()||''),team,save:document.getElementById('saveTeamBtn')?.textContent?.trim()};
   });
-  if(!ui.visible||ui.slots!==6||ui.pairs!==3||ui.save!=='SAVE 3 PAIRS')throw new Error('team editor pair UI invalid: '+JSON.stringify(ui));
+  if(!ui.visible||ui.slots!==6||ui.pairs!==3||ui.save!=='SAVE 3 PAIRS'||JSON.stringify(ui.names)!==JSON.stringify(ui.team))throw new Error('team editor pair UI invalid: '+JSON.stringify(ui));
 
   const swap=await page.evaluate(()=>{
    const get=globalThis.eval;
