@@ -34,15 +34,18 @@ for(const [name,type] of Object.entries({chromium,webkit})){
 
   const swap=await page.evaluate(()=>{
    const get=globalThis.eval;
-   get('S=fresh()');
+   get("S=fresh();S.bbRunMode='castle'");
    const before=get('front(S.pairs[0]).name');
    const partner=get('back(S.pairs[0]).name');
-   get("S.ready={kind:'pair',ref:S.pairs[0],g:100};S.phase='player';S.drag=false;S.anim=null;updateUI()");
-   document.getElementById('swap').click();
+   get("S.ready={kind:'pair',ref:S.pairs[0],g:100};S.phase='player';S.drag=false;S.anim=null;document.getElementById('battleScreen').classList.add('active');updateUI()");
+   window.BlazingBattleDock?.sync?.();
+   const reserve=document.querySelector('#bbBattleDock .bb-dock-unit.active .bb-reserve-portrait');
+   const reserveVisible=!!reserve&&getComputedStyle(reserve).display!=='none'&&!reserve.hidden;
+   reserve?.click();
    const after=get('front(S.pairs[0]).name');
-   return {before,partner,after,active:get('S.pairs[0].active')};
+   return {before,partner,after,active:get('S.pairs[0].active'),reserveVisible};
   });
-  if(!swap.partner||swap.partner==='—'||swap.after!==swap.partner||swap.after===swap.before||swap.active!==1)throw new Error('partner swap failed: '+JSON.stringify(swap));
-  console.log('Team pair smoke PASS ('+name+'): 6 selected units -> 3 front/partner pairs with live swap.');
+  if(!swap.reserveVisible||!swap.partner||swap.partner==='—'||swap.after!==swap.partner||swap.after===swap.before||swap.active!==1)throw new Error('partner portrait swap failed outside Road: '+JSON.stringify(swap));
+  console.log('Team pair smoke PASS ('+name+'): 6 selected units -> 3 front/partner pairs with live portrait swap in standard battle.');
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
