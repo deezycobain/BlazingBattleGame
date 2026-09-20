@@ -118,6 +118,23 @@ async function run(name,type){
 
 let failed=false;
 for(const [name,type] of Object.entries(TYPES)){
- try{await run(name,type)}catch(error){failed=true;console.error(`Itachi battle smoke FAIL (${name}): ${error.stack||error.message}`)}
+ let passed=false;
+ for(let attempt=1;attempt<=2;attempt++){
+  try{
+   await run(name,type);
+   passed=true;
+   break;
+  }catch(error){
+   const message=String(error?.stack||error?.message||error);
+   const transient=/Target page, context or browser has been closed|browser has been closed|context has been closed/i.test(message);
+   if(transient&&attempt<2){
+    console.warn(`Itachi battle smoke transient browser-close (${name}), retrying once...`);
+    continue;
+   }
+   console.error(`Itachi battle smoke FAIL (${name}): ${message}`);
+   break;
+  }
+ }
+ if(!passed)failed=true;
 }
 if(failed)process.exit(1);
