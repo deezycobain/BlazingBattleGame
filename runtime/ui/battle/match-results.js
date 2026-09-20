@@ -71,7 +71,7 @@ function renderXp(s,victory){
  if(leveled.length)notes.push(leveled.map(item=>`${escapeHtml(item.name)} → LV.${escapeHtml(item.level)}`).join(' • '));
  if(locked.length)notes.push(locked.map(item=>`${escapeHtml(item.name)} reached Awakening gate`).join(' • '));
  box.hidden=false;
- box.innerHTML=`<strong>+${escapeHtml(xp.amount)} XP</strong><span>DEPLOYED UNIT BATTLE XP</span>${notes.length?`<small>${notes.join('<br>')}</small>`:''}`;
+ box.innerHTML=`<strong>+${escapeHtml(xp.amount)} XP</strong><span>DEPLOYED TEAM BATTLE XP</span>${notes.length?`<small>${notes.join('<br>')}</small>`:''}`;
 }
 
 function showResult(kind,s){

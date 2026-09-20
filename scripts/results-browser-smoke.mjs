@@ -114,7 +114,7 @@ async function run(name,type){
     await launchMode(page,'road');
     const road=await win(page);
     if(!road.victory||road.reward?.amount!==100||road.reward?.balance!==100||road.reward?.currency!=='BLAZING COINS')throw new Error(`Road reward incorrect: ${JSON.stringify(road)}`);
-    if(road.xp?.amount!==650||road.xp?.units?.length!==3)throw new Error(`Road Battle XP incorrect: ${JSON.stringify(road.xp)}`);
+    if(road.xp?.amount!==650||road.xp?.units?.length!==6)throw new Error(`Road Battle XP incorrect: ${JSON.stringify(road.xp)}`);
     await page.locator('#bbMatchResults.active').waitFor({state:'visible',timeout:5000});
     const roadResult=await page.locator('#bbMatchResults').innerText();
     if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BLAZING COINS/.test(roadResult)||!/\+650 XP/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
@@ -136,7 +136,7 @@ async function run(name,type){
     await page.locator('#bbHomeApproved [data-mode="castle"]').click();await waitMode(page,'castle');
     const castle=await win(page);
     if(!castle.victory||castle.reward?.amount!==250||castle.reward?.balance!==350||castle.reward?.currency!=='BLAZING COINS')throw new Error(`Castle reward incorrect: ${JSON.stringify(castle)}`);
-    if(castle.xp?.amount!==900||castle.xp?.units?.length!==3)throw new Error(`Castle Battle XP incorrect: ${JSON.stringify(castle.xp)}`);
+    if(castle.xp?.amount!==900||castle.xp?.units?.length!==6)throw new Error(`Castle Battle XP incorrect: ${JSON.stringify(castle.xp)}`);
     await page.locator('#bbMatchResults.active').waitFor({state:'visible',timeout:5000});
     const castleResult=await page.locator('#bbMatchResults').innerText();
     if(!/250/.test(castleResult)||!/350/.test(castleResult)||!/BLAZING COINS/.test(castleResult)||!/\+900 XP/.test(castleResult)||!/RETURN TO MENU/.test(castleResult))throw new Error(`Castle results content incorrect: ${castleResult}`);
