@@ -6,6 +6,9 @@ on:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: runtime-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,6 +31,8 @@ jobs:
           done
           cat /tmp/bb-server.log
           exit 1
+      - name: Chromium + WebKit local paired-team smoke
+        run: node scripts/team-pair-browser-smoke.mjs
       - name: Chromium + WebKit local boot smoke
         run: npm run smoke:browser
       - name: Chromium + WebKit local Itachi integration smoke
