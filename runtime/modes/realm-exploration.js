@@ -1,386 +1,142 @@
 (()=>{
 'use strict';
-
-const STORAGE_KEY='bb_realm_exploration_v1';
-const RESUME_KEY='bb_realm_exploration_resume_v1';
+const STORAGE_KEY='bb_realm_run_v1';
+const LEGACY_KEY='bb_realm_exploration_v1';
+const RESUME_KEY='bb_realm_run_resume_v1';
 const ROOT_ID='bbRealmExplorer';
 const ENTRY_ID='bbRealmEntry';
-const STYLE_ID='bb-realm-exploration-style';
-const VERSION=1;
-const MAP_SRC='assets/maps/blazing-road/stage-04-shinobi-overlook.webp';
+const STYLE_ID='bb-realm-run-style';
+const VERSION=2;
+const COURSE_LENGTH=3200;
+const WORLD_WIDTH=3520;
+const PATROL_STOP=2090;
+const GATE_STOP=3020;
 
 const REALMS=Object.freeze([
-  Object.freeze({id:'shinobi',name:'Shinobi Realm',subtitle:'Verdant Approach',status:'open'}),
-  Object.freeze({id:'frozen',name:'Frozen Reach',subtitle:'Rift signature unstable',status:'locked'}),
-  Object.freeze({id:'ashen',name:'Ashen Fracture',subtitle:'Coordinates unknown',status:'locked'})
+ Object.freeze({id:'shinobi',name:'Shinobi Realm',subtitle:'Forest Approach · Realm Run',status:'open'}),
+ Object.freeze({id:'frozen',name:'Frozen Reach',subtitle:'Rift signature unstable',status:'locked'}),
+ Object.freeze({id:'ashen',name:'Ashen Fracture',subtitle:'Coordinates unknown',status:'locked'})
+]);
+const SPARKS=Object.freeze([
+ {id:'spark_01',x:430,lane:1},{id:'spark_02',x:510,lane:1},{id:'spark_03',x:590,lane:1},
+ {id:'spark_04',x:850,lane:0},{id:'spark_05',x:925,lane:0},{id:'spark_06',x:1000,lane:0},
+ {id:'spark_07',x:1360,lane:2},{id:'spark_08',x:1435,lane:2},{id:'spark_09',x:1510,lane:2},
+ {id:'spark_10',x:2470,lane:1},{id:'spark_11',x:2545,lane:1},{id:'spark_12',x:2620,lane:1}
+]);
+const EVENTS=Object.freeze([
+ Object.freeze({id:'supply_cache',x:1120,lane:0,kind:'cache',title:'Hidden Supply Cache',copy:'Upper trail. One Rift Fragment is tucked inside.'}),
+ Object.freeze({id:'fork_marker',x:1480,lane:1,kind:'fork',title:'Trail Split',copy:'Upper trail reaches a shrine. Lower trail is faster.'}),
+ Object.freeze({id:'rift_shrine',x:1770,lane:0,kind:'shrine',title:'Ancient Rift Shrine',copy:'Stabilize the seal for a Rift Fragment.'}),
+ Object.freeze({id:'rogue_patrol',x:2200,lane:1,kind:'battle',title:'Rogue Patrol',copy:'A shinobi squad controls the bridge ahead.',mapStage:4}),
+ Object.freeze({id:'village_gate',x:3130,lane:1,kind:'gate',title:'Village Gate',copy:'Forest Approach complete. The next zone continues from here.'})
 ]);
 
-const POIS=Object.freeze([
-  Object.freeze({id:'rift_shrine',x:.50,y:.22,zone:'north',kind:'shrine',title:'Ancient Rift Shrine',copy:'A dormant seal hums beneath the stone.'}),
-  Object.freeze({id:'supply_cache',x:.23,y:.61,zone:'west',kind:'cache',title:'Hidden Supply Cache',copy:'Something was tucked behind the broken wall.'}),
-  Object.freeze({id:'rogue_patrol',x:.73,y:.40,zone:'east',kind:'battle',title:'Rogue Patrol',copy:'A roaming squad blocks the eastern trail.',mapStage:4}),
-  Object.freeze({id:'north_gate',x:.84,y:.73,zone:'south',kind:'gate',title:'Sealed North Trail',copy:'The route continues beyond this prototype zone.'})
-]);
-
-let pendingEncounter=null;
-let root=null;
-let stage=null;
-let player=null;
-let moveFrame=0;
-let target=null;
-let lastTime=0;
-let nearbyPoi=null;
-let currentView='nexus';
-let keyboardDown=new Set();
-
-const clamp=(value,min,max)=>Math.max(min,Math.min(max,Number(value)||0));
-const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+let pendingEncounter=null,root=null,stage=null,world=null,player=null,currentView='nexus',runState=null;
+let autoRun=false,blocked=null,activeEvent=null,raf=0,lastFrame=0,dashUntil=0,jumpUntil=0,persistTimer=0,pointerStart=null;
+const pressed=new Set();
+const clamp=(v,min,max)=>Math.max(min,Math.min(max,Number(v)||0));
 const uniq=list=>[...new Set(Array.isArray(list)?list:[])];
 
-function defaultState(){
-  return {version:VERSION,realm:'shinobi',x:.50,y:.82,discovered:['landing','south'],claimed:[],cleared:[],fragments:0,updatedAt:Date.now()};
-}
+function defaultState(){return {version:VERSION,realm:'shinobi',distance:0,lane:1,route:'main',claimed:[],cleared:[],avoided:[],fragments:0,sparks:0,finished:false,updatedAt:Date.now()};}
 function sanitizeState(raw){
-  const base=defaultState(),data=raw&&typeof raw==='object'?raw:{};
-  return {
-    version:VERSION,
-    realm:'shinobi',
-    x:clamp(data.x??base.x,.08,.92),
-    y:clamp(data.y??base.y,.12,.88),
-    discovered:uniq([...base.discovered,...(Array.isArray(data.discovered)?data.discovered:[])]),
-    claimed:uniq(data.claimed),
-    cleared:uniq(data.cleared),
-    fragments:Math.max(0,Math.floor(Number(data.fragments)||0)),
-    updatedAt:Number(data.updatedAt)||Date.now()
-  };
+ const d=raw&&typeof raw==='object'?raw:{};
+ return {version:VERSION,realm:'shinobi',distance:clamp(d.distance,0,COURSE_LENGTH),lane:Math.round(clamp(d.lane??1,0,2)),route:['upper','main','lower'].includes(d.route)?d.route:'main',claimed:uniq(d.claimed),cleared:uniq(d.cleared),avoided:uniq(d.avoided),fragments:Math.max(0,Math.floor(Number(d.fragments)||0)),sparks:Math.max(0,Math.floor(Number(d.sparks)||0)),finished:!!d.finished,updatedAt:Number(d.updatedAt)||Date.now()};
 }
 function loadState(){
-  try{return sanitizeState(JSON.parse(localStorage.getItem(STORAGE_KEY)||'null'))}catch{return defaultState()}
+ try{
+  const direct=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+  if(direct)return sanitizeState(direct);
+  const old=JSON.parse(localStorage.getItem(LEGACY_KEY)||'null');
+  if(old)return sanitizeState({fragments:old.fragments,claimed:old.claimed,cleared:old.cleared});
+ }catch{}
+ return defaultState();
 }
-function saveState(next){
-  const clean=sanitizeState({...next,updatedAt:Date.now()});
-  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(clean))}catch{}
-  return clean;
-}
-function mutateState(mutator){
-  const draft=loadState();
-  mutator(draft);
-  return saveState(draft);
-}
-function assetPath(unit,asset){
-  if(!asset||String(asset).endsWith('/'))return '';
-  if(/^https?:|^data:|^assets\//.test(asset))return asset;
-  return `assets/characters/${unit?.id||''}/${asset}`;
-}
-function leaderArt(){
-  try{
-    const unit=window.BlazingApprovedHomeCompat?.leaderUnit?.();
-    const frame=unit?.animation_standard?.animations?.idle?.frames?.[0];
-    return assetPath(unit,frame)||assetPath(unit,unit?.assets?.art)||'assets/characters/crimson/sprites/runtime/idle/frame_01.png';
-  }catch{
-    return 'assets/characters/crimson/sprites/runtime/idle/frame_01.png';
-  }
-}
+function saveState(next){const clean=sanitizeState({...next,updatedAt:Date.now()});try{localStorage.setItem(STORAGE_KEY,JSON.stringify(clean))}catch{}return clean;}
+function commitState(){if(runState)runState=saveState(runState);}
+function schedulePersist(){if(persistTimer)return;persistTimer=setTimeout(()=>{persistTimer=0;commitState();},120);}
+function assetPath(unit,asset){if(!asset||String(asset).endsWith('/'))return '';if(/^https?:|^data:|^assets\//.test(asset))return asset;return 'assets/characters/'+(unit?.id||'')+'/'+asset;}
+function leaderArt(){try{const unit=window.BlazingApprovedHomeCompat?.leaderUnit?.();const frame=unit?.animation_standard?.animations?.idle?.frames?.[0];return assetPath(unit,frame)||assetPath(unit,unit?.assets?.art)||'assets/characters/crimson/sprites/runtime/idle/frame_01.png';}catch{return 'assets/characters/crimson/sprites/runtime/idle/frame_01.png';}}
 
 function ensureStyle(){
-  if(document.getElementById(STYLE_ID))return;
-  const style=document.createElement('style');
-  style.id=STYLE_ID;
-  style.textContent=`
-#${ENTRY_ID}{position:absolute;z-index:34;left:50%;bottom:164px;transform:translateX(-50%) rotate(-.8deg);display:grid;grid-template-columns:28px auto;grid-template-rows:auto auto;column-gap:8px;align-items:center;min-width:150px;padding:8px 15px 8px 10px;border:1px solid rgba(226,203,155,.48);clip-path:polygon(5% 0,100% 7%,95% 100%,0 92%);background:linear-gradient(110deg,rgba(19,27,42,.96),rgba(31,53,77,.95) 58%,rgba(112,42,46,.86));box-shadow:0 9px 22px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.09);color:#fff8e8;text-align:left;font-family:Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
-#${ENTRY_ID}>i{grid-row:1/3;display:grid;place-items:center;width:28px;height:28px;border:1px solid rgba(234,213,166,.44);border-radius:50%;font-style:normal;color:#efcf8e;background:radial-gradient(circle,rgba(91,131,171,.34),rgba(21,28,42,.72))}
-#${ENTRY_ID}>strong{font-size:10px;line-height:1;letter-spacing:.12em}#${ENTRY_ID}>small{margin-top:3px;font-size:6px;line-height:1;letter-spacing:.18em;color:rgba(236,223,195,.68)}
-#${ENTRY_ID}:hover,#${ENTRY_ID}:focus-visible{filter:brightness(1.09);outline:1px solid rgba(244,220,167,.56);outline-offset:2px}
-#${ROOT_ID}[hidden]{display:none!important}
-#${ROOT_ID}{position:fixed;inset:0;z-index:2147482600;display:grid;place-items:center;overflow:hidden;background:#080d15;color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
-#${ROOT_ID} *{box-sizing:border-box}#${ROOT_ID} button{font:inherit}
-#${ROOT_ID} .bb-realm-bg{position:absolute;inset:-4%;background:radial-gradient(circle at 50% 38%,rgba(67,116,157,.30),transparent 26%),radial-gradient(circle at 26% 68%,rgba(126,34,47,.23),transparent 28%),linear-gradient(180deg,rgba(8,14,24,.30),rgba(5,8,13,.92)),url("runtime/ui/home/home-wallpaper-hq.png") center/cover no-repeat;filter:saturate(.82) brightness(.55);transform:scale(1.06)}
-#${ROOT_ID} .bb-realm-shell{position:relative;z-index:1;width:min(100vw,920px);height:100dvh;max-height:920px;display:flex;flex-direction:column;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
-#${ROOT_ID} .bb-realm-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px}
-#${ROOT_ID} .bb-realm-top button{min-height:36px;padding:0 13px;border:1px solid rgba(230,209,169,.24);background:rgba(10,16,26,.66);color:#f5ead1;border-radius:2px;letter-spacing:.08em;font-size:9px;font-weight:850}
-#${ROOT_ID} .bb-realm-heading{text-align:center}#${ROOT_ID} .bb-realm-heading small{display:block;font-size:7px;font-weight:800;letter-spacing:.26em;color:#d5bd8d}#${ROOT_ID} .bb-realm-heading strong{display:block;margin-top:4px;font-size:clamp(18px,4vw,30px);letter-spacing:.08em}
-#${ROOT_ID} .bb-nexus{position:relative;flex:1;display:grid;place-items:center;min-height:0}
-#${ROOT_ID} .bb-nexus-core{position:relative;width:min(42vw,280px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,rgba(205,233,255,.12) 0 20%,rgba(71,129,172,.13) 21% 43%,transparent 44%),conic-gradient(from 30deg,rgba(212,185,126,.18),rgba(61,112,155,.54),rgba(132,41,50,.48),rgba(61,112,155,.54),rgba(212,185,126,.18));border:1px solid rgba(220,203,166,.28);box-shadow:0 0 44px rgba(67,133,184,.18),inset 0 0 32px rgba(0,0,0,.58)}
-#${ROOT_ID} .bb-nexus-core:before,#${ROOT_ID} .bb-nexus-core:after{content:"";position:absolute;border-radius:50%;border:1px solid rgba(218,197,154,.23);animation:bbRealmSpin 18s linear infinite}
-#${ROOT_ID} .bb-nexus-core:before{inset:9%;border-style:dashed}#${ROOT_ID} .bb-nexus-core:after{inset:23%;animation-direction:reverse;animation-duration:12s}
-#${ROOT_ID} .bb-nexus-core span{position:relative;z-index:2;text-align:center}#${ROOT_ID} .bb-nexus-core b{display:block;font-size:clamp(17px,3vw,24px);letter-spacing:.16em}#${ROOT_ID} .bb-nexus-core em{display:block;margin-top:5px;font-size:7px;font-style:normal;letter-spacing:.18em;color:#d5bd8d}
-#${ROOT_ID} .bb-realm-list{position:absolute;inset:0;pointer-events:none}
-#${ROOT_ID} .bb-realm-card{position:absolute;width:min(37vw,238px);min-height:102px;padding:14px 14px 12px;border:1px solid rgba(232,212,170,.28);background:linear-gradient(140deg,rgba(14,24,38,.94),rgba(29,44,60,.90) 62%,rgba(94,35,43,.72));box-shadow:0 13px 30px rgba(0,0,0,.34);color:#fff;text-align:left;pointer-events:auto;cursor:pointer;clip-path:polygon(3% 0,100% 5%,96% 100%,0 92%)}
-#${ROOT_ID} .bb-realm-card[data-status="locked"]{filter:saturate(.35) brightness(.62);cursor:not-allowed}
-#${ROOT_ID} .bb-realm-card[data-realm="shinobi"]{left:3%;top:18%}#${ROOT_ID} .bb-realm-card[data-realm="frozen"]{right:3%;top:24%}#${ROOT_ID} .bb-realm-card[data-realm="ashen"]{right:14%;bottom:10%}
-#${ROOT_ID} .bb-realm-card small{display:block;font-size:6px;font-weight:850;letter-spacing:.22em;color:#d9c08f}#${ROOT_ID} .bb-realm-card strong{display:block;margin-top:7px;font-size:clamp(13px,2.5vw,20px);letter-spacing:.04em}#${ROOT_ID} .bb-realm-card span{display:block;margin-top:6px;font-size:8px;line-height:1.3;color:rgba(237,239,242,.68)}
-#${ROOT_ID} .bb-explore-wrap{position:relative;flex:1;min-height:0;display:grid;place-items:center}
-#${ROOT_ID} .bb-explore-stage{position:relative;width:min(100%,520px);height:min(76dvh,700px);aspect-ratio:3/4;max-height:100%;overflow:hidden;border:1px solid rgba(227,207,166,.34);background:linear-gradient(180deg,rgba(10,17,27,.10),rgba(7,11,17,.36)),url("${MAP_SRC}") center/cover no-repeat;box-shadow:0 24px 64px rgba(0,0,0,.50)}
-#${ROOT_ID} .bb-explore-stage:after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 44px rgba(5,8,13,.76)}
-#${ROOT_ID} .bb-fog{position:absolute;z-index:2;background:rgba(7,12,20,.78);backdrop-filter:blur(5px);transition:opacity .45s ease}
-#${ROOT_ID} .bb-fog[data-zone="north"]{left:0;right:0;top:0;height:38%}#${ROOT_ID} .bb-fog[data-zone="west"]{left:0;top:34%;bottom:0;width:38%}#${ROOT_ID} .bb-fog[data-zone="east"]{right:0;top:34%;bottom:0;width:38%}
-#${ROOT_ID} .bb-fog.revealed{opacity:0;pointer-events:none}
-#${ROOT_ID} .bb-poi{position:absolute;z-index:5;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:50%;border:1px solid rgba(246,222,166,.74);background:radial-gradient(circle,#d5bc86 0 17%,rgba(24,39,57,.88) 20% 58%,rgba(9,14,22,.86));box-shadow:0 0 0 5px rgba(214,190,137,.08),0 0 17px rgba(103,163,211,.28);animation:bbRealmPulse 2s ease-in-out infinite}
-#${ROOT_ID} .bb-poi[data-cleared="true"]{opacity:.42;animation:none}#${ROOT_ID} .bb-poi[hidden]{display:none}
-#${ROOT_ID} .bb-player{position:absolute;z-index:7;width:54px;height:68px;transform:translate(-50%,-86%);pointer-events:none;filter:drop-shadow(0 8px 6px rgba(0,0,0,.56));transition:filter .2s}
-#${ROOT_ID} .bb-player:after{content:"";position:absolute;left:50%;bottom:2px;width:32px;height:10px;transform:translateX(-50%);border-radius:50%;background:rgba(0,0,0,.36);filter:blur(3px)}
-#${ROOT_ID} .bb-player img{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;object-position:center bottom}
-#${ROOT_ID} .bb-explore-hud{position:absolute;z-index:12;left:8px;right:8px;top:8px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
-#${ROOT_ID} .bb-explore-chip{padding:7px 9px;border:1px solid rgba(236,213,169,.24);background:rgba(7,12,19,.74);font-size:7px;font-weight:800;letter-spacing:.11em;color:#f0dfbd;backdrop-filter:blur(7px)}
-#${ROOT_ID} .bb-nearby{position:absolute;z-index:12;left:50%;bottom:100px;transform:translateX(-50%);width:min(88%,360px);padding:11px 12px;border:1px solid rgba(230,208,164,.35);background:rgba(8,13,20,.88);box-shadow:0 12px 28px rgba(0,0,0,.4);text-align:center}
-#${ROOT_ID} .bb-nearby[hidden]{display:none}#${ROOT_ID} .bb-nearby strong{display:block;font-size:11px;letter-spacing:.05em}#${ROOT_ID} .bb-nearby span{display:block;margin-top:4px;font-size:8px;line-height:1.35;color:rgba(237,235,228,.65)}
-#${ROOT_ID} .bb-nearby button{margin-top:8px;min-height:34px;padding:0 16px;border:1px solid rgba(231,204,151,.55);background:linear-gradient(180deg,#9d7138,#6f481f);color:#fff5df;font-size:9px;font-weight:900;letter-spacing:.08em}
-#${ROOT_ID} .bb-dpad{position:absolute;z-index:13;right:10px;bottom:10px;display:grid;grid-template-columns:repeat(3,34px);grid-template-rows:repeat(3,34px);gap:2px}
-#${ROOT_ID} .bb-dpad button{border:1px solid rgba(236,215,172,.26);background:rgba(9,15,23,.62);color:#efe0c1;border-radius:4px;font-weight:900}.bb-dpad [data-dir="up"]{grid-column:2}.bb-dpad [data-dir="left"]{grid-column:1;grid-row:2}.bb-dpad [data-dir="down"]{grid-column:2;grid-row:2}.bb-dpad [data-dir="right"]{grid-column:3;grid-row:2}
-#${ROOT_ID} .bb-toast{position:absolute;z-index:30;left:50%;top:14%;transform:translate(-50%,-12px);opacity:0;max-width:min(82vw,420px);padding:10px 14px;border:1px solid rgba(231,207,160,.32);background:rgba(7,12,19,.93);color:#f5ead4;font-size:9px;font-weight:750;letter-spacing:.03em;transition:.22s;pointer-events:none}.bb-toast.show{opacity:1;transform:translate(-50%,0)}
-@keyframes bbRealmSpin{to{transform:rotate(360deg)}}@keyframes bbRealmPulse{50%{box-shadow:0 0 0 9px rgba(214,190,137,.02),0 0 25px rgba(103,163,211,.42)}}
-@media(max-width:620px){#${ENTRY_ID}{bottom:148px;min-width:136px;padding:7px 11px 7px 9px}#${ROOT_ID} .bb-realm-shell{padding-left:8px;padding-right:8px}#${ROOT_ID} .bb-realm-card{width:42vw;min-height:92px;padding:11px}#${ROOT_ID} .bb-realm-card[data-realm="shinobi"]{left:1%;top:15%}#${ROOT_ID} .bb-realm-card[data-realm="frozen"]{right:1%;top:23%}#${ROOT_ID} .bb-realm-card[data-realm="ashen"]{right:8%;bottom:8%}#${ROOT_ID} .bb-explore-stage{height:min(78dvh,680px)}}
-@media(prefers-reduced-motion:reduce){#${ROOT_ID} .bb-nexus-core:before,#${ROOT_ID} .bb-nexus-core:after,#${ROOT_ID} .bb-poi{animation:none}}
-`;
-  document.head.appendChild(style);
+ if(document.getElementById(STYLE_ID))return;
+ const s=document.createElement('style');s.id=STYLE_ID;
+ s.textContent=[
+ '#bbRealmEntry{position:absolute;z-index:34;left:50%;bottom:164px;transform:translateX(-50%) rotate(-.8deg);display:grid;grid-template-columns:28px auto;grid-template-rows:auto auto;column-gap:8px;align-items:center;min-width:156px;padding:8px 15px 8px 10px;border:1px solid rgba(226,203,155,.48);clip-path:polygon(5% 0,100% 7%,95% 100%,0 92%);background:linear-gradient(110deg,rgba(19,27,42,.96),rgba(31,53,77,.95) 58%,rgba(112,42,46,.86));box-shadow:0 9px 22px rgba(0,0,0,.38);color:#fff8e8;text-align:left;cursor:pointer}',
+ '#bbRealmEntry>i{grid-row:1/3;display:grid;place-items:center;width:28px;height:28px;border:1px solid rgba(234,213,166,.44);border-radius:50%;font-style:normal;color:#efcf8e;background:rgba(21,28,42,.86)}',
+ '#bbRealmEntry>strong{font-size:10px;letter-spacing:.12em}#bbRealmEntry>small{font-size:6px;letter-spacing:.18em;color:rgba(236,223,195,.68)}',
+ '#bbRealmExplorer[hidden]{display:none!important}#bbRealmExplorer{position:fixed;inset:0;z-index:2147482600;display:grid;place-items:center;overflow:hidden;background:#070c13;color:#fff;font-family:Inter,ui-sans-serif,system-ui,sans-serif}',
+ '#bbRealmExplorer *{box-sizing:border-box}#bbRealmExplorer button{font:inherit}',
+ '#bbRealmExplorer .bb-realm-bg{position:absolute;inset:-5%;background:linear-gradient(180deg,rgba(7,12,20,.18),rgba(5,8,13,.9)),url("runtime/ui/home/home-wallpaper-hq.png") center/cover no-repeat;filter:saturate(.78) brightness(.48);transform:scale(1.08)}',
+ '#bbRealmExplorer .bb-realm-shell{position:relative;z-index:1;width:min(100vw,1100px);height:100dvh;max-height:920px;display:flex;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}',
+ '#bbRealmExplorer .bb-realm-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px}#bbRealmExplorer .bb-realm-top button{min-height:36px;padding:0 13px;border:1px solid rgba(230,209,169,.24);background:rgba(10,16,26,.72);color:#f5ead1;font-size:9px;font-weight:850}',
+ '#bbRealmExplorer .bb-realm-heading{text-align:center}#bbRealmExplorer .bb-realm-heading small{display:block;font-size:7px;font-weight:800;letter-spacing:.26em;color:#d5bd8d}#bbRealmExplorer .bb-realm-heading strong{display:block;margin-top:4px;font-size:clamp(18px,4vw,30px);letter-spacing:.08em}',
+ '#bbRealmExplorer .bb-nexus{position:relative;flex:1;display:grid;place-items:center;min-height:0}#bbRealmExplorer .bb-nexus-core{position:relative;width:min(38vw,270px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,rgba(205,233,255,.12) 0 20%,rgba(71,129,172,.13) 21% 43%,transparent 44%),conic-gradient(from 30deg,rgba(212,185,126,.18),rgba(61,112,155,.54),rgba(132,41,50,.48),rgba(61,112,155,.54),rgba(212,185,126,.18));border:1px solid rgba(220,203,166,.28);box-shadow:0 0 44px rgba(67,133,184,.18),inset 0 0 32px rgba(0,0,0,.58)}',
+ '#bbRealmExplorer .bb-nexus-core:before,#bbRealmExplorer .bb-nexus-core:after{content:"";position:absolute;border-radius:50%;border:1px solid rgba(218,197,154,.23);animation:bbRealmSpin 18s linear infinite}#bbRealmExplorer .bb-nexus-core:before{inset:9%;border-style:dashed}#bbRealmExplorer .bb-nexus-core:after{inset:23%;animation-direction:reverse;animation-duration:12s}',
+ '#bbRealmExplorer .bb-nexus-core span{text-align:center}#bbRealmExplorer .bb-nexus-core b{display:block;font-size:20px;letter-spacing:.16em}#bbRealmExplorer .bb-nexus-core em{display:block;margin-top:5px;font-size:7px;font-style:normal;letter-spacing:.18em;color:#d5bd8d}',
+ '#bbRealmExplorer .bb-realm-list{position:absolute;inset:0;pointer-events:none}#bbRealmExplorer .bb-realm-card{position:absolute;width:min(37vw,238px);min-height:102px;padding:14px;border:1px solid rgba(232,212,170,.28);background:linear-gradient(140deg,rgba(14,24,38,.94),rgba(29,44,60,.9) 62%,rgba(94,35,43,.72));box-shadow:0 13px 30px rgba(0,0,0,.34);color:#fff;text-align:left;pointer-events:auto;cursor:pointer;clip-path:polygon(3% 0,100% 5%,96% 100%,0 92%)}',
+ '#bbRealmExplorer .bb-realm-card[data-status="locked"]{filter:saturate(.35) brightness(.62);cursor:not-allowed}#bbRealmExplorer .bb-realm-card[data-realm="shinobi"]{left:3%;top:18%}#bbRealmExplorer .bb-realm-card[data-realm="frozen"]{right:3%;top:24%}#bbRealmExplorer .bb-realm-card[data-realm="ashen"]{right:14%;bottom:10%}',
+ '#bbRealmExplorer .bb-realm-card small{display:block;font-size:6px;font-weight:850;letter-spacing:.22em;color:#d9c08f}#bbRealmExplorer .bb-realm-card strong{display:block;margin-top:7px;font-size:clamp(13px,2.5vw,20px)}#bbRealmExplorer .bb-realm-card span{display:block;margin-top:6px;font-size:8px;color:rgba(237,239,242,.68)}',
+ '#bbRealmExplorer .bb-run-wrap{position:relative;flex:1;min-height:0;display:grid;place-items:center}#bbRealmExplorer .bb-run-stage{--sky-shift:0px;position:relative;width:min(100%,980px);height:min(76dvh,680px);min-height:430px;overflow:hidden;border:1px solid rgba(228,209,167,.34);background:#0d1820;box-shadow:0 24px 64px rgba(0,0,0,.55);touch-action:none}',
+ '#bbRealmExplorer .bb-run-sky{position:absolute;inset:0;background-image:linear-gradient(180deg,rgba(10,18,28,.05),rgba(8,14,20,.1) 52%,rgba(5,8,12,.72) 100%),url("assets/maps/blazing-road/stage-04-shinobi-overlook.webp");background-size:cover;background-position:var(--sky-shift) center;filter:saturate(.86) brightness(.74);transform:scale(1.04)}',
+ '#bbRealmExplorer .bb-run-world{position:absolute;z-index:2;left:0;top:0;width:3520px;height:100%;will-change:transform}#bbRealmExplorer .bb-run-segment{position:absolute;top:0;width:880px;height:100%;background-size:cover;background-position:center;filter:saturate(.9) brightness(.64);opacity:.86}',
+ '#bbRealmExplorer .bb-run-segment:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,12,18,.12),transparent 46%,rgba(5,10,15,.78) 78%)}#bbRealmExplorer .bb-run-segment[data-i="0"]{left:0;background-image:url("assets/maps/blazing-road/stage-04-shinobi-overlook.webp")}#bbRealmExplorer .bb-run-segment[data-i="1"]{left:880px;background-image:url("assets/maps/blazing-road/stage-03-lantern-garden.webp")}#bbRealmExplorer .bb-run-segment[data-i="2"]{left:1760px;background-image:url("assets/maps/blazing-road/stage-05-training-grounds.webp")}#bbRealmExplorer .bb-run-segment[data-i="3"]{left:2640px;background-image:url("assets/maps/blazing-road/stage-04-shinobi-overlook.webp")}',
+ '#bbRealmExplorer .bb-run-ground{position:absolute;left:0;right:0;bottom:4%;height:31%;background:linear-gradient(180deg,rgba(38,42,38,.02),rgba(13,17,16,.64) 28%,rgba(5,8,9,.95));border-top:1px solid rgba(216,195,150,.12)}#bbRealmExplorer .bb-run-lane{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(225,205,164,.18),transparent)}#bbRealmExplorer .bb-run-lane[data-lane="0"]{bottom:48%}#bbRealmExplorer .bb-run-lane[data-lane="1"]{bottom:31%}#bbRealmExplorer .bb-run-lane[data-lane="2"]{bottom:14%}',
+ '#bbRealmExplorer .bb-run-spark{position:absolute;z-index:4;width:15px;height:15px;transform:rotate(45deg);border:1px solid rgba(255,231,165,.85);background:#d7a84d;box-shadow:0 0 14px rgba(255,196,84,.72);animation:bbSparkFloat 1.2s ease-in-out infinite}#bbRealmExplorer .bb-run-spark.collected{opacity:0;transform:rotate(45deg) scale(.1);transition:.18s}',
+ '#bbRealmExplorer .bb-run-object{position:absolute;z-index:5;transform:translate(-50%,0);display:grid;place-items:center;min-width:46px;min-height:54px;color:#f5dfad;text-shadow:0 2px 7px #000}#bbRealmExplorer .bb-run-object i{display:grid;place-items:center;width:42px;height:42px;border:1px solid rgba(238,214,165,.58);border-radius:50%;background:rgba(11,21,31,.82);box-shadow:0 8px 18px rgba(0,0,0,.45);font-style:normal;font-size:20px}#bbRealmExplorer .bb-run-object b{margin-top:4px;padding:3px 6px;background:rgba(6,10,15,.68);font-size:6px;letter-spacing:.12em;white-space:nowrap}',
+ '#bbRealmExplorer .bb-run-object[data-kind="battle"] i{border-color:rgba(224,97,91,.7);background:rgba(73,18,24,.86);color:#ffd9cb}#bbRealmExplorer .bb-run-object[data-kind="gate"] i{width:68px;height:68px;border-style:dashed;font-size:28px}',
+ '#bbRealmExplorer .bb-run-player{position:absolute;z-index:8;left:22%;bottom:31%;width:clamp(66px,11vw,98px);height:clamp(94px,17vw,142px);transform:translateX(-50%);transition:bottom .22s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 12px 9px rgba(0,0,0,.58));pointer-events:none}#bbRealmExplorer .bb-run-player img{width:100%;height:100%;object-fit:contain;object-position:center bottom;transform-origin:50% 92%}#bbRealmExplorer .bb-run-player.running img{animation:bbRunnerStride .34s ease-in-out infinite alternate}#bbRealmExplorer .bb-run-player.jumping{animation:bbRunnerJump .58s cubic-bezier(.2,.75,.25,1)}',
+ '#bbRealmExplorer .bb-run-speedlines{position:absolute;z-index:7;inset:0;opacity:0;pointer-events:none;background:repeating-linear-gradient(174deg,transparent 0 14px,rgba(239,226,197,.16) 15px 16px,transparent 17px 32px);transition:opacity .12s}#bbRealmExplorer .bb-run-stage.dashing .bb-run-speedlines{opacity:.46;animation:bbSpeedLines .22s linear infinite}',
+ '#bbRealmExplorer .bb-run-hud{position:absolute;z-index:12;left:8px;right:8px;top:8px;display:flex;justify-content:space-between;gap:6px;pointer-events:none}#bbRealmExplorer .bb-run-chip{padding:7px 9px;border:1px solid rgba(236,213,169,.24);background:rgba(7,12,19,.76);font-size:7px;font-weight:850;letter-spacing:.1em;color:#f0dfbd}#bbRealmExplorer .bb-run-progress{position:absolute;z-index:12;left:9px;right:9px;top:41px;height:4px;border-radius:99px;background:rgba(255,255,255,.11);overflow:hidden}#bbRealmExplorer .bb-run-progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#a82b37,#e7b76a)}',
+ '#bbRealmExplorer .bb-run-event{position:absolute;z-index:14;left:50%;bottom:78px;transform:translateX(-50%);width:min(88%,430px);padding:11px 12px;border:1px solid rgba(230,208,164,.38);background:rgba(8,13,20,.94);box-shadow:0 14px 32px rgba(0,0,0,.46);text-align:center}#bbRealmExplorer .bb-run-event[hidden]{display:none}#bbRealmExplorer .bb-run-event strong{display:block;font-size:12px}#bbRealmExplorer .bb-run-event span{display:block;margin-top:4px;font-size:8px;color:rgba(237,235,228,.68)}#bbRealmExplorer .bb-run-event-actions{display:flex;justify-content:center;gap:7px;margin-top:8px}#bbRealmExplorer .bb-run-event-actions button{min-height:34px;padding:0 15px;border:1px solid rgba(231,204,151,.52);background:#795224;color:#fff5df;font-size:8px;font-weight:900}#bbRealmExplorer .bb-run-event-actions button.secondary{background:#141c25}',
+ '#bbRealmExplorer .bb-run-controls{position:absolute;z-index:15;left:8px;right:8px;bottom:8px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}#bbRealmExplorer .bb-run-controls button{min-height:44px;border:1px solid rgba(235,213,171,.3);background:rgba(8,15,23,.76);color:#f4e3c1;font-size:8px;font-weight:900}#bbRealmExplorer .bb-run-controls button[data-active="true"]{background:#7c2831}#bbRealmExplorer .bb-run-tip{position:absolute;z-index:10;left:10px;bottom:61px;padding:5px 7px;background:rgba(7,12,18,.58);font-size:6px;letter-spacing:.1em;color:rgba(243,228,198,.62)}',
+ '#bbRealmExplorer .bb-toast{position:absolute;z-index:30;left:50%;top:14%;transform:translate(-50%,-12px);opacity:0;max-width:min(82vw,420px);padding:10px 14px;border:1px solid rgba(231,207,160,.32);background:rgba(7,12,19,.93);color:#f5ead4;font-size:9px;font-weight:750;transition:.22s}.bb-toast.show{opacity:1;transform:translate(-50%,0)}',
+ '@keyframes bbRealmSpin{to{transform:rotate(360deg)}}@keyframes bbSparkFloat{50%{transform:rotate(45deg) translateY(-7px)}}@keyframes bbRunnerStride{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-4px) rotate(1.5deg)}}@keyframes bbRunnerJump{0%,100%{transform:translateX(-50%) translateY(0)}48%{transform:translateX(-50%) translateY(-76px)}}@keyframes bbSpeedLines{to{transform:translateX(-8%)}}',
+ '@media(max-width:620px){#bbRealmEntry{bottom:148px;min-width:142px}#bbRealmExplorer .bb-realm-shell{padding-left:5px;padding-right:5px}#bbRealmExplorer .bb-realm-card{width:43vw;min-height:94px;padding:11px}#bbRealmExplorer .bb-realm-card[data-realm="shinobi"]{left:1%;top:14%}#bbRealmExplorer .bb-realm-card[data-realm="frozen"]{right:1%;top:23%}#bbRealmExplorer .bb-realm-card[data-realm="ashen"]{right:7%;bottom:7%}#bbRealmExplorer .bb-run-stage{height:min(79dvh,690px);min-height:520px}#bbRealmExplorer .bb-run-player{left:24%;width:74px;height:108px}#bbRealmExplorer .bb-run-event{bottom:74px}#bbRealmExplorer .bb-run-controls button{min-height:42px;font-size:7px;padding:0 2px}}',
+ '@media(prefers-reduced-motion:reduce){#bbRealmExplorer .bb-nexus-core:before,#bbRealmExplorer .bb-nexus-core:after,#bbRealmExplorer .bb-run-spark,#bbRealmExplorer .bb-run-player.running img,#bbRealmExplorer .bb-run-stage.dashing .bb-run-speedlines{animation:none}}'
+ ].join('');
+ document.head.appendChild(s);
 }
+function ensureRoot(){ensureStyle();if(root&&document.body.contains(root))return root;root=document.createElement('section');root.id=ROOT_ID;root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.hidden=true;root.innerHTML='<div class="bb-realm-bg"></div><div class="bb-realm-shell"></div><div class="bb-toast" aria-live="polite"></div>';document.body.appendChild(root);return root;}
+function shell(){return ensureRoot().querySelector('.bb-realm-shell');}
+function toast(message){const el=ensureRoot().querySelector('.bb-toast');if(!el)return;el.textContent=message;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),1700);}
+function topBar(title,subtitle,backLabel,backAction){const bar=document.createElement('header');bar.className='bb-realm-top';const back=document.createElement('button');back.textContent=backLabel;back.onclick=backAction;const heading=document.createElement('div');heading.className='bb-realm-heading';heading.innerHTML='<small>'+subtitle+'</small><strong>'+title+'</strong>';const home=document.createElement('button');home.textContent='HOME';home.onclick=close;bar.append(back,heading,home);return bar;}
+function close(){autoRun=false;blocked=null;activeEvent=null;pressed.clear();cancelAnimationFrame(raf);raf=0;clearTimeout(persistTimer);persistTimer=0;if(runState)commitState();currentView='closed';if(root)root.hidden=true;}
+function open(view='nexus'){ensureRoot().hidden=false;if(view==='run'||view==='explore')renderRun();else renderNexus();}
+function renderNexus(){currentView='nexus';autoRun=false;blocked=null;activeEvent=null;cancelAnimationFrame(raf);raf=0;const host=shell();host.innerHTML='';host.appendChild(topBar('WORLD NEXUS','REALM NETWORK','BACK',close));const nexus=document.createElement('main');nexus.className='bb-nexus';nexus.innerHTML='<div class="bb-nexus-core"><span><b>NEXUS</b><em>CHOOSE A REALM</em></span></div><div class="bb-realm-list"></div>';const list=nexus.querySelector('.bb-realm-list');REALMS.forEach(realm=>{const b=document.createElement('button');b.className='bb-realm-card';b.dataset.realm=realm.id;b.dataset.status=realm.status;b.innerHTML='<small>'+(realm.status==='open'?'REALM RUN READY':'LOCKED SIGNAL')+'</small><strong>'+realm.name+'</strong><span>'+realm.subtitle+'</span>';b.onclick=()=>realm.status==='open'?renderRun():toast('This realm has not stabilized yet.');list.appendChild(b);});host.appendChild(nexus);}
 
-function ensureRoot(){
-  ensureStyle();
-  if(root&&document.body.contains(root))return root;
-  root=document.createElement('section');
-  root.id=ROOT_ID;
-  root.setAttribute('role','dialog');
-  root.setAttribute('aria-modal','true');
-  root.hidden=true;
-  root.innerHTML='<div class="bb-realm-bg"></div><div class="bb-realm-shell"></div><div class="bb-toast" aria-live="polite"></div>';
-  document.body.appendChild(root);
-  return root;
-}
-function shell(){return ensureRoot().querySelector('.bb-realm-shell')}
-function toast(message){
-  const el=ensureRoot().querySelector('.bb-toast');if(!el)return;
-  el.textContent=message;el.classList.add('show');
-  clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),1800);
-}
-function close(){
-  cancelAnimationFrame(moveFrame);moveFrame=0;target=null;nearbyPoi=null;currentView='closed';
-  if(root)root.hidden=true;
-  keyboardDown.clear();
-}
-function open(view='nexus'){
-  ensureRoot().hidden=false;
-  view==='explore'?renderExplore():renderNexus();
-}
-function topBar(title,subtitle,backLabel,backAction){
-  const bar=document.createElement('header');
-  bar.className='bb-realm-top';
-  const back=document.createElement('button');back.textContent=backLabel;back.addEventListener('click',backAction);
-  const heading=document.createElement('div');heading.className='bb-realm-heading';heading.innerHTML=`<small>${subtitle}</small><strong>${title}</strong>`;
-  const home=document.createElement('button');home.textContent='HOME';home.addEventListener('click',close);
-  bar.append(back,heading,home);
-  return bar;
-}
+function laneBottom(lane){return [48,31,14][Math.round(clamp(lane,0,2))];}
+function eventById(id){return EVENTS.find(e=>e.id===id)||null;}
+function renderWorldObjects(){SPARKS.forEach(p=>{const e=document.createElement('i');e.className='bb-run-spark';e.dataset.spark=p.id;e.style.left=p.x+'px';e.style.bottom=(laneBottom(p.lane)+5)+'%';if(runState.claimed.includes(p.id))e.classList.add('collected');world.appendChild(e);});EVENTS.forEach(evt=>{const e=document.createElement('div');e.className='bb-run-object';e.dataset.event=evt.id;e.dataset.kind=evt.kind;e.style.left=evt.x+'px';e.style.bottom=(laneBottom(evt.lane)+1)+'%';const icon=evt.kind==='battle'?'⚔':evt.kind==='cache'?'▣':evt.kind==='shrine'?'◎':evt.kind==='fork'?'↗':'◉';e.innerHTML='<i>'+icon+'</i><b>'+evt.title.toUpperCase()+'</b>';world.appendChild(e);});}
+function chooseRoute(){if(runState.distance<1430||runState.distance>1600)return;const next=runState.lane===0?'upper':runState.lane===2?'lower':'main';if(next!==runState.route){runState.route=next;schedulePersist();toast(next.toUpperCase()+' TRAIL');}}
+function collectSparks(){let changed=false;SPARKS.forEach(p=>{if(runState.claimed.includes(p.id)||p.lane!==runState.lane)return;if(Math.abs(p.x-runState.distance)<=72){runState.claimed.push(p.id);runState.sparks+=1;changed=true;world?.querySelector('[data-spark="'+p.id+'"]')?.classList.add('collected');}});if(changed)schedulePersist();}
+function eventInRange(){if(blocked)return eventById(blocked);const list=EVENTS.filter(evt=>{if(evt.kind==='fork')return false;if(evt.kind==='battle'&&(runState.cleared.includes(evt.id)||runState.avoided.includes(evt.id)))return false;if(evt.kind==='gate')return Math.abs(evt.x-runState.distance)<135;if(evt.lane!==runState.lane)return false;if((evt.kind==='cache'||evt.kind==='shrine')&&runState.claimed.includes(evt.id))return false;return Math.abs(evt.x-runState.distance)<125;});return list.sort((a,b)=>Math.abs(a.x-runState.distance)-Math.abs(b.x-runState.distance))[0]||null;}
+function applyStops(prev,next){if(!runState.cleared.includes('rogue_patrol')&&!runState.avoided.includes('rogue_patrol')&&prev<PATROL_STOP&&next>=PATROL_STOP){blocked='rogue_patrol';autoRun=false;return PATROL_STOP;}if(prev<GATE_STOP&&next>=GATE_STOP){blocked='village_gate';autoRun=false;return GATE_STOP;}return next;}
+function advance(delta){if(!runState||blocked)return;const prev=runState.distance;runState.distance=applyStops(prev,clamp(prev+delta,0,COURSE_LENGTH));chooseRoute();collectSparks();schedulePersist();}
+function setAutoRun(value){autoRun=!!value&&!blocked;updateRunView();if(autoRun)startLoop();return autoRun;}
+function laneShift(delta){if(currentView!=='run'||!runState)return null;runState.lane=Math.round(clamp(runState.lane+delta,0,2));runState.route=runState.lane===0?'upper':runState.lane===2?'lower':'main';schedulePersist();updateRunView();return runState.lane;}
+function jump(){if(currentView!=='run')return false;const now=performance.now();if(now<jumpUntil-120)return false;jumpUntil=now+580;updateRunView();startLoop();return true;}
+function dash(){if(currentView!=='run'||blocked)return false;dashUntil=performance.now()+760;autoRun=true;updateRunView();startLoop();return true;}
+function avoidPatrol(){if(blocked!=='rogue_patrol')return false;runState.avoided=uniq([...runState.avoided,'rogue_patrol']);runState.lane=2;runState.route='lower';runState.distance=2325;blocked=null;commitState();toast('Lower trail used. Patrol avoided.');updateRunView();return true;}
+function interactEvent(){const evt=activeEvent||eventInRange();if(!evt)return false;if(evt.kind==='cache'||evt.kind==='shrine'){if(runState.claimed.includes(evt.id))return false;runState.claimed.push(evt.id);runState.fragments+=1;commitState();toast(evt.kind==='cache'?'Supply cache opened. +1 Rift Fragment.':'Rift Shrine stabilized. +1 Rift Fragment.');updateRunView();return true;}if(evt.kind==='battle')return queueEncounter(evt.id);if(evt.kind==='gate'){runState.finished=true;commitState();toast('Forest Approach complete. Village route discovered.');return true;}return false;}
+function updateEventPanel(){activeEvent=eventInRange();const p=stage.querySelector('.bb-run-event');p.hidden=!activeEvent;if(!activeEvent)return;p.querySelector('strong').textContent=activeEvent.title;p.querySelector('span').textContent=activeEvent.copy;const a=p.querySelector('[data-event-primary]'),b=p.querySelector('[data-event-secondary]');a.textContent=activeEvent.kind==='battle'?'ENGAGE':activeEvent.kind==='gate'?'ARRIVE':'INTERACT';b.hidden=activeEvent.kind!=='battle';}
+function updateRunView(){if(currentView!=='run'||!stage||!world||!player||!runState)return;const vw=stage.clientWidth||390,anchor=vw*.22,camera=Math.max(0,Math.min(WORLD_WIDTH-vw,runState.distance-anchor));world.style.transform='translate3d('+(-camera).toFixed(1)+'px,0,0)';stage.style.setProperty('--sky-shift',(-runState.distance*.11).toFixed(1)+'px');player.style.bottom=laneBottom(runState.lane)+'%';const now=performance.now(),moving=(autoRun||pressed.size)&&!blocked;player.classList.toggle('running',moving);player.classList.toggle('jumping',now<jumpUntil);stage.classList.toggle('dashing',now<dashUntil);stage.dataset.route=runState.route;stage.dataset.blocked=blocked||'';const rb=stage.querySelector('[data-action="run"]');rb.dataset.active=String(autoRun);rb.textContent=autoRun?'PAUSE':'RUN';stage.querySelector('.bb-run-progress i').style.width=(runState.distance/COURSE_LENGTH*100).toFixed(1)+'%';stage.querySelector('[data-run-distance]').textContent=Math.floor(runState.distance)+' / '+COURSE_LENGTH+'m';stage.querySelector('[data-run-loot]').textContent='✦ '+runState.sparks+'  ◈ '+runState.fragments;stage.querySelector('[data-run-route]').textContent=runState.route.toUpperCase()+' TRAIL';world.querySelectorAll('.bb-run-spark').forEach(e=>e.classList.toggle('collected',runState.claimed.includes(e.dataset.spark)));world.querySelectorAll('.bb-run-object').forEach(e=>{const id=e.dataset.event;e.style.opacity=(runState.claimed.includes(id)||runState.cleared.includes(id)||runState.avoided.includes(id))?'.4':'1';});updateEventPanel();}
+function startLoop(){if(raf||currentView!=='run')return;lastFrame=performance.now();raf=requestAnimationFrame(tick);}
+function tick(now){raf=0;if(currentView!=='run'||!runState)return;const dt=Math.min(.05,Math.max(.001,(now-lastFrame)/1000));lastFrame=now;let speed=0;if(autoRun&&!blocked)speed+=145;if(pressed.has('right')&&!blocked)speed+=185;if(pressed.has('left')&&!blocked)speed-=120;if(now<dashUntil&&speed>0)speed*=1.72;if(speed)advance(speed*dt);updateRunView();if(autoRun||pressed.size||now<dashUntil||now<jumpUntil)raf=requestAnimationFrame(tick);}
+function bindControls(){stage.querySelector('[data-action="run"]').onclick=()=>setAutoRun(!autoRun);stage.querySelector('[data-action="jump"]').onclick=jump;stage.querySelector('[data-action="up"]').onclick=()=>laneShift(-1);stage.querySelector('[data-action="down"]').onclick=()=>laneShift(1);stage.querySelector('[data-action="dash"]').onclick=dash;const left=stage.querySelector('[data-hold="left"]');left.onpointerdown=e=>{e.preventDefault();pressed.add('left');startLoop();};left.onpointerup=left.onpointercancel=left.onpointerleave=()=>pressed.delete('left');stage.querySelector('[data-event-primary]').onclick=interactEvent;stage.querySelector('[data-event-secondary]').onclick=avoidPatrol;stage.onpointerdown=e=>{if(!e.target.closest('button'))pointerStart={x:e.clientX,y:e.clientY};};stage.onpointerup=e=>{if(!pointerStart||e.target.closest('button')){pointerStart=null;return;}const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;pointerStart=null;if(Math.abs(dy)>38&&Math.abs(dy)>Math.abs(dx)){dy<0?jump():laneShift(1);}else if(dx>46)dash();};}
+function renderRun(){currentView='run';autoRun=false;blocked=null;activeEvent=null;pressed.clear();cancelAnimationFrame(raf);raf=0;runState=loadState();const host=shell();host.innerHTML='';host.appendChild(topBar('SHINOBI REALM','FOREST APPROACH · REALM RUN','NEXUS',renderNexus));const wrap=document.createElement('main');wrap.className='bb-run-wrap';stage=document.createElement('div');stage.className='bb-run-stage';stage.innerHTML='<div class="bb-run-sky"></div><div class="bb-run-world"><div class="bb-run-segment" data-i="0"></div><div class="bb-run-segment" data-i="1"></div><div class="bb-run-segment" data-i="2"></div><div class="bb-run-segment" data-i="3"></div><div class="bb-run-ground"></div><div class="bb-run-lane" data-lane="0"></div><div class="bb-run-lane" data-lane="1"></div><div class="bb-run-lane" data-lane="2"></div></div><div class="bb-run-speedlines"></div><div class="bb-run-player"><img alt="Realm runner"></div><div class="bb-run-hud"><span class="bb-run-chip" data-run-route>MAIN TRAIL</span><span class="bb-run-chip" data-run-distance>0 / 3200m</span><span class="bb-run-chip" data-run-loot>✦ 0 ◈ 0</span></div><div class="bb-run-progress"><i></i></div><div class="bb-run-event" hidden><strong></strong><span></span><div class="bb-run-event-actions"><button data-event-primary>INTERACT</button><button class="secondary" data-event-secondary hidden>LOWER PATH</button></div></div><div class="bb-run-tip">SWIPE UP · JUMP | SWIPE RIGHT · DASH</div><div class="bb-run-controls"><button data-hold="left">◀ BACK</button><button data-action="run">RUN</button><button data-action="jump">JUMP</button><button data-action="up">▲ TRAIL</button><button data-action="down">▼ TRAIL</button><button data-action="dash">DASH</button></div>';world=stage.querySelector('.bb-run-world');player=stage.querySelector('.bb-run-player');player.querySelector('img').src=leaderArt();renderWorldObjects();bindControls();wrap.appendChild(stage);host.appendChild(wrap);updateRunView();}
+const renderExplore=renderRun;
 
-function renderNexus(){
-  currentView='nexus';stage=null;player=null;cancelAnimationFrame(moveFrame);moveFrame=0;target=null;
-  const host=shell();host.innerHTML='';host.appendChild(topBar('WORLD NEXUS','REALM NETWORK','BACK',close));
-  const nexus=document.createElement('main');nexus.className='bb-nexus';
-  nexus.innerHTML='<div class="bb-nexus-core" aria-hidden="true"><span><b>NEXUS</b><em>REALM ANCHOR</em></span></div><div class="bb-realm-list"></div>';
-  const list=nexus.querySelector('.bb-realm-list');
-  for(const realm of REALMS){
-    const button=document.createElement('button');
-    button.className='bb-realm-card';button.dataset.realm=realm.id;button.dataset.status=realm.status;
-    button.innerHTML=`<small>${realm.status==='open'?'STABLE GATE':'LOCKED SIGNAL'}</small><strong>${realm.name}</strong><span>${realm.subtitle}</span>`;
-    button.addEventListener('click',()=>realm.status==='open'?renderExplore():toast('This realm has not stabilized yet.'));
-    list.appendChild(button);
-  }
-  host.appendChild(nexus);
-}
-function statePoint(){const s=loadState();return {x:s.x,y:s.y}}
-function revealZones(state){
-  const discovered=new Set(state.discovered);
-  if(state.y<.47)discovered.add('north');
-  if(state.x<.38)discovered.add('west');
-  if(state.x>.64)discovered.add('east');
-  if(state.y>.66)discovered.add('south');
-  const next=[...discovered];
-  if(next.length!==state.discovered.length||next.some(v=>!state.discovered.includes(v))){
-    state.discovered=next;saveState(state);
-  }
-  return discovered;
-}
-function positionPlayer(state){
-  if(!player)return;
-  player.style.left=`${(state.x*100).toFixed(2)}%`;player.style.top=`${(state.y*100).toFixed(2)}%`;
-}
-function updateExplore(){
-  if(currentView!=='explore'||!stage||!player)return;
-  const state=loadState(),discovered=revealZones(state);
-  positionPlayer(state);
-  stage.querySelectorAll('.bb-fog').forEach(el=>el.classList.toggle('revealed',discovered.has(el.dataset.zone)));
-  stage.querySelectorAll('.bb-poi').forEach(el=>{
-    const poi=POIS.find(item=>item.id===el.dataset.poi);
-    const visible=poi&&(discovered.has(poi.zone)||poi.zone==='south');
-    el.hidden=!visible;
-    el.dataset.cleared=String(state.cleared.includes(poi?.id)||state.claimed.includes(poi?.id));
-  });
-  const candidates=POIS.filter(poi=>!stage.querySelector(`[data-poi="${poi.id}"]`)?.hidden);
-  nearbyPoi=candidates.map(poi=>({poi,d:distance(state,poi)})).sort((a,b)=>a.d-b.d)[0];
-  if(!nearbyPoi||nearbyPoi.d>.115)nearbyPoi=null;
-  const panel=stage.querySelector('.bb-nearby');
-  if(panel){
-    panel.hidden=!nearbyPoi;
-    if(nearbyPoi){
-      const {poi}=nearbyPoi;
-      panel.querySelector('strong').textContent=poi.title;
-      panel.querySelector('span').textContent=poi.copy;
-      const action=panel.querySelector('button');
-      action.textContent=poi.kind==='battle'?(state.cleared.includes(poi.id)?'CLEARED':'ENGAGE'):poi.kind==='gate'?'INSPECT':'INTERACT';
-      action.disabled=poi.kind==='battle'&&state.cleared.includes(poi.id);
-    }
-  }
-  const count=stage.querySelector('[data-discovery-count]');if(count)count.textContent=`${Math.min(4,discovered.size-1)} / 4 REVEALED`;
-  const fragments=stage.querySelector('[data-fragments]');if(fragments)fragments.textContent=`✦ ${state.fragments} RIFT FRAGMENTS`;
-}
-function moveTo(x,y){
-  if(currentView!=='explore')return;
-  target={x:clamp(x,.08,.92),y:clamp(y,.12,.88)};
-  if(!moveFrame){lastTime=performance.now();moveFrame=requestAnimationFrame(stepMove);}
-}
-function stepMove(now){
-  moveFrame=0;if(currentView!=='explore'||!target)return;
-  const state=loadState(),dt=Math.min(.05,Math.max(.001,(now-lastTime)/1000));lastTime=now;
-  const dx=target.x-state.x,dy=target.y-state.y,len=Math.hypot(dx,dy);
-  if(len<.006){state.x=target.x;state.y=target.y;target=null;saveState(state);updateExplore();return;}
-  const speed=.29,step=Math.min(len,speed*dt);
-  state.x+=dx/len*step;state.y+=dy/len*step;saveState(state);updateExplore();
-  moveFrame=requestAnimationFrame(stepMove);
-}
-function nudge(dx,dy){
-  const state=loadState();moveTo(state.x+dx,state.y+dy);
-}
-function interact(){
-  if(!nearbyPoi)return;
-  const poi=nearbyPoi.poi,state=loadState();
-  if(poi.kind==='cache'){
-    if(state.claimed.includes(poi.id))return toast('The cache is empty.');
-    mutateState(s=>{s.claimed.push(poi.id);s.fragments+=1;s.discovered.push('west')});
-    toast('Found 1 Rift Fragment.');updateExplore();return;
-  }
-  if(poi.kind==='shrine'){
-    const first=!state.claimed.includes(poi.id);
-    mutateState(s=>{s.claimed.push(poi.id);s.discovered.push('north');if(first)s.fragments+=1});
-    toast(first?'Shrine stabilized. +1 Rift Fragment.':'The shrine is stable.');updateExplore();return;
-  }
-  if(poi.kind==='gate'){toast('The North Trail is sealed until the next exploration expansion.');return;}
-  if(poi.kind==='battle'){
-    if(state.cleared.includes(poi.id))return toast('This patrol has already been cleared.');
-    queueEncounter(poi.id);
-  }
-}
-function renderExplore(){
-  currentView='explore';cancelAnimationFrame(moveFrame);moveFrame=0;target=null;
-  const host=shell();host.innerHTML='';host.appendChild(topBar('SHINOBI REALM','VERDANT APPROACH','NEXUS',renderNexus));
-  const wrap=document.createElement('main');wrap.className='bb-explore-wrap';
-  stage=document.createElement('div');stage.className='bb-explore-stage';stage.setAttribute('aria-label','Explorable Shinobi Realm zone');
-  stage.innerHTML=`
-    <div class="bb-explore-hud"><span class="bb-explore-chip" data-discovery-count>0 / 4 REVEALED</span><span class="bb-explore-chip" data-fragments>✦ 0 RIFT FRAGMENTS</span></div>
-    <div class="bb-fog" data-zone="north"></div><div class="bb-fog" data-zone="west"></div><div class="bb-fog" data-zone="east"></div>
-    <div class="bb-player"><img alt="Explorer"></div>
-    <div class="bb-nearby" hidden><strong></strong><span></span><button type="button"></button></div>
-    <div class="bb-dpad" aria-label="Movement controls"><button data-dir="up">▲</button><button data-dir="left">◀</button><button data-dir="down">▼</button><button data-dir="right">▶</button></div>`;
-  for(const poi of POIS){
-    const marker=document.createElement('button');marker.type='button';marker.className='bb-poi';marker.dataset.poi=poi.id;
-    marker.style.left=`${poi.x*100}%`;marker.style.top=`${poi.y*100}%`;marker.setAttribute('aria-label',poi.title);
-    marker.addEventListener('click',event=>{event.stopPropagation();moveTo(poi.x,poi.y+.055)});
-    stage.appendChild(marker);
-  }
-  player=stage.querySelector('.bb-player');player.querySelector('img').src=leaderArt();
-  stage.addEventListener('pointerdown',event=>{
-    if(event.target.closest('button'))return;
-    const r=stage.getBoundingClientRect();if(!r.width||!r.height)return;
-    moveTo((event.clientX-r.left)/r.width,(event.clientY-r.top)/r.height);
-  });
-  stage.querySelector('.bb-nearby button').addEventListener('click',interact);
-  const delta={up:[0,-.055],down:[0,.055],left:[-.055,0],right:[.055,0]};
-  stage.querySelectorAll('.bb-dpad button').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const [dx,dy]=delta[button.dataset.dir]||[0,0];nudge(dx,dy)}));
-  wrap.appendChild(stage);host.appendChild(wrap);updateExplore();
-}
-
-function queueEncounter(id){
-  const poi=POIS.find(item=>item.id===id&&item.kind==='battle');if(!poi)return false;
-  pendingEncounter={id:poi.id,title:poi.title,realm:'shinobi',mapStage:poi.mapStage||4,stage:poi.mapStage||4};
-  close();
-  if(typeof window.startBattle!=='function'){pendingEncounter=null;open('explore');toast('Battle entry is unavailable in this build.');return false;}
-  setTimeout(()=>window.startBattle('level'),40);
-  return true;
-}
-function consumePendingEncounter(){
-  const next=pendingEncounter;pendingEncounter=null;return next;
-}
-function applyEncounterToBattle(state,encounter){
-  const C=window.BlazingRoadContent;if(!state||!encounter||!C?.stageConfig)return null;
-  const cfg=C.stageConfig(encounter.stage||4),statMax=C.STAT_MAX||100;
-  const stat=value=>Math.max(1,Math.min(statMax,Math.round(Number(value)||1)));
-  state.enemies=cfg.enemies.slice(0,4).map((spec,index)=>{
-    const stats=spec.stats||{};
-    const e={name:spec.name,spriteKey:spec.name,bbBasicEnemyId:spec.spriteId||spec.id,mark:spec.mark,x:spec.x,y:spec.y,r:19,hp:1,maxHp:1,speed:1,attack:1,defense:1,gauge:0,shape:{type:'circle',r:43},archetype:'enemy_basic'};
-    window.BlazingBasicEnemySprites?.preload?.(e.bbBasicEnemyId);
-    e.maxHp=stat(stats.hp);e.hp=e.maxHp;e.attack=stat(stats.attack);e.defense=stat(stats.defense);e.speed=stat(stats.speed);
-    e.bbRoadStage=cfg.stage;e.bbRoadElite=cfg.elite;e.bbRoadAi={...cfg.ai};e.bbRoadIndex=index;
-    return e;
-  });
-  state.bbRoadContent=cfg;state.bbRoadStage=encounter.mapStage||cfg.stage;state.bbRealmEncounter={...encounter};
-  state.log=`SHINOBI REALM — ${encounter.title}. Clear the roaming squad.`;
-  return cfg;
-}
-function recordBattleVictory(encounter){
-  if(!encounter?.id)return null;
-  const before=loadState(),already=before.cleared.includes(encounter.id);
-  const next=mutateState(state=>{
-    state.cleared.push(encounter.id);state.discovered.push('east');
-    if(!already)state.fragments+=2;
-  });
-  try{sessionStorage.setItem(RESUME_KEY,'1')}catch{}
-  return next;
-}
-function maybeResume(){
-  if(root&&!root.hidden)return;
-  let resume=false;try{resume=sessionStorage.getItem(RESUME_KEY)==='1'}catch{}
-  if(!resume)return;
-  const menu=document.getElementById('menuScreen');
-  const battle=document.getElementById('battleScreen');
-  const menuVisible=menu&&!menu.hidden&&(menu.classList.contains('active')||getComputedStyle(menu).display!=='none');
-  const battleVisible=battle&&!battle.hidden&&battle.classList.contains('active');
-  const results=document.getElementById('bbMatchResults');
-  if(!menuVisible||battleVisible||results?.classList.contains('active'))return;
-  try{sessionStorage.removeItem(RESUME_KEY)}catch{}
-  open('explore');toast('Returned to the Shinobi Realm.');
-}
-
-function ensureEntryButton(){
-  ensureStyle();
-  const shell=document.getElementById('bbHomeApproved');if(!shell)return null;
-  let button=document.getElementById(ENTRY_ID);
-  if(!button){
-    button=document.createElement('button');button.id=ENTRY_ID;button.type='button';
-    button.innerHTML='<i>◎</i><strong>WORLD NEXUS</strong><small>EXPLORE REALMS</small>';
-    button.addEventListener('click',()=>open('nexus'));
-    shell.appendChild(button);
-  }
-  return button;
-}
-function schedule(){
-  requestAnimationFrame(()=>{ensureEntryButton();maybeResume();});
-}
-document.addEventListener('keydown',event=>{
-  if(currentView!=='explore'||root?.hidden)return;
-  const key=String(event.key||'').toLowerCase();keyboardDown.add(key);
-  const map={arrowup:[0,-.045],w:[0,-.045],arrowdown:[0,.045],s:[0,.045],arrowleft:[-.045,0],a:[-.045,0],arrowright:[.045,0],d:[.045,0],e:null,' ':null};
-  if(!(key in map))return;
-  event.preventDefault();
-  if(key==='e'||key===' ')interact();else{const [dx,dy]=map[key];nudge(dx,dy);}
-});
-document.addEventListener('keyup',event=>keyboardDown.delete(String(event.key||'').toLowerCase()));
+function queueEncounter(id){const evt=EVENTS.find(e=>e.id===id&&e.kind==='battle');if(!evt)return false;pendingEncounter={id:evt.id,title:evt.title,realm:'shinobi',mapStage:evt.mapStage||4,stage:evt.mapStage||4,returnDistance:2325};autoRun=false;commitState();close();if(typeof window.startBattle!=='function'){pendingEncounter=null;open('run');toast('Battle entry is unavailable in this build.');return false;}setTimeout(()=>window.startBattle('level'),40);return true;}
+function consumePendingEncounter(){const next=pendingEncounter;pendingEncounter=null;return next;}
+function applyEncounterToBattle(state,encounter){const C=window.BlazingRoadContent;if(!state||!encounter||!C?.stageConfig)return null;const cfg=C.stageConfig(encounter.stage||4),statMax=C.STAT_MAX||100;const stat=v=>Math.max(1,Math.min(statMax,Math.round(Number(v)||1)));state.enemies=cfg.enemies.slice(0,4).map((spec,index)=>{const stats=spec.stats||{};const e={name:spec.name,spriteKey:spec.name,bbBasicEnemyId:spec.spriteId||spec.id,mark:spec.mark,x:spec.x,y:spec.y,r:19,hp:1,maxHp:1,speed:1,attack:1,defense:1,gauge:0,shape:{type:'circle',r:43},archetype:'enemy_basic'};window.BlazingBasicEnemySprites?.preload?.(e.bbBasicEnemyId);e.maxHp=stat(stats.hp);e.hp=e.maxHp;e.attack=stat(stats.attack);e.defense=stat(stats.defense);e.speed=stat(stats.speed);e.bbRoadStage=cfg.stage;e.bbRoadElite=cfg.elite;e.bbRoadAi={...cfg.ai};e.bbRoadIndex=index;return e;});state.bbRoadContent=cfg;state.bbRoadStage=encounter.mapStage||cfg.stage;state.bbRealmEncounter={...encounter};state.log='SHINOBI REALM — '+encounter.title+'. Clear the patrol to continue the run.';return cfg;}
+function recordBattleVictory(encounter){if(!encounter?.id)return null;const next=loadState(),already=next.cleared.includes(encounter.id);next.cleared=uniq([...next.cleared,encounter.id]);next.distance=Math.max(next.distance,Number(encounter.returnDistance)||2325);next.lane=1;next.route='main';if(!already)next.fragments+=2;runState=saveState(next);try{sessionStorage.setItem(RESUME_KEY,'1')}catch{}return runState;}
+function maybeResume(){if(root&&!root.hidden)return;let resume=false;try{resume=sessionStorage.getItem(RESUME_KEY)==='1'}catch{}if(!resume)return;const menu=document.getElementById('menuScreen'),battle=document.getElementById('battleScreen');const menuVisible=menu&&!menu.hidden&&(menu.classList.contains('active')||getComputedStyle(menu).display!=='none');const battleVisible=battle&&!battle.hidden&&battle.classList.contains('active');const results=document.getElementById('bbMatchResults');if(!menuVisible||battleVisible||results?.classList.contains('active'))return;try{sessionStorage.removeItem(RESUME_KEY)}catch{}open('run');toast('Back on the Forest Approach.');}
+function ensureEntryButton(){ensureStyle();const home=document.getElementById('bbHomeApproved');if(!home)return null;let b=document.getElementById(ENTRY_ID);if(!b){b=document.createElement('button');b.id=ENTRY_ID;b.innerHTML='<i>◎</i><strong>WORLD NEXUS</strong><small>RUN THE REALMS</small>';b.onclick=()=>open('nexus');home.appendChild(b);}return b;}
+function schedule(){requestAnimationFrame(()=>{ensureEntryButton();maybeResume();});}
+document.addEventListener('keydown',e=>{if(currentView!=='run'||root?.hidden)return;const k=String(e.key||'').toLowerCase();if(k==='arrowright'||k==='d'){e.preventDefault();pressed.add('right');startLoop();}else if(k==='arrowleft'||k==='a'){e.preventDefault();pressed.add('left');startLoop();}else if(k==='arrowup'||k==='w'){e.preventDefault();laneShift(-1);}else if(k==='arrowdown'||k==='s'){e.preventDefault();laneShift(1);}else if(k===' '){e.preventDefault();jump();}else if(k==='shift'){e.preventDefault();dash();}else if(k==='e'){e.preventDefault();interactEvent();}});
+document.addEventListener('keyup',e=>{const k=String(e.key||'').toLowerCase();if(k==='arrowright'||k==='d')pressed.delete('right');if(k==='arrowleft'||k==='a')pressed.delete('left');});
 new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','style']});
-window.addEventListener('pageshow',schedule);
+window.addEventListener('pageshow',schedule);window.addEventListener('resize',()=>{if(currentView==='run')updateRunView()},{passive:true});
 setTimeout(schedule,0);setTimeout(schedule,300);
-
-window.BlazingRealmExplorer=Object.freeze({
-  VERSION,STORAGE_KEY,REALMS,POIS,
-  open,close,loadState,saveState,
-  queueEncounter,consumePendingEncounter,applyEncounterToBattle,recordBattleVictory,
-  renderNexus,renderExplore
-});
+window.BlazingRealmExplorer=Object.freeze({VERSION,STORAGE_KEY,COURSE_LENGTH,REALMS,SPARKS,EVENTS,open,close,loadState,saveState,renderNexus,renderRun,renderExplore,setAutoRun,laneShift,jump,dash,avoidPatrol,interactEvent,queueEncounter,consumePendingEncounter,applyEncounterToBattle,recordBattleVictory});
 })();
