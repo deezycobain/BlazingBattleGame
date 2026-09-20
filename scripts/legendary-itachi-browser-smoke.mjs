@@ -103,7 +103,7 @@ async function run(name,type){
     const sequentialStarts=startOrder.length===4&&startOrder.every((value,index)=>value===index);
     const gaps=ringStarts.slice(1).map(item=>item.gap),separatedStarts=gaps.every(gap=>gap>=400),smoothTaper=gaps.every((gap,index)=>index===0||gap<=gaps[index-1]+40)&&((Math.max(...gaps)-Math.min(...gaps))>=35);
     if(!sequentialStarts||!separatedStarts||!smoothTaper)throw new Error(`Itachi ring starts lost their intended staggered smooth cadence: ${JSON.stringify(ringStarts)}`);
-    await page.waitForTimeout(560);
+    await page.waitForFunction(()=>[...document.querySelectorAll('#pullScene .bb-itachi-ring-shell')].length===4&&[...document.querySelectorAll('#pullScene .bb-itachi-ring-shell')].every(node=>(Number.parseFloat(getComputedStyle(node).opacity)||0)>=.99),null,{timeout:2600});
     const assembled=await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
       return {
