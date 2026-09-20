@@ -63,7 +63,7 @@ jobs:
       - name: Chromium + WebKit local Retina display-quality smoke
         run: node scripts/display-quality-smoke.mjs
       - name: Chromium + WebKit deployed dev smoke
-        if: always() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        if: success() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
         env:
           BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
           BB_EXPECT_COMMIT: ${{ github.sha }}
@@ -75,7 +75,7 @@ jobs:
           done
           exit 1
       - name: Chromium + WebKit deployed results and economy smoke
-        if: always() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        if: success() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
         env:
           BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
           BB_EXPECT_COMMIT: ${{ github.sha }}
@@ -87,7 +87,7 @@ jobs:
           done
           exit 1
       - name: Chromium + WebKit deployed unit progression smoke
-        if: always() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        if: success() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
         env:
           BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
           BB_EXPECT_COMMIT: ${{ github.sha }}
@@ -99,7 +99,7 @@ jobs:
           done
           exit 1
       - name: Chromium + WebKit deployed player profile smoke
-        if: always() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        if: success() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
         env:
           BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
           BB_EXPECT_COMMIT: ${{ github.sha }}
@@ -111,7 +111,7 @@ jobs:
           done
           exit 1
       - name: Chromium + WebKit deployed Blazing Road persistence smoke
-        if: always() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        if: success() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
         env:
           BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
           BB_EXPECT_COMMIT: ${{ github.sha }}
@@ -123,7 +123,7 @@ jobs:
           done
           exit 1
       - name: Chromium + WebKit deployed Blazing Road gameplay smoke
-        if: always() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        if: success() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
         env:
           BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
           BB_EXPECT_COMMIT: ${{ github.sha }}
@@ -135,7 +135,7 @@ jobs:
           done
           exit 1
       - name: Chromium + WebKit deployed battle pause smoke
-        if: always() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        if: success() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
         env:
           BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
           BB_EXPECT_COMMIT: ${{ github.sha }}
@@ -147,7 +147,7 @@ jobs:
           done
           exit 1
       - name: Chromium + WebKit deployed Retina display-quality smoke
-        if: always() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        if: success() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
         env:
           BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
           BB_EXPECT_COMMIT: ${{ github.sha }}
