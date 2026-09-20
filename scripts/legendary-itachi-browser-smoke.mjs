@@ -101,8 +101,8 @@ async function run(name,type){
     })));
     const startOrder=ringStarts.map(item=>item.index);
     const sequentialStarts=startOrder.length===4&&startOrder.every((value,index)=>value===index);
-    const gaps=ringStarts.slice(1).map(item=>item.gap),separatedStarts=gaps.every(gap=>gap>=300),irregularStarts=(Math.max(...gaps)-Math.min(...gaps))>=100;
-    if(!sequentialStarts||!separatedStarts||!irregularStarts)throw new Error(`Itachi ring starts lost their staggered irregular cadence: ${JSON.stringify(ringStarts)}`);
+    const gaps=ringStarts.slice(1).map(item=>item.gap),separatedStarts=gaps.every(gap=>gap>=400),smoothTaper=gaps.every((gap,index)=>index===0||gap<=gaps[index-1]+40)&&((Math.max(...gaps)-Math.min(...gaps))>=35);
+    if(!sequentialStarts||!separatedStarts||!smoothTaper)throw new Error(`Itachi ring starts lost their intended staggered smooth cadence: ${JSON.stringify(ringStarts)}`);
     await page.waitForTimeout(560);
     const assembled=await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
@@ -209,7 +209,7 @@ async function run(name,type){
     if(!resultState.legendary||resultState.kind!=='itachi'||!resultState.art.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi result card lost its special treatment/full-background art: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
-    console.log(`Legendary Itachi summon smoke PASS (${name}): four-ring kinetic cog starts ${JSON.stringify(ringStarts.map(s=>s.index))}, two-beat outer snap, one-beat second-ring snap, then two smooth inner transitions and an isolated gear-spin pause before Itachi appears, floating Sharingan orbit removed, uniform 5% ring shrink, one-second red-flicker shadow hold, crows-before-Itachi reveal, 8.5s handoff, smoke-backed gear intro, blackout fade-back, and full-background card art verified.`);
+    console.log(`Legendary Itachi summon smoke PASS (${name}): four-ring kinetic cog starts ${JSON.stringify(ringStarts.map(s=>s.index))}, two-beat outer snap, one-beat second-ring snap, two smooth inner transitions, and a brief isolated gear-spin pause before Itachi appears, floating Sharingan orbit removed, uniform 5% ring shrink, one-second red-flicker shadow hold, crows-before-Itachi reveal, 8.5s handoff, smoke-backed gear intro, blackout fade-back, and full-background card art verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
