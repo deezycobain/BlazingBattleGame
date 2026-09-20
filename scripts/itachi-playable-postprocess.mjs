@@ -21,23 +21,34 @@ replaceOne(
   'active playable whitelist'
 );
 
-replaceOne(
-  "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Tyler','Lebee','Sub-Zero']);",
+const replaceRegexOne=(rx,to,label)=>{
+  const matches=html.match(new RegExp(rx.source,rx.flags.includes('g')?rx.flags:rx.flags+'g'))||[];
+  if(matches.length!==1)fail(`expected one ${label}, found ${matches.length}`);
+  html=html.replace(rx,to);
+};
+
+replaceRegexOne(
+  /const DEFAULT_ACTIVE_TEAM=Object\.freeze\(\[[^\]]+\]\);/,
   "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Tyler','Itachi','Lebee','Senku','Sub-Zero','Crimson']);",
   'six-unit paired default team'
 );
-replaceOne(
-  "const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v4';",
+replaceRegexOne(
+  /const TEAM_STORAGE_KEY='blazingBattle\.activeTeam\.v\d+';/,
   "const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v5';",
   'six-unit paired team storage version'
 );
-replaceOne(
-  "function validActiveTeam(team){\\n return Array.isArray(team)\\n   && team.length===3\\n   && new Set(team).size===3\\n   && team.every(name=>ACTIVE_PLAYABLE_UNITS.includes(name));\\n}",
-  "function validActiveTeam(team){\\n return Array.isArray(team)\\n   && team.length===6\\n   && new Set(team).size===6\\n   && team.every(name=>ACTIVE_PLAYABLE_UNITS.includes(name));\\n}",
+replaceRegexOne(
+  /function validActiveTeam\(team\)\{\s*return Array\.isArray\(team\)\s*&& team\.length===3\s*&& new Set\(team\)\.size===3\s*&& team\.every\(name=>ACTIVE_PLAYABLE_UNITS\.includes\(name\)\);\s*\}/,
+  `function validActiveTeam(team){
+ return Array.isArray(team)
+   && team.length===6
+   && new Set(team).size===6
+   && team.every(name=>ACTIVE_PLAYABLE_UNITS.includes(name));
+}`,
   'six-unit active team validation'
 );
 
-const pairBuilderRx=/function buildPlayerPairs\\(y\\)\\{.*?\\n\\}\\nconst ACTIVE_BOSSES/s;
+const pairBuilderRx=/function buildPlayerPairs\(y\)\{.*?\n\}\nconst ACTIVE_BOSSES/s;
 if(!pairBuilderRx.test(html))fail('paired team builder anchor missing');
 html=html.replace(pairBuilderRx,`function buildPlayerPairs(y){
  const xs=[95,240,385];
@@ -86,7 +97,7 @@ const pairStyle=`<style id="bb-team-pair-style">
 #teamScreen .bb-team-pair .teamSlot.selected{outline:2px solid #44b9e8!important;box-shadow:0 0 0 3px rgba(68,185,232,.18),0 4px 12px rgba(42,89,110,.18)!important}
 @media(max-width:430px){#teamScreen .teamBody{padding-left:8px!important;padding-right:8px!important}#teamScreen .bb-team-pairs{gap:6px!important}#teamScreen .bb-team-pair{padding:7px 4px 8px}#teamScreen .bb-team-pair .teamSlot{min-height:100px!important}#teamScreen .bb-team-pair .teamSlot img{height:68px!important}}
 </style>`;
-html=html.replace(/<\\/head>/i,pairStyle+'</head>');
+html=html.replace(/<\/head>/i,pairStyle+'</head>');
 
 const frameRuntime=String.raw`
 const ITACHI_IDLE_FRAMES=makeImageFrames([
