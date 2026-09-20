@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const VERSION='6.4.0-itachi';
+const VERSION='6.4.1-itachi';
 const PORTAL_ROOT='assets/vfx/summon/portal-reveal';
 const ITACHI_ROOT='assets/vfx/summon/legendary-itachi';
 const ITACHI_CARD_ART_SRC='assets/characters/itachi/art/itachi_full_art.png';
@@ -56,7 +56,7 @@ function schedule(scene,run,delay,fn){const timer=setTimeout(()=>{if(Number(scen
 function setStage(scene,stage){scene.dataset.bbRevealStage=stage}
 function setItachiStage(scene,stage){scene.dataset.bbItachiStage=stage}
 function paintedFrame(){return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))}
-function ensureItachiStyles(){if(document.querySelector('link[data-bb-itachi-summon]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=ITACHI_STYLE_SRC;link.dataset.bbItachiSummon='1';document.head.append(link)}
+function ensureItachiStyles(){if(document.querySelector('link[data-bb-itachi-summon]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=ITACHI_STYLE_SRC+'?v='+VERSION;link.dataset.bbItachiSummon='1';document.head.append(link)}
 function ensureItachiBlackout(){const screen=document.getElementById('summonPullScreen');if(!screen)return null;let layer=screen.querySelector(':scope > .bb-itachi-blackout');if(!layer){layer=document.createElement('div');layer.className='bb-itachi-blackout';layer.setAttribute('aria-hidden','true');screen.append(layer)}return layer}
 function activateItachiBlackout(){const screen=document.getElementById('summonPullScreen'),layer=ensureItachiBlackout();screen?.classList.add('bb-itachi-blackout-active');if(layer){layer.classList.remove('bb-active');void layer.offsetWidth;layer.classList.add('bb-active')}}
 function deactivateItachiBlackout(){const screen=document.getElementById('summonPullScreen'),layer=screen?.querySelector(':scope > .bb-itachi-blackout');layer?.classList.remove('bb-active');screen?.classList.remove('bb-itachi-blackout-active')}

@@ -40,7 +40,7 @@ async function run(name,type){
       hasTestHook:typeof window.BlazingSummonCinematic?.testItachi==='function',
       styleHref:document.querySelector('link[data-bb-itachi-summon]')?.getAttribute('href')||''
     }));
-    if(contract.version!=='6.4.0-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
+    if(contract.version!=='6.4.1-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
     if(JSON.stringify(contract.timeline)!==JSON.stringify(EXPECTED_TIMES))throw new Error(`Itachi timeline contract changed: ${JSON.stringify(contract.timeline)}`);
     if(Object.keys(contract.itachiVfx||{}).length!==12||!String(contract.itachiVfx?.middle||'').endsWith('itachi_ring_middle_enamel.webp'))throw new Error(`expected 12 Itachi VFX mappings with the enamel connector restored: ${JSON.stringify(contract.itachiVfx)}`);
     if(!contract.hasTestHook||!contract.styleHref.includes('legendary-itachi-summon.css')||!String(contract.itachiCardArt||'').endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi test/style hook missing: ${JSON.stringify(contract)}`);
@@ -78,9 +78,18 @@ async function run(name,type){
     await page.waitForTimeout(720);
     const blackout=await page.evaluate(()=>{
       const screen=document.getElementById('summonPullScreen'),layer=screen?.querySelector(':scope > .bb-itachi-blackout');
-      return {active:screen?.classList.contains('bb-itachi-blackout-active')||false,opacity:layer?Number.parseFloat(getComputedStyle(layer).opacity)||0:0,visibleRings:[...document.querySelectorAll('.bb-itachi-ring-shell')].filter(node=>(Number.parseFloat(getComputedStyle(node).opacity)||0)>.01).length};
+      const hero=screen?.querySelector('.pullHeroArea'),scene=screen?.querySelector('.pullScene'),stage=screen?.querySelector('.bb-itachi-stage-vfx');
+      return {
+        active:screen?.classList.contains('bb-itachi-blackout-active')||false,
+        opacity:layer?Number.parseFloat(getComputedStyle(layer).opacity)||0:0,
+        visibleRings:[...document.querySelectorAll('.bb-itachi-ring-shell')].filter(node=>(Number.parseFloat(getComputedStyle(node).opacity)||0)>.01).length,
+        blackoutZ:layer?Number.parseInt(getComputedStyle(layer).zIndex,10)||0:0,
+        heroZ:hero?Number.parseInt(getComputedStyle(hero).zIndex,10)||0:0,
+        sceneZ:scene?Number.parseInt(getComputedStyle(scene).zIndex,10)||0:0,
+        stageZ:stage?Number.parseInt(getComputedStyle(stage).zIndex,10)||0:0
+      };
     });
-    if(!blackout.active||blackout.opacity<.7||blackout.visibleRings!==0)throw new Error(`Itachi blackout did not establish before the gears: ${JSON.stringify(blackout)}`);
+    if(!blackout.active||blackout.opacity<.7||blackout.visibleRings!==0||blackout.blackoutZ>=blackout.heroZ||blackout.heroZ>=blackout.sceneZ||blackout.stageZ<6)throw new Error(`Itachi blackout is not isolated behind the cinematic: ${JSON.stringify(blackout)}`);
     await page.waitForFunction(()=>window.__bbItachiRingStarts?.length===5,{timeout:5000});
     const ringStarts=await page.evaluate(()=>window.__bbItachiRingStarts.map((item,index,array)=>({
       index:item.index,
