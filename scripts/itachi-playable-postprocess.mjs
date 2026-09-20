@@ -21,6 +21,73 @@ replaceOne(
   'active playable whitelist'
 );
 
+replaceOne(
+  "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Tyler','Lebee','Sub-Zero']);",
+  "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Tyler','Itachi','Lebee','Senku','Sub-Zero','Crimson']);",
+  'six-unit paired default team'
+);
+replaceOne(
+  "const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v4';",
+  "const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v5';",
+  'six-unit paired team storage version'
+);
+replaceOne(
+  "function validActiveTeam(team){\\n return Array.isArray(team)\\n   && team.length===3\\n   && new Set(team).size===3\\n   && team.every(name=>ACTIVE_PLAYABLE_UNITS.includes(name));\\n}",
+  "function validActiveTeam(team){\\n return Array.isArray(team)\\n   && team.length===6\\n   && new Set(team).size===6\\n   && team.every(name=>ACTIVE_PLAYABLE_UNITS.includes(name));\\n}",
+  'six-unit active team validation'
+);
+
+const pairBuilderRx=/function buildPlayerPairs\\(y\\)\\{.*?\\n\\}\\nconst ACTIVE_BOSSES/s;
+if(!pairBuilderRx.test(html))fail('paired team builder anchor missing');
+html=html.replace(pairBuilderRx,`function buildPlayerPairs(y){
+ const xs=[95,240,385];
+ const team=getActiveTeam();
+ const pairNames=[[team[0],team[1]],[team[2],team[3]],[team[4],team[5]]];
+ return pairNames.map((names,i)=>{
+   const units=names.map(name=>{
+     if(!BATTLE_ROSTER[name]){console.error('Team unit "'+name+'" is not registered in BATTLE_ROSTER.');return emptyReserve();}
+     return makeRosterUnit(name,teamSpawnOptions(name));
+   });
+   return {x:xs[i],y,active:0,gauge:0,units};
+ });
+}
+const ACTIVE_BOSSES`);
+
+const oldTeamMarkup=`<div class="teamIntro">
+      <b>Choose your active three.</b> Tap a slot, then tap an owned battle-ready fighter.
+      Selecting a fighter already in another slot swaps their positions.
+    </div>
+    <section id="teamSlots" class="teamSlots" aria-label="Active team slots">
+      <button class="teamSlot selected" data-team-slot="0" data-slot-label="SLOT 1"><img alt=""><span class="teamSlotName">—</span></button>
+      <button class="teamSlot" data-team-slot="1" data-slot-label="SLOT 2"><img alt=""><span class="teamSlotName">—</span></button>
+      <button class="teamSlot" data-team-slot="2" data-slot-label="SLOT 3"><img alt=""><span class="teamSlotName">—</span></button>
+    </section>`;
+const newTeamMarkup=`<div class="teamIntro">
+      <b>Build three battle pairs.</b> Each front fighter has one partner who can swap into battle.
+      Tap any FRONT or PARTNER slot, then choose a fighter below. Selecting a fighter already assigned swaps their positions.
+    </div>
+    <section id="teamSlots" class="teamSlots bb-team-pairs" aria-label="Three battle pairs, six fighters">
+      <div class="bb-team-pair" data-team-pair="0"><strong>PAIR 1</strong><span>FRONT</span><button class="teamSlot selected" data-team-slot="0" data-slot-label="PAIR 1 FRONT"><img alt=""><span class="teamSlotName">—</span></button><span>PARTNER</span><button class="teamSlot" data-team-slot="1" data-slot-label="PAIR 1 PARTNER"><img alt=""><span class="teamSlotName">—</span></button></div>
+      <div class="bb-team-pair" data-team-pair="1"><strong>PAIR 2</strong><span>FRONT</span><button class="teamSlot" data-team-slot="2" data-slot-label="PAIR 2 FRONT"><img alt=""><span class="teamSlotName">—</span></button><span>PARTNER</span><button class="teamSlot" data-team-slot="3" data-slot-label="PAIR 2 PARTNER"><img alt=""><span class="teamSlotName">—</span></button></div>
+      <div class="bb-team-pair" data-team-pair="2"><strong>PAIR 3</strong><span>FRONT</span><button class="teamSlot" data-team-slot="4" data-slot-label="PAIR 3 FRONT"><img alt=""><span class="teamSlotName">—</span></button><span>PARTNER</span><button class="teamSlot" data-team-slot="5" data-slot-label="PAIR 3 PARTNER"><img alt=""><span class="teamSlotName">—</span></button></div>
+    </section>`;
+replaceOne(oldTeamMarkup,newTeamMarkup,'six-slot paired team editor markup');
+replaceOne('SAVE ACTIVE TEAM','SAVE 3 PAIRS','paired team save label');
+
+const pairStyle=`<style id="bb-team-pair-style">
+#teamScreen .bb-team-pairs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important;align-items:start!important}
+#teamScreen .bb-team-pair{position:relative;display:grid;grid-template-columns:1fr;gap:5px;padding:8px 6px 10px;border:1px solid rgba(115,83,47,.42);border-radius:13px;background:linear-gradient(180deg,rgba(255,251,237,.78),rgba(224,205,168,.62));box-shadow:inset 0 1px rgba(255,255,255,.72),0 4px 10px rgba(64,45,26,.10)}
+#teamScreen .bb-team-pair>strong{font:800 10px/1 var(--bb-font-animeace,AnimeAce2,sans-serif);letter-spacing:.05em;text-align:center;color:#4e3825}
+#teamScreen .bb-team-pair>span{font:900 7px/1 system-ui,sans-serif;letter-spacing:.13em;text-align:center;color:#876b49}
+#teamScreen .bb-team-pair .teamSlot{width:100%!important;min-width:0!important;min-height:112px!important;padding:5px!important}
+#teamScreen .bb-team-pair .teamSlot img{width:100%!important;height:78px!important;object-fit:cover!important;object-position:center 22%!important;border-radius:8px 3px 8px 3px}
+#teamScreen .bb-team-pair .teamSlotName{display:block!important;margin-top:4px!important;font-size:8px!important;line-height:1.05!important;text-align:center!important}
+#teamScreen .bb-team-pair .teamSlot[data-team-slot="1"],#teamScreen .bb-team-pair .teamSlot[data-team-slot="3"],#teamScreen .bb-team-pair .teamSlot[data-team-slot="5"]{transform:scale(.94);transform-origin:center top}
+#teamScreen .bb-team-pair .teamSlot.selected{outline:2px solid #44b9e8!important;box-shadow:0 0 0 3px rgba(68,185,232,.18),0 4px 12px rgba(42,89,110,.18)!important}
+@media(max-width:430px){#teamScreen .teamBody{padding-left:8px!important;padding-right:8px!important}#teamScreen .bb-team-pairs{gap:6px!important}#teamScreen .bb-team-pair{padding:7px 4px 8px}#teamScreen .bb-team-pair .teamSlot{min-height:100px!important}#teamScreen .bb-team-pair .teamSlot img{height:68px!important}}
+</style>`;
+html=html.replace(/<\\/head>/i,pairStyle+'</head>');
+
 const frameRuntime=String.raw`
 const ITACHI_IDLE_FRAMES=makeImageFrames([
  'assets/characters/itachi/sprites/runtime/idle/frame_01.png','assets/characters/itachi/sprites/runtime/idle/frame_02.png','assets/characters/itachi/sprites/runtime/idle/frame_03.png','assets/characters/itachi/sprites/runtime/idle/frame_04.png','assets/characters/itachi/sprites/runtime/idle/frame_05.png','assets/characters/itachi/sprites/runtime/idle/frame_06.png'

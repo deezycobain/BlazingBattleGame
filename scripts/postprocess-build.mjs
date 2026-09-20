@@ -54,17 +54,6 @@ replaceRequired('<div class="teamActions">\n      <button id="saveTeamBtn" class
 const teamUiStyle=`<style id="bb-team-mobile-fit">#teamScreen .teamActions{display:flex;flex-direction:column;gap:8px;padding-bottom:max(12px,env(safe-area-inset-bottom));}#teamScreen #teamSaved{order:0;min-height:20px;margin:0;text-align:center;line-height:1.3;font-size:11px;font-weight:800;color:#85f0a5;}#teamScreen #saveTeamBtn{order:1;flex:0 0 auto;}@media(max-width:700px){#teamScreen .teamBody{padding-bottom:calc(18px + env(safe-area-inset-bottom));}#teamScreen .teamActions{position:relative;z-index:2;}}</style>`;
 html=html.replace(/<\/head>/i,`${teamUiStyle}</head>`);
 
-
-// TEMP TEAM-PAIR DISCOVERY: print compact source windows in dev CI so the six-unit pair migration
-// can patch the exact current runtime without guessing at the 50 MiB embedded source shell.
-if(!isProduction){
- const probes=['const DEFAULT_ACTIVE_TEAM','const TEAM_STORAGE_KEY','function loadActiveTeam','function saveActiveTeam','function renderTeam','function openTeam','function startBattle','S.pairs','pairs=','data-team-slot'];
- for(const probe of probes){
-  const at=html.indexOf(probe);
-  if(at>=0)console.log('TEAM_DISCOVERY '+probe+'\n'+html.slice(Math.max(0,at-1400),Math.min(html.length,at+3600)).replace(/data:[^;]+;base64,[A-Za-z0-9+/=]+/g,'[DATA_URI]'));
- }
-}
-
 const meta=`<script>window.BB_BUILD_META=Object.freeze({version:${JSON.stringify(GAME_VERSION)},branch:${JSON.stringify(branch)},commit:${JSON.stringify(commit)},environment:${JSON.stringify(isProduction?'production':'preview')},canonicalRuntime:true});<\/script>`;
 html=html.replace(/<head([^>]*)>/i,`<head$1>${meta}`);
 if(!isProduction){const spawnRx=/function teamSpawnOptions\(name\)\{.*?\n\}/s;if(!spawnRx.test(html))throw new Error('Dev postprocess: teamSpawnOptions anchor missing');html=html.replace(spawnRx,"function teamSpawnOptions(name){\n return {startingChakra:'full'};\n}");const speedAnchor="mark:d.combat.mark,speed:d.stats.speed,attack:d.stats.attack,defense:d.stats.defense,";if(!html.includes(speedAnchor))throw new Error('Dev postprocess: runtime speed anchor missing');html=html.replace(speedAnchor,"mark:d.combat.mark,speed:(d.role==='playable'?200:(d.role==='boss'?50:d.stats.speed)),attack:d.stats.attack,defense:d.stats.defense,");const bossAnchor="speed:canonicalUnit('anubis').stats.speed,attack:canonicalUnit('anubis').stats.attack";if(html.includes(bossAnchor))html=html.replace(bossAnchor,"speed:50,attack:canonicalUnit('anubis').stats.attack");const devConfig=`<script>window.BB_DEV_CONFIG=Object.freeze({enabled:true,startPlayableAtMaxChakra:true,playerSpeed:200,bossSpeed:50});<\/script>`;html=html.replace(/<head([^>]*)>/i,`<head$1>${devConfig}</head>`.replace('</head></head>','</head>'));}

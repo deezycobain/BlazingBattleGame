@@ -1,0 +1,46 @@
+import {chromium,webkit} from 'playwright';
+
+const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'');
+const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
+for(const [name,type] of Object.entries({chromium,webkit})){
+ let browser;
+ try{
+  browser=await type.launch({headless:true,timeout:15000});
+  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:true});
+  const page=await context.newPage();
+  await page.goto(BASE+'/',{waitUntil:'domcontentloaded'});
+  await page.waitForFunction(()=>typeof window.BB_BUILD_META==='object',{timeout:30000});
+  const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
+  if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error('commit mismatch');
+  const contract=await page.evaluate(()=>{
+   const get=globalThis.eval;
+   const team=get('getActiveTeam()');
+   const pairs=get('buildPlayerPairs(575)');
+   return {team,pairCount:pairs.length,pairs:pairs.map(p=>({active:p.active,names:p.units.map(u=>u?.name||'—')})),key:get('TEAM_STORAGE_KEY'),playable:get('[...ACTIVE_PLAYABLE_UNITS]'),valid:get('validActiveTeam(getActiveTeam())')};
+  });
+  if(!contract.valid||contract.team.length!==6||new Set(contract.team).size!==6)throw new Error('six-unit team contract invalid: '+JSON.stringify(contract));
+  if(contract.pairCount!==3||contract.pairs.some(p=>p.names.length!==2||p.names.some(n=>!n||n==='—')))throw new Error('three paired battle slots invalid: '+JSON.stringify(contract));
+  if(contract.key!=='blazingBattle.activeTeam.v5')throw new Error('team storage version wrong: '+contract.key);
+  if(!contract.playable.includes('Itachi')||!contract.playable.includes('Tyler'))throw new Error('paired roster missing current units: '+JSON.stringify(contract.playable));
+
+  const ui=await page.evaluate(()=>{
+   globalThis.eval('showTeamEditor()');
+   const slots=[...document.querySelectorAll('#teamScreen .teamSlot[data-team-slot]')];
+   return {visible:getComputedStyle(document.getElementById('teamScreen')).display!=='none',slots:slots.length,pairs:document.querySelectorAll('#teamScreen .bb-team-pair').length,labels:slots.map(s=>s.dataset.slotLabel),save:document.getElementById('saveTeamBtn')?.textContent?.trim()};
+  });
+  if(!ui.visible||ui.slots!==6||ui.pairs!==3||ui.save!=='SAVE 3 PAIRS')throw new Error('team editor pair UI invalid: '+JSON.stringify(ui));
+
+  const swap=await page.evaluate(()=>{
+   const get=globalThis.eval;
+   get('S=fresh()');
+   const before=get('front(S.pairs[0]).name');
+   const partner=get('back(S.pairs[0]).name');
+   get("S.ready={kind:'pair',ref:S.pairs[0],g:100};S.phase='player';S.drag=false;S.anim=null;updateUI()");
+   document.getElementById('swap').click();
+   const after=get('front(S.pairs[0]).name');
+   return {before,partner,after,active:get('S.pairs[0].active')};
+  });
+  if(!swap.partner||swap.partner==='—'||swap.after!==swap.partner||swap.after===swap.before||swap.active!==1)throw new Error('partner swap failed: '+JSON.stringify(swap));
+  console.log('Team pair smoke PASS ('+name+'): 6 selected units -> 3 front/partner pairs with live swap.');
+ }finally{if(browser)await browser.close().catch(()=>{})}
+}
