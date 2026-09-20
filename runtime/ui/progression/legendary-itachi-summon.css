@@ -20,11 +20,10 @@
 #summonPullScreen .bb-itachi-ring-shell img{opacity:1!important}
 #summonPullScreen .bb-itachi-environment{display:none!important}
 #summonPullScreen .bb-itachi-ring{z-index:2}
-#summonPullScreen .bb-itachi-ring-flame{width:148%;z-index:2}
-#summonPullScreen .bb-itachi-ring-outer{width:132%;z-index:3}
-#summonPullScreen .bb-itachi-ring-middle{width:114%;z-index:4}
-#summonPullScreen .bb-itachi-ring-inner{width:100%;z-index:5}
-#summonPullScreen .bb-itachi-ring-orbit{width:86%;z-index:6}
+#summonPullScreen .bb-itachi-ring-flame{width:141%;z-index:2}
+#summonPullScreen .bb-itachi-ring-outer{width:125%;z-index:3}
+#summonPullScreen .bb-itachi-ring-middle{width:108%;z-index:4}
+#summonPullScreen .bb-itachi-ring-inner{width:95%;z-index:5}
 #summonPullScreen .bb-itachi-shadow-lotus{width:128%;z-index:7;mix-blend-mode:screen}
 #summonPullScreen .bb-itachi-character{width:132%;z-index:10}
 #summonPullScreen .bb-itachi-raven-burst{width:172%;z-index:13}
@@ -41,19 +40,16 @@
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-shell-outer{animation:bbItachiRingSnap .42s cubic-bezier(.16,.66,.20,1) 1.57s both!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-shell-middle{animation:bbItachiRingSnap .43s cubic-bezier(.16,.68,.20,1) 1.96s both!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-shell-inner{animation:bbItachiRingSnap .39s cubic-bezier(.16,.72,.20,1) 2.44s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-shell-orbit{animation:bbItachiRingSnap .35s cubic-bezier(.16,.76,.20,1) 2.73s both!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-flame{animation:bbItachiSpinCCW 26s linear 1.05s infinite!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-outer{animation:bbItachiSpinCCW 19s linear 1.57s infinite!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-middle{animation:bbItachiSpinCW 12s linear 1.96s infinite!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-inner{animation:bbItachiSpinCCW 7.2s linear 2.44s infinite!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-orbit{animation:bbItachiSpinCW 3.8s linear 2.73s infinite!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-shadow-lotus{animation:bbItachiShadowLotus 1.92s cubic-bezier(.18,.58,.24,1) 3.30s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-silhouette{animation:bbItachiSilhouette 1.96s cubic-bezier(.18,.56,.24,1) 3.65s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-raven-burst{animation:bbItachiRavens 1.88s cubic-bezier(.16,.60,.24,1) 4.22s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-feather-vortex{animation:bbItachiFeathers 2.62s cubic-bezier(.18,.64,.22,1) 4.12s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-flash{animation:bbItachiFlash .88s cubic-bezier(.18,.64,.24,1) 5.08s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-reveal{animation:bbItachiReveal 3.24s cubic-bezier(.16,.64,.22,1) 5.30s both!important}
-#summonPullScreen .pullScene[data-bb-itachi-stage="reveal"] .bb-itachi-ring-orbit,#summonPullScreen .pullScene[data-bb-itachi-stage="settle"] .bb-itachi-ring-orbit{opacity:.14!important;transition:opacity .26s ease-out!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-shadow-lotus{animation:bbItachiShadowLotus 2.20s cubic-bezier(.18,.58,.24,1) 3.30s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-silhouette{animation:bbItachiSilhouette 2.35s cubic-bezier(.18,.54,.24,1) 3.65s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-raven-burst{animation:bbItachiRavens 1.88s cubic-bezier(.16,.60,.24,1) 5.15s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-feather-vortex{animation:bbItachiFeathers 2.62s cubic-bezier(.18,.64,.22,1) 5.05s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-flash{animation:bbItachiFlash .88s cubic-bezier(.18,.64,.24,1) 5.48s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-reveal{animation:bbItachiReveal 3.24s cubic-bezier(.16,.64,.22,1) 5.70s both!important}
 #summonPullScreen .pullScene[data-bb-itachi-stage="reveal"] .bb-itachi-ring-middle,#summonPullScreen .pullScene[data-bb-itachi-stage="settle"] .bb-itachi-ring-middle{filter:brightness(.78) saturate(.9)}
 #summonPullScreen .pullScene[data-bb-special-reveal="itachi"][data-bb-itachi-stage="handoff"] .bb-itachi-stage-vfx{opacity:0!important;transition:opacity .14s ease-out}
 #summonPullScreen .pullScene[data-bb-special-reveal="itachi"][data-bb-itachi-stage="handoff"] .bb-card-flipper{opacity:1!important;transform:rotateY(180deg)!important;animation:bbItachiCardHandoff .28s cubic-bezier(.16,.82,.2,1) both!important}
@@ -73,11 +69,11 @@
 @keyframes bbItachiSpinCW{0%{transform:translate3d(-50%,-50%,0) rotate(0deg)}100%{transform:translate3d(-50%,-50%,0) rotate(360deg)}}
 @keyframes bbItachiSpinCCW{0%{transform:translate3d(-50%,-50%,0) rotate(0deg)}100%{transform:translate3d(-50%,-50%,0) rotate(-360deg)}}
 @keyframes bbItachiShadowLotus{0%{opacity:0;transform:translate3d(-50%,-46%,0) scale(.74);filter:blur(5px)}16%{opacity:.12;filter:blur(4px)}34%{opacity:.34;filter:blur(2px)}52%{opacity:.52;transform:translate3d(-50%,-49%,0) scale(.96);filter:blur(0)}74%{opacity:.48;transform:translate3d(-50%,-50%,0) scale(1.02)}88%{opacity:.24}100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.08)}}
-@keyframes bbItachiSilhouette{0%{opacity:0;transform:translate3d(-50%,-48%,0) scale(.93);filter:brightness(.24)}14%{opacity:.22;filter:brightness(.34)}28%{opacity:.58;transform:translate3d(-50%,-49%,0) scale(.97);filter:brightness(.52)}42%{opacity:.92;transform:translate3d(-50%,-50%,0) scale(.99);filter:brightness(.70)}72%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.86)}86%{opacity:.72;filter:brightness(.96)}100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.012);filter:brightness(1.10)}}
+@keyframes bbItachiSilhouette{0%{opacity:0;transform:translate3d(-50%,-48%,0) scale(.93);filter:brightness(.24) drop-shadow(0 0 0 rgba(210,18,28,0))}12%{opacity:.24;transform:translate3d(-50%,-49%,0) scale(.96);filter:brightness(.38) drop-shadow(0 0 8px rgba(210,18,28,.14))}22%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.74) drop-shadow(0 0 15px rgba(220,18,28,.26))}30%{opacity:.96;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.82) drop-shadow(0 0 22px rgba(232,22,32,.42))}38%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.76) drop-shadow(0 0 14px rgba(205,12,24,.28))}46%{opacity:.97;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.88) drop-shadow(0 0 24px rgba(240,26,34,.46))}54%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.78) drop-shadow(0 0 16px rgba(208,14,24,.30))}62%{opacity:.98;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.90) drop-shadow(0 0 23px rgba(236,24,34,.44))}64%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.84) drop-shadow(0 0 18px rgba(220,18,28,.36))}80%{opacity:.88;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.94) drop-shadow(0 0 14px rgba(225,22,30,.26))}100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.012);filter:brightness(1.10) drop-shadow(0 0 5px rgba(255,42,42,.08))}}
 @keyframes bbItachiRavens{0%{opacity:0;transform:translate3d(-50%,-50%,0) scale(.58)}14%{opacity:.18;transform:translate3d(-50%,-50%,0) scale(.68)}30%{opacity:.54;transform:translate3d(-50%,-50%,0) scale(.84)}48%{opacity:.88;transform:translate3d(-50%,-50%,0) scale(.96)}68%{opacity:.96;transform:translate3d(-50%,-50%,0) scale(1.03)}84%{opacity:.58;transform:translate3d(-50%,-50%,0) scale(1.09)}100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.16)}}
 @keyframes bbItachiFeathers{0%{opacity:0;transform:translate3d(-50%,-50%,0) rotate(-5deg) scale(.72)}16%{opacity:.85}56%{opacity:.68}100%{opacity:.16;transform:translate3d(-50%,-50%,0) rotate(8deg) scale(1.14)}}
 @keyframes bbItachiFlash{0%{opacity:0;transform:translate3d(-50%,-50%,0) scale(.45)}22%{opacity:1}43%{opacity:.86;transform:translate3d(-50%,-50%,0) scale(.98)}100%{opacity:0;transform:translate3d(-50%,-50%,0) scale(1.18)}}
 @keyframes bbItachiReveal{0%{opacity:0;transform:translate3d(-50%,-47%,0) scale(.93);filter:brightness(1.8) saturate(.7)}16%{opacity:1;filter:brightness(1.16) saturate(1.08)}58%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1.018);filter:brightness(1)}100%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1);filter:brightness(.96)}}
 @keyframes bbItachiCardHandoff{0%{opacity:0;transform:rotateY(180deg) translateY(9px) scale(.96)}100%{opacity:1;transform:rotateY(180deg) translateY(0) scale(1)}}
-@media (max-width:560px){#summonPullScreen .bb-itachi-stage-vfx{width:96%}#summonPullScreen .bb-itachi-ring-flame{width:148%}#summonPullScreen .bb-itachi-ring-outer{width:132%}#summonPullScreen .bb-itachi-ring-middle{width:114%}#summonPullScreen .bb-itachi-ring-inner{width:100%}#summonPullScreen .bb-itachi-ring-orbit{width:86%}#summonPullScreen .bb-itachi-character{width:138%}#summonPullScreen .bb-itachi-raven-burst,#summonPullScreen .bb-itachi-feather-vortex{width:178%}}
+@media (max-width:560px){#summonPullScreen .bb-itachi-stage-vfx{width:96%}#summonPullScreen .bb-itachi-ring-flame{width:141%}#summonPullScreen .bb-itachi-ring-outer{width:125%}#summonPullScreen .bb-itachi-ring-middle{width:108%}#summonPullScreen .bb-itachi-ring-inner{width:95%}#summonPullScreen .bb-itachi-character{width:138%}#summonPullScreen .bb-itachi-raven-burst,#summonPullScreen .bb-itachi-feather-vortex{width:178%}}
 @media (prefers-reduced-motion:reduce){#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-stage-vfx img{animation-duration:.16s!important;animation-delay:0s!important}}
