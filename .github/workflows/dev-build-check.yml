@@ -33,6 +33,8 @@ jobs:
           exit 1
       - name: Chromium + WebKit local paired-team smoke
         run: node scripts/team-pair-browser-smoke.mjs
+      - name: Chromium + WebKit local Realm Exploration smoke
+        run: npm run smoke:realm
       - name: Chromium + WebKit local boot smoke
         run: npm run smoke:browser
       - name: Chromium + WebKit local Itachi integration smoke
@@ -62,6 +64,18 @@ jobs:
         run: node scripts/battle-pause-browser-smoke.mjs
       - name: Chromium + WebKit local Retina display-quality smoke
         run: node scripts/display-quality-smoke.mjs
+      - name: Chromium + WebKit deployed Realm Exploration smoke
+        if: always() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
+        env:
+          BB_SMOKE_URL: https://dev-next-2026-09-01-blazing-battle-game.blazingbattle.workers.dev
+          BB_EXPECT_COMMIT: ${{ github.sha }}
+        run: |
+          for attempt in {1..6}; do
+            echo "Deployed Realm smoke attempt $attempt/6"
+            if npm run smoke:realm; then exit 0; fi
+            sleep 20
+          done
+          exit 1
       - name: Chromium + WebKit deployed dev smoke
         if: success() && github.event_name == 'push' && github.ref_name == 'dev-next-2026-09-01'
         env:
