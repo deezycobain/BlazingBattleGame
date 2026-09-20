@@ -40,7 +40,7 @@ async function run(name,type){
       hasTestHook:typeof window.BlazingSummonCinematic?.testItachi==='function',
       styleHref:document.querySelector('link[data-bb-itachi-summon]')?.getAttribute('href')||''
     }));
-    if(contract.version!=='6.5.0-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
+    if(contract.version!=='6.6.0-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
     if(JSON.stringify(contract.timeline)!==JSON.stringify(EXPECTED_TIMES))throw new Error(`Itachi timeline contract changed: ${JSON.stringify(contract.timeline)}`);
     if(Object.keys(contract.itachiVfx||{}).length!==12||!String(contract.itachiVfx?.middle||'').endsWith('itachi_ring_middle_enamel.webp'))throw new Error(`expected 12 Itachi VFX mappings with the enamel connector restored: ${JSON.stringify(contract.itachiVfx)}`);
     if(!contract.hasTestHook||!contract.styleHref.includes('legendary-itachi-summon.css')||!String(contract.itachiCardArt||'').endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi test/style hook missing: ${JSON.stringify(contract)}`);
@@ -143,7 +143,7 @@ async function run(name,type){
     const widths=loaded.rings.map(r=>r.width),nested=widths.every((value,index)=>index===0||value<widths[index-1]);
     const speeds=loaded.rings.map(r=>Number.parseFloat(r.duration)||0),tiered=speeds.every((value,index)=>index===0||value<speeds[index-1]);
     const directions=loaded.rings.map(r=>r.name),directionOk=directions[0].includes('bbItachiSpinCCW')&&directions[1].includes('bbItachiSpinCCW')&&directions[2].includes('bbItachiSpinCW')&&directions[3].includes('bbItachiSpinCCW')&&directions[4].includes('bbItachiSpinCW');
-    const snapDurations=loaded.rings.map(r=>Number.parseFloat(r.shellDuration)||9),snapOk=loaded.rings.every(r=>r.shellName.includes('bbItachiRingSnap'))&&snapDurations[0]>=.30&&snapDurations[1]>=.26&&snapDurations[2]>=.31&&snapDurations[3]>=.28&&snapDurations[4]>=.25;
+    const snapDurations=loaded.rings.map(r=>Number.parseFloat(r.shellDuration)||9),snapOk=loaded.rings.every(r=>r.shellName.includes('bbItachiRingSnap'))&&snapDurations[0]>=.44&&snapDurations[1]>=.40&&snapDurations[2]>=.41&&snapDurations[3]>=.37&&snapDurations[4]>=.33;
     if(!centersOk||!nested||!tiered||!directionOk||!snapOk)throw new Error(`Itachi ring geometry/snap/direction/speed hierarchy is wrong: ${JSON.stringify(loaded.rings)}`);
     if(loaded.revealStage!=='itachi'||loaded.revealKind!=='itachi'||!loaded.cardArt.endsWith('itachi_reveal.webp'))throw new Error(`Itachi cinematic did not own the reveal: ${JSON.stringify(loaded)}`);
 
