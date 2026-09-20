@@ -93,8 +93,8 @@ async function run(name,type){
     const first=await page.evaluate(()=>{
       const state=globalThis.eval('S');
       const checkVictory=globalThis.eval('checkVictoryKillshot');
-      const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
-      if(fighters.length<3)throw new Error(`expected 3 Road fighters, found ${fighters.length}`);
+      const fighters=state.pairs.flatMap(pair=>Array.isArray(pair?.units)?pair.units:[]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
+      if(fighters.length<6)throw new Error(`expected the full six-unit paired Road squad, found ${fighters.length}`);
       if(fighters.some(unit=>!(Number(unit.maxChakra)>0)))throw new Error(`expected Road fighters to expose maxChakra: ${JSON.stringify(fighters.map(unit=>({name:unit.name,maxChakra:unit.maxChakra,chakra:unit.chakra})))}`);
       const sharedBefore=window.BlazingRoadSharedHp?.snapshot?.();
       if(!sharedBefore?.active||!(sharedBefore.maxHp>0)||!(sharedBefore.hp>0))throw new Error(`shared Road HP unavailable: ${JSON.stringify(sharedBefore)}`);
@@ -131,7 +131,7 @@ async function run(name,type){
     await enterMode(page,'road',pageErrors);
     const resumed=await page.evaluate(()=>{
       const state=globalThis.eval('S');
-      const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
+      const fighters=state.pairs.flatMap(pair=>Array.isArray(pair?.units)?pair.units:[]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
       const shared=window.BlazingRoadSharedHp?.snapshot?.()||{};
       return {
         stage:state.bbRoadStage,
@@ -154,7 +154,7 @@ async function run(name,type){
     await enterMode(page,'castle',pageErrors);
     const castle=await page.evaluate(()=>{
       const state=globalThis.eval('S');
-      const fighters=state.pairs.map(pair=>pair.units[pair.active]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
+      const fighters=state.pairs.flatMap(pair=>Array.isArray(pair?.units)?pair.units:[]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
       const road=window.BlazingRoadRun.loadRun();
       return {
         fullHp:fighters.every(unit=>unit.hp===unit.maxHp),
