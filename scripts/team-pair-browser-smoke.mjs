@@ -24,7 +24,8 @@ for(const [name,type] of Object.entries({chromium,webkit})){
   if(!contract.playable.includes('Itachi')||!contract.playable.includes('Tyler'))throw new Error('paired roster missing current units: '+JSON.stringify(contract.playable));
 
   const ui=await page.evaluate(()=>{
-   globalThis.eval('showTeamEditor()');
+   const get=globalThis.eval;
+   get('showTeamEditor()');
    const slots=[...document.querySelectorAll('#teamScreen .teamSlot[data-team-slot]')];
    const team=get('getActiveTeam()');
    return {visible:getComputedStyle(document.getElementById('teamScreen')).display!=='none',slots:slots.length,pairs:document.querySelectorAll('#teamScreen .bb-team-pair').length,labels:slots.map(s=>s.dataset.slotLabel),names:slots.map(s=>s.querySelector('.teamSlotName')?.textContent?.trim()||''),team,save:document.getElementById('saveTeamBtn')?.textContent?.trim()};
