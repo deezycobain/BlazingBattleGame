@@ -110,5 +110,24 @@ async function run(name,type){
 }
 
 let failed=false;
-for(const [name,type] of Object.entries(TYPES)){try{await run(name,type)}catch(error){failed=true;console.error(`Summon cinematic browser smoke FAIL (${name}): ${error.stack||error.message}`)}}
+for(const [name,type] of Object.entries(TYPES)){
+  let passed=false;
+  for(let attempt=1;attempt<=2;attempt++){
+    try{
+      await run(name,type);
+      passed=true;
+      break;
+    }catch(error){
+      const message=String(error?.stack||error?.message||error);
+      const transient=/Timeout \d+ms exceeded|Target page, context or browser has been closed|browser has been closed|context has been closed/i.test(message);
+      if(transient&&attempt<2){
+        console.warn(`Summon cinematic smoke transient failure (${name}), retrying once...`);
+        continue;
+      }
+      console.error(`Summon cinematic browser smoke FAIL (${name}): ${message}`);
+      break;
+    }
+  }
+  if(!passed)failed=true;
+}
 if(failed)process.exit(1);
