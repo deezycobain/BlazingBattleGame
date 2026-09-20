@@ -114,7 +114,7 @@ for(const [rel,width,height] of [
  if(asset.readUIntLE(24,3)+1!==width||asset.readUIntLE(27,3)+1!==height)fail(`portal VFX dimensions changed: ${rel}`);
 }
 for(const marker of [
- "const VERSION='6.12.0-itachi'",'portal:0','circleSlow:520','circleFast:980','cardEnter:1500','flip:2020','resolve:2670','done:3660',
+ "const VERSION='6.13.0-itachi'",'portal:0','circleSlow:520','circleFast:980','cardEnter:1500','flip:2020','resolve:2670','done:3660',
  "setStage(scene,'portal')","setStage(scene,'circle-slow')","setStage(scene,'circle-fast')","setStage(scene,'card-enter')","setStage(scene,'flip')","setStage(scene,'resolve')",
  'summon_portal_base.webp','ring_ornate_cloud.webp','ring_outer_navy_gold.webp','ring_energy_gold.webp','reveal_impact_burst.webp','flip_motion_cards.webp','flip_shadow_afterimage.webp','flip_frame_blue_white.webp','flip_frame_crimson_gold.webp','flip_crimson_gold_slash.webp','flip_impact_burst.webp','flip_reveal_starburst.webp','flip_particles_gold_crimson.webp',
  '.bb-summon-portal{width:78%}','.bb-portal-ring-ornate{width:74%}','.bb-portal-ring-outer{width:68%}','.bb-portal-ring-energy{width:62%}',
