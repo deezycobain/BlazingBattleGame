@@ -41,6 +41,14 @@ function replaceOnce(html, oldText, newText, label) {
   return html.replace(oldText, newText);
 }
 
+function replacePatternOnce(html, pattern, newText, label) {
+  const matches = html.match(pattern);
+  if (!matches || matches.length !== 1) {
+    throw new Error(`Production migration anchor missing or ambiguous: ${label}`);
+  }
+  return html.replace(pattern, newText);
+}
+
 async function assertNoOversizedAssets(dir) {
   const MAX = 25 * 1024 * 1024;
   const oversized = [];
@@ -66,6 +74,9 @@ await copyTree(ROOT, OUT, true);
 
 const indexPath = path.join(ROOT, 'index.html');
 let html = await fs.readFile(indexPath, 'utf8');
+// Git may materialize the standalone shell with CRLF on Windows. The migration
+// anchors are authored against the repository's canonical LF form.
+html = html.replaceAll('\r\n', '\n');
 const originalBytes = Buffer.byteLength(html);
 
 // Promote the approved Senku checkpoint into the actual production build.
@@ -90,9 +101,9 @@ html = replaceOnce(
   'maxChakra:d.combat.chakra_max||0,startChakra:d.combat.chakra_start??0,jutsuCost:jutsu.cost??99,',
   'runtimeDefinition chakra_start'
 );
-html = replaceOnce(
+html = replacePatternOnce(
   html,
-  "const start=opts.startingChakra??2;\n u.chakra=start==='full'?u.maxChakra:Math.max(0,Math.min(u.maxChakra,start));",
+  /const start=opts\.startingChakra\?\?2;\r?\n u\.chakra=start==='full'\?u\.maxChakra:Math\.max\(0,Math\.min\(u\.maxChakra,start\)\);/g,
   "const start=opts.startingChakra??d.startChakra??0;\n u.chakra=start==='full'?u.maxChakra:Math.max(0,Math.min(u.maxChakra,start));",
   'roster chakra initialization'
 );

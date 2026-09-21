@@ -3,6 +3,9 @@ import path from 'node:path';
 
 const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
+// Earlier postprocessors may reinsert source snippets with Windows line endings.
+// Normalize the generated shell before matching structural migration anchors.
+html=html.replaceAll('\r\n','\n');
 
 function replaceUnique(rx,replacement,label){
  const flags=rx.flags.includes('g')?rx.flags:rx.flags+'g';
