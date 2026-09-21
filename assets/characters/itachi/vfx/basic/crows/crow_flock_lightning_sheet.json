@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "unit_id": "itachi",
+  "asset_id": "itachi.vfx.basic.crow_flock_lightning_sheet",
+  "asset": "crow_flock_lightning_sheet.png",
+  "format": "RGBA PNG",
+  "transparent_background": true,
+  "sheet": {
+    "width": 1448,
+    "height": 1086,
+    "columns": 4,
+    "rows": 2,
+    "frame_width": 362,
+    "frame_height": 543,
+    "frame_count": 8
+  },
+  "frames": [
+    {
+      "index": 0,
+      "row": 0,
+      "column": 0,
+      "phase": "spawn"
+    },
+    {
+      "index": 1,
+      "row": 0,
+      "column": 1,
+      "phase": "form"
+    },
+    {
+      "index": 2,
+      "row": 0,
+      "column": 2,
+      "phase": "flight"
+    },
+    {
+      "index": 3,
+      "row": 0,
+      "column": 3,
+      "phase": "flight"
+    },
+    {
+      "index": 4,
+      "row": 1,
+      "column": 0,
+      "phase": "flight"
+    },
+    {
+      "index": 5,
+      "row": 1,
+      "column": 1,
+      "phase": "flight"
+    },
+    {
+      "index": 6,
+      "row": 1,
+      "column": 2,
+      "phase": "impact"
+    },
+    {
+      "index": 7,
+      "row": 1,
+      "column": 3,
+      "phase": "impact_dissipate"
+    }
+  ],
+  "playback": {
+    "flight_duration_ms": 560,
+    "impact_duration_ms": 280,
+    "mirror_for_left_facing": true,
+    "side_angle": true
+  },
+  "visual_notes": "Small flapping crow flock with baked red smoke and red lightning, ending in a violent feather-and-smoke impact."
+}

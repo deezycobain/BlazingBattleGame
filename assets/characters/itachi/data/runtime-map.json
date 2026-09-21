@@ -18,15 +18,23 @@
       ],
       "vfx": {
         "release": "itachi.vfx.basic.crow_chakra_burst",
-        "swarm": "itachi.vfx.basic.crow_swarm"
+        "swarm": "itachi.vfx.basic.crow_swarm",
+        "flock_sheet": "itachi.vfx.basic.crow_flock_lightning_sheet",
+        "flock_sheet_asset": "assets/characters/itachi/vfx/basic/crows/crow_flock_lightning_sheet.png",
+        "flock_sheet_metadata": "assets/characters/itachi/vfx/basic/crows/crow_flock_lightning_sheet.json"
       },
       "projectile_presentation": {
         "trajectory": "direct",
         "cast_duration_ms": 360,
         "flight_duration_ms": 560,
         "impact_duration_ms": 280,
-        "presentation_style": "compact_crow_flock_red_smoke",
-        "direction_safe_orientation": true
+        "presentation_style": "authored_side_angle_crow_flock_red_smoke_lightning",
+        "direction_safe_orientation": true,
+        "authored_sprite_sheet": true,
+        "sprite_sheet_frames": 8,
+        "sprite_sheet_layout": "4x2",
+        "wing_flap_frames": true,
+        "violent_feather_smoke_impact": true
       }
     },
     "tsukuyomi": {

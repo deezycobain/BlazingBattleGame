@@ -67,7 +67,38 @@
           "frame": 4,
           "event": "basic_attack_release"
         }
-      ]
+      ],
+      "vfx": {
+        "sheet": "vfx/basic/crows/crow_flock_lightning_sheet.png",
+        "metadata": "vfx/basic/crows/crow_flock_lightning_sheet.json",
+        "frame_count": 8,
+        "layout": {
+          "columns": 4,
+          "rows": 2,
+          "frame_width": 362,
+          "frame_height": 543
+        },
+        "phases": {
+          "spawn": [
+            0
+          ],
+          "form": [
+            1
+          ],
+          "flight": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "impact": [
+            6,
+            7
+          ]
+        },
+        "direction_safe_mirror": true,
+        "alpha_background": true
+      }
     },
     "tsukuyomi": {
       "cast_frames": [
