@@ -40,13 +40,19 @@ async function run(name,type){
   if(s.title!=='SHINOBI JOURNEY'||!s.stage||!s.runner||!s.world||s.segments!==5||s.mounted>3||s.layers<6||s.sparks!==15||!/sprites\//.test(s.runnerSrc))throw new Error('Journey shell incomplete: '+JSON.stringify(s));
   const initialShift=s.layerShift;
   await page.evaluate(()=>window.BlazingRealmExplorer.setAutoRun(true));
-  await page.waitForFunction(()=>window.BlazingRealmExplorer.loadState().distance>140,null,{timeout:5000});
+  await page.waitForFunction(()=>window.BlazingRealmExplorer.loadState().distance>360&&document.querySelector('#bbRealmExplorer .bb-run-layer[data-role="distant"]')?.style.getPropertyValue('--layer-shift')!=='0.0px',null,{timeout:5000});
   await page.evaluate(()=>window.BlazingRealmExplorer.setAutoRun(false));
-  s=await sample(page);if(!(s.run.distance>140)||s.layerShift===initialShift)throw new Error('runner/parallax did not advance: '+JSON.stringify(s));
+  s=await sample(page);if(!(s.run.distance>360)||s.layerShift===initialShift)throw new Error('runner/parallax did not advance: '+JSON.stringify(s));
   await page.evaluate(()=>{window.BlazingRealmExplorer.laneShift(-1);window.BlazingRealmExplorer.jump();window.BlazingRealmExplorer.dash();});
   await page.waitForTimeout(120);
   s=await sample(page);if(s.run.lane!==0)throw new Error('upper trail switch failed: '+JSON.stringify(s.run));
-  const beforeBack=s.run.distance;await page.keyboard.down('ArrowLeft');await page.waitForTimeout(220);await page.keyboard.up('ArrowLeft');await page.waitForTimeout(150);s=await sample(page);if(!(s.run.distance<beforeBack))throw new Error('backward traversal failed');
+  const beforeBack=s.run.distance;
+  const back=page.locator('#bbRealmExplorer [data-hold="left"]');
+  await back.dispatchEvent('pointerdown');
+  await page.waitForTimeout(320);
+  await back.dispatchEvent('pointerup');
+  await page.waitForFunction(before=>window.BlazingRealmExplorer.loadState().distance<before-5,beforeBack,{timeout:2000});
+  s=await sample(page);if(!(s.run.distance<beforeBack))throw new Error('backward traversal failed');
   await page.evaluate(()=>window.BlazingRealmExplorer.setAutoRun(false));
   const segmentSamples=[];for(const distance of [100,980,1860,2740,3620]){await page.evaluate(distance=>{const a=window.BlazingRealmExplorer,x=a.loadState();a.saveState({...x,distance,lane:1});a.renderRun();},distance);await page.waitForTimeout(100);segmentSamples.push(await sample(page));}
   if(new Set(segmentSamples.map(x=>x.stream?.currentSegment)).size!==5||segmentSamples.some(x=>x.mounted>3||x.stream?.assets?.length>5))throw new Error('segment streaming window regressed: '+JSON.stringify(segmentSamples.map(x=>x.stream)));
@@ -83,3 +89,4 @@ async function run(name,type){
 let failed=false;
 for(const [name,type] of Object.entries(TYPES)){try{await run(name,type)}catch(error){failed=true;console.error('Realm Run smoke FAIL ('+name+'): '+(error.stack||error.message));}}
 if(failed)process.exit(1);
+
