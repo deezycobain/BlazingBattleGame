@@ -26,7 +26,7 @@ async function run(name,type){
   await page.evaluate(()=>{localStorage.removeItem('bb_realm_run_v1');localStorage.removeItem('bb_realm_exploration_v1');sessionStorage.removeItem('bb_realm_run_resume_v1');window.BlazingRoadRun?.clearRun?.();});
   const entry=page.locator('#bbRealmEntry');
   if(!await entry.isDisabled()||!/^COMING SOON$/i.test((await entry.locator('small').innerText()).trim()))throw new Error('Journey entry is not locked as Coming Soon');
-  await entry.click({force:true});
+  await page.evaluate(()=>document.getElementById('bbRealmEntry')?.click());
   if(await page.locator('#bbRealmExplorer:not([hidden])').count())throw new Error('disabled Journey entry opened the route');
   await page.evaluate(()=>window.BlazingRealmExplorer.open('run'));
   await page.locator('#bbRealmExplorer .bb-run-stage').waitFor({state:'visible'});
