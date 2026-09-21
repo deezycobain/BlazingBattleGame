@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const VERSION='6.13.0-itachi';
+const VERSION='6.14.0-itachi';
 const PORTAL_ROOT='assets/vfx/summon/portal-reveal';
 const ITACHI_ROOT='assets/vfx/summon/legendary-itachi';
 const ITACHI_CARD_ART_SRC='assets/characters/itachi/art/itachi_full_art.png';
