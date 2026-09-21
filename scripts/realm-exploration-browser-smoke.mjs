@@ -50,6 +50,7 @@ async function run(name,type){
   await page.evaluate(()=>{window.BlazingRealmExplorer.laneShift(-1);window.BlazingRealmExplorer.jump();window.BlazingRealmExplorer.dash();});
   await page.waitForTimeout(120);
   s=await sample(page);if(s.run.lane!==0)throw new Error('upper trail switch failed: '+JSON.stringify(s.run));
+  await page.evaluate(()=>window.BlazingRealmExplorer.setAutoRun(false));
   const beforeBack=s.run.distance;
   await page.keyboard.down('ArrowLeft');
   await page.waitForFunction(before=>Number.parseInt(document.querySelector('#bbRealmExplorer [data-run-distance]')?.textContent||'0',10)<before-5,beforeBack,{timeout:2000});
