@@ -281,6 +281,12 @@
           "path": "assets/characters/itachi/vfx/jutsu/tsukuyomi/target/",
           "required_runtime_frames": 5,
           "renderer": "BlazingFrameRuntime"
+        },
+        "crow_flock_lightning_sheet": {
+          "resource_id": "itachi.vfx.basic.crow_flock_lightning_sheet",
+          "path": "assets/characters/itachi/vfx/basic/crows/crow_flock_lightning_sheet.png",
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Eight-frame 4x2 authored side-angle crow flock with flapping wings, red smoke, red lightning, and violent feather impact."
         }
       }
     },
