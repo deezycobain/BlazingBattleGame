@@ -51,7 +51,7 @@ async function run(name,type){
   await page.waitForTimeout(120);
   s=await sample(page);if(s.run.lane!==0)throw new Error('upper trail switch failed: '+JSON.stringify(s.run));
   await page.evaluate(()=>window.BlazingRealmExplorer.setAutoRun(false));
-  const beforeBack=s.run.distance;
+  const beforeBack=Number.parseInt(await page.locator('#bbRealmExplorer [data-run-distance]').innerText(),10);
   await page.keyboard.down('ArrowLeft');
   await page.waitForFunction(before=>Number.parseInt(document.querySelector('#bbRealmExplorer [data-run-distance]')?.textContent||'0',10)<before-5,beforeBack,{timeout:2000});
   await page.keyboard.up('ArrowLeft');
@@ -63,7 +63,7 @@ async function run(name,type){
   await page.evaluate(()=>{const a=window.BlazingRealmExplorer,x=a.loadState();a.saveState({...x,distance:1940,lane:1,route:'main'});a.renderRun();a.setAutoRun(true);});
   await page.waitForFunction(()=>window.BlazingRealmExplorer.loadState().distance>=1950&&document.querySelector('#bbRealmExplorer [data-action="run"]')?.dataset?.active!=='true',null,{timeout:4000});
   s=await sample(page);if(s.run.distance>=1965)throw new Error('jump-required gap did not stop traversal: '+JSON.stringify(s.run));
-  await page.evaluate(()=>{window.BlazingRealmExplorer.jump();window.BlazingRealmExplorer.setAutoRun(true);});await page.waitForFunction(()=>window.BlazingRealmExplorer.loadState().distance>2050,null,{timeout:4000});await page.evaluate(()=>window.BlazingRealmExplorer.setAutoRun(false));
+  await page.evaluate(()=>{window.BlazingRealmExplorer.jump();window.BlazingRealmExplorer.setAutoRun(true);});await page.waitForFunction(()=>Number.parseInt(document.querySelector('#bbRealmExplorer [data-run-distance]')?.textContent||'0',10)>2050,null,{timeout:6000});await page.evaluate(()=>window.BlazingRealmExplorer.setAutoRun(false));await page.waitForTimeout(180);
   await page.evaluate(()=>{const a=window.BlazingRealmExplorer,x=a.loadState();a.saveState({...x,distance:930,lane:1});a.renderRun();a.setAutoRun(true);});await page.waitForFunction(()=>window.BlazingRealmExplorer.loadState().checkpoint?.id==='cp_deep_forest',null,{timeout:4000});await page.evaluate(()=>window.BlazingRealmExplorer.setAutoRun(false));
   s=await sample(page);if(s.checkpoint!=='cp_deep_forest')throw new Error('checkpoint activation failed: '+JSON.stringify(s));
   await page.evaluate(()=>{const a=window.BlazingRealmExplorer,x=a.loadState();a.saveState({...x,distance:1085,lane:0,route:'upper'});a.renderRun();});
