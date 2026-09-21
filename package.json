@@ -1,5 +1,6 @@
 {
   "name": "blazing-battle-game",
+  "version": "0.8.0",
   "private": true,
   "scripts": {
     "validate": "node scripts/validate-runtime.mjs && node scripts/validate-combat-runtime.mjs && node scripts/validate-combat-loop.mjs && node scripts/validate-stat-scale.mjs && node scripts/validate-pass4-rendering.mjs && node scripts/validate-rendering-runtime.mjs && node scripts/validate-gameplay-presentation.mjs && node scripts/validate-subzero-basic.mjs && node scripts/validate-subzero-facing.mjs && node scripts/validate-tyler-browser.mjs && node scripts/validate-progression-itachi-current-dev.mjs && node scripts/validate-blazing-road.mjs && node scripts/validate-blazing-road-content.mjs && node scripts/validate-road-presentation-v2.mjs && node scripts/validate-blazing-brush-font.mjs && node scripts/validate-unit-progression.mjs && node scripts/validate-realm-exploration.mjs",

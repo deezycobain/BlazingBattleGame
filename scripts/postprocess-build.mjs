@@ -7,7 +7,7 @@ let html=await fs.readFile(file,'utf8');
 const branch=process.env.WORKERS_CI_BRANCH||process.env.BB_BRANCH||'local';
 const commit=process.env.WORKERS_CI_COMMIT_SHA||'local';
 const isProduction=branch==='main';
-const GAME_VERSION='v0.7.5';
+const GAME_VERSION='v0.8.0';
 const readJson=async p=>JSON.parse(await fs.readFile(path.join(ROOT,p),'utf8'));
 const replaceRequired=(oldText,newText,label)=>{if(!html.includes(oldText))throw new Error(`Postprocess anchor missing: ${label}`);html=html.replace(oldText,newText);};
 
