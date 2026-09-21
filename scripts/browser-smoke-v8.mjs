@@ -96,15 +96,16 @@ async function assertBattleCanvasShield(page,label){
  });
  if(!state.exists||state.pointer!=='none'||state.visibility!=='hidden'||state.shield!=='on')throw new Error(`${label}: battle canvas can still own non-battle input :: ${JSON.stringify(state)}`);
 }
-async function assertNavTop(page,selector,label){
+async function assertNavTop(page,selector,expectedNav,label){
  const box=await page.locator(selector).boundingBox();if(!box)throw new Error(`${label}: navigation target missing`);
  const top=await page.evaluate(({x,y})=>{const node=document.elementFromPoint(x,y);return {tag:node?.tagName||'',nav:node?.closest?.('[data-nav]')?.getAttribute('data-nav')||'',id:node?.id||'',battle:!!node?.closest?.('#battleScreen')};},{x:box.x+box.width/2,y:box.y+box.height/2});
  if(top.battle)throw new Error(`${label}: stale battle layer still covers navigation :: ${JSON.stringify(top)}`);
+ if(top.nav!==expectedNav)throw new Error(`${label}: ${expectedNav} navigation is intercepted :: ${JSON.stringify(top)}`);
  return top;
 }
 async function exerciseNonBattleRoutes(page,label){
  await assertBattleCanvasShield(page,`${label}/home`);
- await assertNavTop(page,'#bbHomeApproved [data-nav="summon"]',`${label}/summon-nav`);
+ for(const key of ['battle','summon','units','forge'])await assertNavTop(page,`#bbHomeApproved [data-nav="${key}"]`,key,`${label}/${key}-nav`);
  await page.locator('#bbHomeApproved [data-nav="summon"]').click();
  await page.locator('#summonScreen.active #singleSummonBtn').waitFor({state:'visible',timeout:7000});
  await assertBattleCanvasShield(page,`${label}/summon`);
@@ -113,7 +114,7 @@ async function exerciseNonBattleRoutes(page,label){
  if(singleTop.button!=='singleSummonBtn'||singleTop.battle)throw new Error(`${label}: single summon is still intercepted :: ${JSON.stringify(singleTop)}`);
  await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});await waitHome(page);
  await assertBattleCanvasShield(page,`${label}/home-after-summon`);
- await assertNavTop(page,'#bbHomeApproved [data-nav="units"]',`${label}/inventory-nav`);
+ await assertNavTop(page,'#bbHomeApproved [data-nav="units"]','units',`${label}/inventory-nav`);
  await page.locator('#bbHomeApproved [data-nav="units"]').click();
  await page.waitForFunction(()=>document.getElementById('inventoryScreen')?.classList.contains('active')||!!document.querySelector('#bbInventory:not([hidden])'),null,{timeout:7000});
  await assertBattleCanvasShield(page,`${label}/inventory`);

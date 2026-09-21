@@ -61,7 +61,7 @@ function installStyle(){
 #${SHELL_ID} .bb-home-v4-social button:hover,#${SHELL_ID} .bb-home-v4-social button:focus-visible{transform:translateX(-2px) scale(1.06);filter:drop-shadow(0 7px 11px rgba(0,0,0,.4)) brightness(1.08);outline:none}
 #${SHELL_ID} .bb-home-v4-dock{position:relative;z-index:7;width:min(980px,96vw);justify-self:center;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:7px;border:1px solid rgba(255,236,218,.13);border-radius:16px 5px 16px 5px;background:linear-gradient(180deg,rgba(19,13,18,.58),rgba(7,6,10,.82));box-shadow:0 -3px 0 rgba(151,30,41,.52),0 17px 35px rgba(0,0,0,.32),inset 0 1px rgba(255,255,255,.06);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 #${SHELL_ID} .bb-home-v4-nav{position:relative;min-width:0;aspect-ratio:3/1;padding:0;border:0;background:transparent;cursor:pointer;filter:drop-shadow(0 7px 8px rgba(0,0,0,.29));transition:transform .13s ease,filter .13s ease}
-#${SHELL_ID} .bb-home-v4-nav img{display:block;width:100%;height:100%;object-fit:fill}
+#${SHELL_ID} .bb-home-v4-nav img{display:block;width:100%;height:100%;object-fit:fill;pointer-events:none}
 #${SHELL_ID} .bb-home-v4-nav:hover,#${SHELL_ID} .bb-home-v4-nav:focus-visible{transform:translateY(-3px) scale(1.02);filter:drop-shadow(0 9px 11px rgba(0,0,0,.36)) brightness(1.1);outline:none}
 #${SHELL_ID} .bb-home-v4-nav:active{transform:translateY(0) scale(.975)}
 #${SHELL_ID} .bb-home-v4-battle{position:absolute;z-index:20;inset:0;display:grid;place-items:center;padding:18px;box-sizing:border-box;background:rgba(8,5,10,.58);-webkit-backdrop-filter:blur(9px) saturate(.88);backdrop-filter:blur(9px) saturate(.88);animation:bbHomeV4Fade .18s ease both}
