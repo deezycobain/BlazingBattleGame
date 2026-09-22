@@ -25,9 +25,8 @@
       "animation_id": "jiraiya.animation.idle",
       "runtime_handler": "disabled",
       "execution_status": "declared_not_wired",
-      "migration_note": "Legacy of the Shinobi first-pass integration keeps Jutsu locked until dedicated VFX and Jutsu are authored.",
-      "gameplay_actions": [],
-      "vfx": {}
+      "migration_note": "Dedicated Legacy of the Shinobi Jutsu and VFX are intentionally deferred to the next character-authoring pass.",
+      "gameplay_actions": []
     }
   },
   "states": {
