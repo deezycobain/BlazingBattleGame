@@ -1,0 +1,32 @@
+name: Blazing Battle Home Input WebKit
+on:
+  push:
+    branches: [dev]
+permissions:
+  contents: read
+concurrency:
+  group: home-input-webkit-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  home-input:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npx playwright install --with-deps webkit
+      - name: Verify deployed Home taps
+        env:
+          BB_SMOKE_URL: https://dev-blazing-battle-game.blazingbattle.workers.dev
+          BB_EXPECT_COMMIT: ${{ github.sha }}
+          BB_SMOKE_BROWSER: webkit
+        run: |
+          for attempt in {1..3}; do
+            echo "WebKit Home input attempt $attempt/3"
+            if node scripts/browser-smoke-v8.mjs; then exit 0; fi
+            sleep 15
+          done
+          exit 1
