@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "packages": [
     {
       "version": 1,
@@ -221,5 +221,19 @@
       ]
     }
   ],
-  "total_file_count": 39
+  "total_file_count": 39,
+  "generated_units": [
+    "gabimaru",
+    "jackie_chan",
+    "jiraiya",
+    "kakashi",
+    "killua",
+    "mashle",
+    "obito",
+    "pain",
+    "rock_lee",
+    "sasuke",
+    "scorpion",
+    "zabuza"
+  ]
 }

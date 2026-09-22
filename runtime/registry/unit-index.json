@@ -26,10 +26,6 @@
       "path": "assets/characters/itachi/data/unit.json"
     },
     {
-      "id": "anubis",
-      "path": "assets/characters/anubis/data/unit.json"
-    },
-    {
       "id": "kakashi",
       "path": "assets/characters/kakashi/data/unit.json"
     },
@@ -66,16 +62,20 @@
       "path": "assets/characters/jackie_chan/data/unit.json"
     },
     {
-      "id": "gabimaru",
-      "path": "assets/characters/gabimaru/data/unit.json"
-    },
-    {
       "id": "killua",
       "path": "assets/characters/killua/data/unit.json"
     },
     {
       "id": "zabuza",
       "path": "assets/characters/zabuza/data/unit.json"
+    },
+    {
+      "id": "gabimaru",
+      "path": "assets/characters/gabimaru/data/unit.json"
+    },
+    {
+      "id": "anubis",
+      "path": "assets/characters/anubis/data/unit.json"
     }
   ]
 }
