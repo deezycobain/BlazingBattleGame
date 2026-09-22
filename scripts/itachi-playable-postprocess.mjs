@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
@@ -301,7 +302,7 @@ const itachiVfx=String.raw`}else if(f.kind==='itachiCrowStrike'){
        drawItachiCrowSheetFrame(frame,f.to.x,f.to.y,width,fade);
        ctx.save();ctx.translate(f.to.x,f.to.y);ctx.globalCompositeOperation='screen';
        const flash=ctx.createRadialGradient(0,0,0,0,0,26+28*impactT);flash.addColorStop(0,'rgba(235,36,63,'+(.20*(1-impactT))+')');flash.addColorStop(.45,'rgba(148,5,36,'+(.12*(1-impactT))+')');flash.addColorStop(1,'rgba(40,0,8,0)');ctx.fillStyle=flash;ctx.beginPath();ctx.arc(0,0,58,0,Math.PI*2);ctx.fill();ctx.restore();
-      }else if(f.kind==='itachiTsukuyomiImpact'){
+      }}else if(f.kind==='itachiTsukuyomiImpact'){
        const age=performance.now()-f.start,duration=Math.max(1,f.duration||780),t=clamp(age/duration,0,1),frames=ITACHI_TSUKUYOMI_TARGET_FRAMES;
        const pos=t*Math.max(0,frames.length-1),i0=Math.floor(pos),i1=Math.min(frames.length-1,i0+1),mix=pos-i0;
        const drawImpactFrame=(img,alpha)=>{
@@ -319,7 +320,7 @@ const itachiVfx=String.raw`}else if(f.kind==='itachiCrowStrike'){
        ctx.beginPath();ctx.ellipse(0,-18,18+5*pulse,7+2*pulse,0,0,Math.PI*2);ctx.stroke();
        ctx.fillStyle='rgba(255,224,231,.92)';ctx.font='700 9px system-ui';ctx.textAlign='center';ctx.fillText('STUN',0,-31);ctx.restore();
       }
-        `+vfxAnchor;
+        `+vfxAnchor.slice(1);
 html=html.replace(vfxAnchor,itachiVfx);
 
 const basicNeedle=`    if(au.name==='Lebee'){
@@ -357,5 +358,8 @@ for(const marker of [
 ])if(!html.includes(marker))fail(`final shell missing ${marker}`);
 
 if(html.includes("\\`")||html.includes("\\${"))fail("generated runtime contains escaped template syntax");
+const generatedCore=[...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(match=>match[1]).find(source=>source.includes("f.kind==='itachiCrowStrike'"));
+if(!generatedCore)fail('generated core runtime script missing for syntax validation');
+try{new vm.Script(generatedCore,{filename:'blazing-battle-generated-core.js'});}catch(error){fail(`generated core runtime syntax invalid: ${error.message}`);}
 await fs.writeFile(file,html);
 console.log('Itachi playable integration PASS: smooth full-screen Tsukuyomi takeover, battlefield impact VFX, one primary hit, and reusable secondary stun are wired.');

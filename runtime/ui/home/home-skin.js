@@ -137,63 +137,8 @@ function showToast(shell,message){
 
 function clickLegacy(id,shell){
  const el=$(id);
- if(!el)return false;
- try{el.click();return true;}catch(err){console.error('Home legacy route click failed',id,err);return false;}
-}
-function runtimeFn(name){
- try{const value=globalThis.eval(name);return typeof value==='function'?value:null}catch{return null}
-}
-function leaveHome(shell){
- closeBattle(shell);
- const menu=$('menuScreen');
- if(menu){menu.classList.remove('active');menu.style.display='none';}
-}
-function activateScreen(id,shell){
- const target=$(id);if(!target)return false;
- leaveHome(shell);
- document.querySelectorAll('.screen.active').forEach(screen=>{if(screen!==target)screen.classList.remove('active')});
- for(const node of [document.getElementById('bbInventory'),document.getElementById('bbUnitDetails')]){
-  if(node&&node!==target){node.hidden=true;node.setAttribute('aria-hidden','true');}
- }
- target.hidden=false;target.removeAttribute('aria-hidden');target.style.removeProperty('display');target.classList.add('active');
- requestAnimationFrame(()=>window.BlazingNavigationPolish?.refresh?.());
- return true;
-}
-function routeLegacyScreen({legacyId,screenId,shell,label}){
- clickLegacy(legacyId,shell);
- const target=$(screenId);
- if(target?.classList.contains('active'))return true;
- if(activateScreen(screenId,shell))return true;
- showToast(shell,`${label} could not open.`);return false;
-}
-function routeSummon(shell){return routeLegacyScreen({legacyId:'summonsBtn',screenId:'summonScreen',shell,label:'Summon'});}
-function routeUnits(shell){
- clickLegacy('inventoryBtn',shell);
- const existing=document.querySelector('#bbInventory:not([hidden]),#inventoryScreen.active');
- if(existing)return true;
- try{
-  if(window.BlazingInventoryScreen?.show){
-   leaveHome(shell);window.BlazingInventoryScreen.show(window.BlazingInventoryScreen.legacy||undefined);return true;
-  }
- }catch(error){console.error('Home inventory route failed',error)}
- showToast(shell,'Units could not open.');return false;
-}
-function routeForge(shell){return routeLegacyScreen({legacyId:'forgeBtn',screenId:'resonanceScreen',shell,label:'Forge'});}
-function routeBattleMode(kind,shell){
- closeBattle(shell);
- const bridge=window.BlazingBattleEntry;
- if(shell){shell.dataset.bbBattleRoute='';delete shell.dataset.bbBattleRouteError;}
- try{
-  if(kind==='castle'&&typeof bridge?.startCastle==='function'){if(shell)shell.dataset.bbBattleRoute='bridge-castle';bridge.startCastle();return true;}
-  if(kind!=='castle'&&typeof bridge?.startRoad==='function'){if(shell)shell.dataset.bbBattleRoute='bridge-road';bridge.startRoad();return true;}
- }catch(error){
-  if(shell)shell.dataset.bbBattleRouteError=String(error?.message||error);
-  console.error('Home canonical battle entry failed',kind,error);
- }
- const fallback=kind==='castle'?'boss1Btn':'level1Btn';
- if(shell)shell.dataset.bbBattleRoute='legacy-'+kind;
- if(clickLegacy(fallback,shell))return true;
- showToast(shell,'Battle could not start.');return false;
+ if(!el){showToast(shell,'That route is not available yet.');return false;}
+ try{el.click();return true;}catch(err){console.error('Home route click failed',id,err);showToast(shell,'That route could not open.');return false;}
 }
 
 function clickSemantic(root,shell,regex,label){
@@ -291,12 +236,12 @@ function ensureShell(root){
 
  shell.querySelector('[data-open-battle]')?.addEventListener('click',()=>openBattle(shell));
  shell.querySelector('[data-nav="battle"]')?.addEventListener('click',()=>openBattle(shell));
- shell.querySelector('[data-nav="summon"]')?.addEventListener('click',()=>routeSummon(shell));
- shell.querySelector('[data-nav="units"]')?.addEventListener('click',()=>routeUnits(shell));
- shell.querySelector('[data-nav="forge"]')?.addEventListener('click',()=>routeForge(shell));
+ shell.querySelector('[data-nav="summon"]')?.addEventListener('click',()=>clickLegacy('summonsBtn',shell));
+ shell.querySelector('[data-nav="units"]')?.addEventListener('click',()=>clickLegacy('inventoryBtn',shell));
+ shell.querySelector('[data-nav="forge"]')?.addEventListener('click',()=>clickLegacy('forgeBtn',shell));
  shell.querySelector('[data-close-battle]')?.addEventListener('click',()=>closeBattle(shell));
- shell.querySelector('[data-mode="road"]')?.addEventListener('click',()=>routeBattleMode('road',shell));
- shell.querySelector('[data-mode="castle"]')?.addEventListener('click',()=>routeBattleMode('castle',shell));
+ shell.querySelector('[data-mode="road"]')?.addEventListener('click',()=>clickLegacy('level1Btn',shell));
+ shell.querySelector('[data-mode="castle"]')?.addEventListener('click',()=>clickLegacy('boss1Btn',shell));
  shell.querySelector('.bb-home-v4-battle')?.addEventListener('click',event=>{if(event.target===event.currentTarget)closeBattle(shell);});
  shell.addEventListener('keydown',event=>{if(event.key==='Escape'&&!shell.querySelector('.bb-home-v4-battle')?.hidden){event.preventDefault();closeBattle(shell);}});
 
@@ -332,5 +277,5 @@ new MutationObserver(schedule).observe(document.body,{subtree:true,childList:tru
 document.addEventListener('click',()=>setTimeout(apply,0),true);
 window.addEventListener('resize',schedule,{passive:true});
 setTimeout(apply,0);
-window.BlazingHomeSkin=Object.freeze({apply,findHome,openBattle:()=>openBattle($(SHELL_ID)),closeBattle:()=>closeBattle($(SHELL_ID)),routeSummon:()=>routeSummon($(SHELL_ID)),routeUnits:()=>routeUnits($(SHELL_ID)),routeForge:()=>routeForge($(SHELL_ID)),routeBattleMode:kind=>routeBattleMode(kind,$(SHELL_ID))});
+window.BlazingHomeSkin=Object.freeze({apply,findHome,openBattle:()=>openBattle($(SHELL_ID)),closeBattle:()=>closeBattle($(SHELL_ID))});
 })();
