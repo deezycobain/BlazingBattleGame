@@ -2,15 +2,33 @@
 'use strict';
 const KEY='blazing.progression.v1';
 const MAX_RESONANCE=5,STAT_BUDGET=12,MAX_STAT=5;
-const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi'];
-const IDS={'Crimson':'crimson','Sub-Zero':'subzero','Lebee':'lebee','Senku':'senku','Tyler':'tyler','Itachi':'itachi'};
+const CORE_FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi'];
+const LEGACY_FIGHTERS=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Jackie Chan','Gabimaru','Killua','Zabuza'];
+const FIGHTERS=[...CORE_FIGHTERS,...LEGACY_FIGHTERS],FORGE_FIGHTERS=CORE_FIGHTERS,SUMMON_FIGHTERS=LEGACY_FIGHTERS;
+const IDS={
+ 'Crimson':'crimson','Sub-Zero':'subzero','Lebee':'lebee','Senku':'senku','Tyler':'tyler','Itachi':'itachi',
+ 'Kakashi':'kakashi','Obito':'obito','Jiraiya':'jiraiya','Sasuke':'sasuke','Pain':'pain','Scorpion':'scorpion',
+ 'Rock Lee':'rock_lee','Mashle':'mashle','Jackie Chan':'jackie_chan','Gabimaru':'gabimaru','Killua':'killua','Zabuza':'zabuza'
+};
 const CARD_ART={
  'Crimson':'assets/characters/crimson/art/current_collection_art.jpg',
  'Sub-Zero':'assets/characters/subzero/art/full_art_absolute_zero_v2.jpeg',
  'Lebee':'assets/characters/lebee/art/full_art_cosmic_wish.jpeg',
  'Senku':'assets/characters/senku/cards/senku_card.jpeg',
  'Tyler':'assets/characters/tyler/cards/current_collection_card.png',
- 'Itachi':'assets/characters/itachi/art/itachi_full_art.png'
+ 'Itachi':'assets/characters/itachi/art/itachi_full_art.png',
+ 'Kakashi':'assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/kakashi/card_art.webp',
+ 'Obito':'assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/obito/card_art.webp',
+ 'Jiraiya':'assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/jiraiya/card_art.webp',
+ 'Sasuke':'assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/sasuke/card_art.webp',
+ 'Pain':'assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/pain/card_art.webp',
+ 'Scorpion':'assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/scorpion/card_art.webp',
+ 'Rock Lee':'assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/rock_lee/card_art.png',
+ 'Mashle':'assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/mashle/card_art.png',
+ 'Jackie Chan':'assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/card_art.png',
+ 'Gabimaru':'assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/card_art.png',
+ 'Killua':'assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/card_art.png',
+ 'Zabuza':'assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/card_art.png'
 };
 const FORGE_ART={
  'Crimson':'assets/characters/crimson/art/current_collection_art.jpg',
@@ -50,7 +68,7 @@ function art(name){
  return rel?`assets/characters/${IDS[name]}/${rel}`:'';
 }
 function weightedRarity(name){return name==='Tyler'?'super':'legendary'}
-function randomCore(){const name=FIGHTERS[Math.floor(Math.random()*FIGHTERS.length)];return {name,rarity:weightedRarity(name)}}
+function randomCore(){const name=SUMMON_FIGHTERS[Math.floor(Math.random()*SUMMON_FIGHTERS.length)];return {name,rarity:weightedRarity(name)}}
 function rollStats(locks=[],current=null){
  const next={hp:0,attack:0,defense:0,speed:0};let remaining=STAT_BUDGET;
  for(const stat of locks){const value=Math.max(0,Math.min(MAX_STAT,Number(current?.[stat])||0));next[stat]=value;remaining-=value}
@@ -84,7 +102,7 @@ function applyPull(pull){
 function pipHtml(u){return `<div class="resonancePips">${Array.from({length:5},(_,i)=>`<i class="${i<u.resonance?'on ':''}${u.shiny&&i===4?'shinyPip':''}"></i>`).join('')}</div>`}
 function statsHtml(roll,locks=[],candidateMode=false){return `<div class="forgeStats ${candidateMode?'candidate':''}">${STATS.map(stat=>`<div class="forgeStat ${locks.includes(stat)?'locked':''}" data-stat="${stat}"><button type="button" data-lock="${stat}">${locks.includes(stat)?'🔒 ':''}${LABELS[stat]}</button><div class="statTrack"><i style="width:${(roll?.[stat]||0)*20}%"></i></div><div class="statValue">${roll?.[stat]??'—'}/5</div></div>`).join('')}</div>`}
 function forgeMarkup(){return `<div class="forgeShell"><header class="forgeHeader"><button id="forgeBack" class="forgeBack" aria-label="Back">‹</button><h1>RESONANCE FORGE<small>DUPLICATE AWAKENING • STAT DESTINY</small></h1><div class="forgeResource"><small>REROLL SHARDS</small><span id="forgeShardCount">0</span> ✦</div></header><nav id="forgeRoster" class="forgeRoster" aria-label="Fighters"></nav><main class="forgeBody"><section id="forgeCard" class="forgeCard"><div class="forgeArtDepth"><div class="forgeArtStage"><img id="forgePortrait" class="forgePortrait" alt=""><span class="forgeHoloTexture" aria-hidden="true"></span></div><img id="forgePopout" class="forgePopout" alt="" hidden><span class="forgeShinyStamp">SHINY EDITION</span></div><div id="forgeName" class="forgeName"></div><div id="forgeRank" class="forgeRank"></div><div id="forgePips"></div></section><section class="forgePanel"><h2>STAT DESTINY</h2><p class="forgeHelp">Every Resonance rank adds a small core combat boost. Reach R5 to unlock Shiny status and a randomized 12-point build. Lock up to two stats before rerolling; you always choose whether to keep or replace your build.</p><div class="forgeScaling"><span>RANK</span> +1% HP / ATK / DEF • +0.5% SPD<br><span>POINT</span> +2.5% HP / ATK • +3% DEF • +1.5% SPD</div><div id="forgeCurrent"></div><div id="forgeBuildName" class="forgeBuildName"></div><div id="forgeCandidate" class="forgeCandidate"><h3>NEW DESTINY ROLL</h3><div id="forgeCandidateStats"></div><div id="forgeCandidateName" class="forgeBuildName"></div></div><div class="forgeActions"><button id="forgeReroll" class="primary">REROLL STATS</button><button id="forgeKeep" style="display:none">KEEP CURRENT</button><button id="forgeAccept" class="accept" style="display:none">ACCEPT NEW</button></div><div id="forgeStatus" class="forgeStatus" aria-live="polite"></div><div class="forgeDevNote">Changes apply to the next battle. Extra R5 copies become reroll shards. Summon currency is unlimited in development.</div><button id="forgeDevReset" class="forgeDevReset">RESET DEV PROGRESSION</button></section></main></div>`}
-function summonLobbyMarkup(){return `<section class="bb-summon-lobby" aria-labelledby="bbSummonTitle"><div class="bb-banner-copy"><div class="bb-banner-kicker">CORE RESONANCE BANNER</div><h1 id="bbSummonTitle">SUMMON FIGHTERS.<br><span>AWAKEN THEIR BUILD.</span></h1><p>Duplicates raise Resonance from R1 to R5. Maxed fighters awaken Shiny and unlock randomized stat builds in the Forge.</p><div class="bb-banner-roster" aria-label="Available fighters"><span>CRIMSON</span><span>SUB-ZERO</span><span>LEBEE</span><span>SENKU</span><span>TYLER</span><span>ITACHI</span></div></div><div class="bb-featured-card"><div class="bb-featured-label">BANNER SPOTLIGHT</div><img src="${CARD_ART.Itachi}" alt="Itachi featured card art"><div><strong>ITACHI</strong><span>LEGENDARY • SPECIAL UNIT</span></div></div><div class="bb-resonance-path"><span><b>R1–R4</b> CORE STAT BOOSTS</span><i>›</i><span><b>R5</b> SHINY AWAKENING</span><i>›</i><span><b>EXTRAS</b> FORGE SHARDS</span></div><div id="bbSummonActions" class="bb-summon-actions"></div><div class="bb-summon-secondary"><button id="summonForgeBtn" class="bb-forge-launch">OPEN RESONANCE FORGE</button><details class="bb-banner-details"><summary>BANNER DETAILS</summary><p>Six playable fighters • equal development odds • unlimited Embers • every pull advances that fighter's Resonance.</p></details></div></section>`}
+function summonLobbyMarkup(){return `<section class="bb-summon-lobby bb-legacy-lobby" aria-labelledby="bbSummonTitle"><div class="bb-legacy-banner" role="img" aria-label="Legacy of the Shinobi featured summon banner"><div class="bb-legacy-art-stack" aria-hidden="true"><img src="${CARD_ART.Kakashi}" alt=""><img src="${CARD_ART.Pain}" alt=""><img src="${CARD_ART.Sasuke}" alt=""><img src="${CARD_ART.Killua}" alt=""></div><div class="bb-legacy-banner-copy"><div class="bb-banner-kicker">LIMITED DEVELOPMENT BANNER</div><h1 id="bbSummonTitle">LEGACY OF THE<br><span>SHINOBI</span></h1><p>12 new fighters are live for card, inventory, idle, and Basic Attack testing. Jutsu and dedicated VFX arrive in the next character pass.</p><div class="bb-legacy-banner-stamp">12 UNIT EVENT POOL</div></div></div><div class="bb-legacy-pool"><div class="bb-legacy-pool-head"><strong>FEATURED FIGHTERS</strong><span>EQUAL DEV TEST ODDS</span></div><div class="bb-banner-roster" aria-label="Legacy of the Shinobi available fighters">${SUMMON_FIGHTERS.map(name=>`<span>${name.toUpperCase()}</span>`).join('')}</div></div><div class="bb-resonance-path"><span><b>CARD ART</b> INVENTORY + REVEAL</span><i>›</i><span><b>6-FRAME</b> IDLE + BASIC</span><i>›</i><span><b>NEXT PASS</b> JUTSU + VFX</span></div><div id="bbSummonActions" class="bb-summon-actions"></div><div class="bb-summon-secondary"><button id="summonForgeBtn" class="bb-forge-launch">OPEN AWAKENING FORGE</button><details class="bb-banner-details"><summary>BANNER DETAILS</summary><p>Legacy of the Shinobi contains Kakashi, Obito, Jiraiya, Sasuke, Pain, Scorpion, Rock Lee, Mashle, Jackie Chan, Gabimaru, Killua, and Zabuza. Development pulls are free and use equal test odds.</p></details></div></section>`}
 function installSummonOverhaul(){
  const shell=document.querySelector('#summonScreen .summonShopShell'),header=shell?.querySelector('.summonShopHeader');
  if(shell&&header&&!document.getElementById('bbSummonActions')){shell.classList.add('bb-summon-overhaul');header.insertAdjacentHTML('afterend',summonLobbyMarkup());const actions=document.getElementById('bbSummonActions');actions.append(singleSummonBtn,multiSummonBtn);singleSummonBtn.querySelector('span').textContent='UNLIMITED • DEV';multiSummonBtn.querySelector('span').textContent='UNLIMITED • DEV';multiSummonBtn.querySelector('em').textContent='10 RESONANCE PULLS'}
@@ -118,7 +136,7 @@ function showSummonResultsNow(){
  ++summonSequenceToken;if(nextPullResolver){nextPullResolver();nextPullResolver=null}
  renderDedicatedResults(activeSummonPulls);
 }
-function openForge(name){selected=FIGHTERS.includes(name)?name:'Itachi';candidate=null;document.querySelectorAll('.screen').forEach(s=>{if(s.id!=='resonanceScreen')s.classList.remove('active')});const menu=document.getElementById('menuScreen');if(menu)menu.style.display='none';const screen=document.getElementById('resonanceScreen');screen.classList.add('active');screen.scrollTop=0;renderForge();window.scrollTo(0,0)}
+function openForge(name){selected=FORGE_FIGHTERS.includes(name)?name:'Itachi';candidate=null;document.querySelectorAll('.screen').forEach(s=>{if(s.id!=='resonanceScreen')s.classList.remove('active')});const menu=document.getElementById('menuScreen');if(menu)menu.style.display='none';const screen=document.getElementById('resonanceScreen');screen.classList.add('active');screen.scrollTop=0;renderForge();window.scrollTo(0,0)}
 function closeForge(){document.getElementById('resonanceScreen').classList.remove('active');const menu=document.getElementById('menuScreen');if(menu){menu.style.display='grid';menu.classList.remove('leaving')}}
 function fitForgeArtwork(image){
  const depth=image.closest('.forgeArtDepth'),ratio=image.naturalWidth&&image.naturalHeight?image.naturalWidth/image.naturalHeight:.75;if(!depth)return;
@@ -142,7 +160,7 @@ function syncForgeArtwork(card,name,shiny,portraitSrc,cutout){
 }
 function renderForge(message=''){
  const u=unit();const maxed=u.resonance>=MAX_RESONANCE;
- document.getElementById('forgeRoster').innerHTML=FIGHTERS.map(name=>{const x=unit(name);return `<button class="forgeFighter ${name===selected?'active':''} ${x.resonance>=5?'maxed':''}" data-fighter="${name}">${name}<small>${x.resonance>=5?'SHINY • ':''}R${x.resonance}/5 • ${x.shards} ✦</small></button>`}).join('');
+ document.getElementById('forgeRoster').innerHTML=FORGE_FIGHTERS.map(name=>{const x=unit(name);return `<button class="forgeFighter ${name===selected?'active':''} ${x.resonance>=5?'maxed':''}" data-fighter="${name}">${name}<small>${x.resonance>=5?'SHINY • ':''}R${x.resonance}/5 • ${x.shards} ✦</small></button>`}).join('');
  const card=document.getElementById('forgeCard'),cutout=u.shiny?SHINY_CUTOUT[selected]:null;syncForgeArtwork(card,selected,u.shiny,art(selected),cutout);
  document.getElementById('forgeName').textContent=selected.toUpperCase();const rank=document.getElementById('forgeRank');rank.textContent=maxed?'SHINY AWAKENED':`RESONANCE ${u.resonance} / 5`;rank.classList.toggle('shinyText',maxed);document.getElementById('forgePips').innerHTML=pipHtml(u);document.getElementById('forgeShardCount').textContent=u.shards;
  document.getElementById('forgeCurrent').innerHTML=statsHtml(u.roll,u.locks);document.getElementById('forgeBuildName').textContent=maxed?buildName(u.roll):`${5-u.resonance} MORE DUPLICATE${5-u.resonance===1?'':'S'} TO AWAKEN`;
@@ -158,7 +176,7 @@ function activateSummons(){
  cardForSummon=function(name){return CARD_ART[name]||''};
  summonEmbers=999999;document.querySelectorAll('#emberCount,#pullEmberCount').forEach(el=>{el.textContent='∞';el.classList.add('bb-dev-infinity')});
  spendEmbers=function(){document.querySelectorAll('#emberCount,#pullEmberCount').forEach(el=>el.textContent='∞');return true};
- rosterForRarity=function(){return FIGHTERS};summonOne=function(){return randomCore()};
+ rosterForRarity=function(){return SUMMON_FIGHTERS};summonOne=function(){return randomCore()};
  const launch=launchSummonSequence;launchSummonSequence=function(pulls){activeSummonPulls=pulls;pulls.forEach(applyPull);summonPullScreen.scrollTop=0;pullScene.scrollTop=0;return launch(pulls)};
  multiSummonBtn.addEventListener('click',event=>{event.stopImmediatePropagation();launchSummonSequence(Array.from({length:10},()=>randomCore()))},true);
  const setup=setupPullCard;setupPullCard=function(pull,index,total){setup(pull,index,total);const wrap=document.getElementById('pullCardWrap'),badge=document.getElementById('pullNewBadge'),forge=document.getElementById('bbRevealForge');wrap.dataset.fighter=pull.name;wrap.dataset.rarity=pull.rarity;pullScene.classList.toggle('bb-shiny-awakening',!!pull.shinyUnlock);if(badge)badge.textContent=pull.shinyUnlock?'SHINY AWAKENED':pull.progress||'DUPLICATE';if(forge){forge.hidden=!pull.shinyUnlock;forge.textContent=`OPEN ${pull.name.toUpperCase()} IN FORGE`}document.getElementById('pullMessage').textContent=pull.shinyUnlock?'SHINY AWAKENING!':'RESONANCE ENERGY GATHERING...';syncRevealArt(pull);requestAnimationFrame(()=>syncRevealArt(pull))};
@@ -171,8 +189,8 @@ function activateSummons(){
  document.getElementById('pullResultsPanel')?.addEventListener('click',event=>{const button=event.target.closest('[data-open-forge]');if(button)openForge(button.dataset.openForge)});
  document.getElementById('summonsBtn')?.addEventListener('click',()=>{populateSummonShopArt();summonScreen.scrollTop=0;document.querySelectorAll('#emberCount,#pullEmberCount').forEach(el=>el.textContent='∞')});
  document.getElementById('returnToSummonsBtn')?.addEventListener('click',()=>requestAnimationFrame(()=>{summonScreen.scrollTop=0}));
- const badge=document.querySelector('#summonScreen .testSummonBadge');if(badge)badge.textContent='DEV CORE BANNER • UNLIMITED EMBERS • DUPES BUILD RESONANCE';
- const featured=document.querySelector('#summonScreen .showcaseSubline');if(featured)featured.textContent='ALL SIX PLAYABLE FIGHTERS • EQUAL DEV TEST ODDS';
+ const badge=document.querySelector('#summonScreen .testSummonBadge');if(badge)badge.textContent='LEGACY OF THE SHINOBI • 12 UNIT DEV BANNER • FREE TEST PULLS';
+ const featured=document.querySelector('#summonScreen .showcaseSubline');if(featured)featured.textContent='12 LEGACY OF THE SHINOBI FIGHTERS • EQUAL DEV TEST ODDS';
 }
 installDom();activateSummons();applyCombatBonuses();refreshInventoryBadges();
 window.BlazingProgression=Object.freeze({getState:()=>JSON.parse(JSON.stringify(state)),openForge,rollStats,buildName,applyPull,applyCombatBonuses});
