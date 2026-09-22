@@ -1,12 +1,81 @@
 {
   "schema_version": 1,
   "units": [
-    {"id":"senku","path":"assets/characters/senku/data/unit.json"},
-    {"id":"crimson","path":"assets/characters/crimson/data/unit.json"},
-    {"id":"subzero","path":"assets/characters/subzero/data/unit.json"},
-    {"id":"lebee","path":"assets/characters/lebee/data/unit.json"},
-    {"id":"tyler","path":"assets/characters/tyler/data/unit.json"},
-    {"id":"itachi","path":"assets/characters/itachi/data/unit.json"},
-    {"id":"anubis","path":"assets/characters/anubis/data/unit.json"}
+    {
+      "id": "senku",
+      "path": "assets/characters/senku/data/unit.json"
+    },
+    {
+      "id": "crimson",
+      "path": "assets/characters/crimson/data/unit.json"
+    },
+    {
+      "id": "subzero",
+      "path": "assets/characters/subzero/data/unit.json"
+    },
+    {
+      "id": "lebee",
+      "path": "assets/characters/lebee/data/unit.json"
+    },
+    {
+      "id": "tyler",
+      "path": "assets/characters/tyler/data/unit.json"
+    },
+    {
+      "id": "itachi",
+      "path": "assets/characters/itachi/data/unit.json"
+    },
+    {
+      "id": "anubis",
+      "path": "assets/characters/anubis/data/unit.json"
+    },
+    {
+      "id": "kakashi",
+      "path": "assets/characters/kakashi/data/unit.json"
+    },
+    {
+      "id": "obito",
+      "path": "assets/characters/obito/data/unit.json"
+    },
+    {
+      "id": "jiraiya",
+      "path": "assets/characters/jiraiya/data/unit.json"
+    },
+    {
+      "id": "sasuke",
+      "path": "assets/characters/sasuke/data/unit.json"
+    },
+    {
+      "id": "pain",
+      "path": "assets/characters/pain/data/unit.json"
+    },
+    {
+      "id": "scorpion",
+      "path": "assets/characters/scorpion/data/unit.json"
+    },
+    {
+      "id": "rock_lee",
+      "path": "assets/characters/rock_lee/data/unit.json"
+    },
+    {
+      "id": "mashle",
+      "path": "assets/characters/mashle/data/unit.json"
+    },
+    {
+      "id": "jackie_chan",
+      "path": "assets/characters/jackie_chan/data/unit.json"
+    },
+    {
+      "id": "gabimaru",
+      "path": "assets/characters/gabimaru/data/unit.json"
+    },
+    {
+      "id": "killua",
+      "path": "assets/characters/killua/data/unit.json"
+    },
+    {
+      "id": "zabuza",
+      "path": "assets/characters/zabuza/data/unit.json"
+    }
   ]
 }
