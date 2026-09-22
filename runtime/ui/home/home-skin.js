@@ -181,13 +181,18 @@ function routeUnits(shell){
 function routeForge(shell){return routeLegacyScreen({legacyId:'forgeBtn',screenId:'resonanceScreen',shell,label:'Forge'});}
 function routeBattleMode(kind,shell){
  closeBattle(shell);
- const start=runtimeFn('startBattle');
- if(start){
-  try{start(kind==='castle'?'boss':'level');return true}catch(error){console.error('Home battle route failed',kind,error)}
- }
  const fallback=kind==='castle'?'boss1Btn':'level1Btn';
- if(clickLegacy(fallback,shell))return true;
- showToast(shell,'Battle could not start.');return false;
+ const clicked=clickLegacy(fallback,shell);
+ const startFallback=()=>{
+  if(document.getElementById('battleScreen')?.classList.contains('active'))return true;
+  const start=runtimeFn('startBattle');
+  if(start){
+   try{start(kind==='castle'?'boss':'level');return true}catch(error){console.error('Home battle runtime fallback failed',kind,error)}
+  }
+  showToast(shell,'Battle could not start.');return false;
+ };
+ if(clicked){setTimeout(startFallback,120);return true;}
+ return startFallback();
 }
 
 function clickSemantic(root,shell,regex,label){
