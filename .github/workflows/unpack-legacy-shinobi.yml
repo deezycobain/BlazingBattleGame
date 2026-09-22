@@ -24,17 +24,36 @@ jobs:
           ref: dev
           fetch-depth: 0
 
-      - name: Extract Legacy of Shinobi packages
+      - name: Install asset-prep dependency
+        run: python3 -m pip install --disable-pip-version-check pillow
+
+      - name: Extract and prepare Legacy of Shinobi
         run: python3 tools/unpack_legacy_shinobi.py
 
-      - name: Commit extracted assets
+      - name: Commit extracted and runtime-ready assets
         run: |
-          if git diff --quiet -- assets/events/legacy-of-shinobi && [ -z "$(git status --porcelain -- assets/events/legacy-of-shinobi)" ]; then
-            echo "No extracted asset changes to commit."
+          PATHS=(
+            assets/events/legacy-of-shinobi
+            assets/characters/kakashi
+            assets/characters/obito
+            assets/characters/jiraiya
+            assets/characters/sasuke
+            assets/characters/pain
+            assets/characters/scorpion
+            assets/characters/rock_lee
+            assets/characters/mashle
+            assets/characters/jackie_chan
+            assets/characters/killua
+            assets/characters/zabuza
+            assets/characters/gabimaru
+            runtime/registry/unit-index.json
+          )
+          if git diff --quiet -- "${PATHS[@]}" && [ -z "$(git status --porcelain -- "${PATHS[@]}")" ]; then
+            echo "No prepared asset changes to commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/events/legacy-of-shinobi
-          git commit -m "Extract Legacy of Shinobi banner assets"
+          git add "${PATHS[@]}"
+          git commit -m "Prepare Legacy of Shinobi runtime assets"
           git push origin HEAD:dev
