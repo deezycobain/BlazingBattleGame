@@ -42,6 +42,33 @@ if(loop.outcome(roadAlive)!=='ongoing'||!roadSnap.queue.some(item=>item.name==='
 roadAlive.bbRoadTeamHp=0;
 if(loop.outcome(roadAlive)!=='defeat')throw new Error('Road team did not defeat as one shared HP pool');
 
+// Road authored initiative must consume a reusable stun exactly when that actor's turn arrives.
+const combatSource=await fs.readFile('runtime/combat/combat-runtime.js','utf8');
+const roadTurnsSource=await fs.readFile('runtime/combat/road-round-turns.js','utf8');
+const roadSandbox={
+ window:{addEventListener:()=>{}},
+ console,
+ S:null,
+ document:{
+  readyState:'loading',
+  addEventListener:()=>{},
+  getElementById:id=>id==='battleScreen'?{classList:{contains:value=>value==='active'}}:null
+ }
+};
+vm.createContext(roadSandbox);
+vm.runInContext(combatSource,roadSandbox,{filename:'combat-runtime.js'});
+const stunnedEnemy=enemy('Stunned Enemy',{speed:90,gauge:0});
+const nextEnemy=enemy('Next Enemy',{speed:80,gauge:0});
+const roadPair=pair('Road Hero',{speed:70,gauge:0});
+roadSandbox.S={bbRunMode:'road',bbRoadTeamHp:100,bbRoadStage:1,bbRoadRun:{run_id:'stun-test'},pairs:[roadPair],enemies:[stunnedEnemy,nextEnemy],phase:'charge',ready:null,log:''};
+roadSandbox.window.BlazingCombatRuntime.applyStatus(stunnedEnemy,'stun',{turns:1,source:'validator'});
+vm.runInContext(roadTurnsSource,roadSandbox,{filename:'road-round-turns.js'});
+const roadTurns=roadSandbox.window.BlazingRoadTurns;
+const stunSnap=roadTurns.sync()&&roadTurns.snapshot({limit:3});
+if(!stunSnap?.active||stunSnap.current?.name!=='Next Enemy')throw new Error(`One-turn stun did not skip the stunned Road actor: ${JSON.stringify(stunSnap)}`);
+if(roadSandbox.window.BlazingCombatRuntime.hasStatus(stunnedEnemy,'stun'))throw new Error('Road initiative did not consume the stunned actor\'s one-turn status');
+if(!/stunned and loses the turn/i.test(roadSandbox.S.log))throw new Error(`Road stun skip did not publish a combat log message: ${roadSandbox.S.log}`);
+
 const dock=await fs.readFile('runtime/ui/battle/battle-dock.js','utf8');
 for(const marker of ['BlazingCombatLoop','bb-dock-turns','bb-turn-queue','BlazingRoadSharedHp','toggleJutsu','YOUR TURN','ENEMY TURN'])if(!dock.includes(marker))throw new Error(`Battle dock missing combat-loop marker: ${marker}`);
 const css=await fs.readFile('runtime/ui/battle/battle-dock.css','utf8');
@@ -49,4 +76,4 @@ for(const marker of ['.bb-dock-turns','.bb-turn-chip.current','.bb-dock-unit.arm
 const post=await fs.readFile('scripts/battle-mobile-controls-postprocess.mjs','utf8');
 for(const marker of ['runtime/combat/combat-loop-runtime.js','bb-combat-loop-runtime','runtime/modes/blazing-road-battle-refinements.js','bb-blazing-road-battle-refinements'])if(!post.includes(marker))throw new Error(`Production build does not inject combat-loop marker: ${marker}`);
 
-console.log('Combat loop validation PASS: canonical current/next ordering, non-Road KO exclusion, Road shared-team HP, portrait jutsu wiring, and victory/defeat outcomes.');
+console.log('Combat loop validation PASS: canonical ordering, Road shared-team HP, reusable one-turn stun skips, portrait jutsu wiring, and victory/defeat outcomes.');
