@@ -1,0 +1,12 @@
+Banner Set: Legacy of the Shinobi
+Units included: Kakashi, Obito, Jiraiya, Sasuke, Pain, Scorpion
+Contents per unit:
+- card_art.webp (high-quality WebP, optimized for repo upload)
+- idle_6f.png
+- basic_attack_6f.png
+
+Notes:
+- Includes only 6-frame idle sheets.
+- Excludes all 4-frame idle sheets.
+- Obito uses the second approved idle + attack rendition.
+- Card art is WebP quality 95 to keep the full six-unit pack below the 25 MB upload limit while preserving high visual quality.

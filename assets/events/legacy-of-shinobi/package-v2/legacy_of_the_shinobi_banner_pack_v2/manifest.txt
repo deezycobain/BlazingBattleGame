@@ -1,0 +1,6 @@
+Banner Set: Legacy of the Shinobi - Pack V2
+Units included: Rock Lee, Mashle, Jackie Chan (Drunken Master)
+Contents per unit:
+- card_art.png
+- idle_6f.png
+- basic_attack_6f.png

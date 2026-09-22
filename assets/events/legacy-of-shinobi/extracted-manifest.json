@@ -1,58 +1,225 @@
 {
-  "schema_version": 1,
-  "source_archive": "legacy_of_the_shinobi_banner_pack_v3_clean_cards.zip",
-  "source_sha256": "c56e1ca5da5da35485128064e2e1fc3272fabfa99eeb1575c77e92f193b1b4b4",
-  "file_count": 10,
-  "files": [
+  "schema_version": 2,
+  "packages": [
     {
-      "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/basic_attack_6f.png",
-      "size": 1447938,
-      "sha256": "b98971127829ebce6b0c79a4c64d55c989a804d018141999da4aad4104786dc9"
+      "version": 1,
+      "source_archive": "legacy_of_the_shinobi_banner_pack_v1_under25.zip",
+      "source_sha256": "1d798f0b51c32c737cc659277bcdd6b22c48baa7abb2c1bcc9a4b3bf5a355dea",
+      "file_count": 19,
+      "files": [
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/jiraiya/idle_6f.png",
+          "size": 1812401,
+          "sha256": "a0d20befa3e142bdce74312f80343db8604d68b2d44776a9f77a2a13a94cecc0"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/jiraiya/card_art.webp",
+          "size": 688156,
+          "sha256": "12b45fd4e2820ec7c659f1db085aff29507a5c68db2c328cf335803c739a9a67"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/jiraiya/basic_attack_6f.png",
+          "size": 1699381,
+          "sha256": "f1da6772dea8c35d612c12b9a2604d60c8bec5386b8b2415bd38ad2f164cb230"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/kakashi/idle_6f.png",
+          "size": 1353682,
+          "sha256": "9982d19c415dcf9fa9a012b9a02219f53e39dbbba69692bb7856ef6963877d04"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/kakashi/card_art.webp",
+          "size": 746418,
+          "sha256": "c6d3eba79513fd8416eff97428599bf4f89e5f55076465e8583d0b6259ededcc"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/kakashi/basic_attack_6f.png",
+          "size": 1186442,
+          "sha256": "1b2797b123fd0430d437542610e9a5ea65a0b5930274a787084d3314762a8ec7"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/sasuke/idle_6f.png",
+          "size": 1157445,
+          "sha256": "afca1f693859ba6313765e2a6691b6623db810c8a03e8ef6798d88c8f78791b6"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/sasuke/card_art.webp",
+          "size": 728404,
+          "sha256": "917d940d4a18082f7605946611b53ee807205a492dc702ba742ea5528dbdfff7"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/sasuke/basic_attack_6f.png",
+          "size": 1615422,
+          "sha256": "fad1df5f357d357ab1ba479424b550e83be40f02105d3576972890584132d1df"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/obito/idle_6f.png",
+          "size": 1412239,
+          "sha256": "30e302418c6e020365e1c464555a9ac636eea8b9d8780138d16ac21fcc36544e"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/obito/card_art.webp",
+          "size": 671588,
+          "sha256": "db847e8fb3ff37bd883154c5e343134f88d709cc074a2ac8784b4d90f51f754c"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/obito/basic_attack_6f.png",
+          "size": 1512043,
+          "sha256": "2da364c9958dfbdb223a3d2d8d324f28b8a6f8bba8179b445c11e3a12f464ad5"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/manifest.txt",
+          "size": 483,
+          "sha256": "02667424c930bda4cba0726ce0e51147c4949ef404c272920f823311c4ac2258"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/scorpion/idle_6f.png",
+          "size": 1480437,
+          "sha256": "c96f23d2c0dbf429739a16d5f61ef4d9837486d64faa604341ecb0e30b5b42a7"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/scorpion/card_art.webp",
+          "size": 825812,
+          "sha256": "7e2a79d13eaa2ef6a6937f408642169214898e0613d3c3984970355158f3c61c"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/scorpion/basic_attack_6f.png",
+          "size": 1282737,
+          "sha256": "1a8db869e55fc77a96f408dd969b8d1f1331abf53925c9e1e4dccecb502e644e"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/pain/idle_6f.png",
+          "size": 1087453,
+          "sha256": "e105ebda6d3334ab5c16610e44e9524ce4818153fe96aa740497683910ccd9c3"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/pain/card_art.webp",
+          "size": 787538,
+          "sha256": "6f80fe3b51d3ce52f556fa6c99f18fbd74d6705f2b9dadd1f43c4502eb771ea4"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/pain/basic_attack_6f.png",
+          "size": 1550249,
+          "sha256": "fd42fb60a9d44d003099b5ab16a379cf8947442cd4da1af669096afdb5f51c3b"
+        }
+      ]
     },
     {
-      "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/idle_6f.png",
-      "size": 2066759,
-      "sha256": "586c6c2e9ddb1e965fb202b9f769dec9ab718f313851ec9fda2856b87a2c7fa1"
+      "version": 2,
+      "source_archive": "legacy_of_the_shinobi_banner_pack_v2.zip",
+      "source_sha256": "0b225fe50b2784363081f7eb82a45b5845d5bd0bf20e05729622b7864469c445",
+      "file_count": 10,
+      "files": [
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/rock_lee/idle_6f.png",
+          "size": 1358440,
+          "sha256": "2a80e0dbeb4446d6ace00b4a2b54705e0addd96b45c840995a1aed50ac8d0cd7"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/rock_lee/card_art.png",
+          "size": 3229805,
+          "sha256": "c71598f3675bc18b6bfeff69e82577a80a108da9627290b9ea6dcb4ffb58267d"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/rock_lee/basic_attack_6f.png",
+          "size": 1035679,
+          "sha256": "c37a9137265fa7e00311a44e7acd008aff2d2fa58e8da490f6133aaedaa77770"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/mashle/idle_6f.png",
+          "size": 1465972,
+          "sha256": "47f6ebbdf31cc84348c7c705a6321b2ce5e95eaae180a4dc5fdf0fad173f6452"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/mashle/card_art.png",
+          "size": 3122050,
+          "sha256": "dd82c6f99728b8ed84c041e1989110dd684eb24342f630c534a2c71a698fc890"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/mashle/basic_attack_6f.png",
+          "size": 1224950,
+          "sha256": "b251fb5c5b1174c6963b63a7cc430c16edbae2e22aeea0ddec72b9b17e90f690"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/idle_6f.png",
+          "size": 1443730,
+          "sha256": "909902aaff47f2b682e2e180c1e952d4618948610f72b6cc983d184242d329e9"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/card_art.png",
+          "size": 3420584,
+          "sha256": "f495c0457bf3441d3fed24af85b3e3b95e682ff44679a4b374bacf9913587cbc"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/basic_attack_6f.png",
+          "size": 1231261,
+          "sha256": "c7cbe7e6496b805c9c03296b69d1ee1eb1f09a28725bc967117702747fc4efb9"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/manifest.txt",
+          "size": 177,
+          "sha256": "cd7b45ad74650996d3f2f101b638925325c8a50598e4a55984dc0e542411cacf"
+        }
+      ]
     },
     {
-      "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/card_art.png",
-      "size": 3152518,
-      "sha256": "955ad8e4fd60b109f4b8655909a9045f6126f7a86c56e15c6b3411f30e60240f"
-    },
-    {
-      "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/basic_attack_6f.png",
-      "size": 1742068,
-      "sha256": "44dbf74313066708b89bb9090ec344e3267ac5ac37415568a7502baa32533d77"
-    },
-    {
-      "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/idle_6f.png",
-      "size": 1412140,
-      "sha256": "79bc72eb168001c09a389b6f9e4d98c5eaab1f49e6c14d9461951dc48d5f476e"
-    },
-    {
-      "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/card_art.png",
-      "size": 2919346,
-      "sha256": "94177e7ddbf29eb72fb9dd13a891854e169c10e0288ab0518eb42a8f0bbb4782"
-    },
-    {
-      "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/basic_attack_6f.png",
-      "size": 1357098,
-      "sha256": "8b7dd7ecace83aa4eb33ec4c561bde2e5b8d197701a3a9914359ae88aa285854"
-    },
-    {
-      "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/idle_6f.png",
-      "size": 1385569,
-      "sha256": "a1caac827a95d80efa2dfb301767e90e8e4b56e3a9baa7f5a1adf4d744494c23"
-    },
-    {
-      "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/card_art.png",
-      "size": 2965914,
-      "sha256": "ccb4f1ba26a6a114996c14c845f07675d01d4619b61f0db260e50c0218c60996"
-    },
-    {
-      "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/manifest.txt",
-      "size": 229,
-      "sha256": "cab60fc9d104306e7ab114cc8322161a175daf3c0b04632d1b6c61433890ae14"
+      "version": 3,
+      "source_archive": "legacy_of_the_shinobi_banner_pack_v3_clean_cards.zip",
+      "source_sha256": "c56e1ca5da5da35485128064e2e1fc3272fabfa99eeb1575c77e92f193b1b4b4",
+      "file_count": 10,
+      "files": [
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/basic_attack_6f.png",
+          "size": 1447938,
+          "sha256": "b98971127829ebce6b0c79a4c64d55c989a804d018141999da4aad4104786dc9"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/idle_6f.png",
+          "size": 2066759,
+          "sha256": "586c6c2e9ddb1e965fb202b9f769dec9ab718f313851ec9fda2856b87a2c7fa1"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/card_art.png",
+          "size": 3152518,
+          "sha256": "955ad8e4fd60b109f4b8655909a9045f6126f7a86c56e15c6b3411f30e60240f"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/basic_attack_6f.png",
+          "size": 1742068,
+          "sha256": "44dbf74313066708b89bb9090ec344e3267ac5ac37415568a7502baa32533d77"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/idle_6f.png",
+          "size": 1412140,
+          "sha256": "79bc72eb168001c09a389b6f9e4d98c5eaab1f49e6c14d9461951dc48d5f476e"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/card_art.png",
+          "size": 2919346,
+          "sha256": "94177e7ddbf29eb72fb9dd13a891854e169c10e0288ab0518eb42a8f0bbb4782"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/basic_attack_6f.png",
+          "size": 1357098,
+          "sha256": "8b7dd7ecace83aa4eb33ec4c561bde2e5b8d197701a3a9914359ae88aa285854"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/idle_6f.png",
+          "size": 1385569,
+          "sha256": "a1caac827a95d80efa2dfb301767e90e8e4b56e3a9baa7f5a1adf4d744494c23"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/card_art.png",
+          "size": 2965914,
+          "sha256": "ccb4f1ba26a6a114996c14c845f07675d01d4619b61f0db260e50c0218c60996"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/manifest.txt",
+          "size": 229,
+          "sha256": "cab60fc9d104306e7ab114cc8322161a175daf3c0b04632d1b6c61433890ae14"
+        }
+      ]
     }
-  ]
+  ],
+  "total_file_count": 39
 }
