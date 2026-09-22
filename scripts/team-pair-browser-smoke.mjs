@@ -34,6 +34,19 @@ for(const [name,type] of Object.entries({chromium,webkit})){
   const norm=value=>String(value||'').trim().toLowerCase();
   if(!ui.visible||ui.slots!==6||ui.pairs!==3||ui.save!=='SAVE 3 PAIRS'||JSON.stringify(ui.names.map(norm))!==JSON.stringify(ui.team.map(norm)))throw new Error('team editor pair UI invalid: '+JSON.stringify(ui));
 
+  const presentation=await page.evaluate(()=>{
+   const root=document.getElementById('teamScreen');
+   const slot=root?.querySelector('.teamSlot[data-team-slot]');
+   const img=slot?.querySelector('img');
+   const save=document.getElementById('saveTeamBtn');
+   const actions=save?.closest('.teamActions');
+   if(root)root.scrollTop=root.scrollHeight;
+   const sr=slot?.getBoundingClientRect(),ir=img?.getBoundingClientRect(),ar=actions?.getBoundingClientRect();
+   const rootStyle=root?getComputedStyle(root):null,actionStyle=actions?getComputedStyle(actions):null;
+   return {overflowY:rootStyle?.overflowY||'',scrollHeight:root?.scrollHeight||0,clientHeight:root?.clientHeight||0,slotHeight:sr?.height||0,imageHeight:ir?.height||0,savePosition:actionStyle?.position||'',saveTop:ar?.top??9999,saveBottom:ar?.bottom??9999,viewport:innerHeight};
+  });
+  if(!/auto|scroll/i.test(presentation.overflowY)||presentation.slotHeight<70||presentation.imageHeight<presentation.slotHeight*.88||presentation.savePosition!=='fixed'||presentation.saveTop<0||presentation.saveBottom>presentation.viewport+2)throw new Error('team editor mobile presentation invalid: '+JSON.stringify(presentation));
+
   const swap=await page.evaluate(()=>{
    const get=globalThis.eval;
    get("S=fresh();S.bbRunMode='castle'");
@@ -48,6 +61,6 @@ for(const [name,type] of Object.entries({chromium,webkit})){
    return {before,partner,after,active:get('S.pairs[0].active'),reserveVisible};
   });
   if(!swap.reserveVisible||!swap.partner||swap.partner==='—'||swap.after!==swap.partner||swap.after===swap.before||swap.active!==1)throw new Error('partner portrait swap failed outside Road: '+JSON.stringify(swap));
-  console.log('Team pair smoke PASS ('+name+'): 6 selected units -> 3 front/partner pairs with live portrait swap in standard battle.');
+  console.log('Team pair smoke PASS ('+name+'): 6 selected units -> compact 3-pair editor with full-height art, mobile scrolling, fixed Save, and live portrait swap.');
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
