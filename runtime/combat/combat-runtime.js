@@ -74,6 +74,62 @@
     return result;
   }
 
+  function statusId(effect){
+    return String(effect||'').trim().toLowerCase().replace(/[^a-z0-9_-]+/g,'_');
+  }
+
+  function statusBag(target,{create=false}={}){
+    if(!target||typeof target!=='object')return null;
+    if(target.statusEffects&&typeof target.statusEffects==='object'&&!Array.isArray(target.statusEffects))return target.statusEffects;
+    if(!create)return null;
+    target.statusEffects={};
+    return target.statusEffects;
+  }
+
+  function getStatus(target,effect){
+    const id=statusId(effect);
+    if(!id)return null;
+    const status=statusBag(target)?.[id]||null;
+    return status&&finite(status.turns,0)>0?status:null;
+  }
+
+  function hasStatus(target,effect){
+    return !!getStatus(target,effect);
+  }
+
+  function applyStatus(target,effect,{turns=1,source=null}={}){
+    if(!target)throw new Error('applyStatus requires a target');
+    const id=statusId(effect);
+    if(!id)throw new Error('applyStatus requires an effect id');
+    const requested=Math.max(1,Math.trunc(finite(turns,1)));
+    const bag=statusBag(target,{create:true});
+    const previous=bag[id]||null;
+    const nextTurns=Math.max(requested,Math.trunc(finite(previous?.turns,0)));
+    const next={id,turns:nextTurns,source:source==null?(previous?.source??null):String(source)};
+    bag[id]=next;
+    return {target,effect:id,before:previous?Math.trunc(finite(previous.turns,0)):0,after:nextTurns,status:next};
+  }
+
+  function applyStatusTargets(targets,effect,options={}){
+    return (targets||[]).filter(Boolean).map(target=>applyStatus(target,effect,options));
+  }
+
+  function consumeStatusTurn(target,effect){
+    const id=statusId(effect),bag=statusBag(target),status=id?bag?.[id]:null;
+    if(!status||finite(status.turns,0)<=0)return {target,effect:id,before:0,after:0,consumed:false,expired:true};
+    const before=Math.max(0,Math.trunc(finite(status.turns,0)));
+    const after=Math.max(0,before-1);
+    if(after<=0)delete bag[id];else bag[id]={...status,turns:after};
+    return {target,effect:id,before,after,consumed:true,expired:after<=0};
+  }
+
+  function clearStatus(target,effect){
+    const id=statusId(effect),bag=statusBag(target);
+    if(!id||!bag?.[id])return false;
+    delete bag[id];
+    return true;
+  }
+
   function healPercentMaxHp(target,percent,{minimumHeal=1,ignoreDefeated=true}={}){
     if(!target)throw new Error('healPercentMaxHp requires a target');
     const before=nonNegative(target.hp);
@@ -102,6 +158,10 @@
       }
       case 'reduce_target_gauge':
         return reduceGauge(context.target,parameters.amount??context.amount??0,parameters.minimum_gauge??0);
+      case 'apply_status':
+        return applyStatus(context.target,parameters.effect??context.effect,{turns:parameters.turns??context.turns??1,source:parameters.source??context.source??null});
+      case 'apply_status_targets':
+        return applyStatusTargets(context.targets,parameters.effect??context.effect,{turns:parameters.turns??context.turns??1,source:parameters.source??context.source??null});
       case 'heal_party_percent':
         return healPartyPercent(context.targets,parameters.percent_of_max_hp??context.percent??0,{minimumHeal:1,ignoreDefeated:true});
       default:
@@ -120,6 +180,12 @@
     spendChakra,
     gainChakra,
     reduceGauge,
+    getStatus,
+    hasStatus,
+    applyStatus,
+    applyStatusTargets,
+    consumeStatusTurn,
+    clearStatus,
     healPercentMaxHp,
     healPartyPercent,
     execute
