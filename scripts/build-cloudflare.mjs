@@ -9,7 +9,7 @@ const SKIP_TOP = new Set([
   '.git', '.github', 'node_modules', 'dist', 'scripts', 'dev-tools', '_rollback_v0611'
 ]);
 const SKIP_FILES = new Set([
-  'wrangler.jsonc', 'package.json', 'package-lock.json', 'DEV_SENKU_CHECKPOINT.md', 'DEV_WORKFLOW.md'
+  'wrangler.jsonc', 'package.json', 'package-lock.json', 'DEV_SENKU_CHECKPOINT.md', 'DEV_WORKFLOW.md',\n  'legacy_of_the_shinobi_banner_pack_v1_under25.zip', 'legacy_of_the_shinobi_banner_pack_v2.zip', 'legacy_of_the_shinobi_banner_pack_v3_clean_cards.zip'
 ]);
 const SKIP_DIR_PREFIXES = ['_rollback', 'rollback', 'checkpoint'];
 const MIME_EXT = new Map([
