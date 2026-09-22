@@ -228,6 +228,9 @@ function animateItachiTsukuyomi(unitName,from,enemy,onImpact,onDone){
   stopCinematic=startItachiTsukuyomiCinematic(cinematicDuration,nightmareAt-overlayDelay,battlefieldRevealAt-overlayDelay);
  },overlayDelay);
  setTimeout(()=>{
+  if(actionTokenAlive(token)&&S.jutsuDim)S.jutsuDim.end=performance.now();
+ },battlefieldRevealAt);
+ setTimeout(()=>{
   if(!actionTokenAlive(token)){stopCinematic?.();return}
   const liveTargets=(S.enemies||[]).filter(target=>target&&target.hp>0);
   const primaryBefore=Number(enemy?.hp);
