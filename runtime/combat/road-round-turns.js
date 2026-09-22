@@ -25,6 +25,17 @@ function collect(state){
  return [...players,...enemies];
 }
 function isAlive(entry,state){if(!entry)return false;if(entry.kind==='enemy')return finite(entry.ref?.hp,0)>0;return roadAlive(state)&&!!front(entry.ref)}
+function statusTarget(entry){return entry?.kind==='pair'?front(entry.ref):entry?.ref||null}
+function consumeStun(entry,state){
+ const target=statusTarget(entry),runtime=window.BlazingCombatRuntime;
+ if(!target||!runtime?.hasStatus?.(target,'stun'))return false;
+ const detail=runtime.consumeStatusTurn(target,'stun');
+ if(!detail?.consumed)return false;
+ if(entry?.ref)entry.ref.gauge=0;
+ if(target)target.gauge=0;
+ if(state)state.log=`${entry.name} is stunned and loses the turn.`;
+ return true;
+}
 function sortInitiative(list){return list.slice().sort((a,b)=>b.speed-a.speed||(a.kind===b.kind?a.index-b.index:(a.kind==='pair'?-1:1))||a.name.localeCompare(b.name))}
 function actorSetKey(list){return list.map(entry=>entry.id).slice().sort().join('|')}
 function keyFor(state){return `${state?.bbRoadRun?.run_id||'road'}:${state?.bbRoadStage||state?.bbRoadRun?.stage||1}`}
@@ -36,7 +47,18 @@ function refreshOpeningRoster(state){
  order=next;
  return true;
 }
-function current(state){while(index<order.length&&!isAlive(order[index],state))index++;if(index>=order.length){resetRound(state);while(index<order.length&&!isAlive(order[index],state))index++;}return order[index]||null}
+function current(state){
+ const guardMax=Math.max(8,(order.length||1)*3);
+ for(let guard=0;guard<guardMax;guard++){
+  while(index<order.length&&!isAlive(order[index],state))index++;
+  if(index>=order.length){resetRound(state);continue}
+  const candidate=order[index]||null;
+  if(!candidate)return null;
+  if(consumeStun(candidate,state)){index++;seenReady=false;continue}
+  return candidate;
+ }
+ return order[index]||null;
+}
 function engineActors(state){return collect(state).map(entry=>({entry,gaugeOwner:entry.ref}))}
 function suppressionFor(ref){return ref?suppressions.get(ref)||null:null}
 function registerGaugeSuppression(target,detail={}){
