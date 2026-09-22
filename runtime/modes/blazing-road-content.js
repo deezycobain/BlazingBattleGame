@@ -13,7 +13,7 @@ const point=(x,y)=>Object.freeze({x,y});
 const polygon=(...points)=>Object.freeze({type:'polygon',points:Object.freeze(points.map(([x,y])=>point(x,y)))});
 const rect=(x,y,w,h)=>Object.freeze({type:'rect',x,y,w,h});
 const ellipse=(x,y,rx,ry)=>Object.freeze({type:'ellipse',x,y,rx,ry});
-const terrain=({allowed=[],blocked=[]}={})=>Object.freeze({allowed:Object.freeze(allowed),blocked:Object.freeze(blocked)});
+const terrain=({allowed=[],blocked=[],horizonY}={})=>Object.freeze({allowed:Object.freeze(allowed),blocked:Object.freeze(blocked),...(Number.isFinite(horizonY)?{horizonY}:{})});
 const anchors=(...points)=>Object.freeze(points.map(([x,y])=>point(x,y)));
 const presentation=(combatScale=1.12,position='center 53%')=>Object.freeze({
   introScale:1,
@@ -32,9 +32,10 @@ const MAPS=Object.freeze([
   Object.freeze({
     key:'south-sac',name:'South Sac Approach',src:'assets/maps/blazing-road/stage-01-south-sac.webp',
     presentation:presentation(1.14,'center 54%'),
-    perspective:perspective(150,540,.94,1.03,1.02),
+    perspective:perspective(248,540,.84,1.00,1.02),
     enemyAnchors:anchors([200,260],[280,274],[240,340],[315,382],[176,386]),
     movement:terrain({
+      horizonY:248,
       // Trace the visible plaza instead of subtracting two tall invisible side walls.
       // The floor deliberately opens toward the foreground to match the artwork's perspective.
       allowed:[polygon(
@@ -46,9 +47,10 @@ const MAPS=Object.freeze([
   Object.freeze({
     key:'moon-statue-garden',name:'Moon Statue Garden',src:'assets/maps/blazing-road/stage-02-moon-statue-garden.webp',
     presentation:presentation(1.13,'center 53%'),
-    perspective:perspective(135,545,.88,1.04,1.08),
+    perspective:perspective(110,545,.86,1.00,1.08),
     enemyAnchors:anchors([205,220],[275,232],[210,315],[290,362],[242,276]),
     movement:terrain({
+      horizonY:102,
       // The corridor widens toward the camera. Only the actual moon statue remains a blocker.
       allowed:[polygon(
         [80,102],[400,102],[406,160],[412,230],[416,310],[424,400],[438,490],[450,560],
@@ -60,6 +62,7 @@ const MAPS=Object.freeze([
   Object.freeze({
     key:'lantern-garden',name:'Lantern Garden',src:'assets/maps/blazing-road/stage-03-lantern-garden.webp',
     presentation:presentation(1.12,'center 53%'),
+    perspective:perspective(120,545,.90,1.00,1.00),
     movement:terrain({allowed:broadFloor(),blocked:[
       polygon([0,86],[54,86],[66,150],[70,230],[64,325],[70,430],[58,535],[0,560]),
       polygon([430,86],[480,86],[480,562],[426,535],[419,438],[422,335],[416,238],[422,150]),
@@ -71,6 +74,7 @@ const MAPS=Object.freeze([
   Object.freeze({
     key:'shinobi-overlook',name:'Shinobi Overlook',src:'assets/maps/blazing-road/stage-04-shinobi-overlook.webp',
     presentation:presentation(1.11,'center 52%'),
+    perspective:perspective(125,545,.88,1.00,1.06),
     movement:terrain({allowed:broadFloor(),blocked:[
       polygon([0,90],[52,90],[58,170],[56,270],[52,380],[58,520],[0,548]),
       polygon([428,90],[480,90],[480,548],[424,520],[422,410],[426,300],[422,190])
@@ -79,6 +83,7 @@ const MAPS=Object.freeze([
   Object.freeze({
     key:'training-grounds',name:'Training Grounds',src:'assets/maps/blazing-road/stage-05-training-grounds.webp',
     presentation:presentation(1.10,'center 52%'),
+    perspective:perspective(120,545,.93,1.00,.96),
     movement:terrain({allowed:broadFloor(),blocked:[
       polygon([0,95],[50,95],[58,180],[54,285],[60,400],[55,530],[0,560]),
       polygon([432,95],[480,95],[480,560],[426,530],[422,410],[430,292],[426,180])
