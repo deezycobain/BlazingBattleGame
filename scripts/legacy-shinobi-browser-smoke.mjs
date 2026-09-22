@@ -49,7 +49,8 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
    };
   },{ids:IDS,names:NAMES});
 
-  if(contract.missingIds.length)throw new Error('canonical registry missing '+contract.missingIds.join(', '));\n  if(contract.invalidUnits.length)throw new Error('canonical Legacy unit contract invalid '+contract.invalidUnits.join(', '));
+  if(contract.missingIds.length)throw new Error('canonical registry missing '+contract.missingIds.join(', '));
+  if(contract.invalidUnits.length)throw new Error('canonical Legacy unit contract invalid '+contract.invalidUnits.join(', '));
   if(contract.playableMissing.length)throw new Error('active playable roster missing '+contract.playableMissing.join(', '));
   if(!contract.promo||contract.promo.width<80||contract.promo.height<70)throw new Error('Home promo target invalid: '+JSON.stringify(contract.promo));
   if(contract.promo.x<0||contract.promo.right>contract.viewport.width||contract.promo.y<0||contract.promo.bottom>contract.viewport.height)throw new Error('Home promo outside viewport: '+JSON.stringify(contract));
