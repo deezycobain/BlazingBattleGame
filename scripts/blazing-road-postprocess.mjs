@@ -144,6 +144,12 @@ replaceUniqueWithin(
   'Road stage map selection'
 );
 
+const battleEntryAnchor="level1Btn.addEventListener('click',()=>startBattle('level'));";
+const battleEntryBridge="window.BlazingBattleEntry=Object.freeze({startRoad:()=>startBattle('level'),startCastle:()=>startBattle('boss')});\n"+battleEntryAnchor;
+const battleEntryHits=html.split(battleEntryAnchor).length-1;
+if(battleEntryHits!==1)throw new Error(`Blazing Road integration: expected one canonical battle-entry listener, found ${battleEntryHits}`);
+html=html.replace(battleEntryAnchor,battleEntryBridge);
+
 replaceUniqueWithin(
   'function startVictorySequence(){',
   'function checkVictoryKillshot(){',
@@ -210,7 +216,8 @@ for(const marker of [
   'reads the field and evades',
   'evadeState.bbRoadEvadeToken!==evadeToken',
   'Real combat testing uses each unit',
-  'BLAZING ROAD COMPLETE'
+  'BLAZING ROAD COMPLETE',
+  'window.BlazingBattleEntry=Object.freeze'
 ]){
   if(!html.includes(marker))throw new Error(`Blazing Road integration: built shell missing ${marker}`);
 }
