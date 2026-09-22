@@ -23,12 +23,25 @@ jobs:
       - run: npm run build
       - name: Start built game
         run: |
-          npm run serve:dist > /tmp/bb-server.log 2>&1 &
-          echo $! > /tmp/bb-server.pid
-          for i in {1..20}; do
-            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+          nohup node scripts/serve-dist.mjs > /tmp/bb-server.log 2>&1 </dev/null &
+          server_pid=$!
+          echo "$server_pid" > /tmp/bb-server.pid
+          for i in {1..30}; do
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              echo "Built-game server exited before becoming ready"
+              cat /tmp/bb-server.log
+              exit 1
+            fi
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
+              sleep 1
+              if kill -0 "$server_pid" 2>/dev/null && curl -fsS http://127.0.0.1:4173/ >/dev/null; then
+                echo "Built-game server is ready and persistent (pid $server_pid)"
+                exit 0
+              fi
+            fi
             sleep 0.5
           done
+          echo "Built-game server did not become stable"
           cat /tmp/bb-server.log
           exit 1
       - name: Chromium + WebKit local paired-team smoke
