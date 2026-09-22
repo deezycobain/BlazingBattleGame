@@ -25,12 +25,6 @@ async function resetHome(page){
 }
 async function waitHome(page){
  await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
- await page.waitForFunction(()=>{
-  const loading=document.getElementById('bb-loading-screen');
-  if(!loading)return true;
-  const style=getComputedStyle(loading);
-  return loading.classList.contains('bb-ready')||style.pointerEvents==='none'||style.visibility==='hidden'||Number(style.opacity||1)<=.01;
- },null,{timeout:30000});
  await page.waitForFunction(()=>typeof window.BlazingMobileShellFixes==='object'&&typeof window.BlazingApprovedHomeCompat==='object'&&typeof window.BlazingHomeLivePolish==='object'&&typeof window.BlazingHomeV8==='object'&&typeof window.BlazingHomeV9==='object'&&typeof window.BlazingHomeFeedbackFixes==='object',{timeout:30000});
  await page.waitForFunction(()=>document.querySelector('#bbHomeApproved')?.dataset?.bbHomeLayout==='v9-polish'&&document.querySelector('#bbHomeApproved')?.dataset?.bbHomeFeedback==='r1',{timeout:10000});
  await page.waitForTimeout(300);
