@@ -22,6 +22,7 @@ const CSS=`
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav="forge"]{grid-column:2!important;grid-row:2!important;transform:rotate(.3deg)!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-nav[data-nav] img{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;transform:none!important}
 #bbHomeApproved.bb-home-v9 .bb-home-v4-social{gap:10px!important}
+#bbHomeApproved.bb-home-v9 [data-nav]{pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent}
 @media(max-width:430px){
  #bbHomeApproved.bb-home-v9 .bb-home-v4-dock{
   width:calc(100vw - 22px)!important;
@@ -66,6 +67,46 @@ function ensureStyle(){
  document.head.appendChild(style);
  return style;
 }
+const INPUT_BLOCKERS=['#battleScreen','#summonScreen','#summonPullScreen','#teamScreen','#resonanceScreen','#bbMatchResults','#bbRealmExplorer','#bb-itachi-tsukuyomi-cinematic'];
+const guardedPointers=new WeakMap();
+function blockerActive(node){
+ if(!node||node.hidden)return false;
+ if(node.id==='bbRealmExplorer')return !node.hidden;
+ if(node.id==='bb-itachi-tsukuyomi-cinematic')return node.classList.contains('bb-active');
+ return node.classList.contains('active');
+}
+function homeVisible(){
+ const menu=document.getElementById('menuScreen');
+ if(!menu||menu.hidden)return false;
+ const style=getComputedStyle(menu),rect=menu.getBoundingClientRect();
+ return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity||1)>.01&&rect.width>0&&rect.height>0;
+}
+function syncInputOwnership(){
+ const ownsHome=homeVisible();
+ const shell=document.getElementById('bbHomeApproved');
+ if(shell&&ownsHome){
+  for(const nav of shell.querySelectorAll('[data-nav]')){
+   nav.style.setProperty('pointer-events','auto','important');
+   nav.style.setProperty('touch-action','manipulation');
+  }
+ }
+ for(const selector of INPUT_BLOCKERS){
+  const node=document.querySelector(selector);
+  if(!node)continue;
+  const shouldGuard=ownsHome&&!blockerActive(node);
+  if(shouldGuard&&!guardedPointers.has(node)){
+   guardedPointers.set(node,{value:node.style.getPropertyValue('pointer-events'),priority:node.style.getPropertyPriority('pointer-events')});
+   node.style.setProperty('pointer-events','none','important');
+   node.dataset.bbHomeInputGuard='on';
+  }else if(!shouldGuard&&guardedPointers.has(node)){
+   const previous=guardedPointers.get(node)||{};
+   if(previous.value)node.style.setProperty('pointer-events',previous.value,previous.priority||'');
+   else node.style.removeProperty('pointer-events');
+   guardedPointers.delete(node);
+   delete node.dataset.bbHomeInputGuard;
+  }
+ }
+}
 function apply(){
  ensureStyle();
  scrubEscapedNewlines();
@@ -73,6 +114,7 @@ function apply(){
  if(!shell)return false;
  shell.classList.add('bb-home-feedback-r1');
  shell.dataset.bbHomeFeedback=MARK;
+ syncInputOwnership();
  return true;
 }
 let queued=false;
@@ -87,12 +129,13 @@ const observer=new MutationObserver(records=>{
   if(record.target?.id==='menuScreen'||record.target?.id==='bbHomeApproved'||[...record.addedNodes,...record.removedNodes].some(node=>node?.id==='bbHomeApproved'||node?.id==='menuScreen'))homeChanged=true;
  }
  if(homeChanged)schedule();
+ syncInputOwnership();
 });
 function boot(){
  apply();
  if(document.body)observer.observe(document.body,{childList:true,subtree:true,characterData:true});
 }
-window.BlazingHomeFeedbackFixes=Object.freeze({apply,MARK,scrubEscapedNewlines});
+window.BlazingHomeFeedbackFixes=Object.freeze({apply,MARK,scrubEscapedNewlines,syncInputOwnership});
 if(document.readyState==='loading')addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 setTimeout(apply,180);
 setTimeout(apply,420);

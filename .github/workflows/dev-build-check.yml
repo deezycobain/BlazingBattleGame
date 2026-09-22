@@ -49,7 +49,7 @@ jobs:
       - name: Chromium + WebKit local Realm Exploration smoke
         run: npm run smoke:realm
       - name: Chromium + WebKit deployed Journey lock and runtime smoke
-        if: always() && github.event_name == 'push' && github.ref_name == 'dev'
+        if: success() && github.event_name == 'push' && github.ref_name == 'dev'
         env:
           BB_SMOKE_URL: https://dev-blazing-battle-game.blazingbattle.workers.dev
           BB_EXPECT_COMMIT: ${{ github.sha }}
@@ -61,6 +61,7 @@ jobs:
           done
           exit 1
       - name: Chromium + WebKit local boot smoke
+        if: always()
         run: npm run smoke:browser
       - name: Chromium + WebKit local Itachi integration smoke
         if: always()
