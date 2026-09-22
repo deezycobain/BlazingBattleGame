@@ -4,26 +4,36 @@
     "damage_target": {
       "kind": "damage",
       "target_scope": "selected_target",
-      "parameters": ["multiplier"],
+      "parameters": [
+        "multiplier"
+      ],
       "runtime_handler": "damage_target"
     },
     "damage_targets": {
       "kind": "damage",
       "target_scope": "resolved_targets",
-      "parameters": ["multiplier"],
+      "parameters": [
+        "multiplier"
+      ],
       "runtime_handler": "damage_targets"
     },
     "reduce_target_gauge": {
       "kind": "gauge_control",
       "target_scope": "selected_target",
-      "parameters": ["amount"],
-      "rules": {"minimum_gauge": 0},
+      "parameters": [
+        "amount"
+      ],
+      "rules": {
+        "minimum_gauge": 0
+      },
       "runtime_handler": "reduce_target_gauge"
     },
     "heal_party_percent": {
       "kind": "heal",
       "target_scope": "living_allies",
-      "parameters": ["percent_of_max_hp"],
+      "parameters": [
+        "percent_of_max_hp"
+      ],
       "rules": {
         "include_caster": true,
         "ignore_defeated_units": true,
@@ -35,26 +45,58 @@
     "revive_ally": {
       "kind": "revive",
       "target_scope": "defeated_ally",
-      "parameters": ["restore_percent_of_max_hp"],
+      "parameters": [
+        "restore_percent_of_max_hp"
+      ],
       "execution_status": "declared_not_wired"
     },
     "apply_status": {
       "kind": "status",
       "target_scope": "selected_target",
-      "parameters": ["status_id", "chance", "duration"],
-      "execution_status": "declared_not_wired"
+      "parameters": [
+        "effect",
+        "turns",
+        "source"
+      ],
+      "rules": {
+        "minimum_turns": 1,
+        "duration_merge": "max"
+      },
+      "runtime_handler": "apply_status"
     },
     "buff_party": {
       "kind": "buff",
       "target_scope": "living_allies",
-      "parameters": ["stat", "amount", "duration"],
+      "parameters": [
+        "stat",
+        "amount",
+        "duration"
+      ],
       "execution_status": "declared_not_wired"
     },
     "debuff_target": {
       "kind": "debuff",
       "target_scope": "selected_target",
-      "parameters": ["stat", "amount", "duration"],
+      "parameters": [
+        "stat",
+        "amount",
+        "duration"
+      ],
       "execution_status": "declared_not_wired"
+    },
+    "apply_status_targets": {
+      "kind": "status",
+      "target_scope": "resolved_targets",
+      "parameters": [
+        "effect",
+        "turns",
+        "source"
+      ],
+      "rules": {
+        "minimum_turns": 1,
+        "duration_merge": "max"
+      },
+      "runtime_handler": "apply_status_targets"
     }
   }
 }
