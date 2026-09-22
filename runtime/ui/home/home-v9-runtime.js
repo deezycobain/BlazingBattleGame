@@ -60,6 +60,15 @@ function ensureStyle(){
 #${SHELL_ID}.bb-home-v9 .bb-home-v4-util-btn{width:clamp(36px,6.1vw,46px)!important;height:clamp(43px,7.1vw,54px)!important;filter:drop-shadow(0 4px 5px rgba(0,0,0,.34)) sepia(.08)!important}
 #${SHELL_ID}.bb-home-v9 .bb-home-v4-social{top:clamp(79px,10.4vh,98px)!important;gap:4px!important}
 #${SHELL_ID}.bb-home-v9 .bb-home-v4-social button{width:clamp(31px,5.4vw,40px)!important;height:clamp(31px,5.4vw,40px)!important;filter:sepia(.08) drop-shadow(0 4px 5px rgba(0,0,0,.3))!important}
+#\${SHELL_ID}.bb-home-v9 .bb-home-v9-legacy-banner{position:absolute;z-index:13;right:max(14px,env(safe-area-inset-right));bottom:calc(var(--bb-home-v9-dock-h) + 64px);width:clamp(116px,17vw,158px);aspect-ratio:1.08/1;border:1px solid rgba(239,213,161,.55);border-radius:15px 4px 15px 4px;overflow:hidden;padding:0;cursor:pointer;background:linear-gradient(180deg,rgba(12,14,21,.06),rgba(12,12,18,.86)),url("assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/kakashi/card_art.webp") center 18%/cover no-repeat;box-shadow:0 11px 24px rgba(0,0,0,.38),inset 0 0 0 2px rgba(255,238,197,.08);color:#fff5df;text-align:left}
+#\${SHELL_ID}.bb-home-v9 .bb-home-v9-legacy-banner:before{content:'LIMITED BANNER';position:absolute;left:7px;top:7px;padding:4px 5px;background:#8a2730;color:#fff2df;font:800 6px/1 \${FONT};letter-spacing:.14em;box-shadow:0 2px 5px rgba(0,0,0,.3)}
+#\${SHELL_ID}.bb-home-v9 .bb-home-v9-legacy-banner:after{content:'';position:absolute;inset:5px;border:1px solid rgba(237,204,139,.32);border-radius:10px 2px 10px 2px;pointer-events:none}
+#\${SHELL_ID}.bb-home-v9 .bb-home-v9-legacy-copy{position:absolute;z-index:2;left:8px;right:8px;bottom:8px;text-shadow:0 2px 5px #000}
+#\${SHELL_ID}.bb-home-v9 .bb-home-v9-legacy-copy strong{display:block;font:800 clamp(10px,1.7vw,14px)/.98 \${FONT};letter-spacing:.035em}
+#\${SHELL_ID}.bb-home-v9 .bb-home-v9-legacy-copy span{display:block;margin-top:4px;color:#e8c883;font:800 6px/1 \${FONT};letter-spacing:.12em}
+#\${SHELL_ID}.bb-home-v9 .bb-home-v9-legacy-banner:focus-visible{outline:2px solid #f1cf89;outline-offset:3px}
+#\${SHELL_ID}.bb-home-v9 .bb-home-v9-legacy-banner:active{transform:translateY(2px)}
+
 
 #bbHomeProfileGate .bb-profile-card{border-color:rgba(232,211,170,.38)!important;background:linear-gradient(145deg,rgba(25,22,24,.98),rgba(53,45,40,.97) 70%,rgba(17,16,19,.99))!important;color:#fffaf1!important}
 #bbHomeProfileGate small{font:700 8px/1 ${FONT}!important;letter-spacing:.24em!important;color:#d4c19d!important}
@@ -77,6 +86,7 @@ function ensureStyle(){
  #${SHELL_ID}.bb-home-v9 .bb-home-v4-nav[data-nav="summon"] img,#${SHELL_ID}.bb-home-v9 .bb-home-v4-nav[data-nav="units"] img,#${SHELL_ID}.bb-home-v9 .bb-home-v4-nav[data-nav="forge"] img{width:92%!important;height:92%!important}
  #${SHELL_ID}.bb-home-v9 .bb-home-v4-util-btn{width:37px!important;height:46px!important}
  #${SHELL_ID}.bb-home-v9 .bb-home-v4-social button{width:32px!important;height:32px!important}
+ #${SHELL_ID}.bb-home-v9 .bb-home-v9-legacy-banner{right:10px;bottom:188px;width:116px}
 }
 @media(max-height:700px){
  #${SHELL_ID}.bb-home-v9{--bb-home-v9-dock-h:108px}
@@ -103,10 +113,22 @@ function syncCurrencies(shell){
  }
 }
 
+function ensureLegacyBanner(shell){
+ if(!shell)return null;
+ let button=shell.querySelector('.bb-home-v9-legacy-banner');
+ if(!button){
+  button=document.createElement('button');button.type='button';button.className='bb-home-v9-legacy-banner';button.setAttribute('aria-label','Open Legacy of the Shinobi summon banner');
+  button.innerHTML='<span class="bb-home-v9-legacy-copy"><strong>LEGACY OF THE SHINOBI</strong><span>12 NEW FIGHTERS</span></span>';
+  button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const summon=shell.querySelector('[data-nav="summon"]')||document.getElementById('summonsBtn');summon?.click();});
+  shell.appendChild(button);
+ }
+ return button;
+}
 function syncStructure(shell){
  if(!shell)return;
  const center=shell.querySelector('.bb-home-v4-center');
  if(center){center.hidden=true;center.setAttribute('aria-hidden','true');}
+ ensureLegacyBanner(shell);
  syncCurrencies(shell);
 }
 
@@ -133,5 +155,5 @@ new MutationObserver(records=>{
  if(relevant)schedule();
 }).observe(document.body,{subtree:true,childList:true});
 setTimeout(apply,0);setTimeout(apply,240);
-window.BlazingHomeV9=Object.freeze({apply,syncCurrencies,syncStructure});
+window.BlazingHomeV9=Object.freeze({apply,syncCurrencies,syncStructure,ensureLegacyBanner});
 })();
