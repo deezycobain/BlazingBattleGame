@@ -75,8 +75,10 @@ if(C.stageConfig(11).stage!==10)throw new Error('Road content must clamp beyond 
 // perspective floor directly; later maps retain the broad floor plus authored prop blockers.
 function walkableCoverage(map){
  const floor=C.PLAYABLE_FLOOR;
+ const horizon=Number(map?.movement?.horizonY);
+ const startY=Number.isFinite(horizon)?Math.max(floor.y+8,horizon+8):floor.y+8;
  let total=0,walkable=0;
- for(let y=floor.y+8;y<=floor.y+floor.h-8;y+=12){
+ for(let y=startY;y<=floor.y+floor.h-8;y+=12){
   for(let x=floor.x+8;x<=floor.x+floor.w-8;x+=12){
    total++;
    if(C.isWalkablePoint(map,{x,y},{padding:C.PLAYER_FOOT_PADDING}))walkable++;
@@ -87,11 +89,16 @@ function walkableCoverage(map){
 for(const map of C.MAPS){
  if(!Array.isArray(map.movement?.allowed)||map.movement.allowed.length!==1)throw new Error(`${map.key} must publish one primary playable boundary`);
  const p=map.presentation||{};
+ const depth=map.perspective||{};
+ if(![depth.farY,depth.nearY,depth.farScale,depth.nearScale,depth.curve].every(value=>Number.isFinite(Number(value))))throw new Error(`${map.key} perspective profile is incomplete`);
+ if(!(Number(depth.farY)<Number(depth.nearY)))throw new Error(`${map.key} perspective far/near anchors are invalid`);
+ if(Number(depth.farScale)<.82||Number(depth.farScale)>1||Number(depth.nearScale)<.98||Number(depth.nearScale)>1.02)throw new Error(`${map.key} perspective scale is too aggressive: ${JSON.stringify(depth)}`);
+ if(Math.abs(C.visualScaleForY(map,depth.farY)-Number(depth.farScale))>.001||Math.abs(C.visualScaleForY(map,depth.nearY)-Number(depth.nearScale))>.001)throw new Error(`${map.key} perspective calculator does not honor authored anchors`);
  if(Number(p.introScale)!==1)throw new Error(`${map.key} must begin/outro at full-map scale 1`);
  if(!(Number(p.combatScale)>1&&Number(p.combatScale)<=1.18))throw new Error(`${map.key} combat zoom must stay modest: ${p.combatScale}`);
  if(!p.position||Number(p.transitionMs)<300||Number(p.transitionMs)>900)throw new Error(`${map.key} camera presentation is incomplete`);
  const coverage=walkableCoverage(map);
- if(coverage<0.60)throw new Error(`${map.key} only leaves ${(coverage*100).toFixed(1)}% of the authored battlefield floor walkable`);
+ if(coverage<0.60)throw new Error(`${map.key} only leaves ${(coverage*100).toFixed(1)}% of its authored playable depth walkable`);
 }
 for(const stage of [1,2]){
  const shape=C.mapForStage(stage).movement.allowed[0];
@@ -100,6 +107,7 @@ for(const stage of [1,2]){
 
 // Stage 1/2 used to double-restrict the floor with broad side blockers. Preserve the
 // central lanes and expose the visibly open foreground near both lower corners.
+if(Number(C.MAPS.find(map=>map.key==='south-sac')?.movement?.horizonY)!==248)throw new Error('South Sac must publish its 248px playable horizon');
 for(const [stage,points] of [
  [1,[{x:90,y:300},{x:240,y:300},{x:390,y:300},{x:40,y:530},{x:440,y:530}]],
  [2,[{x:92,y:300},{x:240,y:300},{x:388,y:300},{x:40,y:530},{x:440,y:530}]]
@@ -141,7 +149,9 @@ for(const stage of [1,2]){
  for(const side of ['left','right']){
   let position={x:side==='left'?100:380,y:520};
   let previousY=position.y,stalls=0;
-  for(let rawY=500;rawY>=180;rawY-=20){
+  const horizon=Number(map?.movement?.horizonY);
+  const minRawY=Number.isFinite(horizon)?Math.max(180,horizon+12):180;
+  for(let rawY=500;rawY>=minRawY;rawY-=20){
    const raw={x:side==='left'?10:470,y:rawY};
    const next=C.constrainMovementPoint(map,raw,position,{padding:C.PLAYER_FOOT_PADDING,step:6});
    if(!Number.isFinite(next?.x)||!Number.isFinite(next?.y)||!C.isWalkablePoint(map,next,{padding:C.PLAYER_FOOT_PADDING}))throw new Error(`Stage ${stage} ${side} boundary scrape produced illegal position: ${JSON.stringify(next)}`);
