@@ -303,25 +303,17 @@
       "animations": {
         "idle": {
           "resource_id": "kakashi.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/kakashi/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Kakashi six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/kakashi/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Kakashi Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "kakashi.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/kakashi/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Kakashi six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/kakashi/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Kakashi Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
@@ -330,25 +322,17 @@
       "animations": {
         "idle": {
           "resource_id": "obito.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/obito/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Obito six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/obito/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Obito Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "obito.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/obito/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Obito six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/obito/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Obito Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
@@ -357,25 +341,17 @@
       "animations": {
         "idle": {
           "resource_id": "jiraiya.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/jiraiya/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Jiraiya six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/jiraiya/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Jiraiya Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "jiraiya.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/jiraiya/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Jiraiya six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/jiraiya/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Jiraiya Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
@@ -384,25 +360,17 @@
       "animations": {
         "idle": {
           "resource_id": "sasuke.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/sasuke/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Sasuke six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/sasuke/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Sasuke Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "sasuke.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/sasuke/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Sasuke six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/sasuke/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Sasuke Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
@@ -411,25 +379,17 @@
       "animations": {
         "idle": {
           "resource_id": "pain.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/pain/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Pain six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/pain/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Pain Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "pain.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/pain/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Pain six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/pain/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Pain Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
@@ -438,25 +398,17 @@
       "animations": {
         "idle": {
           "resource_id": "scorpion.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/scorpion/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Scorpion six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/scorpion/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Scorpion Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "scorpion.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/scorpion/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Scorpion six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/scorpion/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Scorpion Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
@@ -465,25 +417,17 @@
       "animations": {
         "idle": {
           "resource_id": "rock_lee.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/rock_lee/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Rock Lee six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/rock_lee/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Rock Lee Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "rock_lee.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/rock_lee/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Rock Lee six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/rock_lee/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Rock Lee Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
@@ -492,25 +436,17 @@
       "animations": {
         "idle": {
           "resource_id": "mashle.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/mashle/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Mashle six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/mashle/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Mashle Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "mashle.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/mashle/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Mashle six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/mashle/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Mashle Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
@@ -519,25 +455,17 @@
       "animations": {
         "idle": {
           "resource_id": "jackie_chan.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Jackie Chan six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/jackie_chan/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Jackie Chan Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "jackie_chan.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Jackie Chan six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/jackie_chan/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Jackie Chan Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
@@ -546,25 +474,17 @@
       "animations": {
         "idle": {
           "resource_id": "gabimaru.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Gabimaru six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/gabimaru/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Gabimaru Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "gabimaru.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Gabimaru six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/gabimaru/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Gabimaru Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
@@ -573,25 +493,17 @@
       "animations": {
         "idle": {
           "resource_id": "killua.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Killua six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/killua/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Killua Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "killua.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Killua six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/killua/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Killua Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
@@ -600,25 +512,17 @@
       "animations": {
         "idle": {
           "resource_id": "zabuza.animation.idle",
-          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/idle_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Zabuza six-frame Legacy of the Shinobi idle source sheet."
+          "path": "assets/characters/zabuza/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Zabuza Legacy of the Shinobi idle animation."
         },
         "basic_attack": {
           "resource_id": "zabuza.animation.basic_attack",
-          "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/basic_attack_6f.png",
-          "source_sheet": {
-            "columns": 3,
-            "rows": 2,
-            "frame_count": 6
-          },
-          "renderer": "LegacyShinobiSheetRuntime",
-          "usage": "Zabuza six-frame Legacy of the Shinobi Basic Attack source sheet."
+          "path": "assets/characters/zabuza/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six-frame Zabuza Legacy of the Shinobi Basic Attack animation."
         }
       },
       "vfx": {}
