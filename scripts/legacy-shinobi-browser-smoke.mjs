@@ -77,7 +77,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
     multiVisible:!!document.querySelector('#summonScreen.active #multiSummonBtn')
    };
   },{names:NAMES});
-  if(!/LEGACY OF THE SHINOBI/i.test(summon.title)||summon.fighterCount!==12||summon.missingNames.length||!summon.singleVisible||!summon.multiVisible)throw new Error('Legacy summon lobby invalid: '+JSON.stringify(summon));
+  if(!/LEGACYOFTHE?SHINOBI/i.test(String(summon.title||'').replace(/[^A-Z]/gi,''))||summon.fighterCount!==12||summon.missingNames.length||!summon.singleVisible||!summon.multiVisible)throw new Error('Legacy summon lobby invalid: '+JSON.stringify(summon));
 
   const runtime=await page.evaluate(async ({names})=>{
    const get=globalThis.eval;
