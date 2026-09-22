@@ -53,8 +53,19 @@ const frozen={gauge:20};
 const gauge=combat.execute('reduce_target_gauge',{target:frozen,parameters:{amount:35,minimum_gauge:0}});
 assert(frozen.gauge===0&&gauge.amount===20,'Freeze Blast gauge reduction must floor at zero');
 
+const statusTarget={hp:50,gauge:80};
+const stun=combat.execute('apply_status',{target:statusTarget,parameters:{effect:'stun',turns:1,source:'itachi'}});
+assert(stun.after===1&&combat.hasStatus(statusTarget,'stun'),'stun must register as a reusable one-turn status effect');
+const consumed=combat.consumeStatusTurn(statusTarget,'stun');
+assert(consumed.consumed===true&&consumed.after===0&&!combat.hasStatus(statusTarget,'stun'),'one-turn stun must expire after consuming exactly one turn');
+const statusTargets=[{hp:10},{hp:10}];
+const multiStatus=combat.execute('apply_status_targets',{targets:statusTargets,parameters:{effect:'stun',turns:2}});
+assert(multiStatus.length===2&&statusTargets.every(target=>combat.getStatus(target,'stun')?.turns===2),'multi-target status application changed');
+combat.execute('apply_status',{target:statusTargets[0],parameters:{effect:'stun',turns:1}});
+assert(combat.getStatus(statusTargets[0],'stun')?.turns===2,'reapplying a shorter stun must not shorten an existing status');
+
 let unsupported=false;
 try{combat.execute('declared_future_action',{})}catch{unsupported=true}
 assert(unsupported,'unsupported combat actions must fail closed');
 
-console.log('Combat runtime smoke PASS: normalized 100-point Attack/Defense, mitigation, multi-target damage, Ally Heal, chakra, and Freeze gauge semantics verified.');
+console.log('Combat runtime smoke PASS: normalized damage, healing, chakra, gauge control, and reusable turn-based status effects verified.');
