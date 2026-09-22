@@ -38,8 +38,8 @@ const MAPS=Object.freeze([
       // Trace the visible plaza instead of subtracting two tall invisible side walls.
       // The floor deliberately opens toward the foreground to match the artwork's perspective.
       allowed:[polygon(
-        [76,100],[404,100],[410,155],[414,220],[416,300],[420,380],[432,470],[452,560],
-        [28,560],[48,470],[60,380],[64,300],[66,220],[70,155]
+        [96,248],[384,248],[396,276],[406,332],[416,402],[432,486],[452,560],
+        [28,560],[46,486],[58,402],[68,332],[78,276]
       )]
     })
   }),
