@@ -1,0 +1,6 @@
+Banner Set: Legacy of the Shinobi - Clean Cards Pack
+Units included: Killua, Zabuza, Gabimaru
+Contents per unit:
+- card_art.png (clean card art version with only the Legacy of the Shinobi tag)
+- idle_6f.png
+- basic_attack_6f.png
