@@ -13,7 +13,7 @@ const POINTS=Object.freeze([
   Object.freeze({x:68,y:332}),Object.freeze({x:78,y:276})
 ]);
 const ALLOWED=Object.freeze([Object.freeze({type:'polygon',points:POINTS})]);
-const MOVEMENT=Object.freeze({allowed:ALLOWED,blocked:Object.freeze([])});
+const MOVEMENT=Object.freeze({allowed:ALLOWED,blocked:Object.freeze([]),horizonY:248});
 
 function correctedMap(map){
  if(!map||map.key!==KEY)return map;
