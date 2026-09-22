@@ -1,0 +1,36 @@
+{
+  "schema_version": 3,
+  "unit_id": "killua",
+  "source_unit_data": "assets/characters/killua/data/unit.json",
+  "abilities": {
+    "basic_attack": {
+      "slot": "basic",
+      "animation_id": "killua.animation.basic_attack",
+      "runtime_handler": "animateLunge",
+      "gameplay_actions": [
+        {
+          "event": "on_impact",
+          "action_id": "damage_target",
+          "parameters": {
+            "multiplier_source": "abilities.basic.damage_multiplier"
+          }
+        }
+      ],
+      "vfx": {
+        "impact": "shared.vfx.impact.default"
+      }
+    },
+    "legacy_jutsu_pending": {
+      "slot": "jutsu",
+      "animation_id": "killua.animation.idle",
+      "runtime_handler": "disabled",
+      "execution_status": "declared_not_wired",
+      "migration_note": "Legacy of the Shinobi first-pass integration keeps Jutsu locked until dedicated VFX and Jutsu are authored.",
+      "gameplay_actions": [],
+      "vfx": {}
+    }
+  },
+  "states": {
+    "idle": "killua.animation.idle"
+  }
+}
