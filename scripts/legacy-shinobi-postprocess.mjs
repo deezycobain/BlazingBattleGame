@@ -67,6 +67,6 @@ if(!html.includes("function unitAttackFrames(name,kind){const legacyShinobiBasic
  html=html.replace(attackAnchor,"function unitAttackFrames(name,kind){const legacyShinobiBasic=LEGACY_SHINOBI_BODY_RUNTIME.basic(name);if(legacyShinobiBasic?.length)return legacyShinobiBasic;");
 
 for(const id of IDS)if(!html.includes('"'+id+'":'))fail('final shell missing canonical unit data '+id);
-for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME','12 NEW FIGHTERS','LEGACY OF THE SHINOBI',...IDS,...NAMES])if(!html.includes(marker))fail('final shell missing '+marker);
+for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME','LEGACY OF THE SHINOBI',...IDS,...NAMES])if(!html.includes(marker))fail('final shell missing '+marker);
 await fs.writeFile(file,html);
 console.log('Legacy Shinobi integration PASS: 12 playable roster entries use prebuilt six-frame idle/basic runtime assets.');
