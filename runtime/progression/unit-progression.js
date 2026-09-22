@@ -4,7 +4,7 @@
 const KEY='blazing.unitProgression.v1';
 const LEGACY_KEY='blazing.progression.v1';
 const VERSION=1;
-const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi'];
+const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi','Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Jackie Chan','Gabimaru','Killua','Zabuza'];
 const AWAKENING_COSTS=Object.freeze([1,1,1,1,2]);
 const CAPS=Object.freeze([10,20,30,40,50,50]);
 const MAX_LEVEL=50;
