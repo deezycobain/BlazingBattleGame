@@ -3,6 +3,7 @@ from pathlib import Path
 import hashlib
 import json
 import shutil
+import struct
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -39,11 +40,16 @@ for index, archive in enumerate(ARCHIVES, start=1):
             dest.parent.mkdir(parents=True, exist_ok=True)
             data = zf.read(info)
             dest.write_bytes(data)
-            files.append({
+            record = {
                 "path": dest.relative_to(ROOT).as_posix(),
                 "size": len(data),
                 "sha256": hashlib.sha256(data).hexdigest(),
-            })
+            }
+            if data.startswith(b"\\x89PNG\\r\\n\\x1a\\n") and len(data) >= 24:
+                width, height = struct.unpack(">II", data[16:24])
+                record["width"] = width
+                record["height"] = height
+            files.append(record)
     packages.append({
         "version": index,
         "source_archive": archive.name,
