@@ -29,7 +29,7 @@ const LEGACY_SHINOBI_BODY_RUNTIME=(()=>{
   if(!Array.isArray(rels)||rels.length!==6)return null;
   const key=name+':'+kind;
   if(!cache.has(key)){
-   const paths=rels.map(rel=>/^assets\//.test(rel)?rel:`assets/characters/${unit.id}/${rel}`);
+   const paths=rels.map(rel=>/^assets\//.test(rel)?rel:'assets/characters/'+unit.id+'/'+rel);
    cache.set(key,makeImageFrames(paths));
   }
   return cache.get(key);
