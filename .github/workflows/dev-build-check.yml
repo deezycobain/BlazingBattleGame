@@ -23,7 +23,7 @@ jobs:
       - run: npm run build
       - name: Start built game
         run: |
-          nohup node scripts/serve-dist.mjs > /tmp/bb-server.log 2>&1 </dev/null &
+          env -u RUNNER_TRACKING_ID nohup node scripts/serve-dist.mjs > /tmp/bb-server.log 2>&1 </dev/null &
           server_pid=$!
           echo "$server_pid" > /tmp/bb-server.pid
           for i in {1..30}; do
@@ -48,6 +48,18 @@ jobs:
         run: node scripts/team-pair-browser-smoke.mjs
       - name: Chromium + WebKit local Realm Exploration smoke
         run: npm run smoke:realm
+      - name: Chromium + WebKit deployed Home input smoke
+        if: always() && github.event_name == 'push' && github.ref_name == 'dev'
+        env:
+          BB_SMOKE_URL: https://dev-blazing-battle-game.blazingbattle.workers.dev
+          BB_EXPECT_COMMIT: ${{ github.sha }}
+        run: |
+          for attempt in {1..6}; do
+            echo "Deployed Home input smoke attempt $attempt/6"
+            if node scripts/browser-smoke-v8.mjs; then exit 0; fi
+            sleep 20
+          done
+          exit 1
       - name: Chromium + WebKit deployed Journey lock and runtime smoke
         if: success() && github.event_name == 'push' && github.ref_name == 'dev'
         env:
