@@ -59,21 +59,28 @@
       "name": "Tsukuyomi",
       "cost": 4,
       "damage_multiplier": 1.75,
-      "delivery": "battlefield_aoe",
+      "delivery": "single_target_cinematic",
       "category": "jutsu",
       "ultimate": false,
-      "gauge_reduction": 45,
       "presentation": {
         "runtime_driver": "animateItachiTsukuyomi",
-        "cast_duration_ms": 2600,
-        "overlay_duration_ms": 3380,
-        "target_duration_ms": 1200,
-        "screen_dim_alpha": 0.42,
+        "cast_duration_ms": 2650,
+        "overlay_duration_ms": 2250,
+        "battlefield_reveal_ms": 2150,
+        "impact_duration_ms": 900,
+        "target_duration_ms": 780,
+        "screen_dim_alpha": 0.36,
         "body_facing_mode": "target_locked",
-        "freeze_caster_position": true
+        "freeze_caster_position": true,
+        "playback_fps": 60,
+        "crossfade_authored_frames": true
       },
       "area": "battlefield_rectangle",
-      "aoe": true
+      "aoe": false,
+      "target_mode": "single_primary_plus_status_others",
+      "status_effect": "stun",
+      "status_turns": 1,
+      "status_target_mode": "other_living_enemies"
     }
   },
   "assets": {
@@ -96,13 +103,13 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": false,
-    "notes": "Legendary Itachi presentation v3: Crow Chakra Strike is a compact direction-safe crow flock with red smoke. Tsukuyomi now uses the authored overlay, mandala, and target VFX in a fixed full-viewport cinematic layer centered over the entire battle screen, then resolves battlefield-wide AoE damage and 45-point gauge suppression.",
+    "notes": "Legendary Itachi presentation v4: Tsukuyomi takes over the viewport, crossfades authored VFX on a requestAnimationFrame loop, fades back to the battlefield before a target-side impact, deals one authoritative primary hit, and applies the reusable one-turn stun status to every other living enemy.",
     "animation_map": true
   },
   "balance": {
     "status": "provisional",
-    "pass": "itachi-legendary-fullscreen-tsukuyomi-v3",
-    "notes": "Gameplay values remain provisional. Tsukuyomi presentation is now full-viewport and authored-asset driven while retaining 4 chakra cost, 1.75x damage, and 45-point gauge suppression."
+    "pass": "itachi-legendary-tsukuyomi-stun-v4",
+    "notes": "Tsukuyomi keeps its 4 chakra cost and 1.75x primary damage. It no longer deals AoE damage or gauge suppression; secondary living enemies receive stun for one turn through the shared combat-status runtime."
   },
   "animation_standard": {
     "version": "v0.7-itachi-initial",
@@ -158,7 +165,7 @@
             "sprites/runtime/jutsu/tsukuyomi/cast/frame_05.png",
             "sprites/runtime/jutsu/tsukuyomi/cast/frame_06.png"
           ],
-          "frame_ms": 300,
+          "frame_ms": 110,
           "loop": false,
           "events": [
             {
