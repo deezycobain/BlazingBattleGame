@@ -17,10 +17,10 @@ try{new vm.Script(cinematicJs)}catch(error){fail(`summon cinematic syntax error:
 
 const runtimeMarkers=[
  "KEY='blazing.progression.v1'",'MAX_RESONANCE=5','STAT_BUDGET=12',
- "FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi']",'u.resonance<MAX_RESONANCE','u.shards++','u.shiny=true',
+ "CORE_FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi']","LEGACY_FIGHTERS=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Jackie Chan','Gabimaru','Killua','Zabuza']","SUMMON_FIGHTERS=LEGACY_FIGHTERS",'u.resonance<MAX_RESONANCE','u.shards++','u.shiny=true',
  'candidate=rollStats(u.locks,u.roll)','KEEP CURRENT','ACCEPT NEW','summonEmbers=999999','spendEmbers=function()',
  'localStorage.setItem','function applyCombatBonuses()','target.jutsuDamage=Math.round','RESET DEV PROGRESSION',
- "multiSummonBtn.addEventListener('click'",'Array.from({length:10}','CORE RESONANCE BANNER','SKIP TO RESULTS',
+ "multiSummonBtn.addEventListener('click'",'Array.from({length:10}','LEGACY OF THE SHINOBI','12 UNIT EVENT POOL','SKIP TO RESULTS',
  'showSummonResultsNow','bb-shiny-awakening','data-open-forge','cardForSummon=function(name){return CARD_ART[name]',
  'const FORGE_ART=','const SHINY_CUTOUT=','const SHINY_POPOUT_PROFILE=',"'Sub-Zero':'ice-hand'","'Tyler':'head-hand'",
  "'Lebee':'lebee-hand-hair'","'Senku':'senku-hand-hair'",'syncRevealArt','syncResultArt','dataset.popoutProfile',
@@ -129,4 +129,4 @@ for(const expensive of ['clip-path:','mask-image:','-webkit-mask-image:','filter
 const runtimeCreates=[...cinematicJs.matchAll(/img\(VFX\.(?:portal|ornateRing|outerRing|energyRing|chargeImpact|motionCards|shadowAfterimage|flipFrameCrimson|flipSlash|resolveImpact|resolveFlash|resolveParticles),/g)].length;
 if(runtimeCreates!==12)fail(`expected twelve sequenced VFX DOM layers, found ${runtimeCreates}`);
 if(!pkg.scripts?.['smoke:browser']?.includes('summon-cinematic-browser-smoke.mjs'))fail('summon cinematic browser smoke is not wired into smoke:browser');
-console.log('Progression PASS: canonical summon art, persistent Resonance rerolls, and the full-pack 3.66s brush-free cinematic are enforced.');
+console.log('Progression PASS: Legacy of the Shinobi 12-unit summon banner, canonical card art, persistent Resonance rerolls, and the full-pack 3.66s brush-free cinematic are enforced.');
