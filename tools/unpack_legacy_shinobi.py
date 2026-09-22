@@ -69,6 +69,43 @@ def split_sheet(sheet_path: Path, output_dir: Path):
             frames.append(frame_path)
     return {"columns": cols, "rows": rows, "cell_width": cell_w, "cell_height": cell_h, "frames": frames}
 
+def runtime_map_json(unit_id: str):
+    return {
+        "schema_version": 3,
+        "unit_id": unit_id,
+        "source_unit_data": f"assets/characters/{unit_id}/data/unit.json",
+        "abilities": {
+            "basic_attack": {
+                "slot": "basic",
+                "animation_id": f"{unit_id}.animation.basic_attack",
+                "runtime_handler": "animateLunge",
+                "gameplay_actions": [
+                    {
+                        "event": "on_impact",
+                        "action_id": "damage_target",
+                        "parameters": {
+                            "multiplier_source": "abilities.basic.damage_multiplier"
+                        }
+                    }
+                ],
+                "vfx": {
+                    "impact": "shared.vfx.impact.default"
+                }
+            },
+            "legacy_jutsu_pending": {
+                "slot": "jutsu",
+                "animation_id": f"{unit_id}.animation.idle",
+                "runtime_handler": "disabled",
+                "execution_status": "declared_not_wired",
+                "migration_note": "Dedicated Legacy of the Shinobi Jutsu and VFX are intentionally deferred to the next character-authoring pass.",
+                "gameplay_actions": []
+            }
+        },
+        "states": {
+            "idle": f"{unit_id}.animation.idle"
+        }
+    }
+
 def unit_json(unit_id: str, card_name: str):
     meta = UNIT_META[unit_id]
     stats = meta["stats"]
@@ -240,6 +277,7 @@ for unit_id, source_dir in sorted(unit_sources.items()):
         },
     }
     (data_dir / "unit.json").write_text(json.dumps(data, indent=2) + "\n")
+    (data_dir / "runtime-map.json").write_text(json.dumps(runtime_map_json(unit_id), indent=2) + "\n")
     generated_units.append(unit_id)
 
 index_data = json.loads(UNIT_INDEX.read_text())
