@@ -6,6 +6,10 @@ on:
       - dev
     paths:
       - ".github/workflows/unpack-legacy-shinobi.yml"
+      - "tools/unpack_legacy_shinobi.py"
+      - "legacy_of_the_shinobi_banner_pack_v1_under25.zip"
+      - "legacy_of_the_shinobi_banner_pack_v2.zip"
+      - "legacy_of_the_shinobi_banner_pack_v3_clean_cards.zip"
 
 permissions:
   contents: write
@@ -20,7 +24,7 @@ jobs:
           ref: dev
           fetch-depth: 0
 
-      - name: Extract latest Legacy of Shinobi package
+      - name: Extract Legacy of Shinobi packages
         run: python3 tools/unpack_legacy_shinobi.py
 
       - name: Commit extracted assets
