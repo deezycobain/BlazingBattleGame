@@ -1,0 +1,110 @@
+{
+  "schema_version": 3,
+  "id": "jackie_chan",
+  "display_name": "Jackie Chan",
+  "title": "Legacy of the Shinobi",
+  "role": "playable",
+  "archetype": "event_fighter",
+  "element": "Neutral",
+  "rarity": "Legacy",
+  "collection": {
+    "owned": true,
+    "inventory_visible": true,
+    "battle_ready": true
+  },
+  "stats": {
+    "level": 1,
+    "hp": 72,
+    "attack": 70,
+    "defense": 68,
+    "speed": 72
+  },
+  "combat": {
+    "mark": "legacy",
+    "basic_range": 92,
+    "jutsu_range": 0,
+    "chakra_max": 8,
+    "chakra_start": 0,
+    "basic_shape": {
+      "type": "circle",
+      "r": 92
+    },
+    "jutsu_shape": {
+      "type": "circle",
+      "r": 0
+    }
+  },
+  "abilities": {
+    "basic": {
+      "id": "basic_attack",
+      "name": "Basic Attack",
+      "category": "basic",
+      "damage_multiplier": 1,
+      "chakra_gain": 2,
+      "delivery": "melee",
+      "target_mode": "single",
+      "presentation": {
+        "runtime_driver": "animateLunge",
+        "animation_kind": "basic_attack",
+        "melee_animation_kind": "basic_attack"
+      }
+    },
+    "jutsu": {
+      "id": "jutsu_pending",
+      "name": "Jutsu Pending",
+      "category": "jutsu",
+      "cost": 99,
+      "damage_multiplier": 0,
+      "delivery": "disabled",
+      "target_mode": "none",
+      "enabled": false
+    }
+  },
+  "assets": {
+    "art": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/card_art.png",
+    "card": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/card_art.png",
+    "portrait": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/card_art.png",
+    "icon": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/card_art.png",
+    "sprites": {
+      "idle": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/idle_6f.png",
+      "basic_attack": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/basic_attack_6f.png"
+    },
+    "vfx": {}
+  },
+  "readiness": {
+    "card_art": true,
+    "idle": true,
+    "basic_attack": true,
+    "jutsu": false,
+    "vfx": false,
+    "testing_phase": "legacy_shinobi_banner_v1"
+  },
+  "balance": {
+    "status": "provisional",
+    "note": "Shared baseline stats for banner integration testing; unit-specific balance follows jutsu/VFX pass."
+  },
+  "animation_standard": {
+    "fps": 12,
+    "loop_idle": true,
+    "animations": {
+      "idle": {
+        "source_sheet": {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/idle_6f.png",
+          "columns": 3,
+          "rows": 2,
+          "frame_count": 6
+        },
+        "renderer": "LegacyShinobiSheetRuntime"
+      },
+      "basic_attack": {
+        "source_sheet": {
+          "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/basic_attack_6f.png",
+          "columns": 3,
+          "rows": 2,
+          "frame_count": 6
+        },
+        "renderer": "LegacyShinobiSheetRuntime"
+      }
+    }
+  }
+}
