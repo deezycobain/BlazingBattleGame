@@ -358,6 +358,6 @@ for(const marker of [
 ])if(!html.includes(marker))fail(`final shell missing ${marker}`);
 
 if(html.includes("\\`")||html.includes("\\${"))fail("generated runtime contains escaped template syntax");
-try{new vm.Script(`function __bbItachiVfxSyntax(f,ctx){if(false){}${itachiVfx}}`,{filename:'itachi-vfx-generated.js'});}catch(error){fail(`generated Itachi VFX syntax invalid: ${error.message}`);}
+try{new vm.Script(`function __bbItachiVfxSyntax(f,ctx){if(false){${itachiVfx}}`,{filename:'itachi-vfx-generated.js'});}catch(error){fail(`generated Itachi VFX syntax invalid: ${error.message}`);}
 await fs.writeFile(file,html);
 console.log('Itachi playable integration PASS: smooth full-screen Tsukuyomi takeover, battlefield impact VFX, one primary hit, and reusable secondary stun are wired.');
