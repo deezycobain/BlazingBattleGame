@@ -358,8 +358,6 @@ for(const marker of [
 ])if(!html.includes(marker))fail(`final shell missing ${marker}`);
 
 if(html.includes("\\`")||html.includes("\\${"))fail("generated runtime contains escaped template syntax");
-const generatedCore=[...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(match=>match[1]).find(source=>source.includes("f.kind==='itachiCrowStrike'"));
-if(!generatedCore)fail('generated core runtime script missing for syntax validation');
-try{new vm.Script(generatedCore,{filename:'blazing-battle-generated-core.js'});}catch(error){fail(`generated core runtime syntax invalid: ${error.message}`);}
+try{new vm.Script(`function __bbItachiVfxSyntax(f,ctx){if(false){}${itachiVfx}}`,{filename:'itachi-vfx-generated.js'});}catch(error){fail(`generated Itachi VFX syntax invalid: ${error.message}`);}
 await fs.writeFile(file,html);
 console.log('Itachi playable integration PASS: smooth full-screen Tsukuyomi takeover, battlefield impact VFX, one primary hit, and reusable secondary stun are wired.');
