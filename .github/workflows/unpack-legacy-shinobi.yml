@@ -1,0 +1,36 @@
+name: Unpack Legacy of Shinobi
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - ".github/workflows/unpack-legacy-shinobi.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out dev
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Extract latest Legacy of Shinobi package
+        run: python3 tools/unpack_legacy_shinobi.py
+
+      - name: Commit extracted assets
+        run: |
+          if git diff --quiet -- assets/events/legacy-of-shinobi && [ -z "$(git status --porcelain -- assets/events/legacy-of-shinobi)" ]; then
+            echo "No extracted asset changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/events/legacy-of-shinobi
+          git commit -m "Extract Legacy of Shinobi banner assets"
+          git push origin HEAD:dev
