@@ -343,3 +343,32 @@
  .bb-featured-card{grid-template-columns:112px minmax(0,1fr);height:163px}.bb-featured-card img{width:112px;height:124px}.bb-banner-copy h1{font-size:21px}.bb-banner-copy p{font-size:9px}.bb-banner-roster span{font-size:6px}.bb-summon-secondary{grid-template-columns:1fr 1fr}
 }
 @media(prefers-reduced-motion:reduce){.forgeArtDepth{transition:none!important}#summonPullScreen .bb-shiny-awakening .pullHeroArea::after,.forgeCard.shiny .forgeHoloTexture,.forgeCard.shiny .forgeArtStage::before,.forgeCard.shiny .forgeArtStage::after,#forgeCard.shiny.hasPopout[data-fighter="lebee"] .forgeArtDepth::after,#forgeCard.shiny.hasPopout[data-fighter="senku"] .forgeArtDepth::after{animation:none!important}}
+
+
+/* Legacy of the Shinobi event banner */
+.bb-legacy-lobby{grid-template-columns:1fr!important}
+.bb-legacy-banner{position:relative;grid-column:1/-1;min-height:310px;overflow:hidden;border:1px solid rgba(95,67,44,.72);border-radius:18px 5px 18px 5px;background:linear-gradient(135deg,#15161d,#24283a 48%,#692b2d);box-shadow:0 12px 28px rgba(48,34,24,.2),inset 0 0 0 1px rgba(255,239,202,.15);isolation:isolate}
+.bb-legacy-banner:before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(90deg,rgba(11,12,18,.97) 0,rgba(15,17,25,.90) 36%,rgba(18,18,25,.35) 61%,rgba(75,26,30,.2));}
+.bb-legacy-banner:after{content:'';position:absolute;z-index:4;inset:8px;pointer-events:none;border:1px solid rgba(229,195,128,.42);border-radius:13px 3px 13px 3px}
+.bb-legacy-art-stack{position:absolute;z-index:1;inset:-7% -2% -7% 35%;display:grid;grid-template-columns:repeat(4,1fr);gap:0;transform:skewX(-7deg);filter:saturate(.92) contrast(1.03)}
+.bb-legacy-art-stack img{display:block;width:100%;height:100%;min-width:0;object-fit:cover;object-position:center top;border-left:1px solid rgba(235,210,157,.14);transform:scale(1.08)}
+.bb-legacy-banner-copy{position:relative;z-index:3;width:min(60%,440px);padding:34px 28px 30px;color:#fff8e8}
+.bb-legacy-banner-copy .bb-banner-kicker{color:#e9c477}
+.bb-legacy-banner-copy h1{margin:0;font-family:var(--bb-font-animeace,'AnimeAce2',sans-serif);font-size:clamp(30px,6vw,52px);font-weight:400;line-height:.96;letter-spacing:-.035em;text-shadow:0 3px 12px rgba(0,0,0,.45)}
+.bb-legacy-banner-copy h1 span{color:#dc5056}
+.bb-legacy-banner-copy p{max-width:430px;margin:14px 0 17px;color:rgba(255,244,220,.78);font-size:12px;line-height:1.5;font-weight:650}
+.bb-legacy-banner-stamp{display:inline-block;padding:6px 9px;border:1px solid rgba(238,202,128,.65);background:rgba(17,17,24,.7);color:#f1d89f;font-size:8px;font-weight:1000;letter-spacing:.13em}
+.bb-legacy-pool{grid-column:1/-1;padding:11px 12px 12px;border:1px solid rgba(116,86,53,.58);border-radius:10px 4px 10px 4px;background:linear-gradient(155deg,rgba(248,237,211,.96),rgba(221,197,157,.94));box-shadow:inset 0 1px rgba(255,255,255,.7),0 7px 18px rgba(70,50,31,.12)}
+.bb-legacy-pool-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:8px;color:#493829}
+.bb-legacy-pool-head strong{font-family:var(--bb-font-animeace,'AnimeAce2',sans-serif);font-size:12px;font-weight:400}.bb-legacy-pool-head span{color:#8b6b45;font-size:7px;font-weight:1000;letter-spacing:.12em}
+.bb-legacy-pool .bb-banner-roster{gap:4px}
+.bb-legacy-pool .bb-banner-roster span{flex:1 0 auto;text-align:center;padding:5px 7px;background:rgba(255,249,232,.72)}
+@media(max-width:700px){
+ .bb-legacy-banner{min-height:238px}.bb-legacy-art-stack{inset:0 -19% 0 31%;grid-template-columns:repeat(4,1fr)}
+ .bb-legacy-banner-copy{width:68%;padding:24px 16px 20px}.bb-legacy-banner-copy h1{font-size:clamp(27px,8vw,36px)}.bb-legacy-banner-copy p{margin:10px 0 12px;font-size:9px;line-height:1.38}
+ .bb-legacy-banner-stamp{padding:5px 7px;font-size:6px}.bb-legacy-pool{padding:9px 8px}.bb-legacy-pool-head{margin-bottom:6px}.bb-legacy-pool-head strong{font-size:10px}.bb-legacy-pool-head span{font-size:6px}
+ .bb-legacy-pool .bb-banner-roster{max-height:70px;overflow:auto;align-content:start}
+}
+@media(max-width:390px){
+ .bb-legacy-banner{min-height:220px}.bb-legacy-banner-copy{width:72%;padding:20px 13px 17px}.bb-legacy-banner-copy h1{font-size:26px}.bb-legacy-art-stack{inset:0 -24% 0 30%}
+}
