@@ -38,7 +38,7 @@
     "chakra_start": 2
   },
   "render": {
-    "scale": 0.98
+    "scale": 1.1
   },
   "abilities": {
     "basic": {
@@ -96,7 +96,7 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "Stable baseline retained. Basic keeps its 92 px close melee bubble. Freeze Blast keeps the 175 px by 64 px medium-range lane and is strictly horizontal: it selects the nearest living enemy already aligned with the lane, then faces and fires only left or right. If no enemy is aligned, preview facing falls back to the nearest living enemy's side. The projectile launch is lowered to Sub-Zero's visible hand line without changing gameplay timing, cost, damage, or freeze behavior.",
+    "notes": "Stable baseline retained. Battlefield presentation scale is now 1.10 so Sub-Zero reads consistently beside Tyler before per-map depth scaling. Basic keeps its compact close melee bubble. Freeze Blast keeps the medium-range horizontal lane and existing gameplay timing, cost, damage, and freeze behavior.",
     "animation_map": true
   },
   "balance": {
