@@ -17,6 +17,12 @@ function runIsolated(name){
   child.on('error',error=>{clearTimeout(timer);console.error(`Home v9 smoke FAIL (${name}): ${error.message}`);resolve(false)});
  });
 }
+let HOME_RESET_SEQ=0;
+async function resetHome(page){
+ HOME_RESET_SEQ+=1;
+ await page.goto(`${BASE}/?bbSmokeReset=${HOME_RESET_SEQ}`,{waitUntil:'domcontentloaded'});
+ await waitHome(page);
+}
 async function waitHome(page){
  await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
  const loading=page.locator('#bb-loading-screen');
@@ -112,7 +118,7 @@ async function exerciseNonBattleRoutes(page,label){
  const singleBox=await page.locator('#summonScreen.active #singleSummonBtn').boundingBox();if(!singleBox)throw new Error(`${label}: single summon target missing`);
  const singleTop=await page.evaluate(({x,y})=>{const node=document.elementFromPoint(x,y);return {id:node?.id||'',button:node?.closest?.('button')?.id||'',battle:!!node?.closest?.('#battleScreen')};},{x:singleBox.x+singleBox.width/2,y:singleBox.y+singleBox.height/2});
  if(singleTop.button!=='singleSummonBtn'||singleTop.battle)throw new Error(`${label}: single summon is still intercepted :: ${JSON.stringify(singleTop)}`);
- await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});await waitHome(page);
+ await resetHome(page);
  await assertBattleCanvasShield(page,`${label}/home-after-summon`);
  await assertNavTop(page,'#bbHomeApproved [data-nav="units"]','units',`${label}/inventory-nav`);
  await page.locator('#bbHomeApproved [data-nav="units"]').click();
@@ -126,7 +132,7 @@ async function exerciseBattle(page,label){
 }
 async function exerciseViewport(browser,name,label,contextOptions){
  const errors=[],context=await browser.newContext(contextOptions);
- try{const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));const response=await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);await waitHome(page);const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);await assertHome(page,`${name}/${label}`);await exerciseNonBattleRoutes(page,`${name}/${label}`);await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});await waitHome(page);await exerciseBattle(page,`${name}/${label}`);if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`)}finally{await context.close().catch(()=>{})}
+ try{const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));const response=await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});if(response&&!response.ok())throw new Error(`root HTTP ${response.status()}`);await waitHome(page);const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);await assertHome(page,`${name}/${label}`);await exerciseNonBattleRoutes(page,`${name}/${label}`);await resetHome(page);await exerciseBattle(page,`${name}/${label}`);if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`)}finally{await context.close().catch(()=>{})}
 }
 async function run(name,type){let browser;try{browser=await type.launch({headless:true,timeout:15000});await exerciseViewport(browser,name,'phone',{viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:name==='webkit'});await exerciseViewport(browser,name,'desktop',{viewport:{width:1366,height:900},isMobile:false,hasTouch:false})}finally{if(browser)await browser.close().catch(()=>{})}}
 if(!SELECT){let ok=true;for(const name of Object.keys(TYPES))if(!await runIsolated(name))ok=false;if(!ok)process.exit(1);process.exit(0)}
