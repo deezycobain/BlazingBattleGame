@@ -278,37 +278,6 @@ for unit_id, source_dir in sorted(unit_sources.items()):
     }
     (data_dir / "unit.json").write_text(json.dumps(data, indent=2) + "\n")
     (data_dir / "runtime-map.json").write_text(json.dumps(runtime_map_json(unit_id), indent=2) + "\n")
-    runtime_map = {
-        "schema_version": 3,
-        "unit_id": unit_id,
-        "source_unit_data": f"assets/characters/{unit_id}/data/unit.json",
-        "abilities": {
-            "basic_attack": {
-                "slot": "basic",
-                "animation_id": f"{unit_id}.animation.basic_attack",
-                "runtime_handler": "animateLunge",
-                "gameplay_actions": [
-                    {
-                        "event": "on_impact",
-                        "action_id": "damage_target",
-                        "parameters": {"multiplier_source": "abilities.basic.damage_multiplier"},
-                    }
-                ],
-                "vfx": {"impact": "shared.vfx.impact.default"},
-            },
-            "legacy_jutsu_pending": {
-                "slot": "jutsu",
-                "animation_id": f"{unit_id}.animation.idle",
-                "runtime_handler": "disabled",
-                "execution_status": "declared_not_wired",
-                "migration_note": "Legacy of the Shinobi first-pass integration keeps Jutsu locked until dedicated VFX and Jutsu are authored.",
-                "gameplay_actions": [],
-                "vfx": {},
-            },
-        },
-        "states": {"idle": f"{unit_id}.animation.idle"},
-    }
-    (data_dir / "runtime-map.json").write_text(json.dumps(runtime_map, indent=2) + "\n")
     generated_units.append(unit_id)
 
 index_data = json.loads(UNIT_INDEX.read_text())
