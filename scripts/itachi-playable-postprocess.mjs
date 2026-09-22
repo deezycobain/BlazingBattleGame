@@ -90,12 +90,12 @@ const pairStyle=`<style id="bb-team-pair-style">
 #teamScreen .bb-team-pair{position:relative;display:grid;grid-template-columns:1fr;gap:5px;padding:8px 6px 10px;border:1px solid rgba(115,83,47,.42);border-radius:13px;background:linear-gradient(180deg,rgba(255,251,237,.78),rgba(224,205,168,.62));box-shadow:inset 0 1px rgba(255,255,255,.72),0 4px 10px rgba(64,45,26,.10)}
 #teamScreen .bb-team-pair>strong{font:800 10px/1 var(--bb-font-animeace,AnimeAce2,sans-serif);letter-spacing:.05em;text-align:center;color:#4e3825}
 #teamScreen .bb-team-pair>span{font:900 7px/1 system-ui,sans-serif;letter-spacing:.13em;text-align:center;color:#876b49}
-#teamScreen .bb-team-pair .teamSlot{width:100%!important;min-width:0!important;min-height:112px!important;padding:5px!important}
-#teamScreen .bb-team-pair .teamSlot img{width:100%!important;height:78px!important;object-fit:cover!important;object-position:center 22%!important;border-radius:8px 3px 8px 3px}
+#teamScreen .bb-team-pair .teamSlot{width:100%!important;min-width:0!important;min-height:0!important;padding:0!important}
+#teamScreen .bb-team-pair .teamSlot img{width:100%!important;height:100%!important;min-height:100%!important;object-fit:cover!important;object-position:center 28%!important;border-radius:inherit!important}
 #teamScreen .bb-team-pair .teamSlotName{display:block!important;margin-top:4px!important;font-size:8px!important;line-height:1.05!important;text-align:center!important}
 #teamScreen .bb-team-pair .teamSlot[data-team-slot="1"],#teamScreen .bb-team-pair .teamSlot[data-team-slot="3"],#teamScreen .bb-team-pair .teamSlot[data-team-slot="5"]{transform:scale(.94);transform-origin:center top}
 #teamScreen .bb-team-pair .teamSlot.selected{outline:2px solid #44b9e8!important;box-shadow:0 0 0 3px rgba(68,185,232,.18),0 4px 12px rgba(42,89,110,.18)!important}
-@media(max-width:430px){#teamScreen .teamBody{padding-left:8px!important;padding-right:8px!important}#teamScreen .bb-team-pairs{gap:6px!important}#teamScreen .bb-team-pair{padding:7px 4px 8px}#teamScreen .bb-team-pair .teamSlot{min-height:100px!important}#teamScreen .bb-team-pair .teamSlot img{height:68px!important}}
+@media(max-width:430px){#teamScreen .teamBody{padding-left:8px!important;padding-right:8px!important}#teamScreen .bb-team-pairs{gap:6px!important}#teamScreen .bb-team-pair{padding:7px 4px 8px}#teamScreen .bb-team-pair .teamSlot{min-height:0!important}#teamScreen .bb-team-pair .teamSlot img{height:100%!important;min-height:100%!important}}
 </style>`;
 html=html.replace(/<\/head>/i,pairStyle+'</head>');
 
