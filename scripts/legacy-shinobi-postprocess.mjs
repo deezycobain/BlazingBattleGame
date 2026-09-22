@@ -8,6 +8,18 @@ const fail=message=>{throw new Error('Legacy Shinobi integration: '+message)};
 const IDS=['kakashi','obito','jiraiya','sasuke','pain','scorpion','rock_lee','mashle','jackie_chan','gabimaru','killua','zabuza'];
 const NAMES=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Jackie Chan','Gabimaru','Killua','Zabuza'];
 
+const legacyUnits={};
+for(const id of IDS){
+ const unitPath=path.join(process.cwd(),'assets','characters',id,'data','unit.json');
+ legacyUnits[id]=JSON.parse(await fs.readFile(unitPath,'utf8'));
+}
+const unitTag=/(<script id="blazing-unit-data">window\.BLAZING_UNIT_DATA=)(\{.*?\})(;<\/script>)/s;
+const unitMatch=html.match(unitTag);
+if(!unitMatch)fail('embedded unit data tag missing');
+const embeddedUnits=JSON.parse(unitMatch[2]);
+Object.assign(embeddedUnits,legacyUnits);
+html=html.replace(unitTag,(_,a,_json,c)=>a+JSON.stringify(embeddedUnits)+c);
+
 const rosterSource="['crimson','subzero','lebee','senku','tyler','itachi','anubis']";
 const rosterTarget="['crimson','subzero','lebee','senku','tyler','itachi',"+IDS.map(x=>"'"+x+"'").join(',')+",'anubis']";
 if(html.includes(rosterSource))html=html.replace(rosterSource,rosterTarget);
@@ -54,6 +66,7 @@ if(!html.includes(attackAnchor))fail('unitAttackFrames anchor missing');
 if(!html.includes("function unitAttackFrames(name,kind){const legacyShinobiBasic=LEGACY_SHINOBI_BODY_RUNTIME.basic(name);"))
  html=html.replace(attackAnchor,"function unitAttackFrames(name,kind){const legacyShinobiBasic=LEGACY_SHINOBI_BODY_RUNTIME.basic(name);if(legacyShinobiBasic?.length)return legacyShinobiBasic;");
 
+for(const id of IDS)if(!html.includes('"'+id+'":'))fail('final shell missing canonical unit data '+id);
 for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME','12 NEW FIGHTERS','LEGACY OF THE SHINOBI',...IDS,...NAMES])if(!html.includes(marker))fail('final shell missing '+marker);
 await fs.writeFile(file,html);
 console.log('Legacy Shinobi integration PASS: 12 playable roster entries use prebuilt six-frame idle/basic runtime assets.');
