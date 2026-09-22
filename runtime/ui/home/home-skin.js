@@ -182,11 +182,16 @@ function routeForge(shell){return routeLegacyScreen({legacyId:'forgeBtn',screenI
 function routeBattleMode(kind,shell){
  closeBattle(shell);
  const bridge=window.BlazingBattleEntry;
+ if(shell){shell.dataset.bbBattleRoute='';delete shell.dataset.bbBattleRouteError;}
  try{
-  if(kind==='castle'&&typeof bridge?.startCastle==='function'){bridge.startCastle();return true;}
-  if(kind!=='castle'&&typeof bridge?.startRoad==='function'){bridge.startRoad();return true;}
- }catch(error){console.error('Home canonical battle entry failed',kind,error)}
+  if(kind==='castle'&&typeof bridge?.startCastle==='function'){if(shell)shell.dataset.bbBattleRoute='bridge-castle';bridge.startCastle();return true;}
+  if(kind!=='castle'&&typeof bridge?.startRoad==='function'){if(shell)shell.dataset.bbBattleRoute='bridge-road';bridge.startRoad();return true;}
+ }catch(error){
+  if(shell)shell.dataset.bbBattleRouteError=String(error?.message||error);
+  console.error('Home canonical battle entry failed',kind,error);
+ }
  const fallback=kind==='castle'?'boss1Btn':'level1Btn';
+ if(shell)shell.dataset.bbBattleRoute='legacy-'+kind;
  if(clickLegacy(fallback,shell))return true;
  showToast(shell,'Battle could not start.');return false;
 }

@@ -132,7 +132,25 @@ async function exerciseBattle(page,label){
  await page.locator('#bbHomeApproved [data-nav="battle"]').click();const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');await panel.waitFor({state:'visible',timeout:5000});
  const labels=await page.locator('#bbHomeApproved .bb-home-v4-modes').innerText();if(!/BLAZING\s+ROAD/i.test(labels)||!/PHANTOM\s+CASTLE/i.test(labels))throw new Error(`${label}: battle mode labels missing`);
  await page.locator('#bbHomeApproved [data-mode="road"]').click();
- await page.waitForFunction(()=>{try{const s=globalThis.eval('S');return document.getElementById('battleScreen')?.classList.contains('active')&&s?.bbRunMode==='road'}catch{return false}},null,{timeout:10000});
+ try{
+  await page.waitForFunction(()=>{try{const s=globalThis.eval('S');return document.getElementById('battleScreen')?.classList.contains('active')&&s?.bbRunMode==='road'}catch{return false}},null,{timeout:10000});
+ }catch(error){
+  const state=await page.evaluate(()=>{
+   let s=null,startType='missing';try{s=globalThis.eval('S');startType=typeof globalThis.eval('startBattle')}catch(_){}
+   const battle=document.getElementById('battleScreen'),menu=document.getElementById('menuScreen'),shell=document.getElementById('bbHomeApproved');
+   const style=node=>node?{display:getComputedStyle(node).display,visibility:getComputedStyle(node).visibility,pointerEvents:getComputedStyle(node).pointerEvents}:null;
+   return {
+    bridge:{exists:!!window.BlazingBattleEntry,startRoad:typeof window.BlazingBattleEntry?.startRoad,startCastle:typeof window.BlazingBattleEntry?.startCastle},
+    startBattle:startType,
+    battle:{active:!!battle?.classList.contains('active'),hidden:!!battle?.hidden,style:style(battle),guard:battle?.dataset?.bbHomeInputGuard||''},
+    menu:{active:!!menu?.classList.contains('active'),hidden:!!menu?.hidden,style:style(menu)},
+    shell:{battleOpen:!!shell?.classList.contains('battle-open'),route:shell?.dataset?.bbBattleRoute||'',routeError:shell?.dataset?.bbBattleRouteError||''},
+    state:s?{runMode:s.bbRunMode||'',phase:s.phase||'',roadStage:s.bbRoadStage||0,pairs:Array.isArray(s.pairs)?s.pairs.length:null,enemies:Array.isArray(s.enemies)?s.enemies.length:null}:null,
+    diagnostics:(window.__BB_DIAGNOSTICS__||[]).slice(-8).map(x=>({kind:x.kind,name:x.name,message:x.message||''}))
+   };
+  });
+  throw new Error(`${label}: Road battle did not activate :: ${JSON.stringify(state)}`,{cause:error});
+ }
 }
 async function exerciseViewport(browser,name,label,contextOptions){
  const errors=[],context=await browser.newContext(contextOptions);
