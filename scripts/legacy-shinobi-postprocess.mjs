@@ -79,10 +79,11 @@ if(html.includes(legacyAttackVisualGate))html=html.replace(legacyAttackVisualGat
 else if(!html.includes(legacyAttackVisualTarget))fail('Legacy attack visual-state renderer gate missing');
 
 /* Give the six-frame Legacy attack sheet enough screen time to read.
-   Six frames at the authored 105 ms cadence = 630 ms total. Impact lands during
-   the middle of the sequence, then the last frames play during recovery. */
+   Most Legacy fighters retain the shared cadence. Wong Fei-Hung is intentionally
+   slower and looser: his 6 x 165 ms Drunken Master attack owns a full 990 ms
+   movement cycle so the lunge does not outrun the authored frames. */
 const lungeTimingSource="let start=performance.now(),dur=unitName==='Tyler'?360:175,backDur=unitName==='Tyler'?340:145,lungeHold=unitName==='Tyler'?100:65;";
-const lungeTimingTarget="const legacyShinobiAttack=LEGACY_SHINOBI_BODY_RUNTIME.has(unitName);let start=performance.now(),dur=legacyShinobiAttack?205:(unitName==='Tyler'?360:175),backDur=legacyShinobiAttack?240:(unitName==='Tyler'?340:145),lungeHold=legacyShinobiAttack?185:(unitName==='Tyler'?100:65);";
+const lungeTimingTarget="const legacyShinobiAttack=LEGACY_SHINOBI_BODY_RUNTIME.has(unitName),drunkenMasterAttack=unitName==='Wong Fei-Hung';let start=performance.now(),dur=drunkenMasterAttack?320:(legacyShinobiAttack?205:(unitName==='Tyler'?360:175)),backDur=drunkenMasterAttack?320:(legacyShinobiAttack?240:(unitName==='Tyler'?340:145)),lungeHold=drunkenMasterAttack?350:(legacyShinobiAttack?185:(unitName==='Tyler'?100:65));";
 if(html.includes(lungeTimingSource))html=html.replace(lungeTimingSource,lungeTimingTarget);
 else if(!html.includes(lungeTimingTarget))fail('Legacy animateLunge timing anchor missing');
 
