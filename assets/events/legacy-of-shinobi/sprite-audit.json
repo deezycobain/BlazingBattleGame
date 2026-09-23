@@ -1,0 +1,5730 @@
+{
+  "schema_version": 1,
+  "audit": "legacy-shinobi-sprite-and-card-assets",
+  "runtime_canvas": {
+    "width": 512,
+    "height": 768,
+    "anchor": "bottom_center",
+    "bottom_anchor_y": 742
+  },
+  "layout_contract": {
+    "pack_v1_units": [
+      "jiraiya",
+      "kakashi",
+      "obito",
+      "pain",
+      "sasuke",
+      "scorpion"
+    ],
+    "pack_v2_v3_strip_units": [
+      "gabimaru",
+      "jackie_chan",
+      "killua",
+      "mashle",
+      "rock_lee",
+      "zabuza"
+    ]
+  },
+  "units": {
+    "gabimaru": {
+      "display_name": "Gabimaru",
+      "package": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/card_art.png",
+        "size": [
+          1086,
+          1448
+        ],
+        "mode": "RGB",
+        "sha256": "955ad8e4fd60b109f4b8655909a9045f6126f7a86c56e15c6b3411f30e60240f"
+      },
+      "idle": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              0,
+              412,
+              724
+            ],
+            "output_bbox": [
+              35,
+              38,
+              477,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              442,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              378,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              420,
+              724
+            ],
+            "sha256": "96ce3cf2f19ac83a795f14ea62be02f281ae22e79dc35b3c05cf36c477ea4293"
+          },
+          {
+            "subject_box": [
+              0,
+              0,
+              420,
+              724
+            ],
+            "output_bbox": [
+              28,
+              38,
+              483,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              455,
+              704
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              378,
+              0,
+              722,
+              724
+            ],
+            "expanded_cell": [
+              340,
+              0,
+              760,
+              724
+            ],
+            "sha256": "868fa71f59b7d0cd479f2bae08c086ed7467b9c74ab4597027e19dc2fc793c6b"
+          },
+          {
+            "subject_box": [
+              0,
+              0,
+              462,
+              724
+            ],
+            "output_bbox": [
+              28,
+              100,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              642
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              722,
+              0,
+              1100,
+              724
+            ],
+            "expanded_cell": [
+              680,
+              0,
+              1142,
+              724
+            ],
+            "sha256": "f8f8227bd96a43724d2c181a884f4b9764f157d507c6965761a86bac977396d8"
+          },
+          {
+            "subject_box": [
+              0,
+              0,
+              437,
+              724
+            ],
+            "output_bbox": [
+              28,
+              65,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              677
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1100,
+              0,
+              1459,
+              724
+            ],
+            "expanded_cell": [
+              1061,
+              0,
+              1498,
+              724
+            ],
+            "sha256": "48129ea4b1297a7b610b32881ae9b367f2f1b071a53bd9f07e5a1b10e469b11f"
+          },
+          {
+            "subject_box": [
+              0,
+              0,
+              435,
+              724
+            ],
+            "output_bbox": [
+              28,
+              65,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              677
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1459,
+              0,
+              1816,
+              724
+            ],
+            "expanded_cell": [
+              1420,
+              0,
+              1855,
+              724
+            ],
+            "sha256": "ac8d454810e3eb0e753f881e89b8128c949d6ef3edddffbd865704d90a83de01"
+          },
+          {
+            "subject_box": [
+              0,
+              0,
+              395,
+              724
+            ],
+            "output_bbox": [
+              42,
+              38,
+              469,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              427,
+              704
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1816,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1777,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "a0efabbdaec7a0b127b7f866920b1139c72cf44c1cc45e999f500be1af8fdb24"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              152,
+              366,
+              648
+            ],
+            "output_bbox": [
+              28,
+              192,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              550
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              332,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              369,
+              724
+            ],
+            "sha256": "1159f7a007f8191763c9778bb095ff2a599a8a65e2237a3b95fcf6b089273c48"
+          },
+          {
+            "subject_box": [
+              0,
+              228,
+              458,
+              632
+            ],
+            "output_bbox": [
+              28,
+              380,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              362
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              332,
+              0,
+              708,
+              724
+            ],
+            "expanded_cell": [
+              291,
+              0,
+              749,
+              724
+            ],
+            "sha256": "51569d3ac01e1ca3c0baad898cb3a574a2ec393178f98b72b128330f7469687f"
+          },
+          {
+            "subject_box": [
+              0,
+              172,
+              495,
+              632
+            ],
+            "output_bbox": [
+              28,
+              347,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              395
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              708,
+              0,
+              1113,
+              724
+            ],
+            "expanded_cell": [
+              663,
+              0,
+              1158,
+              724
+            ],
+            "sha256": "76c3b4f04bb588c1b23ab7d27fd190df99bd539f86b43bfdaf241b5f2db2859e"
+          },
+          {
+            "subject_box": [
+              0,
+              101,
+              436,
+              671
+            ],
+            "output_bbox": [
+              28,
+              226,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              516
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1113,
+              0,
+              1471,
+              724
+            ],
+            "expanded_cell": [
+              1074,
+              0,
+              1510,
+              724
+            ],
+            "sha256": "8a06de7daf37df3d42de6dc41aa049fd36aef8f056c98dc1be81cd72983f2255"
+          },
+          {
+            "subject_box": [
+              0,
+              176,
+              478,
+              636
+            ],
+            "output_bbox": [
+              28,
+              308,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              434
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1471,
+              0,
+              1863,
+              724
+            ],
+            "expanded_cell": [
+              1428,
+              0,
+              1906,
+              724
+            ],
+            "sha256": "1516068760c8513806bd39ca862adf09a26b39668d9e93592c28a0f9f24b6c54"
+          },
+          {
+            "subject_box": [
+              4,
+              156,
+              343,
+              650
+            ],
+            "output_bbox": [
+              30,
+              165,
+              482,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              452,
+              577
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1863,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1829,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "54b5ed588a8ca66a460485fbadae0aa499c99127aa56b1e1ac7cc1bb4781221b"
+          }
+        ]
+      }
+    },
+    "jackie_chan": {
+      "display_name": "Jackie Chan",
+      "package": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/card_art.png",
+        "size": [
+          1055,
+          1491
+        ],
+        "mode": "RGB",
+        "sha256": "f495c0457bf3441d3fed24af85b3e3b95e682ff44679a4b374bacf9913587cbc"
+      },
+      "idle": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              0,
+              385,
+              724
+            ],
+            "output_bbox": [
+              65,
+              38,
+              447,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              382,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              350,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              388,
+              724
+            ],
+            "sha256": "07b2ee246a69519803c8cdb04385707a3d6efd30b38604c17646e043a129e909"
+          },
+          {
+            "subject_box": [
+              1,
+              16,
+              443,
+              724
+            ],
+            "output_bbox": [
+              28,
+              95,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              647
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              350,
+              0,
+              721,
+              724
+            ],
+            "expanded_cell": [
+              309,
+              0,
+              762,
+              724
+            ],
+            "sha256": "e3b855b1265e9fd3ea46d16c68fdfa46230654d5125d44c6d7148cccb42a2d69"
+          },
+          {
+            "subject_box": [
+              0,
+              0,
+              399,
+              724
+            ],
+            "output_bbox": [
+              43,
+              38,
+              469,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              426,
+              704
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              721,
+              0,
+              1055,
+              724
+            ],
+            "expanded_cell": [
+              684,
+              0,
+              1092,
+              724
+            ],
+            "sha256": "26085a79c72c2be731405def43c32ce99d2489f91d7565b13f25a32a539b9739"
+          },
+          {
+            "subject_box": [
+              0,
+              33,
+              500,
+              724
+            ],
+            "output_bbox": [
+              28,
+              186,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              556
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1055,
+              0,
+              1465,
+              724
+            ],
+            "expanded_cell": [
+              1010,
+              0,
+              1510,
+              724
+            ],
+            "sha256": "b59539a6c7d8912d6c95bfe8e89b37925f6b4953dbad69917f7f50843c9cf02c"
+          },
+          {
+            "subject_box": [
+              16,
+              22,
+              412,
+              724
+            ],
+            "output_bbox": [
+              31,
+              38,
+              481,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              450,
+              704
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1465,
+              0,
+              1810,
+              724
+            ],
+            "expanded_cell": [
+              1427,
+              0,
+              1848,
+              724
+            ],
+            "sha256": "136b6049f103ba5172c51e756953e8a26ab40c88a79eb44b9f9c7ebb6e79dbcc"
+          },
+          {
+            "subject_box": [
+              28,
+              0,
+              402,
+              724
+            ],
+            "output_bbox": [
+              66,
+              38,
+              445,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              379,
+              704
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1810,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1770,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "687c36ab18d27da9944917999bfb91854e46ef5c56ad9d75b815f5cdeccc80f2"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              84,
+              330,
+              664
+            ],
+            "output_bbox": [
+              43,
+              68,
+              468,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              425,
+              674
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              297,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              330,
+              724
+            ],
+            "sha256": "aa75610bc50aabe405ac00c765289eee62a987f4896d8c496fc4fa52f186de9b"
+          },
+          {
+            "subject_box": [
+              0,
+              179,
+              554,
+              655
+            ],
+            "output_bbox": [
+              28,
+              394,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              348
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              297,
+              0,
+              751,
+              724
+            ],
+            "expanded_cell": [
+              247,
+              0,
+              801,
+              724
+            ],
+            "sha256": "6dc442028f85d002c899ac9c0793774a26e9e5b95854d57a4ac22efc48968630"
+          },
+          {
+            "subject_box": [
+              0,
+              160,
+              414,
+              654
+            ],
+            "output_bbox": [
+              28,
+              269,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              473
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              751,
+              0,
+              1091,
+              724
+            ],
+            "expanded_cell": [
+              714,
+              0,
+              1128,
+              724
+            ],
+            "sha256": "9f0e39f5b24122c2183f4b63944a75af7537fc23e20672878fb6e6c74cdb3865"
+          },
+          {
+            "subject_box": [
+              0,
+              153,
+              484,
+              657
+            ],
+            "output_bbox": [
+              28,
+              299,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              443
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1091,
+              0,
+              1487,
+              724
+            ],
+            "expanded_cell": [
+              1047,
+              0,
+              1531,
+              724
+            ],
+            "sha256": "b016ac44564c21ab072166ada3e9da63f4d2fee2494c0128b788f98d3bdd6d33"
+          },
+          {
+            "subject_box": [
+              10,
+              109,
+              459,
+              669
+            ],
+            "output_bbox": [
+              28,
+              251,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              491
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1487,
+              0,
+              1864,
+              724
+            ],
+            "expanded_cell": [
+              1446,
+              0,
+              1905,
+              724
+            ],
+            "sha256": "f4e28deba1736a415118f4b0171fe8adf7c4a3e11be31ccd1e65d59f7fca01fb"
+          },
+          {
+            "subject_box": [
+              0,
+              157,
+              342,
+              661
+            ],
+            "output_bbox": [
+              33,
+              155,
+              479,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              446,
+              587
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1864,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1830,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "4eb6b586d5c7dcfb83c0e93815f458a1fa53c2371da906dc5cbc3d3903d3e0dc"
+          }
+        ]
+      }
+    },
+    "jiraiya": {
+      "display_name": "Jiraiya",
+      "package": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/jiraiya",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/jiraiya/card_art.webp",
+        "size": [
+          1086,
+          1448
+        ],
+        "mode": "RGB",
+        "sha256": "12b45fd4e2820ec7c659f1db085aff29507a5c68db2c328cf335803c739a9a67"
+      },
+      "idle": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              0,
+              477,
+              708
+            ],
+            "output_bbox": [
+              37,
+              38,
+              474,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              437,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              431,
+              657
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              478,
+              723
+            ],
+            "sha256": "51e9e4dabff0cfad14bf3552580072db3d673287f1cc13d402983598dcc89fa1"
+          },
+          {
+            "subject_box": [
+              24,
+              0,
+              498,
+              708
+            ],
+            "output_bbox": [
+              28,
+              66,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              676
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              431,
+              0,
+              839,
+              657
+            ],
+            "expanded_cell": [
+              386,
+              0,
+              884,
+              723
+            ],
+            "sha256": "637e0e3cf2c6e0178bbc2a57ebb58cdf15e5993a10b6edab3398a46ddebe6929"
+          },
+          {
+            "subject_box": [
+              30,
+              0,
+              461,
+              708
+            ],
+            "output_bbox": [
+              40,
+              38,
+              471,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              431,
+              704
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              839,
+              0,
+              1254,
+              657
+            ],
+            "expanded_cell": [
+              793,
+              0,
+              1254,
+              723
+            ],
+            "sha256": "e10443bda20dfc4b98fe248844cd35562c5d0e7c9cafcd3932e2f538bd74547e"
+          },
+          {
+            "subject_box": [
+              0,
+              12,
+              482,
+              657
+            ],
+            "output_bbox": [
+              28,
+              128,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              614
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              657,
+              434,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              597,
+              482,
+              1254
+            ],
+            "sha256": "384b71c14814c44f8f185a564ad5ea3626f57ef54a44869fc808ca9aa4edb775"
+          },
+          {
+            "subject_box": [
+              14,
+              6,
+              488,
+              657
+            ],
+            "output_bbox": [
+              28,
+              116,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              626
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              434,
+              657,
+              836,
+              1254
+            ],
+            "expanded_cell": [
+              390,
+              597,
+              880,
+              1254
+            ],
+            "sha256": "7a9f59f6b883500a6e064a7b50d6b4c03500f5d24af2a30e0e2a784d91ff286f"
+          },
+          {
+            "subject_box": [
+              34,
+              10,
+              464,
+              657
+            ],
+            "output_bbox": [
+              28,
+              56,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              686
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              836,
+              657,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              790,
+              597,
+              1254,
+              1254
+            ],
+            "sha256": "7217ea3e19a26ad82f1b218f54555e42dd78108d2a48586b900f7d00628998ff"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              76,
+              462,
+              660
+            ],
+            "output_bbox": [
+              28,
+              222,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              520
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              418,
+              627
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              464,
+              690
+            ],
+            "sha256": "a1754f60b72d2f5b332d79b7ed1f1cff9889a4e369f6ef1b60f607f25eb240b3"
+          },
+          {
+            "subject_box": [
+              10,
+              127,
+              512,
+              659
+            ],
+            "output_bbox": [
+              28,
+              325,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              417
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              418,
+              0,
+              838,
+              627
+            ],
+            "expanded_cell": [
+              372,
+              0,
+              884,
+              690
+            ],
+            "sha256": "d004869c825ceab849e5d17a1ce9e0d9ff816178c29d2563ec38645a63e8d2ea"
+          },
+          {
+            "subject_box": [
+              19,
+              95,
+              462,
+              661
+            ],
+            "output_bbox": [
+              28,
+              235,
+              484,
+              741
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              506
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              838,
+              0,
+              1254,
+              627
+            ],
+            "expanded_cell": [
+              792,
+              0,
+              1254,
+              690
+            ],
+            "sha256": "94135612a77826d9ffc6860ebd004959f8808f294b552d64bceb159c0e6ccb5b"
+          },
+          {
+            "subject_box": [
+              0,
+              106,
+              467,
+              652
+            ],
+            "output_bbox": [
+              28,
+              277,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              465
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              627,
+              421,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              564,
+              467,
+              1254
+            ],
+            "sha256": "7e5c984af1dbaa1f4779c5aac7a4d42ed0636e67fb5e570782cb7064b5eab4ef"
+          },
+          {
+            "subject_box": [
+              0,
+              115,
+              550,
+              653
+            ],
+            "output_bbox": [
+              28,
+              357,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              385
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              421,
+              627,
+              871,
+              1254
+            ],
+            "expanded_cell": [
+              371,
+              564,
+              921,
+              1254
+            ],
+            "sha256": "01d443cecf58640d09229e87ccc917fa7364c5ecaad202bb76782b1af07c87d8"
+          },
+          {
+            "subject_box": [
+              0,
+              83,
+              425,
+              653
+            ],
+            "output_bbox": [
+              28,
+              207,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              535
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              871,
+              627,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              829,
+              564,
+              1254,
+              1254
+            ],
+            "sha256": "be1031dbf79a7b224f89d05b55b6b8f4f3828bca8e1c9d0563a2a70180ab223b"
+          }
+        ]
+      }
+    },
+    "kakashi": {
+      "display_name": "Kakashi",
+      "package": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/kakashi",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/kakashi/card_art.webp",
+        "size": [
+          1086,
+          1448
+        ],
+        "mode": "RGB",
+        "sha256": "c6d3eba79513fd8416eff97428599bf4f89e5f55076465e8583d0b6259ededcc"
+      },
+      "idle": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              52,
+              0,
+              428,
+              703
+            ],
+            "output_bbox": [
+              101,
+              38,
+              410,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              309,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              418,
+              653
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              464,
+              718
+            ],
+            "sha256": "820392a93ec0c536e42fa9385d92a8f6c2bb32d5093939c443506f3fd7ea0e54"
+          },
+          {
+            "subject_box": [
+              77,
+              0,
+              463,
+              703
+            ],
+            "output_bbox": [
+              97,
+              38,
+              414,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              317,
+              704
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              418,
+              0,
+              836,
+              653
+            ],
+            "expanded_cell": [
+              372,
+              0,
+              882,
+              718
+            ],
+            "sha256": "3d51eb814ed7f8887c67255d1b5aa2e23a3562cd9f589488d78589578869e730"
+          },
+          {
+            "subject_box": [
+              73,
+              0,
+              455,
+              703
+            ],
+            "output_bbox": [
+              99,
+              38,
+              413,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              314,
+              704
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              836,
+              0,
+              1254,
+              653
+            ],
+            "expanded_cell": [
+              790,
+              0,
+              1254,
+              718
+            ],
+            "sha256": "957e9b72f8e66ca5974a7664b7df5e62dd0d970b2756e1d158d04ec0ab71186a"
+          },
+          {
+            "subject_box": [
+              52,
+              27,
+              426,
+              661
+            ],
+            "output_bbox": [
+              85,
+              38,
+              426,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              341,
+              704
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              653,
+              418,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              593,
+              464,
+              1254
+            ],
+            "sha256": "b672786c19b20f1c5781eb65043e0081bad70fbb2bd40475768c5ea57c0d1548"
+          },
+          {
+            "subject_box": [
+              77,
+              17,
+              457,
+              661
+            ],
+            "output_bbox": [
+              84,
+              38,
+              428,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              344,
+              704
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              418,
+              653,
+              836,
+              1254
+            ],
+            "expanded_cell": [
+              372,
+              593,
+              882,
+              1254
+            ],
+            "sha256": "81e62d9e82f46acbf9c4fa90113f0ebced36869c94aa8364c99d0672f0b93609"
+          },
+          {
+            "subject_box": [
+              79,
+              14,
+              464,
+              661
+            ],
+            "output_bbox": [
+              82,
+              38,
+              430,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              348,
+              704
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              836,
+              653,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              790,
+              593,
+              1254,
+              1254
+            ],
+            "sha256": "ef759da3775d625633628f905858d3e333d96a438fb8b6d2bcc139284977b7c7"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              48,
+              397,
+              656
+            ],
+            "output_bbox": [
+              39,
+              38,
+              472,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              433,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              418,
+              627
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              464,
+              690
+            ],
+            "sha256": "d7ec4347ce01604a0eb3772ac6730668199676e809bcf7cfb27e816924f0a12a"
+          },
+          {
+            "subject_box": [
+              18,
+              98,
+              476,
+              650
+            ],
+            "output_bbox": [
+              28,
+              218,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              524
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              418,
+              0,
+              817,
+              627
+            ],
+            "expanded_cell": [
+              374,
+              0,
+              861,
+              690
+            ],
+            "sha256": "3078fedb46429c19c15af36ac6451455910ba1fcc3ced50ce939db40eddfbca1"
+          },
+          {
+            "subject_box": [
+              0,
+              124,
+              485,
+              650
+            ],
+            "output_bbox": [
+              28,
+              295,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              447
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              817,
+              0,
+              1254,
+              627
+            ],
+            "expanded_cell": [
+              769,
+              0,
+              1254,
+              690
+            ],
+            "sha256": "f56e855e741efb8ed15f3f06bbff4119f6021aca63a7c92946425b47e31e2636"
+          },
+          {
+            "subject_box": [
+              0,
+              117,
+              400,
+              657
+            ],
+            "output_bbox": [
+              28,
+              181,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              561
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              627,
+              360,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              564,
+              400,
+              1254
+            ],
+            "sha256": "8a6324cb5b770efe29f4221cf4fe2a312050a4806fddec31df23c011b1dc66a2"
+          },
+          {
+            "subject_box": [
+              0,
+              102,
+              635,
+              656
+            ],
+            "output_bbox": [
+              28,
+              398,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              344
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              360,
+              627,
+              881,
+              1254
+            ],
+            "expanded_cell": [
+              303,
+              564,
+              938,
+              1254
+            ],
+            "sha256": "726e8c25e25176971b19459a2538ba2d43efac3753d2b27643e63a40aa424743"
+          },
+          {
+            "subject_box": [
+              21,
+              71,
+              414,
+              661
+            ],
+            "output_bbox": [
+              28,
+              104,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              638
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              881,
+              627,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              840,
+              564,
+              1254,
+              1254
+            ],
+            "sha256": "68f631a1c07ce05eefb0c52feeca90e228e40e6cd7aa1d18564ab1f3937023f9"
+          }
+        ]
+      }
+    },
+    "killua": {
+      "display_name": "Killua",
+      "package": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/card_art.png",
+        "size": [
+          1086,
+          1448
+        ],
+        "mode": "RGB",
+        "sha256": "94177e7ddbf29eb72fb9dd13a891854e169c10e0288ab0518eb42a8f0bbb4782"
+      },
+      "idle": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              176,
+              331,
+              668
+            ],
+            "output_bbox": [
+              40,
+              168,
+              472,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              432,
+              574
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              298,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              331,
+              724
+            ],
+            "sha256": "0ac66a199783b581c5045dd71740322e78da9120d913e25ae20ce50e0356d1f7"
+          },
+          {
+            "subject_box": [
+              0,
+              196,
+              448,
+              666
+            ],
+            "output_bbox": [
+              28,
+              329,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              413
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              298,
+              0,
+              666,
+              724
+            ],
+            "expanded_cell": [
+              258,
+              0,
+              706,
+              724
+            ],
+            "sha256": "be49d65fca5864f205e36384ac015a9582a920011d97666b473d28dba6c8758d"
+          },
+          {
+            "subject_box": [
+              0,
+              191,
+              506,
+              667
+            ],
+            "output_bbox": [
+              28,
+              372,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              370
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              666,
+              0,
+              1080,
+              724
+            ],
+            "expanded_cell": [
+              620,
+              0,
+              1126,
+              724
+            ],
+            "sha256": "d78fcc513ac0e786214660eb9f4290b050a3603e05e2a9d12366b7429dfdede0"
+          },
+          {
+            "subject_box": [
+              0,
+              225,
+              529,
+              673
+            ],
+            "output_bbox": [
+              28,
+              410,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              332
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1080,
+              0,
+              1513,
+              724
+            ],
+            "expanded_cell": [
+              1032,
+              0,
+              1561,
+              724
+            ],
+            "sha256": "060d0c2dd86e3da2283a43e999849b58a0aefa8d0504596a1692ee369da8369f"
+          },
+          {
+            "subject_box": [
+              0,
+              176,
+              442,
+              674
+            ],
+            "output_bbox": [
+              28,
+              296,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              446
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1513,
+              0,
+              1875,
+              724
+            ],
+            "expanded_cell": [
+              1473,
+              0,
+              1915,
+              724
+            ],
+            "sha256": "8fa5e34a9959932834eb86dab3f1328daa01724b454bcf454b39c0da5e323158"
+          },
+          {
+            "subject_box": [
+              2,
+              170,
+              330,
+              668
+            ],
+            "output_bbox": [
+              40,
+              162,
+              472,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              432,
+              580
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1875,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1842,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "e466a4942d457104d523feb58a3f7a74782bd53784aa4609009dd19cdc8d031c"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              0,
+              393,
+              724
+            ],
+            "output_bbox": [
+              61,
+              38,
+              451,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              390,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              362,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              402,
+              724
+            ],
+            "sha256": "6f9d94642c7fcecfaa5a5fd9eff8a04cef1461c0098396b5544ee18d7f6b1f8f"
+          },
+          {
+            "subject_box": [
+              4,
+              0,
+              434,
+              724
+            ],
+            "output_bbox": [
+              37,
+              38,
+              474,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              437,
+              704
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              362,
+              0,
+              718,
+              724
+            ],
+            "expanded_cell": [
+              323,
+              0,
+              757,
+              724
+            ],
+            "sha256": "272f05e12e3f85b766f02ae7748214e1d0784869ede4f7a41dbfdf2a51faef00"
+          },
+          {
+            "subject_box": [
+              0,
+              0,
+              481,
+              724
+            ],
+            "output_bbox": [
+              28,
+              86,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              656
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              718,
+              0,
+              1113,
+              724
+            ],
+            "expanded_cell": [
+              675,
+              0,
+              1156,
+              724
+            ],
+            "sha256": "dc4f74115d1b8aaee7497299f968f98604c2c31425a5602a9a4d92d8ef6af120"
+          },
+          {
+            "subject_box": [
+              0,
+              0,
+              403,
+              724
+            ],
+            "output_bbox": [
+              51,
+              38,
+              461,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              410,
+              704
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1113,
+              0,
+              1446,
+              724
+            ],
+            "expanded_cell": [
+              1076,
+              0,
+              1483,
+              724
+            ],
+            "sha256": "04aaf9588878f348f0425fd3c7ce3b289ba16584cca6c6a1e21acc37a23bbcba"
+          },
+          {
+            "subject_box": [
+              0,
+              0,
+              434,
+              724
+            ],
+            "output_bbox": [
+              35,
+              38,
+              476,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              441,
+              704
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1446,
+              0,
+              1810,
+              724
+            ],
+            "expanded_cell": [
+              1406,
+              0,
+              1850,
+              724
+            ],
+            "sha256": "4f80d251118260b398c1561177d32486a5b3b6c3b1346b5327f0cdb94989c0dc"
+          },
+          {
+            "subject_box": [
+              7,
+              0,
+              402,
+              724
+            ],
+            "output_bbox": [
+              59,
+              38,
+              452,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              393,
+              704
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1810,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1770,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "42c35250b27c167871354af8565b5b001c9df71e1695899d3d914505de9bfb14"
+          }
+        ]
+      }
+    },
+    "mashle": {
+      "display_name": "Mashle",
+      "package": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/mashle",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/mashle/card_art.png",
+        "size": [
+          1055,
+          1491
+        ],
+        "mode": "RGB",
+        "sha256": "dd82c6f99728b8ed84c041e1989110dd684eb24342f630c534a2c71a698fc890"
+      },
+      "idle": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              0,
+              431,
+              724
+            ],
+            "output_bbox": [
+              55,
+              38,
+              457,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              402,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              389,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              432,
+              724
+            ],
+            "sha256": "eca4936a56a77b9b907e234390e557b32c6c4cda124fda67b34ff69d042c393f"
+          },
+          {
+            "subject_box": [
+              10,
+              0,
+              443,
+              724
+            ],
+            "output_bbox": [
+              40,
+              38,
+              472,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              432,
+              704
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              389,
+              0,
+              752,
+              724
+            ],
+            "expanded_cell": [
+              349,
+              0,
+              792,
+              724
+            ],
+            "sha256": "18be0a99db9d67207b919f3c4d1804b21b7e97e0fc04197a60702364a106213b"
+          },
+          {
+            "subject_box": [
+              3,
+              0,
+              444,
+              724
+            ],
+            "output_bbox": [
+              33,
+              38,
+              478,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              445,
+              704
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              752,
+              0,
+              1116,
+              724
+            ],
+            "expanded_cell": [
+              712,
+              0,
+              1156,
+              724
+            ],
+            "sha256": "577d2ac74423130bdde75de1354208c6050fe09572dd6668195e64ef170f0f44"
+          },
+          {
+            "subject_box": [
+              10,
+              0,
+              442,
+              724
+            ],
+            "output_bbox": [
+              39,
+              38,
+              472,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              433,
+              704
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1116,
+              0,
+              1478,
+              724
+            ],
+            "expanded_cell": [
+              1076,
+              0,
+              1518,
+              724
+            ],
+            "sha256": "8165657c97c5e664da7cb650495150bd65061e2585fa841c0a3d07320674a4c3"
+          },
+          {
+            "subject_box": [
+              6,
+              0,
+              443,
+              724
+            ],
+            "output_bbox": [
+              37,
+              38,
+              475,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              438,
+              704
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1478,
+              0,
+              1841,
+              724
+            ],
+            "expanded_cell": [
+              1438,
+              0,
+              1881,
+              724
+            ],
+            "sha256": "0c1328db0da2dd1b0f68bd803fcf20d3047739d34c7791f40e0e68b4430892a0"
+          },
+          {
+            "subject_box": [
+              10,
+              0,
+              367,
+              724
+            ],
+            "output_bbox": [
+              77,
+              38,
+              435,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              358,
+              704
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1841,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1805,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "e6e6e06199ed0744cd3e988b28b29e092b721acc3b1ded236db4bcd154d96bc0"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              110,
+              360,
+              666
+            ],
+            "output_bbox": [
+              28,
+              106,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              636
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              324,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              360,
+              724
+            ],
+            "sha256": "1df78669d3680174ba3e016fd7e5a3f03e3b78526bfb9c2b8c74a36cf45d10fb"
+          },
+          {
+            "subject_box": [
+              0,
+              146,
+              458,
+              666
+            ],
+            "output_bbox": [
+              28,
+              296,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              446
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              324,
+              0,
+              700,
+              724
+            ],
+            "expanded_cell": [
+              283,
+              0,
+              741,
+              724
+            ],
+            "sha256": "795d4b8b0607553026e5c4b04c834428dca0f847880db7d41c891ddf06b750e7"
+          },
+          {
+            "subject_box": [
+              0,
+              140,
+              406,
+              666
+            ],
+            "output_bbox": [
+              28,
+              231,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              511
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              700,
+              0,
+              1032,
+              724
+            ],
+            "expanded_cell": [
+              663,
+              0,
+              1069,
+              724
+            ],
+            "sha256": "4b1e24984d28620321dc325f31682535834e97c2b0332b2f0dbcca21beb5d025"
+          },
+          {
+            "subject_box": [
+              0,
+              53,
+              576,
+              675
+            ],
+            "output_bbox": [
+              28,
+              314,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              428
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1032,
+              0,
+              1504,
+              724
+            ],
+            "expanded_cell": [
+              980,
+              0,
+              1556,
+              724
+            ],
+            "sha256": "68dd8d777872e2efcdeb1ac2901f8c82b5054dbb58d6f8ae5eef03a3360111a0"
+          },
+          {
+            "subject_box": [
+              0,
+              146,
+              407,
+              668
+            ],
+            "output_bbox": [
+              28,
+              238,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              504
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1504,
+              0,
+              1837,
+              724
+            ],
+            "expanded_cell": [
+              1467,
+              0,
+              1874,
+              724
+            ],
+            "sha256": "4022b488b0584bca850689aecd1cfa863b26d47718971a188cf7594e5a931fad"
+          },
+          {
+            "subject_box": [
+              1,
+              125,
+              372,
+              667
+            ],
+            "output_bbox": [
+              28,
+              126,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              616
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1837,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1800,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "55f190f46b652d67c0acbeb7571bc2e689c6e04188301b2bdeead57649d66682"
+          }
+        ]
+      }
+    },
+    "obito": {
+      "display_name": "Obito",
+      "package": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/obito",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/obito/card_art.webp",
+        "size": [
+          1086,
+          1448
+        ],
+        "mode": "RGB",
+        "sha256": "db847e8fb3ff37bd883154c5e343134f88d709cc074a2ac8784b4d90f51f754c"
+      },
+      "idle": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              0,
+              428,
+              657
+            ],
+            "output_bbox": [
+              61,
+              38,
+              450,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              389,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              418,
+              627
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              464,
+              690
+            ],
+            "sha256": "7aa12ace26d4055ea3ebbcebd606099ff79c3c1709a6af7bd159649984c6d6ca"
+          },
+          {
+            "subject_box": [
+              29,
+              0,
+              471,
+              657
+            ],
+            "output_bbox": [
+              59,
+              38,
+              452,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              393,
+              704
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              418,
+              0,
+              836,
+              627
+            ],
+            "expanded_cell": [
+              372,
+              0,
+              882,
+              690
+            ],
+            "sha256": "1d57f5f789ca74b4632e772e0d2e8a5c23fc7acd1de30b394cecb6410c10e4b7"
+          },
+          {
+            "subject_box": [
+              37,
+              0,
+              464,
+              657
+            ],
+            "output_bbox": [
+              58,
+              38,
+              454,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              396,
+              704
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              836,
+              0,
+              1254,
+              627
+            ],
+            "expanded_cell": [
+              790,
+              0,
+              1254,
+              690
+            ],
+            "sha256": "a5a2533a126cb2fb36e300f5b380a950e47b19bc92bc3675c6ac996a4ed1de35"
+          },
+          {
+            "subject_box": [
+              0,
+              27,
+              433,
+              690
+            ],
+            "output_bbox": [
+              58,
+              38,
+              454,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              396,
+              704
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              627,
+              418,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              564,
+              464,
+              1254
+            ],
+            "sha256": "fd2161da3718b5d59eb6ecaea03618068683d31bd0e8520b4618bff14fb31e87"
+          },
+          {
+            "subject_box": [
+              20,
+              25,
+              478,
+              690
+            ],
+            "output_bbox": [
+              52,
+              38,
+              459,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              407,
+              704
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              418,
+              627,
+              836,
+              1254
+            ],
+            "expanded_cell": [
+              372,
+              564,
+              882,
+              1254
+            ],
+            "sha256": "a33e666e49bccd876b2e61abf0ce4df7104c8160b7ab3b9145a52e96953ba7be"
+          },
+          {
+            "subject_box": [
+              45,
+              29,
+              464,
+              690
+            ],
+            "output_bbox": [
+              57,
+              38,
+              455,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              398,
+              704
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              836,
+              627,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              790,
+              564,
+              1254,
+              1254
+            ],
+            "sha256": "a729e4d8da3818dfd481f59d817720792d5885e943324315d5fc96f561c46464"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              77,
+              428,
+              671
+            ],
+            "output_bbox": [
+              28,
+              106,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              636
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              418,
+              633
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              464,
+              696
+            ],
+            "sha256": "390461138577538ed11b84111445325e3654b9849e17ef3240691cd967cf1615"
+          },
+          {
+            "subject_box": [
+              18,
+              114,
+              476,
+              668
+            ],
+            "output_bbox": [
+              28,
+              216,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              526
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              418,
+              0,
+              836,
+              633
+            ],
+            "expanded_cell": [
+              372,
+              0,
+              882,
+              696
+            ],
+            "sha256": "05287c9918ba4e7967495e5ac918143112aa08958bba636d7497ffcf7778ceec"
+          },
+          {
+            "subject_box": [
+              0,
+              140,
+              464,
+              668
+            ],
+            "output_bbox": [
+              28,
+              289,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              453
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              836,
+              0,
+              1254,
+              633
+            ],
+            "expanded_cell": [
+              790,
+              0,
+              1254,
+              696
+            ],
+            "sha256": "d241d49b4c4720a913e567f19b1aeebe6d593f38f61a769573a1349d51e77a99"
+          },
+          {
+            "subject_box": [
+              0,
+              100,
+              502,
+              656
+            ],
+            "output_bbox": [
+              28,
+              297,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              445
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              633,
+              452,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              571,
+              502,
+              1254
+            ],
+            "sha256": "242581fdf9e09579bc524ec5e56e12d5b828afb3b0b568e2c76b6ada97165bd0"
+          },
+          {
+            "subject_box": [
+              0,
+              119,
+              521,
+              651
+            ],
+            "output_bbox": [
+              28,
+              336,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              406
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              452,
+              633,
+              879,
+              1254
+            ],
+            "expanded_cell": [
+              405,
+              571,
+              926,
+              1254
+            ],
+            "sha256": "f43ec687c3fcbeb7bcb0625eaee9f0aaf6ee938097c705e133baeb8c35bb654d"
+          },
+          {
+            "subject_box": [
+              0,
+              102,
+              416,
+              658
+            ],
+            "output_bbox": [
+              28,
+              209,
+              483,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              455,
+              533
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              879,
+              633,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              838,
+              571,
+              1254,
+              1254
+            ],
+            "sha256": "5141f38165d15dbb552b782f22efaaba4b74ec24cf9cabd8a593d5cac983d7d0"
+          }
+        ]
+      }
+    },
+    "pain": {
+      "display_name": "Pain",
+      "package": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/pain",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/pain/card_art.webp",
+        "size": [
+          1024,
+          1536
+        ],
+        "mode": "RGB",
+        "sha256": "6f80fe3b51d3ce52f556fa6c99f18fbd74d6705f2b9dadd1f43c4502eb771ea4"
+      },
+      "idle": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              49,
+              0,
+              371,
+              663
+            ],
+            "output_bbox": [
+              116,
+              38,
+              396,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              280,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              418,
+              627
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              464,
+              690
+            ],
+            "sha256": "bd75a13026dd2ea6ea3980b7b1bdfd548446e6f094f739558b4f187731cbe055"
+          },
+          {
+            "subject_box": [
+              93,
+              0,
+              455,
+              662
+            ],
+            "output_bbox": [
+              98,
+              39,
+              413,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              315,
+              703
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              418,
+              0,
+              836,
+              627
+            ],
+            "expanded_cell": [
+              372,
+              0,
+              882,
+              690
+            ],
+            "sha256": "2f07b12337bcd1ea1172908f2f8a0941a6c6a276dd6790940c6b86a6e998ad45"
+          },
+          {
+            "subject_box": [
+              82,
+              0,
+              450,
+              662
+            ],
+            "output_bbox": [
+              95,
+              38,
+              416,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              321,
+              704
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              836,
+              0,
+              1254,
+              627
+            ],
+            "expanded_cell": [
+              790,
+              0,
+              1254,
+              690
+            ],
+            "sha256": "a650fc1ff845d8dfe67c9a826de8a2ef08af95387af430056e660cec4ad26b43"
+          },
+          {
+            "subject_box": [
+              29,
+              21,
+              373,
+              690
+            ],
+            "output_bbox": [
+              106,
+              38,
+              404,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              298,
+              704
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              627,
+              418,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              564,
+              464,
+              1254
+            ],
+            "sha256": "c2eac0f243997a6ad935a623909b8df144755292f64b6d5bd73ca30a59f17d93"
+          },
+          {
+            "subject_box": [
+              90,
+              21,
+              418,
+              690
+            ],
+            "output_bbox": [
+              114,
+              38,
+              397,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              283,
+              704
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              418,
+              627,
+              836,
+              1254
+            ],
+            "expanded_cell": [
+              372,
+              564,
+              882,
+              1254
+            ],
+            "sha256": "3e94c0a024174f03292387c8ce56740b11e299ff1dd6e477271b6f9fa5613f62"
+          },
+          {
+            "subject_box": [
+              92,
+              19,
+              464,
+              690
+            ],
+            "output_bbox": [
+              95,
+              38,
+              418,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              323,
+              704
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              836,
+              627,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              790,
+              564,
+              1254,
+              1254
+            ],
+            "sha256": "05a091a65d46e8f5ae3a7f622e01550da7de659ccbf062707416ff8b2264e49c"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              51,
+              415,
+              669
+            ],
+            "output_bbox": [
+              30,
+              38,
+              482,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              452,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              417,
+              628
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              463,
+              691
+            ],
+            "sha256": "33c0199c9859ceeb7c859151661fb177f03984cfe0e26f32436979bcb1d48776"
+          },
+          {
+            "subject_box": [
+              5,
+              97,
+              471,
+              663
+            ],
+            "output_bbox": [
+              28,
+              215,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              527
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              417,
+              0,
+              836,
+              628
+            ],
+            "expanded_cell": [
+              371,
+              0,
+              882,
+              691
+            ],
+            "sha256": "7e7edfd39fa545f2e76145f85b85c4b82a3541c4858e26950ef8222742dd5694"
+          },
+          {
+            "subject_box": [
+              2,
+              99,
+              464,
+              667
+            ],
+            "output_bbox": [
+              28,
+              238,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              504
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              836,
+              0,
+              1254,
+              628
+            ],
+            "expanded_cell": [
+              790,
+              0,
+              1254,
+              691
+            ],
+            "sha256": "acbb38feddf040f678d52a26d16d11b68c9af9e78ac17de77294dcb45ab553bb"
+          },
+          {
+            "subject_box": [
+              0,
+              88,
+              391,
+              672
+            ],
+            "output_bbox": [
+              28,
+              111,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              631
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              628,
+              352,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              565,
+              391,
+              1254
+            ],
+            "sha256": "d3e35ec44ad5a0a47d073facb58aa04fada67b41cc5fe6eb9116c3c4a6b16d99"
+          },
+          {
+            "subject_box": [
+              0,
+              70,
+              629,
+              674
+            ],
+            "output_bbox": [
+              28,
+              366,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              376
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              352,
+              628,
+              867,
+              1254
+            ],
+            "expanded_cell": [
+              295,
+              565,
+              924,
+              1254
+            ],
+            "sha256": "8ef87593d9967b243bd734d57a09f7db3c1f1a6c1f6b765e65f9c0bf3f9293a3"
+          },
+          {
+            "subject_box": [
+              0,
+              116,
+              430,
+              670
+            ],
+            "output_bbox": [
+              28,
+              217,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              525
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              867,
+              628,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              824,
+              565,
+              1254,
+              1254
+            ],
+            "sha256": "a542709667619cab3828c8f1db1e18e7662b60234cc32a91244999ee26857bea"
+          }
+        ]
+      }
+    },
+    "rock_lee": {
+      "display_name": "Rock Lee",
+      "package": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/rock_lee",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/rock_lee/card_art.png",
+        "size": [
+          1055,
+          1491
+        ],
+        "mode": "RGB",
+        "sha256": "c71598f3675bc18b6bfeff69e82577a80a108da9627290b9ea6dcb4ffb58267d"
+      },
+      "idle": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              0,
+              384,
+              724
+            ],
+            "output_bbox": [
+              64,
+              38,
+              447,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              383,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              362,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              402,
+              724
+            ],
+            "sha256": "85a6942cfd996d1f5e84fa0a9c8636f99b8f0c68bbcdc33e3c8739f999248a75"
+          },
+          {
+            "subject_box": [
+              6,
+              0,
+              418,
+              724
+            ],
+            "output_bbox": [
+              43,
+              38,
+              468,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              425,
+              704
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              362,
+              0,
+              724,
+              724
+            ],
+            "expanded_cell": [
+              322,
+              0,
+              764,
+              724
+            ],
+            "sha256": "c118d96f89fcae7be3aed7a9d5e65b2d127b146656f30ca28a1650a2499662cc"
+          },
+          {
+            "subject_box": [
+              4,
+              0,
+              414,
+              724
+            ],
+            "output_bbox": [
+              39,
+              38,
+              473,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              434,
+              704
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              724,
+              0,
+              1086,
+              724
+            ],
+            "expanded_cell": [
+              684,
+              0,
+              1126,
+              724
+            ],
+            "sha256": "ad4fd24da7138a78ba73702fe1aee2d3fd352be70d2de5e9f5ff12170930ccb1"
+          },
+          {
+            "subject_box": [
+              7,
+              0,
+              427,
+              724
+            ],
+            "output_bbox": [
+              36,
+              38,
+              475,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              439,
+              704
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1086,
+              0,
+              1448,
+              724
+            ],
+            "expanded_cell": [
+              1046,
+              0,
+              1488,
+              724
+            ],
+            "sha256": "ef627ce79637e275fbecea2fd0ff166a5016f65120c3cc30dab0396f4027029b"
+          },
+          {
+            "subject_box": [
+              13,
+              0,
+              433,
+              724
+            ],
+            "output_bbox": [
+              35,
+              38,
+              476,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              441,
+              704
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1448,
+              0,
+              1810,
+              724
+            ],
+            "expanded_cell": [
+              1408,
+              0,
+              1850,
+              724
+            ],
+            "sha256": "34816e9c025635887dbfbc57b45b8a763170955d8aa4808381586e80132ff26e"
+          },
+          {
+            "subject_box": [
+              18,
+              0,
+              402,
+              724
+            ],
+            "output_bbox": [
+              61,
+              38,
+              451,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              390,
+              704
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1810,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1770,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "c628d0522ec0c040500e7f0cf46c79e0e1640858fd1a96a203bae4980979600c"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              115,
+              361,
+              675
+            ],
+            "output_bbox": [
+              28,
+              109,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              633
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              336,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              373,
+              724
+            ],
+            "sha256": "eb2171782422558af5772a5c7cb1f323f3ff32ea7d778b385edd536f0ce98698"
+          },
+          {
+            "subject_box": [
+              0,
+              125,
+              419,
+              667
+            ],
+            "output_bbox": [
+              28,
+              227,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              515
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              336,
+              0,
+              679,
+              724
+            ],
+            "expanded_cell": [
+              298,
+              0,
+              717,
+              724
+            ],
+            "sha256": "ec84c09866db0b133047098e1e46eeee11fee447b084ed02af5542adb6083340"
+          },
+          {
+            "subject_box": [
+              0,
+              135,
+              447,
+              673
+            ],
+            "output_bbox": [
+              28,
+              269,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              473
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              679,
+              0,
+              1046,
+              724
+            ],
+            "expanded_cell": [
+              639,
+              0,
+              1086,
+              724
+            ],
+            "sha256": "20f39572f671c1f69c582d975b16062091e3bbf860e55796579b779100e68c84"
+          },
+          {
+            "subject_box": [
+              0,
+              81,
+              553,
+              677
+            ],
+            "output_bbox": [
+              28,
+              319,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              423
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1046,
+              0,
+              1499,
+              724
+            ],
+            "expanded_cell": [
+              996,
+              0,
+              1549,
+              724
+            ],
+            "sha256": "03851681244fc042986678efb3550fa41618e5c36068d704b9a0f41592d0cfc6"
+          },
+          {
+            "subject_box": [
+              0,
+              133,
+              396,
+              673
+            ],
+            "output_bbox": [
+              28,
+              207,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              535
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1499,
+              0,
+              1823,
+              724
+            ],
+            "expanded_cell": [
+              1463,
+              0,
+              1859,
+              724
+            ],
+            "sha256": "c2d694449b357306dc63857cf28260708b6302699e912f04452c5b46482f7f08"
+          },
+          {
+            "subject_box": [
+              2,
+              120,
+              387,
+              674
+            ],
+            "output_bbox": [
+              28,
+              125,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              617
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1823,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1785,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "0637335d335d8566563674777a2d3882e2066252f9dd87368d715f4112bfd14c"
+          }
+        ]
+      }
+    },
+    "sasuke": {
+      "display_name": "Sasuke",
+      "package": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/sasuke",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/sasuke/card_art.webp",
+        "size": [
+          1024,
+          1536
+        ],
+        "mode": "RGB",
+        "sha256": "917d940d4a18082f7605946611b53ee807205a492dc702ba742ea5528dbdfff7"
+      },
+      "idle": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              112,
+              0,
+              384,
+              669
+            ],
+            "output_bbox": [
+              138,
+              38,
+              373,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              235,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              418,
+              627
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              464,
+              690
+            ],
+            "sha256": "0c10ad3bd7a23ddeed1cf2280eb1a30c9d91571b4de7b2324eb39770e9c6f06d"
+          },
+          {
+            "subject_box": [
+              136,
+              0,
+              402,
+              669
+            ],
+            "output_bbox": [
+              141,
+              38,
+              370,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              229,
+              704
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              418,
+              0,
+              836,
+              627
+            ],
+            "expanded_cell": [
+              372,
+              0,
+              882,
+              690
+            ],
+            "sha256": "01efd8c1898f9f69d18152c6ab0cf186f7c70cd70b2eb36c4540ae551abcc1d6"
+          },
+          {
+            "subject_box": [
+              105,
+              0,
+              385,
+              668
+            ],
+            "output_bbox": [
+              133,
+              38,
+              378,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              245,
+              704
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              836,
+              0,
+              1254,
+              627
+            ],
+            "expanded_cell": [
+              790,
+              0,
+              1254,
+              690
+            ],
+            "sha256": "e6c95cefdedad6c1eb39fa8a8daaac299d1e63551d24031d804edd403fbfb6ed"
+          },
+          {
+            "subject_box": [
+              106,
+              22,
+              412,
+              690
+            ],
+            "output_bbox": [
+              123,
+              38,
+              388,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              265,
+              704
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              627,
+              418,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              564,
+              464,
+              1254
+            ],
+            "sha256": "af0e250aa0b6109c6bf77ac0284a72369de052c574f0a963d90427e4c818f612"
+          },
+          {
+            "subject_box": [
+              134,
+              22,
+              404,
+              690
+            ],
+            "output_bbox": [
+              138,
+              38,
+              374,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              236,
+              704
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              418,
+              627,
+              836,
+              1254
+            ],
+            "expanded_cell": [
+              372,
+              564,
+              882,
+              1254
+            ],
+            "sha256": "bbff6b8aa77b144665d6d99e0c71c556bef55377eaa44f2dd9a6f00a1dff625d"
+          },
+          {
+            "subject_box": [
+              116,
+              26,
+              384,
+              690
+            ],
+            "output_bbox": [
+              138,
+              38,
+              373,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              235,
+              704
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              836,
+              627,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              790,
+              564,
+              1254,
+              1254
+            ],
+            "sha256": "de55e549f18178930fe84ccf60b209d055fb926b69430c76d3c90ac1aeb9cc92"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              56,
+              413,
+              694
+            ],
+            "output_bbox": [
+              36,
+              38,
+              475,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              439,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              418,
+              650
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              464,
+              715
+            ],
+            "sha256": "3f3151f99bcb9a69741ff30892719f604cbb398af496d7b4a376b46ee43c4a03"
+          },
+          {
+            "subject_box": [
+              24,
+              86,
+              454,
+              690
+            ],
+            "output_bbox": [
+              41,
+              38,
+              471,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              430,
+              704
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              418,
+              0,
+              836,
+              650
+            ],
+            "expanded_cell": [
+              372,
+              0,
+              882,
+              715
+            ],
+            "sha256": "9ff8327f89746a47d56f1357a7f1b58d3928a1f4bfd8dfa7ed6515e335bec9aa"
+          },
+          {
+            "subject_box": [
+              19,
+              126,
+              464,
+              682
+            ],
+            "output_bbox": [
+              28,
+              132,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              610
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              836,
+              0,
+              1254,
+              650
+            ],
+            "expanded_cell": [
+              790,
+              0,
+              1254,
+              715
+            ],
+            "sha256": "3e041b6403cd18a481ecf6d8a83651252f6d8209e2089e443410e76843e61608"
+          },
+          {
+            "subject_box": [
+              0,
+              93,
+              547,
+              625
+            ],
+            "output_bbox": [
+              28,
+              333,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              409
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              650,
+              493,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              590,
+              547,
+              1254
+            ],
+            "sha256": "4bd7073b3ed8c72ce9e1e13d8b9923418a4a01815a16c5a6a8d4f8a1423e0577"
+          },
+          {
+            "subject_box": [
+              0,
+              30,
+              453,
+              614
+            ],
+            "output_bbox": [
+              28,
+              193,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              549
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              493,
+              650,
+              864,
+              1254
+            ],
+            "expanded_cell": [
+              452,
+              590,
+              905,
+              1254
+            ],
+            "sha256": "b659335c469dcb7a2132f794a5c3edb45fabb7c3c84111a3d4ad0b7306b4f3c4"
+          },
+          {
+            "subject_box": [
+              0,
+              69,
+              433,
+              631
+            ],
+            "output_bbox": [
+              28,
+              214,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              528
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              864,
+              650,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              821,
+              590,
+              1254,
+              1254
+            ],
+            "sha256": "15bc18e294268a35e49f57d387a831d6189501757c2ce5b0546274cc20c1f5e7"
+          }
+        ]
+      }
+    },
+    "scorpion": {
+      "display_name": "Scorpion",
+      "package": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/scorpion",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v1/legacy_of_the_shinobi_banner_pack_v1_under25/scorpion/card_art.webp",
+        "size": [
+          1024,
+          1536
+        ],
+        "mode": "RGB",
+        "sha256": "7e2a79d13eaa2ef6a6937f408642169214898e0613d3c3984970355158f3c61c"
+      },
+      "idle": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              11,
+              0,
+              479,
+              666
+            ],
+            "output_bbox": [
+              28,
+              38,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              704
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              435,
+              627
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              483,
+              690
+            ],
+            "sha256": "ce49518a937402c78e7ec3c2e89779eb5299a0aae9ebbf805f0f3e771f568b44"
+          },
+          {
+            "subject_box": [
+              21,
+              0,
+              469,
+              666
+            ],
+            "output_bbox": [
+              37,
+              38,
+              474,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              437,
+              704
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              435,
+              0,
+              836,
+              627
+            ],
+            "expanded_cell": [
+              391,
+              0,
+              880,
+              690
+            ],
+            "sha256": "d452affe5089bb1d100fe99a85ee13d16f79cc158366d9eba751e5d6e7ca047f"
+          },
+          {
+            "subject_box": [
+              26,
+              0,
+              464,
+              666
+            ],
+            "output_bbox": [
+              28,
+              50,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              692
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              836,
+              0,
+              1254,
+              627
+            ],
+            "expanded_cell": [
+              790,
+              0,
+              1254,
+              690
+            ],
+            "sha256": "423fbb52d1837d8c7eca820da9a864486482838549748b16d4b6f63ea0ae5c7e"
+          },
+          {
+            "subject_box": [
+              6,
+              26,
+              480,
+              690
+            ],
+            "output_bbox": [
+              28,
+              47,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              695
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              627,
+              435,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              564,
+              483,
+              1254
+            ],
+            "sha256": "13f2ab1e0579422c50be79203a4579b177c1d866742f796f472a4004299c3cef"
+          },
+          {
+            "subject_box": [
+              18,
+              24,
+              470,
+              690
+            ],
+            "output_bbox": [
+              36,
+              38,
+              475,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              439,
+              704
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              435,
+              627,
+              836,
+              1254
+            ],
+            "expanded_cell": [
+              391,
+              564,
+              880,
+              1254
+            ],
+            "sha256": "962713b78070b506e56e7324f0bf3ef2259cea798918987020fdbd6d49620e9b"
+          },
+          {
+            "subject_box": [
+              24,
+              26,
+              464,
+              690
+            ],
+            "output_bbox": [
+              28,
+              54,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              688
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              836,
+              627,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              790,
+              564,
+              1254,
+              1254
+            ],
+            "sha256": "9ce6fdc6f7c32dfc4bf2d07c49f9fbea5504dfae3a44a4c29ac9d497709883fb"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 3,
+        "rows": 2,
+        "source_size": [
+          1254,
+          1254
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              97,
+              384,
+              635
+            ],
+            "output_bbox": [
+              28,
+              178,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              564
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              352,
+              627
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              391,
+              690
+            ],
+            "sha256": "1f43a0a23ea1ca150ebc96c2ea260c6d84e8e1422cfb910786a6c383245efd75"
+          },
+          {
+            "subject_box": [
+              0,
+              114,
+              507,
+              634
+            ],
+            "output_bbox": [
+              28,
+              340,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              402
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              352,
+              0,
+              776,
+              627
+            ],
+            "expanded_cell": [
+              305,
+              0,
+              823,
+              690
+            ],
+            "sha256": "5fea3851cec2e3129f204c66ce484a03f08d9bee45cf789e6fe063ba15e4c146"
+          },
+          {
+            "subject_box": [
+              0,
+              145,
+              531,
+              627
+            ],
+            "output_bbox": [
+              28,
+              379,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              363
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              776,
+              0,
+              1254,
+              627
+            ],
+            "expanded_cell": [
+              723,
+              0,
+              1254,
+              690
+            ],
+            "sha256": "e1c46d834eab2c48d41eaae1a2c0fe85e49f15afc9de51bca854254b7f2ad1e6"
+          },
+          {
+            "subject_box": [
+              0,
+              116,
+              412,
+              644
+            ],
+            "output_bbox": [
+              28,
+              222,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              520
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              0,
+              627,
+              371,
+              1254
+            ],
+            "expanded_cell": [
+              0,
+              564,
+              412,
+              1254
+            ],
+            "sha256": "6fd16383e202b7f50f5715c632e1f68c096a89e401ac5a9149a0692fc1df53c5"
+          },
+          {
+            "subject_box": [
+              0,
+              113,
+              612,
+              649
+            ],
+            "output_bbox": [
+              28,
+              393,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              349
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              371,
+              627,
+              873,
+              1254
+            ],
+            "expanded_cell": [
+              316,
+              564,
+              928,
+              1254
+            ],
+            "sha256": "0a11d09408a98844caa942178b64c4723bdc747a8bef0b0b8cd4d6966d06e396"
+          },
+          {
+            "subject_box": [
+              0,
+              104,
+              423,
+              650
+            ],
+            "output_bbox": [
+              28,
+              229,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              513
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              873,
+              627,
+              1254,
+              1254
+            ],
+            "expanded_cell": [
+              831,
+              564,
+              1254,
+              1254
+            ],
+            "sha256": "28f74dda794d867ae9be72cdd875495ff216c334a816f0d54d915e74d482e2e7"
+          }
+        ]
+      }
+    },
+    "zabuza": {
+      "display_name": "Zabuza",
+      "package": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza",
+      "card": {
+        "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/card_art.png",
+        "size": [
+          1086,
+          1448
+        ],
+        "mode": "RGB",
+        "sha256": "ccb4f1ba26a6a114996c14c845f07675d01d4619b61f0db260e50c0218c60996"
+      },
+      "idle": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              20,
+              420,
+              720
+            ],
+            "output_bbox": [
+              28,
+              70,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              672
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              378,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              420,
+              724
+            ],
+            "sha256": "9c816948596f747084c6fe4e5bdd04499270718f8a84cb3b4d0089e57e2f7e88"
+          },
+          {
+            "subject_box": [
+              0,
+              17,
+              421,
+              723
+            ],
+            "output_bbox": [
+              28,
+              85,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              657
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              378,
+              0,
+              723,
+              724
+            ],
+            "expanded_cell": [
+              340,
+              0,
+              761,
+              724
+            ],
+            "sha256": "60cb018f9f24f0bf7ac57268d4c29dc75b26b8339270bddfa4d9f823ffdd8714"
+          },
+          {
+            "subject_box": [
+              0,
+              32,
+              435,
+              722
+            ],
+            "output_bbox": [
+              28,
+              118,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              624
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              723,
+              0,
+              1080,
+              724
+            ],
+            "expanded_cell": [
+              684,
+              0,
+              1119,
+              724
+            ],
+            "sha256": "6ddac2826da38538afffe0833896b56856637e113a1e4d53d84bcf6466c9c59b"
+          },
+          {
+            "subject_box": [
+              0,
+              30,
+              432,
+              722
+            ],
+            "output_bbox": [
+              28,
+              113,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              629
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1080,
+              0,
+              1434,
+              724
+            ],
+            "expanded_cell": [
+              1041,
+              0,
+              1473,
+              724
+            ],
+            "sha256": "5dd865ae4dae6f27af65be3a501ce8537e6e0a7ac5e09058162050fb0cedef8e"
+          },
+          {
+            "subject_box": [
+              0,
+              28,
+              434,
+              722
+            ],
+            "output_bbox": [
+              28,
+              114,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              628
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1434,
+              0,
+              1790,
+              724
+            ],
+            "expanded_cell": [
+              1395,
+              0,
+              1829,
+              724
+            ],
+            "sha256": "749bc3c7bba7fdcf73bd7a5cd6ca3280ad77b238f5e19ab89f21cd7360630a3e"
+          },
+          {
+            "subject_box": [
+              10,
+              22,
+              424,
+              722
+            ],
+            "output_bbox": [
+              28,
+              66,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              676
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1790,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1748,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "e35af6989ec106422d41bfb78b35771511346c4025f2cf960e2f13c80fa7e0ad"
+          }
+        ]
+      },
+      "basic_attack": {
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "output_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center",
+        "audit_frames": [
+          {
+            "subject_box": [
+              0,
+              218,
+              344,
+              656
+            ],
+            "output_bbox": [
+              31,
+              232,
+              481,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              450,
+              510
+            ],
+            "frame": 1,
+            "nominal_cell": [
+              0,
+              0,
+              310,
+              724
+            ],
+            "expanded_cell": [
+              0,
+              0,
+              344,
+              724
+            ],
+            "sha256": "48307831aee96b03662d1a6c227f36c58bcfd2e5566416b815c0d6c53b4693ef"
+          },
+          {
+            "subject_box": [
+              0,
+              71,
+              444,
+              667
+            ],
+            "output_bbox": [
+              28,
+              213,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              529
+            ],
+            "frame": 2,
+            "nominal_cell": [
+              310,
+              0,
+              674,
+              724
+            ],
+            "expanded_cell": [
+              270,
+              0,
+              714,
+              724
+            ],
+            "sha256": "7691846e0de3da4a0314804cfd5c11a429b2f8a5caf0b9ecbc02b47210ba567f"
+          },
+          {
+            "subject_box": [
+              0,
+              211,
+              508,
+              659
+            ],
+            "output_bbox": [
+              28,
+              378,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              364
+            ],
+            "frame": 3,
+            "nominal_cell": [
+              674,
+              0,
+              1090,
+              724
+            ],
+            "expanded_cell": [
+              628,
+              0,
+              1136,
+              724
+            ],
+            "sha256": "696b308b3ad46b714c234137fe883e48b87aa5bb9548dc57cf2daa4124f12ab4"
+          },
+          {
+            "subject_box": [
+              0,
+              267,
+              508,
+              653
+            ],
+            "output_bbox": [
+              28,
+              442,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              300
+            ],
+            "frame": 4,
+            "nominal_cell": [
+              1090,
+              0,
+              1506,
+              724
+            ],
+            "expanded_cell": [
+              1044,
+              0,
+              1552,
+              724
+            ],
+            "sha256": "9d71bd4116a2e061dcb95c413d1dae9dbe2fc8b1bad491da64321f2d80fa00ce"
+          },
+          {
+            "subject_box": [
+              0,
+              69,
+              451,
+              669
+            ],
+            "output_bbox": [
+              28,
+              218,
+              484,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              456,
+              524
+            ],
+            "frame": 5,
+            "nominal_cell": [
+              1506,
+              0,
+              1875,
+              724
+            ],
+            "expanded_cell": [
+              1465,
+              0,
+              1916,
+              724
+            ],
+            "sha256": "4803361370b55d685f26b73bc150a7479616493aa38337256c65fb6baa37a4a3"
+          },
+          {
+            "subject_box": [
+              0,
+              228,
+              330,
+              658
+            ],
+            "output_bbox": [
+              36,
+              209,
+              476,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              440,
+              533
+            ],
+            "frame": 6,
+            "nominal_cell": [
+              1875,
+              0,
+              2172,
+              724
+            ],
+            "expanded_cell": [
+              1842,
+              0,
+              2172,
+              724
+            ],
+            "sha256": "451bcdcd6992d435f0d54d809d5fdc605d24a3ca21e0f0864d2419a23f22ec86"
+          }
+        ]
+      }
+    }
+  }
+}

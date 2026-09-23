@@ -34,7 +34,12 @@
     "chakra_start": 2
   },
   "render": {
-    "scale": 1
+    "scale": 1,
+    "sprite_anchor": "bottom_center",
+    "sprite_canvas": {
+      "width": 512,
+      "height": 768
+    }
   },
   "abilities": {
     "basic": {
@@ -81,7 +86,7 @@
     "basic_attack": true,
     "jutsu": false,
     "recoil": false,
-    "notes": "Legacy of the Shinobi first-pass integration. Card art plus six-frame idle/basic attack are live; dedicated VFX and jutsu will be authored in a later pass.",
+    "notes": "Legacy of the Shinobi audited sprite pass. Six-frame idle/basic sheets are content-isolated and normalized to a shared bottom-center runtime canvas; dedicated VFX and jutsu remain deferred.",
     "animation_map": true
   },
   "balance": {
@@ -90,7 +95,7 @@
     "notes": "Temporary first-pass combat values for banner testing. Jutsu intentionally disabled until authored."
   },
   "animation_standard": {
-    "version": "legacy-shinobi-v1",
+    "version": "legacy-shinobi-v2-audited",
     "animations": {
       "idle": {
         "frames": [
@@ -128,13 +133,31 @@
     "source_sheets": {
       "idle": {
         "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/mashle/idle_6f.png",
-        "columns": 3,
-        "rows": 2
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "normalized_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center"
       },
       "basic_attack": {
         "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/mashle/basic_attack_6f.png",
-        "columns": 3,
-        "rows": 2
+        "columns": 6,
+        "rows": 1,
+        "source_size": [
+          2172,
+          724
+        ],
+        "normalized_canvas": [
+          512,
+          768
+        ],
+        "anchor": "bottom_center"
       }
     }
   }
