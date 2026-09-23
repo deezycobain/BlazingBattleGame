@@ -3,12 +3,12 @@
 const KEY='blazing.progression.v1';
 const MAX_RESONANCE=5,STAT_BUDGET=12,MAX_STAT=5;
 const CORE_FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi'];
-const LEGACY_FIGHTERS=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Jackie Chan','Gabimaru','Killua','Zabuza'];
+const LEGACY_FIGHTERS=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Wong Fei-Hung','Gabimaru','Killua','Zabuza'];
 const FIGHTERS=[...CORE_FIGHTERS,...LEGACY_FIGHTERS],FORGE_FIGHTERS=CORE_FIGHTERS,SUMMON_FIGHTERS=LEGACY_FIGHTERS;
 const IDS={
  'Crimson':'crimson','Sub-Zero':'subzero','Lebee':'lebee','Senku':'senku','Tyler':'tyler','Itachi':'itachi',
  'Kakashi':'kakashi','Obito':'obito','Jiraiya':'jiraiya','Sasuke':'sasuke','Pain':'pain','Scorpion':'scorpion',
- 'Rock Lee':'rock_lee','Mashle':'mashle','Jackie Chan':'jackie_chan','Gabimaru':'gabimaru','Killua':'killua','Zabuza':'zabuza'
+ 'Rock Lee':'rock_lee','Mashle':'mashle','Wong Fei-Hung':'jackie_chan','Gabimaru':'gabimaru','Killua':'killua','Zabuza':'zabuza'
 };
 const CARD_ART={
  'Crimson':'assets/characters/crimson/art/current_collection_art.jpg',
@@ -25,7 +25,7 @@ const CARD_ART={
  'Scorpion':'assets/characters/scorpion/cards/legacy_of_shinobi_card.webp',
  'Rock Lee':'assets/characters/rock_lee/cards/legacy_of_shinobi_card.png',
  'Mashle':'assets/characters/mashle/cards/legacy_of_shinobi_card.png',
- 'Jackie Chan':'assets/characters/jackie_chan/cards/legacy_of_shinobi_card.png',
+ 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/legacy_of_shinobi_card.png',
  'Gabimaru':'assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/card_art.png',
  'Killua':'assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/card_art.png',
  'Zabuza':'assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/card_art.png'
@@ -59,7 +59,7 @@ const BASE_RUNTIME=typeof BATTLE_ROSTER==='undefined'?{}:Object.fromEntries(FIGH
 
 function freshUnit(){return {resonance:0,shards:0,shiny:false,roll:null,locks:[]}}
 function fresh(){return {version:1,totalPulls:0,units:Object.fromEntries(FIGHTERS.map(name=>[name,freshUnit()]))}}
-function load(){try{const parsed=JSON.parse(localStorage.getItem(KEY)||'null');const base=fresh();if(!parsed)return base;for(const name of FIGHTERS)base.units[name]={...freshUnit(),...(parsed.units?.[name]||{})};base.totalPulls=Number(parsed.totalPulls)||0;return base}catch(_){return fresh()}}
+function load(){try{const parsed=JSON.parse(localStorage.getItem(KEY)||'null');const base=fresh();if(!parsed)return base;for(const name of FIGHTERS){const legacyName=name==='Wong Fei-Hung'?'Jackie Chan':name;base.units[name]={...freshUnit(),...(parsed.units?.[name]||parsed.units?.[legacyName]||{})}};base.totalPulls=Number(parsed.totalPulls)||0;return base}catch(_){return fresh()}}
 function save(){localStorage.setItem(KEY,JSON.stringify(state));applyCombatBonuses();refreshInventoryBadges()}
 function unit(name=selected){return state.units[name]||(state.units[name]=freshUnit())}
 function art(name){
