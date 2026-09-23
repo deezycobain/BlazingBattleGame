@@ -128,13 +128,13 @@
     "source_sheets": {
       "idle": {
         "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/idle_6f.png",
-        "columns": 3,
-        "rows": 2
+        "columns": 6,
+        "rows": 1
       },
       "basic_attack": {
         "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/basic_attack_6f.png",
-        "columns": 3,
-        "rows": 2
+        "columns": 6,
+        "rows": 1
       }
     }
   }
