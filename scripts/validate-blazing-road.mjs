@@ -109,12 +109,12 @@ try{Road.advanceStage(failed)}catch{blocked=true}
 assert(blocked,'Failed Road run was allowed to advance');
 
 const resultsSource=await fs.readFile('runtime/ui/battle/match-results.js','utf8');
-for(const marker of ['bbResultsRoad','renderRoadIntermission','ROAD PROGRESS','NEXT ENCOUNTER','RUN RESOURCES CARRY FORWARD','data-road-node']){
-  assert(resultsSource.includes(marker),`Road results intermission is missing ${marker}`);
+for(const marker of ['bbResultsRoad','renderRoadIntermission','ROAD PROGRESS','NEXT ENCOUNTER','RUN RESOURCES CARRY FORWARD','data-road-node','data-progression-unit','FORGE_ROUTE_UNITS','OPEN FORGE','progression.readyName']){
+  assert(resultsSource.includes(marker),`Road results/progression bridge is missing ${marker}`);
 }
 const resultsCss=await fs.readFile('runtime/ui/home/home-official-dev.css','utf8');
-for(const marker of ['.bb-results-road','.bb-road-node-track','.bb-road-next','.bb-road-carry-grid']){
-  assert(resultsCss.includes(marker),`Road results intermission CSS is missing ${marker}`);
+for(const marker of ['.bb-results-road','.bb-road-node-track','.bb-road-next','.bb-road-carry-grid','.bb-results-xp-grid','.bb-results-xp-unit.ready','.bb-results-actions.three']){
+  assert(resultsCss.includes(marker),`Road results/progression CSS is missing ${marker}`);
 }
 
-console.log('Blazing Road PASS: five WebP maps, 10-stage map rotation, persistent HP/chakra, defeats, carry-forward, next-encounter intermission, legacy saves, failure state, and local persistence verified.');
+console.log('Blazing Road PASS: five WebP maps, 10-stage map rotation, persistent HP/chakra, defeats, carry-forward, next-encounter intermission, per-unit battle progression/Forge routing, legacy saves, failure state, and local persistence verified.');
