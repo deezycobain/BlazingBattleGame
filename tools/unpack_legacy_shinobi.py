@@ -126,14 +126,16 @@ def grid_cells(image: Image.Image, cols: int, rows: int):
     return cells
 
 def isolate_subject(frame: Image.Image, core_box):
-    # Run component detection at half resolution. The intended fighter is selected
-    # from components whose centroid lies in the nominal cell. This rejects the
-    # adjacent body parts that were showing up as giant legs/torsos in battle.
+    # Find all half-resolution components first so the intended pose can be chosen
+    # by its centroid inside the nominal cell. Then flood-fill that exact component
+    # at full resolution and clear every unrelated pixel. This is the key difference
+    # from the old crop-only approach: neighboring hair, legs, cloth and weapons are
+    # removed instead of merely sitting inside a wider transparent crop.
     alpha = frame.getchannel("A")
-    mask = alpha.point(lambda value: 255 if value > ALPHA_THRESHOLD else 0)
+    threshold_mask = alpha.point(lambda value: 255 if value > ALPHA_THRESHOLD else 0)
     small_w = max(1, (frame.width + 1) // 2)
     small_h = max(1, (frame.height + 1) // 2)
-    small = mask.resize((small_w, small_h), Image.Resampling.NEAREST)
+    small = threshold_mask.resize((small_w, small_h), Image.Resampling.NEAREST)
     px = small.load()
     visited = bytearray(small_w * small_h)
     components = []
@@ -146,9 +148,9 @@ def isolate_subject(frame: Image.Image, core_box):
             visited[idx] = 1
             queue = deque([(sx, sy)])
             area = 0
+            sum_x = sum_y = 0
             min_x = max_x = sx
             min_y = max_y = sy
-            sum_x = sum_y = 0
             while queue:
                 x, y = queue.popleft()
                 area += 1
@@ -158,7 +160,7 @@ def isolate_subject(frame: Image.Image, core_box):
                 max_x = max(max_x, x)
                 min_y = min(min_y, y)
                 max_y = max(max_y, y)
-                for nx, ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1)):
+                for nx, ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1),(x-1,y-1),(x+1,y-1),(x-1,y+1),(x+1,y+1)):
                     if nx < 0 or ny < 0 or nx >= small_w or ny >= small_h:
                         continue
                     nidx = ny * small_w + nx
@@ -169,42 +171,83 @@ def isolate_subject(frame: Image.Image, core_box):
             if area >= 4:
                 components.append({
                     "area": area,
-                    "bbox": (
-                        min_x * 2,
-                        min_y * 2,
-                        min(frame.width, (max_x + 1) * 2),
-                        min(frame.height, (max_y + 1) * 2),
-                    ),
-                    "cx": (sum_x / area) * 2,
-                    "cy": (sum_y / area) * 2,
+                    "bbox": (min_x*2, min_y*2, min(frame.width,(max_x+1)*2), min(frame.height,(max_y+1)*2)),
+                    "cx": (sum_x/area)*2,
+                    "cy": (sum_y/area)*2,
                 })
 
     if not components:
-        return None
+        return None, None, None
 
     cx0, cy0, cx1, cy1 = core_box
     inside = [c for c in components if cx0 <= c["cx"] <= cx1 and cy0 <= c["cy"] <= cy1]
     primary = max(inside or components, key=lambda c: c["area"])
-    min_area = max(4, primary["area"] * 0.006)
-    related = [
-        c for c in components
-        if c["area"] >= min_area and cx0 <= c["cx"] <= cx1 and cy0 <= c["cy"] <= cy1
-    ]
-    if primary not in related:
-        related.append(primary)
 
-    left = min(c["bbox"][0] for c in related)
-    top = min(c["bbox"][1] for c in related)
-    right = max(c["bbox"][2] for c in related)
-    bottom = max(c["bbox"][3] for c in related)
-    pad_x = max(8, round((right - left) * 0.12))
-    pad_y = max(8, round((bottom - top) * 0.08))
-    return (
-        max(0, left - pad_x),
-        max(0, top - pad_y),
-        min(frame.width, right + pad_x),
-        min(frame.height, bottom + pad_y),
+    # Seed the exact full-resolution component near the chosen half-res centroid.
+    full_px = alpha.load()
+    seed_x = max(0, min(frame.width-1, round(primary["cx"])))
+    seed_y = max(0, min(frame.height-1, round(primary["cy"])))
+    seed = None
+    for radius in range(0, 28):
+        x0=max(0,seed_x-radius); x1=min(frame.width-1,seed_x+radius)
+        y0=max(0,seed_y-radius); y1=min(frame.height-1,seed_y+radius)
+        for y in range(y0,y1+1):
+            for x in range(x0,x1+1):
+                if full_px[x,y] > ALPHA_THRESHOLD:
+                    seed=(x,y); break
+            if seed: break
+        if seed: break
+    if not seed:
+        return None, None, None
+
+    selected = bytearray(frame.width * frame.height)
+    queue = deque([seed])
+    selected[seed[1]*frame.width+seed[0]] = 1
+    left=right=seed[0]
+    top=bottom=seed[1]
+    area=0
+    while queue:
+        x,y=queue.popleft()
+        area += 1
+        left=min(left,x); right=max(right,x)
+        top=min(top,y); bottom=max(bottom,y)
+        for nx,ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1),(x-1,y-1),(x+1,y-1),(x-1,y+1),(x+1,y+1)):
+            if nx<0 or ny<0 or nx>=frame.width or ny>=frame.height:
+                continue
+            nidx=ny*frame.width+nx
+            if selected[nidx] or full_px[nx,ny] <= ALPHA_THRESHOLD:
+                continue
+            selected[nidx]=1
+            queue.append((nx,ny))
+
+    if area < 100:
+        return None, None, None
+
+    # Preserve original antialiased alpha for the selected component only.
+    cleaned = frame.copy()
+    clean_alpha = Image.new("L", frame.size, 0)
+    clean_px = clean_alpha.load()
+    for y in range(frame.height):
+        row=y*frame.width
+        for x in range(frame.width):
+            if selected[row+x]:
+                clean_px[x,y]=full_px[x,y]
+    cleaned.putalpha(clean_alpha)
+
+    pad_x=max(8,round((right-left+1)*0.06))
+    pad_y=max(8,round((bottom-top+1)*0.05))
+    subject_box=(
+        max(0,left-pad_x),
+        max(0,top-pad_y),
+        min(frame.width,right+1+pad_x),
+        min(frame.height,bottom+1+pad_y),
     )
+    component_audit={
+        "component_area": area,
+        "component_bbox": [left,top,right+1,bottom+1],
+        "discarded_components": max(0,len(components)-1),
+    }
+    return cleaned, subject_box, component_audit
 
 def normalize_pose(frame: Image.Image, subject_box):
     content = frame.crop(subject_box)
@@ -275,11 +318,12 @@ def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path):
             expanded = image.crop((ex_left, ex_top, ex_right, ex_bottom))
             core = (left-ex_left, top-ex_top, right-ex_left, bottom-ex_top)
 
-            subject_box = isolate_subject(expanded, core)
-            if not subject_box:
+            cleaned, subject_box, component_audit = isolate_subject(expanded, core)
+            if not subject_box or cleaned is None:
                 raise RuntimeError(f"{unit_id} {kind} frame {index+1}: subject isolation failed")
 
-            normalized, frame_audit = normalize_pose(expanded, subject_box)
+            normalized, frame_audit = normalize_pose(cleaned, subject_box)
+            frame_audit["component"] = component_audit
             frame_path = output_dir / f"frame_{index+1:02d}.png"
             normalized.save(frame_path, optimize=True)
             frames.append(frame_path)
