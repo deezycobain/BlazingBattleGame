@@ -10,6 +10,8 @@ Current approved organizational checkpoint: `checkpoint/project-continuity-atlas
 
 Historical combat-only checkpoint: `checkpoint/combat-runtime-stable-2026-09-23` at `06319adbadec3b9eaf00f4a4b4a641c06158ef54`. It preserves the combat stabilization milestone but is not the current development baseline.
 
+Current uncheckpointed `dev` gameplay work has moved beyond the organizational checkpoint. Road now uses authored speed-based round initiative with pause/status guards, the post-battle Road intermission exposes next-stage and carried HP/chakra state, and the latest progression bridge renders per-unit battle XP/level/gate state with a direct Forge route when a supported deployed unit is actually Awakening-ready. The gameplay implementation series currently culminates at `858c5e54c91d7fbbcf2a3e2791b363d1f0672d56`; documentation-only commits may follow it. Run the full validation/build/browser-smoke gates before treating this increment as checkpoint-approved or promoting it toward `main`.
+
 ## Branch rules
 
 - `main`: stable only. Do not develop directly on it. Promote from validated `dev` only with explicit approval.
