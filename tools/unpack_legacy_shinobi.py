@@ -51,6 +51,58 @@ def sheet_grid(width: int, height: int):
         return 3, 2
     return 2, 3
 
+def remove_horizontal_strip_bleed(frame: Image.Image) -> Image.Image:
+    """Remove small disconnected pieces from neighboring poses that cross a 6x1 cell boundary."""
+    if frame.mode != "RGBA":
+        frame = frame.convert("RGBA")
+    width, height = frame.size
+    alpha = frame.getchannel("A")
+    pixels = alpha.load()
+    threshold = 16
+    column_mass = [
+        sum(1 for y in range(height) if pixels[x, y] > threshold)
+        for x in range(width)
+    ]
+    min_piece_mass = max(24, int(width * height * 0.0006))
+
+    def transparent_runs(start, end):
+        runs = []
+        run_start = None
+        for x in range(start, end):
+            if column_mass[x] <= 1:
+                if run_start is None:
+                    run_start = x
+            elif run_start is not None:
+                if x - run_start >= 2:
+                    runs.append((run_start, x - 1))
+                run_start = None
+        if run_start is not None and end - run_start >= 2:
+            runs.append((run_start, end - 1))
+        return runs
+
+    clean = frame.copy()
+    clean_alpha = clean.getchannel("A")
+
+    # Generated strip art sometimes lets the next/previous pose bleed a few pixels
+    # across the nominal cell. Only inspect the outer 18% so intentional VFX around
+    # the current fighter stays intact.
+    right_zone = int(width * 0.82)
+    for start, end in transparent_runs(right_zone, width):
+        if sum(column_mass[end + 1:]) >= min_piece_mass:
+            clean_alpha.paste(0, (end + 1, 0, width, height))
+            break
+
+    left_zone = max(1, int(width * 0.18))
+    left_runs = transparent_runs(0, left_zone)
+    for start, end in reversed(left_runs):
+        if sum(column_mass[:start]) >= min_piece_mass:
+            clean_alpha.paste(0, (0, 0, start, height))
+            break
+
+    clean.putalpha(clean_alpha)
+    return clean
+
+
 def split_sheet(sheet_path: Path, output_dir: Path):
     output_dir.mkdir(parents=True, exist_ok=True)
     with Image.open(sheet_path).convert("RGBA") as image:
@@ -66,6 +118,8 @@ def split_sheet(sheet_path: Path, output_dir: Path):
             right = image.width if col == cols - 1 else left + cell_w
             bottom = image.height if row == rows - 1 else top + cell_h
             frame = image.crop((left, top, right, bottom))
+            if cols == 6 and rows == 1:
+                frame = remove_horizontal_strip_bleed(frame)
             frame_path = output_dir / f"frame_{index+1:02d}.png"
             frame.save(frame_path, optimize=True)
             frames.append(frame_path)
