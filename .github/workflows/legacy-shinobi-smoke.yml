@@ -1,0 +1,55 @@
+name: Legacy Shinobi Targeted Smoke
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/legacy-shinobi-smoke.yml"
+      - "scripts/legacy-shinobi-browser-smoke.mjs"
+      - "scripts/legacy-shinobi-postprocess.mjs"
+      - "scripts/validate-legacy-shinobi.mjs"
+      - "tools/unpack_legacy_shinobi.py"
+      - "assets/characters/kakashi/**"
+      - "assets/characters/obito/**"
+      - "assets/characters/jiraiya/**"
+      - "assets/characters/sasuke/**"
+      - "assets/characters/pain/**"
+      - "assets/characters/scorpion/**"
+      - "assets/characters/rock_lee/**"
+      - "assets/characters/mashle/**"
+      - "assets/characters/jackie_chan/**"
+      - "assets/characters/gabimaru/**"
+      - "assets/characters/killua/**"
+      - "assets/characters/zabuza/**"
+  workflow_dispatch:
+
+jobs:
+  legacy-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Build audited Legacy runtime
+        run: npm run build
+      - name: Start local build
+        run: |
+          python3 -m http.server 4173 --directory dist >/tmp/legacy-server.log 2>&1 &
+          echo $! > /tmp/legacy-server.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/legacy-server.log
+          exit 1
+      - name: Run focused Legacy browser smoke
+        env:
+          BB_SMOKE_URL: http://127.0.0.1:4173
+        run: node scripts/legacy-shinobi-browser-smoke.mjs
