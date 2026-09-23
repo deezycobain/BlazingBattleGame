@@ -258,6 +258,53 @@ def isolate_subject(frame: Image.Image, core_box):
     }
     return cleaned, subject_box, component_audit
 
+def keep_largest_component(image: Image.Image):
+    alpha = image.getchannel("A")
+    px = alpha.load()
+    visited = bytearray(image.width * image.height)
+    components = []
+
+    for sy in range(image.height):
+        for sx in range(image.width):
+            idx = sy * image.width + sx
+            if visited[idx] or px[sx, sy] <= ALPHA_THRESHOLD:
+                continue
+            visited[idx] = 1
+            queue = deque([(sx, sy)])
+            points = []
+            while queue:
+                x, y = queue.popleft()
+                points.append((x, y))
+                for nx, ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1),(x-1,y-1),(x+1,y-1),(x-1,y+1),(x+1,y+1)):
+                    if nx < 0 or ny < 0 or nx >= image.width or ny >= image.height:
+                        continue
+                    nidx = ny * image.width + nx
+                    if visited[nidx] or px[nx, ny] <= ALPHA_THRESHOLD:
+                        continue
+                    visited[nidx] = 1
+                    queue.append((nx, ny))
+            if points:
+                components.append(points)
+
+    if not components:
+        return image
+
+    primary = max(components, key=len)
+    keep = bytearray(image.width * image.height)
+    for x, y in primary:
+        keep[y * image.width + x] = 1
+
+    cleaned = image.copy()
+    clean_alpha = Image.new("L", image.size, 0)
+    out = clean_alpha.load()
+    for y in range(image.height):
+        row = y * image.width
+        for x in range(image.width):
+            if keep[row + x]:
+                out[x, y] = px[x, y]
+    cleaned.putalpha(clean_alpha)
+    return cleaned
+
 def normalize_pose(frame: Image.Image, subject_box):
     content = frame.crop(subject_box)
     bbox = alpha_bbox(content)
@@ -281,6 +328,10 @@ def normalize_pose(frame: Image.Image, subject_box):
         x = (CANVAS_W - out_w) // 2
         y = BOTTOM_ANCHOR - out_h
     canvas.alpha_composite(content, (x, y))
+    # Final island cleanup removes any tiny neighboring foot/hair/effect fragment
+    # that survived the source-cell guard. Runtime body frames intentionally keep
+    # one coherent fighter component; standalone VFX will be authored separately.
+    canvas = keep_largest_component(canvas)
 
     out_bbox = alpha_bbox(canvas)
     if not out_bbox:
