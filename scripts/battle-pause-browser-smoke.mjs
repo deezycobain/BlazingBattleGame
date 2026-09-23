@@ -56,13 +56,20 @@ async function run(name,type){
 
   await page.locator('#bbBattlePauseButton').click();await page.locator('#bbBattlePause.active').waitFor({state:'visible',timeout:3000});
   if(!(await page.evaluate(()=>window.BlazingBattlePause.isPaused())))throw new Error('pause API did not enter paused state');
-  const frozenA=await page.evaluate(()=>{const s=globalThis.eval('S');return [...s.pairs.map(p=>p.gauge),...s.enemies.map(e=>e.gauge)]});
+  // Road uses authored round initiative, so gauges do not naturally climb over time.
+  // Write a sentinel state while paused: it must remain frozen, then Resume must let
+  // the Road controller reassert canonical 100/0 turn ownership.
+  const frozenA=await page.evaluate(()=>{
+   const s=globalThis.eval('S'),actors=[...s.pairs,...s.enemies];
+   actors.forEach(actor=>{actor.gauge=37});
+   return actors.map(actor=>actor.gauge);
+  });
   await page.waitForTimeout(650);
   const frozenB=await page.evaluate(()=>{const s=globalThis.eval('S');return [...s.pairs.map(p=>p.gauge),...s.enemies.map(e=>e.gauge)]});
-  if(JSON.stringify(frozenA)!==JSON.stringify(frozenB))throw new Error(`turn gauges moved while paused: ${JSON.stringify({frozenA,frozenB})}`);
+  if(JSON.stringify(frozenA)!==JSON.stringify(frozenB))throw new Error(`Road round controller moved gauges while paused: ${JSON.stringify({frozenA,frozenB})}`);
   await page.getByRole('button',{name:'RESUME'}).click();await page.waitForFunction(()=>!window.BlazingBattlePause.isPaused());await page.waitForTimeout(400);
   const afterResume=await page.evaluate(()=>{const s=globalThis.eval('S');return [...s.pairs.map(p=>p.gauge),...s.enemies.map(e=>e.gauge)]});
-  if(JSON.stringify(afterResume)===JSON.stringify(frozenB))throw new Error('turn gauges did not resume after Resume');
+  if(JSON.stringify(afterResume)===JSON.stringify(frozenB))throw new Error('Road round controller did not resume after Resume');
 
   await page.locator('#bbBattlePauseButton').click();await page.getByRole('button',{name:'EXIT TO MAIN MENU'}).click();await waitHome(page);
   await page.waitForFunction(()=>!document.getElementById('battleScreen')?.classList.contains('active'));
@@ -81,7 +88,7 @@ async function run(name,type){
   if(exitState.feedback!=='r1')throw new Error(`Home feedback layer missing after Exit: ${JSON.stringify(exitState)}`);
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Battle pause smoke PASS (${name}): Reset preserves Road stage/map, Pause freezes/resumes correctly after the Road intro lock, Exit keeps Road state, and the Home leader presentation stays hidden.`);
+  console.log(`Battle pause smoke PASS (${name}): Reset preserves Road stage/map, Pause freezes/resumes authored round initiative after the Road intro lock, Exit keeps Road state, and the Home leader presentation stays hidden.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
