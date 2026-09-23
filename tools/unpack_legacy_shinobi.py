@@ -149,6 +149,7 @@ def isolate_subject(frame: Image.Image, core_box):
             queue = deque([(sx, sy)])
             area = 0
             core_hits = 0
+            core_seed = None
             sum_x = sum_y = 0
             min_x = max_x = sx
             min_y = max_y = sy
@@ -159,6 +160,8 @@ def isolate_subject(frame: Image.Image, core_box):
                 fy = y * 2
                 if core_box[0] <= fx <= core_box[2] and core_box[1] <= fy <= core_box[3]:
                     core_hits += 1
+                    if core_seed is None:
+                        core_seed = (fx, fy)
                 sum_x += x
                 sum_y += y
                 min_x = min(min_x, x)
@@ -177,6 +180,7 @@ def isolate_subject(frame: Image.Image, core_box):
                 components.append({
                     "area": area,
                     "core_hits": core_hits,
+                    "seed": core_seed or (sx*2, sy*2),
                     "bbox": (min_x*2, min_y*2, min(frame.width,(max_x+1)*2), min(frame.height,(max_y+1)*2)),
                     "cx": (sum_x/area)*2,
                     "cy": (sum_y/area)*2,
@@ -191,12 +195,14 @@ def isolate_subject(frame: Image.Image, core_box):
     core_components = [c for c in components if c["core_hits"] > 0]
     primary = max(core_components or components, key=lambda c: (c.get("core_hits", 0), c["area"]))
 
-    # Seed the exact full-resolution component near the chosen half-res centroid.
+    # Seed from a pixel known to belong to the chosen half-resolution component.
+    # Using the component centroid is unsafe for crescent / ring / lunging poses:
+    # the centroid can fall on transparent space next to a detached VFX island.
     full_px = alpha.load()
-    seed_x = max(0, min(frame.width-1, round(primary["cx"])))
-    seed_y = max(0, min(frame.height-1, round(primary["cy"])))
+    seed_x = max(0, min(frame.width-1, round(primary["seed"][0])))
+    seed_y = max(0, min(frame.height-1, round(primary["seed"][1])))
     seed = None
-    for radius in range(0, 28):
+    for radius in range(0, 8):
         x0=max(0,seed_x-radius); x1=min(frame.width-1,seed_x+radius)
         y0=max(0,seed_y-radius); y1=min(frame.height-1,seed_y+radius)
         for y in range(y0,y1+1):
