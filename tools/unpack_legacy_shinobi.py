@@ -35,7 +35,7 @@ UNIT_META = {
     "scorpion": {"name":"Scorpion","title":"Hellfire Shinobi","element":"Fire","archetype":"assassin","stats":{"hp":84,"attack":82,"defense":74,"speed":76}},
     "rock_lee": {"name":"Rock Lee","title":"Taijutsu Prodigy","element":"Neutral","archetype":"speed_brawler","stats":{"hp":86,"attack":76,"defense":72,"speed":92}},
     "mashle": {"name":"Mashle","title":"Iron Magic","element":"Neutral","archetype":"power_brawler","stats":{"hp":94,"attack":88,"defense":86,"speed":70}},
-    "jackie_chan": {"name":"Jackie Chan","title":"Drunken Master","element":"Neutral","archetype":"counter_fighter","stats":{"hp":88,"attack":74,"defense":78,"speed":80}},
+    "jackie_chan": {"name":"Wong Fei-Hung","title":"Drunken Master","element":"Neutral","archetype":"counter_fighter","stats":{"hp":88,"attack":74,"defense":78,"speed":80}},
     "killua": {"name":"Killua","title":"Godspeed Heir","element":"Lightning","archetype":"assassin","stats":{"hp":76,"attack":82,"defense":62,"speed":96}},
     "zabuza": {"name":"Zabuza","title":"Demon of the Mist","element":"Water","archetype":"bruiser","stats":{"hp":90,"attack":80,"defense":84,"speed":60}},
     "gabimaru": {"name":"Gabimaru","title":"The Hollow","element":"Fire","archetype":"assassin","stats":{"hp":82,"attack":84,"defense":70,"speed":88}},
