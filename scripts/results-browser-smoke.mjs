@@ -118,6 +118,19 @@ async function run(name,type){
     await page.locator('#bbMatchResults.active').waitFor({state:'visible',timeout:5000});
     const roadResult=await page.locator('#bbMatchResults').innerText();
     if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BLAZING COINS/.test(roadResult)||!/\+650 XP/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
+    const roadIntermission=await page.evaluate(()=>{
+      const box=document.getElementById('bbResultsRoad');
+      return {
+        hidden:!!box?.hidden,
+        cleared:box?.dataset.clearedStage||'',
+        next:box?.dataset.nextStage||'',
+        text:box?.innerText||'',
+        nodes:box?.querySelectorAll('[data-road-node]').length||0,
+        carry:box?.querySelectorAll('.bb-road-carry-unit').length||0
+      };
+    });
+    if(roadIntermission.hidden||roadIntermission.cleared!=='1'||roadIntermission.next!=='2'||roadIntermission.nodes!==10||roadIntermission.carry<1)throw new Error(`Road intermission state incorrect: ${JSON.stringify(roadIntermission)}`);
+    if(!/ROAD PROGRESS/.test(roadIntermission.text)||!/1\s*\/\s*10/.test(roadIntermission.text)||!/NEXT ENCOUNTER/.test(roadIntermission.text)||!/STAGE 2/.test(roadIntermission.text)||!/MOONLIT RUINS/i.test(roadIntermission.text)||!/HP\s+\d+%/.test(roadIntermission.text)||!/CHAKRA\s+\d+\/\d+/.test(roadIntermission.text))throw new Error(`Road intermission content incorrect: ${roadIntermission.text}`);
     const roadNames=road.xp.units.map(item=>item.name);
     const roadLevels=await page.evaluate(names=>Object.fromEntries(names.map(unit=>[unit,window.BlazingUnitProgression.unit(unit)])),roadNames);
     if(Object.values(roadLevels).some(unit=>unit.level!==5||unit.xp!==105))throw new Error(`Road XP did not accelerate fresh team to Lv5 + 105 XP: ${JSON.stringify(roadLevels)}`);
@@ -153,7 +166,7 @@ async function run(name,type){
     if(JSON.stringify(progressionAfterReload)!==JSON.stringify(progressionBeforeReload))throw new Error('Battle XP progression did not persist after reload');
     await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset()});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Results browser smoke PASS (${name}): Home v9, live Blazing Coins/Embers HUD, approved routes, accelerated Road/Castle Battle XP, Stage 2 menu return, and persistent progression verified.`);
+    console.log(`Results browser smoke PASS (${name}): Home v9, live currencies, Road reward/intermission carry preview, Stage 2 menu return, Castle rewards, and persistent progression verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
