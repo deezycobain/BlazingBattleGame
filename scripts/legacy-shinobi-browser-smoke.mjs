@@ -79,6 +79,13 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   },{names:NAMES});
   if(!/LEGACYOFTHE?SHINOBI/i.test(String(summon.title||'').replace(/[^A-Z]/gi,''))||summon.fighterCount!==12||summon.missingNames.length||!summon.singleVisible||!summon.multiVisible)throw new Error('Legacy summon lobby invalid: '+JSON.stringify(summon));
 
+  const attackScaleValues=await page.evaluate(names=>{
+   const body=globalThis.eval('LEGACY_SHINOBI_BODY_RUNTIME');
+   return Object.fromEntries(names.map(name=>[name,body.attackScale(name)]));
+  },NAMES);
+  if(!(attackScaleValues.Scorpion>1.1&&attackScaleValues.Scorpion<=1.18))throw new Error('Scorpion attack scale compensation missing: '+JSON.stringify(attackScaleValues));
+  if(!(attackScaleValues.Zabuza>1.1&&attackScaleValues.Zabuza<=1.18))throw new Error('Zabuza attack scale compensation missing: '+JSON.stringify(attackScaleValues));
+
   const runtime=await page.evaluate(async ({names})=>{
    const get=globalThis.eval;
    const body=get('LEGACY_SHINOBI_BODY_RUNTIME');

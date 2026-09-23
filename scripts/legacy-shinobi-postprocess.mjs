@@ -50,6 +50,7 @@ const LEGACY_SHINOBI_BODY_RUNTIME=(()=>{
  return Object.freeze({
   names:Object.freeze([...names]),
   has:name=>names.has(name),
+  attackScale:name=>attackScales[name]||1,
   idle:name=>resolve(name,'idle'),
   basic:name=>resolve(name,'basic_attack')
  });
@@ -81,7 +82,7 @@ else if(!html.includes(legacyAttackVisualTarget))fail('Legacy attack visual-stat
    Six frames at the authored 105 ms cadence = 630 ms total. Impact lands during
    the middle of the sequence, then the last frames play during recovery. */
 const lungeTimingSource="let start=performance.now(),dur=unitName==='Tyler'?360:175,backDur=unitName==='Tyler'?340:145,lungeHold=unitName==='Tyler'?100:65;";
-const lungeTimingTarget="const legacyShinobiAttack=LEGACY_SHINOBI_BODY_RUNTIME.has(unitName);let start=performance.now(),dur=legacyShinobiAttack?250:(unitName==='Tyler'?360:175),backDur=legacyShinobiAttack?190:(unitName==='Tyler'?340:145),lungeHold=legacyShinobiAttack?190:(unitName==='Tyler'?100:65);";
+const lungeTimingTarget="const legacyShinobiAttack=LEGACY_SHINOBI_BODY_RUNTIME.has(unitName);let start=performance.now(),dur=legacyShinobiAttack?205:(unitName==='Tyler'?360:175),backDur=legacyShinobiAttack?240:(unitName==='Tyler'?340:145),lungeHold=legacyShinobiAttack?185:(unitName==='Tyler'?100:65);";
 if(html.includes(lungeTimingSource))html=html.replace(lungeTimingSource,lungeTimingTarget);
 else if(!html.includes(lungeTimingTarget))fail('Legacy animateLunge timing anchor missing');
 
