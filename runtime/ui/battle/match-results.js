@@ -11,6 +11,15 @@ function battleActive(){return !!battle()?.classList.contains('active')}
 function fighters(s){return (Array.isArray(s?.pairs)?s.pairs:[]).flatMap(pair=>Array.isArray(pair?.units)?pair.units:[]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0)}
 function allDefeated(s){const list=fighters(s);return !!list.length&&list.every(unit=>Number(unit.hp)<=0)}
 function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+function normalizeUnitId(value){return String(value??'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')}
+function roadFighterName(s,id){
+ const wanted=normalizeUnitId(id);
+ const runtime=fighters(s).find(unit=>[unit?.id,unit?.unit_id,unit?.name].some(value=>normalizeUnitId(value)===wanted));
+ if(runtime?.name)return runtime.name;
+ const canonical=Object.values(window.BLAZING_UNIT_DATA||{}).find(unit=>[unit?.id,unit?.unit_id,unit?.display_name].some(value=>normalizeUnitId(value)===wanted));
+ if(canonical?.display_name)return canonical.display_name;
+ return String(id||'Fighter').split(/[-_\s]+/).filter(Boolean).map(part=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');
+}
 
 function ensureOfficialNavStyle(){
  if(document.getElementById(NAV_STYLE))return;
@@ -45,7 +54,7 @@ function syncHud(){const hud=ensureHud();if(hud)hud.querySelector('span').textCo
 function ensureResults(){
  let root=document.getElementById(RESULTS);if(root)return root;
  root=document.createElement('div');root.id=RESULTS;root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-labelledby','bbResultsTitle');
- root.innerHTML='<section class="bb-results-card"><div class="bb-results-kicker" id="bbResultsKicker"></div><div class="bb-results-title" id="bbResultsTitle"></div><div class="bb-results-sub" id="bbResultsSub"></div><div class="bb-results-reward" id="bbResultsReward"></div><div class="bb-results-xp" id="bbResultsXp" hidden></div><div class="bb-results-balance" id="bbResultsBalance"></div><div class="bb-results-actions" id="bbResultsActions"></div></section>';
+ root.innerHTML='<section class="bb-results-card"><div class="bb-results-kicker" id="bbResultsKicker"></div><div class="bb-results-title" id="bbResultsTitle"></div><div class="bb-results-sub" id="bbResultsSub"></div><div class="bb-results-reward" id="bbResultsReward"></div><div class="bb-results-xp" id="bbResultsXp" hidden></div><div class="bb-results-road" id="bbResultsRoad" hidden></div><div class="bb-results-balance" id="bbResultsBalance"></div><div class="bb-results-actions" id="bbResultsActions"></div></section>';
  document.body.appendChild(root);return root;
 }
 function hideResults(){document.getElementById(RESULTS)?.classList.remove('active')}
@@ -80,6 +89,35 @@ function renderXp(s,victory){
  box.innerHTML=`<strong>+${escapeHtml(xp.amount)} XP</strong><span>DEPLOYED TEAM BATTLE XP</span>${notes.length?`<small>${notes.join('<br>')}</small>`:''}`;
 }
 
+function renderRoadIntermission(s,{victory=false,roadComplete=false,stage=1}={}){
+ const box=document.getElementById('bbResultsRoad');if(!box)return;
+ if(!victory||s?.bbRunMode!=='road'){
+  box.hidden=true;box.innerHTML='';delete box.dataset.clearedStage;delete box.dataset.nextStage;return;
+ }
+ const content=window.BlazingRoadContent,max=Math.max(1,Math.floor(Number(content?.MAX_STAGE)||10));
+ const run=s?.bbRoadRun||window.BlazingRoadRun?.loadRun?.()||null;
+ const cleared=Math.max(1,Math.min(max,Math.floor(Number(stage)||1)));
+ const nextStage=!roadComplete&&run?.status==='active'?Math.max(1,Math.min(max,Math.floor(Number(run.stage)||cleared+1))):null;
+ const next=nextStage?content?.stageConfig?.(nextStage):null;
+ const nodes=Array.from({length:max},(_,index)=>{
+  const n=index+1,state=roadComplete||n<=cleared?'done':n===nextStage?'next':'locked';
+  const label=state==='done'?'cleared':state==='next'?'next':'locked';
+  return `<i class="${state}" data-road-node="${n}" aria-label="Stage ${n} ${label}"></i>`;
+ }).join('');
+ const runFighters=Array.isArray(run?.fighters)?run.fighters:[];
+ const carry=runFighters.map(fighter=>{
+  const hp=Math.max(0,Number(fighter?.hp)||0),maxHp=Math.max(1,Number(fighter?.max_hp)||1),hpPct=Math.max(0,Math.min(100,Math.round(hp/maxHp*100)));
+  const chakra=Math.max(0,Math.floor(Number(fighter?.chakra)||0)),maxChakra=Math.max(0,Math.floor(Number(fighter?.max_chakra)||0));
+  const name=roadFighterName(s,fighter?.unit_id);
+  return `<span class="bb-road-carry-unit${hp<=0?' ko':''}"><b>${escapeHtml(name)}</b><small>HP ${hpPct}%${maxChakra?` • CHAKRA ${chakra}/${maxChakra}`:''}</small></span>`;
+ }).join('');
+ const nextCopy=roadComplete
+  ?`<div class="bb-road-next complete"><small>RUN COMPLETE</small><strong>ALL ${max} STAGES CLEARED</strong><span>Road rewards secured. Restart for a fresh run.</span></div>`
+  :`<div class="bb-road-next"><small>NEXT ENCOUNTER</small><strong>STAGE ${nextStage} · ${escapeHtml(next?.name||`Stage ${nextStage}`)}</strong><span>${Number(next?.enemies?.length)||0} ENEMIES${next?.elite?' • ELITE NODE':''}${next?.route?` • ROUTE ${next.route}`:''}</span></div>`;
+ box.hidden=false;box.dataset.clearedStage=String(cleared);box.dataset.nextStage=nextStage?String(nextStage):'';
+ box.innerHTML=`<div class="bb-road-progress-head"><span>ROAD PROGRESS</span><strong>${roadComplete?max:cleared} / ${max}</strong></div><div class="bb-road-node-track" aria-label="Blazing Road stage progress">${nodes}</div>${nextCopy}${carry?`<div class="bb-road-carry"><small>RUN RESOURCES CARRY FORWARD</small><div class="bb-road-carry-grid">${carry}</div></div>`:''}`;
+}
+
 function showResult(kind,s){
  if(!battleActive())return;
  const root=ensureResults(),reward=s?.bbVictoryReward||null,mode=s?.bbRunMode||'battle',victory=kind==='victory';
@@ -97,6 +135,7 @@ function showResult(kind,s){
  else if(victory&&reward){rewardBox.hidden=false;rewardBox.innerHTML='<strong>'+escapeHtml(reward.symbol)+' +'+escapeHtml(reward.amount)+'</strong><span>'+escapeHtml(reward.currency)+'</span>';balance.textContent='BALANCE '+reward.balance+' '+reward.currency}
  else{rewardBox.hidden=true;rewardBox.innerHTML='';balance.textContent=victory?'':'NO BLAZING COINS EARNED'}
  renderXp(s,victory);
+ renderRoadIntermission(s,{victory,roadComplete,stage});
  const actions=document.getElementById('bbResultsActions');actions.replaceChildren();actions.className='bb-results-actions';
  const add=(label,cls,fn)=>{const btn=document.createElement('button');btn.type='button';btn.textContent=label;if(cls)btn.className=cls;btn.addEventListener('click',fn);actions.appendChild(btn)};
  if(roadComplete){actions.classList.add('two');add('RESTART ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
@@ -134,6 +173,6 @@ function auditHomeWallpaper(){
 }
 
 window.addEventListener('bb:economy',syncHud);
-window.BlazingMatchResults=Object.freeze({returnHome,launch,syncHud});
+window.BlazingMatchResults=Object.freeze({returnHome,launch,syncHud,renderRoadIntermission});
 labelSecondaryButtons();syncHud();auditHomeWallpaper();setInterval(tick,180);
 })();
