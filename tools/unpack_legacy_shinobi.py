@@ -383,8 +383,8 @@ def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path):
             # (Killua lightning was the clearest example) before component tracing.
             # A small recovery margin keeps hair, feet and weapons that cross the
             # detected gutter by a handful of pixels.
-            guard_x = max(10, round(cell_w * 0.035))
-            guard_y = max(10, round(cell_h * 0.025))
+            guard_x = 2
+            guard_y = 2
             gx0 = max(0, core[0] - guard_x)
             gy0 = max(0, core[1] - guard_y)
             gx1 = min(expanded.width, core[2] + guard_x)
