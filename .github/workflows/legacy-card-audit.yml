@@ -1,0 +1,24 @@
+name: Legacy Card Visual Audit
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "tools/render_legacy_card_audit.py"
+      - ".github/workflows/legacy-card-audit.yml"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - run: python3 -m pip install --disable-pip-version-check pillow
+      - name: Render card audit
+        run: python3 tools/render_legacy_card_audit.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legacy-card-visual-audit
+          path: legacy-card-audit-output
