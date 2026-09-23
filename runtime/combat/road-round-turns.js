@@ -132,6 +132,12 @@ function syncState(state=liveState()){
  patchRoadScale();
  const key=keyFor(state);
  if(state!==stateRef||key!==battleKey){stateRef=state;battleKey=key;suppressions=new WeakMap();resetRound(state,{newBattle:true})}
+ // Pause freezes the authored Road round controller as well as the legacy engine tick.
+ // Do not advance initiative, consume statuses, or rewrite gauges until Resume.
+ if(window.BlazingBattlePause?.isPaused?.()){
+  const held=order[index]||null;
+  return held&&isAlive(held,state)?held:null;
+ }
  refreshOpeningRoster(state);
  const selected=current(state);if(!selected)return null;
  if(window.BlazingRoadCamera?.isCombatLocked?.()){
