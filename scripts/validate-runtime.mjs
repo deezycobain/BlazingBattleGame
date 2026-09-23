@@ -194,3 +194,4 @@ for(const token of forbidden){
 }
 
 console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources (${physicalResourceCount} physical, ${proceduralResourceCount} procedural), ${Object.keys(runtimeMaps).length} runtime maps, ${referencedActionIds.size} executable action IDs, 0 runtime-shell resources, Pass 2/3 delegation verified.`);
+await import('./validate-atlas-contract.mjs');
