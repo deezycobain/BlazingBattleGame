@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+from collections import deque
 import hashlib
 import json
 import shutil
@@ -15,7 +16,15 @@ ARCHIVES = [
     ROOT / "legacy_of_the_shinobi_banner_pack_v3_clean_cards.zip",
 ]
 MANIFEST = EVENT_ROOT / "extracted-manifest.json"
+AUDIT_REPORT = EVENT_ROOT / "sprite-audit.json"
 UNIT_INDEX = ROOT / "runtime" / "registry" / "unit-index.json"
+
+CANVAS_W = 512
+CANVAS_H = 768
+CONTENT_MAX_W = 456
+CONTENT_MAX_H = 704
+BOTTOM_ANCHOR = 742
+ALPHA_THRESHOLD = 12
 
 UNIT_META = {
     "kakashi": {"name":"Kakashi","title":"Copy Ninja","element":"Lightning","archetype":"tactician","stats":{"hp":82,"attack":78,"defense":70,"speed":84}},
@@ -32,6 +41,11 @@ UNIT_META = {
     "gabimaru": {"name":"Gabimaru","title":"The Hollow","element":"Fire","archetype":"assassin","stats":{"hp":82,"attack":84,"defense":70,"speed":88}},
 }
 
+# The packs are not homogeneous. Pack v1 uses 3 columns x 2 rows.
+# Packs v2/v3 use 6 columns x 1 row. This is explicit by unit so no
+# aspect-ratio guess can silently corrupt a sheet again.
+STRIP_UNITS = {"rock_lee", "mashle", "jackie_chan", "gabimaru", "killua", "zabuza"}
+
 def safe_target(base: Path, member: str) -> Path:
     candidate = (base / member).resolve()
     root = base.resolve()
@@ -39,85 +53,254 @@ def safe_target(base: Path, member: str) -> Path:
         raise RuntimeError(f"Unsafe archive path: {member}")
     return candidate
 
-def sheet_grid(width: int, height: int):
-    # All approved Legacy sheets contain six poses in a 3-column x 2-row grid.
-    # Packs v2/v3 are unusually wide, so aspect-ratio guessing misclassified them
-    # as 6x1 strips and cut each real pose into narrow vertical slices.
-    return 3, 2
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
-def remove_horizontal_strip_bleed(frame: Image.Image) -> Image.Image:
-    """Remove small disconnected pieces from neighboring poses that cross a 6x1 cell boundary."""
-    if frame.mode != "RGBA":
-        frame = frame.convert("RGBA")
-    width, height = frame.size
+def layout_for(unit_id: str):
+    return (6, 1) if unit_id in STRIP_UNITS else (3, 2)
+
+def alpha_bbox(image: Image.Image):
+    alpha = image.getchannel("A")
+    mask = alpha.point(lambda value: 255 if value > ALPHA_THRESHOLD else 0)
+    return mask.getbbox()
+
+def choose_x_boundary(alpha: Image.Image, y0: int, y1: int, expected: int, radius: int) -> int:
+    px = alpha.load()
+    lo = max(2, expected - radius)
+    hi = min(alpha.width - 2, expected + radius)
+    best = expected
+    best_score = None
+    for x in range(lo, hi + 1):
+        mass = 0
+        for xx in range(max(0, x - 1), min(alpha.width, x + 2)):
+            mass += sum(1 for y in range(y0, y1) if px[xx, y] > ALPHA_THRESHOLD)
+        score = mass + abs(x - expected) * 0.03
+        if best_score is None or score < best_score:
+            best_score = score
+            best = x
+    return best
+
+def choose_y_boundary(alpha: Image.Image, expected: int, radius: int) -> int:
+    px = alpha.load()
+    lo = max(2, expected - radius)
+    hi = min(alpha.height - 2, expected + radius)
+    best = expected
+    best_score = None
+    for y in range(lo, hi + 1):
+        mass = 0
+        for yy in range(max(0, y - 1), min(alpha.height, y + 2)):
+            mass += sum(1 for x in range(alpha.width) if px[x, yy] > ALPHA_THRESHOLD)
+        score = mass + abs(y - expected) * 0.03
+        if best_score is None or score < best_score:
+            best_score = score
+            best = y
+    return best
+
+def grid_cells(image: Image.Image, cols: int, rows: int):
+    alpha = image.getchannel("A")
+    if rows == 1:
+        y_bounds = [0, image.height]
+    else:
+        approx_h = image.height / rows
+        y_bounds = [0]
+        for row in range(1, rows):
+            expected = round(image.height * row / rows)
+            radius = max(18, round(approx_h * 0.16))
+            y_bounds.append(choose_y_boundary(alpha, expected, radius))
+        y_bounds.append(image.height)
+
+    cells = []
+    for row in range(rows):
+        y0, y1 = y_bounds[row], y_bounds[row + 1]
+        approx_w = image.width / cols
+        x_bounds = [0]
+        for col in range(1, cols):
+            expected = round(image.width * col / cols)
+            radius = max(18, round(approx_w * 0.18))
+            x_bounds.append(choose_x_boundary(alpha, y0, y1, expected, radius))
+        x_bounds.append(image.width)
+        for col in range(cols):
+            cells.append((x_bounds[col], y0, x_bounds[col + 1], y1))
+    if len(cells) != 6:
+        raise RuntimeError(f"Expected 6 cells, got {len(cells)} from {cols}x{rows}")
+    return cells
+
+def isolate_subject(frame: Image.Image, core_box):
+    # Run component detection at half resolution. The intended fighter is selected
+    # from components whose centroid lies in the nominal cell. This rejects the
+    # adjacent body parts that were showing up as giant legs/torsos in battle.
     alpha = frame.getchannel("A")
-    pixels = alpha.load()
-    threshold = 16
-    column_mass = [
-        sum(1 for y in range(height) if pixels[x, y] > threshold)
-        for x in range(width)
+    mask = alpha.point(lambda value: 255 if value > ALPHA_THRESHOLD else 0)
+    small_w = max(1, (frame.width + 1) // 2)
+    small_h = max(1, (frame.height + 1) // 2)
+    small = mask.resize((small_w, small_h), Image.Resampling.NEAREST)
+    px = small.load()
+    visited = bytearray(small_w * small_h)
+    components = []
+
+    for sy in range(small_h):
+        for sx in range(small_w):
+            idx = sy * small_w + sx
+            if visited[idx] or px[sx, sy] == 0:
+                continue
+            visited[idx] = 1
+            queue = deque([(sx, sy)])
+            area = 0
+            min_x = max_x = sx
+            min_y = max_y = sy
+            sum_x = sum_y = 0
+            while queue:
+                x, y = queue.popleft()
+                area += 1
+                sum_x += x
+                sum_y += y
+                min_x = min(min_x, x)
+                max_x = max(max_x, x)
+                min_y = min(min_y, y)
+                max_y = max(max_y, y)
+                for nx, ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1)):
+                    if nx < 0 or ny < 0 or nx >= small_w or ny >= small_h:
+                        continue
+                    nidx = ny * small_w + nx
+                    if visited[nidx] or px[nx, ny] == 0:
+                        continue
+                    visited[nidx] = 1
+                    queue.append((nx, ny))
+            if area >= 4:
+                components.append({
+                    "area": area,
+                    "bbox": (
+                        min_x * 2,
+                        min_y * 2,
+                        min(frame.width, (max_x + 1) * 2),
+                        min(frame.height, (max_y + 1) * 2),
+                    ),
+                    "cx": (sum_x / area) * 2,
+                    "cy": (sum_y / area) * 2,
+                })
+
+    if not components:
+        return None
+
+    cx0, cy0, cx1, cy1 = core_box
+    inside = [c for c in components if cx0 <= c["cx"] <= cx1 and cy0 <= c["cy"] <= cy1]
+    primary = max(inside or components, key=lambda c: c["area"])
+    min_area = max(4, primary["area"] * 0.006)
+    related = [
+        c for c in components
+        if c["area"] >= min_area and cx0 <= c["cx"] <= cx1 and cy0 <= c["cy"] <= cy1
     ]
-    min_piece_mass = max(24, int(width * height * 0.0006))
+    if primary not in related:
+        related.append(primary)
 
-    def transparent_runs(start, end):
-        runs = []
-        run_start = None
-        for x in range(start, end):
-            if column_mass[x] <= 1:
-                if run_start is None:
-                    run_start = x
-            elif run_start is not None:
-                if x - run_start >= 2:
-                    runs.append((run_start, x - 1))
-                run_start = None
-        if run_start is not None and end - run_start >= 2:
-            runs.append((run_start, end - 1))
-        return runs
+    left = min(c["bbox"][0] for c in related)
+    top = min(c["bbox"][1] for c in related)
+    right = max(c["bbox"][2] for c in related)
+    bottom = max(c["bbox"][3] for c in related)
+    pad_x = max(8, round((right - left) * 0.12))
+    pad_y = max(8, round((bottom - top) * 0.08))
+    return (
+        max(0, left - pad_x),
+        max(0, top - pad_y),
+        min(frame.width, right + pad_x),
+        min(frame.height, bottom + pad_y),
+    )
 
-    clean = frame.copy()
-    clean_alpha = clean.getchannel("A")
+def normalize_pose(frame: Image.Image, subject_box):
+    content = frame.crop(subject_box)
+    bbox = alpha_bbox(content)
+    if not bbox:
+        raise RuntimeError("Frame contains no visible fighter pixels")
+    content = content.crop(bbox)
 
-    # Generated strip art sometimes lets the next/previous pose bleed a few pixels
-    # across the nominal cell. Only inspect the outer 18% so intentional VFX around
-    # the current fighter stays intact.
-    right_zone = int(width * 0.82)
-    for start, end in transparent_runs(right_zone, width):
-        if sum(column_mass[end + 1:]) >= min_piece_mass:
-            clean_alpha.paste(0, (end + 1, 0, width, height))
-            break
+    scale = min(CONTENT_MAX_W / content.width, CONTENT_MAX_H / content.height, 1.35)
+    out_w = max(1, round(content.width * scale))
+    out_h = max(1, round(content.height * scale))
+    content = content.resize((out_w, out_h), Image.Resampling.LANCZOS)
 
-    left_zone = max(1, int(width * 0.18))
-    left_runs = transparent_runs(0, left_zone)
-    for start, end in reversed(left_runs):
-        if sum(column_mass[:start]) >= min_piece_mass:
-            clean_alpha.paste(0, (0, 0, start, height))
-            break
+    canvas = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0,0,0,0))
+    x = (CANVAS_W - out_w) // 2
+    y = BOTTOM_ANCHOR - out_h
+    if y < 18:
+        shrink = (BOTTOM_ANCHOR - 18) / out_h
+        out_w = max(1, round(out_w * shrink))
+        out_h = max(1, round(out_h * shrink))
+        content = content.resize((out_w, out_h), Image.Resampling.LANCZOS)
+        x = (CANVAS_W - out_w) // 2
+        y = BOTTOM_ANCHOR - out_h
+    canvas.alpha_composite(content, (x, y))
 
-    clean.putalpha(clean_alpha)
-    return clean
+    out_bbox = alpha_bbox(canvas)
+    if not out_bbox:
+        raise RuntimeError("Normalized frame became empty")
+    if out_bbox[0] <= 1 or out_bbox[1] <= 1 or out_bbox[2] >= CANVAS_W - 1 or out_bbox[3] >= CANVAS_H - 1:
+        raise RuntimeError(f"Normalized fighter touches canvas edge: {out_bbox}")
 
+    return canvas, {
+        "subject_box": list(subject_box),
+        "output_bbox": list(out_bbox),
+        "output_size": [CANVAS_W, CANVAS_H],
+        "visible_size": [out_bbox[2]-out_bbox[0], out_bbox[3]-out_bbox[1]],
+    }
 
-def split_sheet(sheet_path: Path, output_dir: Path):
+def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path):
     output_dir.mkdir(parents=True, exist_ok=True)
+    cols, rows = layout_for(unit_id)
+
     with Image.open(sheet_path).convert("RGBA") as image:
-        cols, rows = sheet_grid(image.width, image.height)
-        cell_w = image.width // cols
-        cell_h = image.height // rows
+        source_w, source_h = image.width, image.height
+        ratio = source_w / max(1, source_h)
+        if cols == 6 and ratio < 2.35:
+            raise RuntimeError(f"{unit_id} {kind}: expected 6x1 strip, got {source_w}x{source_h}")
+        if cols == 3 and not (0.80 <= ratio <= 1.25):
+            raise RuntimeError(f"{unit_id} {kind}: expected 3x2 grid, got {source_w}x{source_h}")
+
+        cells = grid_cells(image, cols, rows)
         frames = []
-        for index in range(6):
-            col = index % cols
-            row = index // cols
-            left = col * cell_w
-            top = row * cell_h
-            right = image.width if col == cols - 1 else left + cell_w
-            bottom = image.height if row == rows - 1 else top + cell_h
-            frame = image.crop((left, top, right, bottom))
-            if cols == 6 and rows == 1:
-                frame = remove_horizontal_strip_bleed(frame)
+        audit_frames = []
+
+        for index, nominal in enumerate(cells):
+            left, top, right, bottom = nominal
+            cell_w = right - left
+            cell_h = bottom - top
+
+            # Expand around the nominal cell so a foot/hair/weapon crossing the
+            # authored gutter is still recoverable before subject isolation.
+            pad_x = max(8, round(cell_w * 0.11))
+            pad_y = max(8, round(cell_h * 0.10))
+            ex_left = max(0, left - pad_x)
+            ex_top = max(0, top - pad_y)
+            ex_right = min(source_w, right + pad_x)
+            ex_bottom = min(source_h, bottom + pad_y)
+            expanded = image.crop((ex_left, ex_top, ex_right, ex_bottom))
+            core = (left-ex_left, top-ex_top, right-ex_left, bottom-ex_top)
+
+            subject_box = isolate_subject(expanded, core)
+            if not subject_box:
+                raise RuntimeError(f"{unit_id} {kind} frame {index+1}: subject isolation failed")
+
+            normalized, frame_audit = normalize_pose(expanded, subject_box)
             frame_path = output_dir / f"frame_{index+1:02d}.png"
-            frame.save(frame_path, optimize=True)
+            normalized.save(frame_path, optimize=True)
             frames.append(frame_path)
-    return {"columns": cols, "rows": rows, "cell_width": cell_w, "cell_height": cell_h, "frames": frames}
+
+            frame_audit.update({
+                "frame": index + 1,
+                "nominal_cell": list(nominal),
+                "expanded_cell": [ex_left, ex_top, ex_right, ex_bottom],
+                "sha256": sha256_file(frame_path),
+            })
+            audit_frames.append(frame_audit)
+
+    return {
+        "columns": cols,
+        "rows": rows,
+        "source_size": [source_w, source_h],
+        "output_canvas": [CANVAS_W, CANVAS_H],
+        "anchor": "bottom_center",
+        "frames": frames,
+        "audit_frames": audit_frames,
+    }
 
 def runtime_map_json(unit_id: str):
     return {
@@ -129,18 +312,12 @@ def runtime_map_json(unit_id: str):
                 "slot": "basic",
                 "animation_id": f"{unit_id}.animation.basic_attack",
                 "runtime_handler": "animateLunge",
-                "gameplay_actions": [
-                    {
-                        "event": "on_impact",
-                        "action_id": "damage_target",
-                        "parameters": {
-                            "multiplier_source": "abilities.basic.damage_multiplier"
-                        }
-                    }
-                ],
-                "vfx": {
-                    "impact": "shared.vfx.impact.default"
-                }
+                "gameplay_actions": [{
+                    "event": "on_impact",
+                    "action_id": "damage_target",
+                    "parameters": {"multiplier_source": "abilities.basic.damage_multiplier"},
+                }],
+                "vfx": {"impact": "shared.vfx.impact.default"},
             },
             "legacy_jutsu_pending": {
                 "slot": "jutsu",
@@ -148,17 +325,14 @@ def runtime_map_json(unit_id: str):
                 "runtime_handler": "disabled",
                 "execution_status": "declared_not_wired",
                 "migration_note": "Dedicated Legacy of the Shinobi Jutsu and VFX are intentionally deferred to the next character-authoring pass.",
-                "gameplay_actions": []
-            }
+                "gameplay_actions": [],
+            },
         },
-        "states": {
-            "idle": f"{unit_id}.animation.idle"
-        }
+        "states": {"idle": f"{unit_id}.animation.idle"},
     }
 
 def unit_json(unit_id: str, card_name: str):
     meta = UNIT_META[unit_id]
-    stats = meta["stats"]
     return {
         "schema_version": 3,
         "id": unit_id,
@@ -169,7 +343,7 @@ def unit_json(unit_id: str, card_name: str):
         "element": meta["element"],
         "rarity": "Legendary",
         "collection": {"owned": True, "inventory_visible": True, "battle_ready": True},
-        "stats": {"level": 1, **stats},
+        "stats": {"level": 1, **meta["stats"]},
         "combat": {
             "mark": "".join(part[0] for part in meta["name"].replace("-", " ").split())[:3].upper(),
             "movement_range": 90,
@@ -178,7 +352,11 @@ def unit_json(unit_id: str, card_name: str):
             "chakra_max": 8,
             "chakra_start": 2,
         },
-        "render": {"scale": 1},
+        "render": {
+            "scale": 1,
+            "sprite_anchor": "bottom_center",
+            "sprite_canvas": {"width": CANVAS_W, "height": CANVAS_H},
+        },
         "abilities": {
             "basic": {
                 "id": "basic_attack",
@@ -224,7 +402,7 @@ def unit_json(unit_id: str, card_name: str):
             "basic_attack": True,
             "jutsu": False,
             "recoil": False,
-            "notes": "Legacy of the Shinobi first-pass integration. Card art plus six-frame idle/basic attack are live; dedicated VFX and jutsu will be authored in a later pass.",
+            "notes": "Legacy of the Shinobi audited sprite pass. Six-frame idle/basic sheets are content-isolated and normalized to a shared bottom-center runtime canvas; dedicated VFX and jutsu remain deferred.",
             "animation_map": True,
         },
         "balance": {
@@ -233,19 +411,19 @@ def unit_json(unit_id: str, card_name: str):
             "notes": "Temporary first-pass combat values for banner testing. Jutsu intentionally disabled until authored.",
         },
         "animation_standard": {
-            "version": "legacy-shinobi-v1",
+            "version": "legacy-shinobi-v2-audited",
             "animations": {
                 "idle": {
-                    "frames": [f"sprites/runtime/idle/frame_{i:02d}.png" for i in range(1, 7)],
+                    "frames": [f"sprites/runtime/idle/frame_{i:02d}.png" for i in range(1,7)],
                     "frame_ms": 145,
                     "loop": True,
                     "events": [],
                 },
                 "basic_attack": {
-                    "frames": [f"sprites/runtime/attack/basic/frame_{i:02d}.png" for i in range(1, 7)],
+                    "frames": [f"sprites/runtime/attack/basic/frame_{i:02d}.png" for i in range(1,7)],
                     "frame_ms": 105,
                     "loop": False,
-                    "events": [{"frame": 4, "event": "apply_melee"}],
+                    "events": [{"frame":4,"event":"apply_melee"}],
                 },
             },
             "vfx": {},
@@ -254,13 +432,16 @@ def unit_json(unit_id: str, card_name: str):
 
 packages = []
 unit_sources = {}
+
 for index, archive in enumerate(ARCHIVES, start=1):
     if not archive.exists():
         raise SystemExit(f"Missing archive: {archive.relative_to(ROOT)}")
+
     target = EVENT_ROOT / f"package-v{index}"
     if target.exists():
         shutil.rmtree(target)
     target.mkdir(parents=True, exist_ok=True)
+
     files = []
     with zipfile.ZipFile(archive) as zf:
         for info in zf.infolist():
@@ -276,19 +457,22 @@ for index, archive in enumerate(ARCHIVES, start=1):
                 "size": len(data),
                 "sha256": hashlib.sha256(data).hexdigest(),
             })
+
     packages.append({
         "version": index,
         "source_archive": archive.name,
-        "source_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+        "source_sha256": sha256_file(archive),
         "file_count": len(files),
         "files": files,
     })
+
     for child in target.rglob("*"):
         if not child.is_dir():
             continue
         names = {p.name for p in child.iterdir() if p.is_file()}
-        if {"idle_6f.png", "basic_attack_6f.png"} <= names and any(n.startswith("card_art.") for n in names):
+        if {"idle_6f.png","basic_attack_6f.png"} <= names and any(n.startswith("card_art.") for n in names):
             unit_sources[child.name] = child
+
     print(f"Extracted {len(files)} files from {archive.name} to {target.relative_to(ROOT)}")
 
 missing = sorted(set(UNIT_META) - set(unit_sources))
@@ -296,20 +480,40 @@ if missing:
     raise SystemExit(f"Missing expected unit packages: {', '.join(missing)}")
 
 generated_units = []
+audit_units = {}
+
 for unit_id, source_dir in sorted(unit_sources.items()):
     if unit_id not in UNIT_META:
         continue
+
     canonical = ROOT / "assets" / "characters" / unit_id
     if canonical.exists():
         shutil.rmtree(canonical)
+
+    source_card = next(p for p in source_dir.iterdir() if p.is_file() and p.name.startswith("card_art."))
+    with Image.open(source_card) as card:
+        card_size = [card.width, card.height]
+        card_mode = card.mode
+    if min(card_size) < 512:
+        raise RuntimeError(f"{unit_id}: card art unexpectedly small: {card_size}")
+
     card_dir = canonical / "cards"
     card_dir.mkdir(parents=True, exist_ok=True)
-    source_card = next(p for p in source_dir.iterdir() if p.is_file() and p.name.startswith("card_art."))
     card_name = f"legacy_of_shinobi_card{source_card.suffix.lower()}"
     shutil.copy2(source_card, card_dir / card_name)
 
-    idle_meta = split_sheet(source_dir / "idle_6f.png", canonical / "sprites" / "runtime" / "idle")
-    attack_meta = split_sheet(source_dir / "basic_attack_6f.png", canonical / "sprites" / "runtime" / "attack" / "basic")
+    idle_meta = split_sheet(
+        unit_id,
+        "idle",
+        source_dir / "idle_6f.png",
+        canonical / "sprites" / "runtime" / "idle",
+    )
+    attack_meta = split_sheet(
+        unit_id,
+        "basic_attack",
+        source_dir / "basic_attack_6f.png",
+        canonical / "sprites" / "runtime" / "attack" / "basic",
+    )
 
     data_dir = canonical / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -319,23 +523,45 @@ for unit_id, source_dir in sorted(unit_sources.items()):
             "path": source_dir.relative_to(ROOT).joinpath("idle_6f.png").as_posix(),
             "columns": idle_meta["columns"],
             "rows": idle_meta["rows"],
+            "source_size": idle_meta["source_size"],
+            "normalized_canvas": idle_meta["output_canvas"],
+            "anchor": idle_meta["anchor"],
         },
         "basic_attack": {
             "path": source_dir.relative_to(ROOT).joinpath("basic_attack_6f.png").as_posix(),
             "columns": attack_meta["columns"],
             "rows": attack_meta["rows"],
+            "source_size": attack_meta["source_size"],
+            "normalized_canvas": attack_meta["output_canvas"],
+            "anchor": attack_meta["anchor"],
         },
     }
+
     (data_dir / "unit.json").write_text(json.dumps(data, indent=2) + "\n")
     (data_dir / "runtime-map.json").write_text(json.dumps(runtime_map_json(unit_id), indent=2) + "\n")
+
+    audit_units[unit_id] = {
+        "display_name": UNIT_META[unit_id]["name"],
+        "package": source_dir.relative_to(ROOT).as_posix(),
+        "card": {
+            "path": source_card.relative_to(ROOT).as_posix(),
+            "size": card_size,
+            "mode": card_mode,
+            "sha256": sha256_file(source_card),
+        },
+        "idle": {k:v for k,v in idle_meta.items() if k != "frames"},
+        "basic_attack": {k:v for k,v in attack_meta.items() if k != "frames"},
+    }
     generated_units.append(unit_id)
 
 index_data = json.loads(UNIT_INDEX.read_text())
 existing = [entry for entry in index_data.get("units", []) if entry.get("id") not in UNIT_META]
 boss = [entry for entry in existing if entry.get("id") == "anubis"]
 playable = [entry for entry in existing if entry.get("id") != "anubis"]
+
 for unit_id in UNIT_META:
     playable.append({"id": unit_id, "path": f"assets/characters/{unit_id}/data/unit.json"})
+
 index_data["units"] = playable + boss
 UNIT_INDEX.write_text(json.dumps(index_data, indent=2) + "\n")
 
@@ -347,4 +573,22 @@ MANIFEST.write_text(json.dumps({
     "generated_units": generated_units,
 }, indent=2) + "\n")
 
-print(f"Prepared {len(generated_units)} playable Legacy of the Shinobi units: {', '.join(generated_units)}")
+AUDIT_REPORT.write_text(json.dumps({
+    "schema_version": 1,
+    "audit": "legacy-shinobi-sprite-and-card-assets",
+    "runtime_canvas": {
+        "width": CANVAS_W,
+        "height": CANVAS_H,
+        "anchor": "bottom_center",
+        "bottom_anchor_y": BOTTOM_ANCHOR,
+    },
+    "layout_contract": {
+        "pack_v1_units": sorted(set(UNIT_META) - STRIP_UNITS),
+        "pack_v2_v3_strip_units": sorted(STRIP_UNITS),
+    },
+    "units": audit_units,
+}, indent=2) + "\n")
+
+print(f"Prepared and audited {len(generated_units)} Legacy of the Shinobi units: {', '.join(generated_units)}")
+print(f"Runtime sprite normalization: {CANVAS_W}x{CANVAS_H}, bottom-center anchored")
+print(f"Audit report: {AUDIT_REPORT.relative_to(ROOT)}")
