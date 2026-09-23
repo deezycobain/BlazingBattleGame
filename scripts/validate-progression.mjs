@@ -17,7 +17,7 @@ try{new vm.Script(cinematicJs)}catch(error){fail(`summon cinematic syntax error:
 
 const runtimeMarkers=[
  "KEY='blazing.progression.v1'",'MAX_RESONANCE=5','STAT_BUDGET=12',
- "CORE_FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi']","LEGACY_FIGHTERS=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Jackie Chan','Gabimaru','Killua','Zabuza']","SUMMON_FIGHTERS=LEGACY_FIGHTERS",'u.resonance<MAX_RESONANCE','u.shards++','u.shiny=true',
+ "CORE_FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi']","LEGACY_FIGHTERS=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Wong Fei-Hung','Gabimaru','Killua','Zabuza']","SUMMON_FIGHTERS=LEGACY_FIGHTERS",'u.resonance<MAX_RESONANCE','u.shards++','u.shiny=true',
  'candidate=rollStats(u.locks,u.roll)','KEEP CURRENT','ACCEPT NEW','summonEmbers=999999','spendEmbers=function()',
  'localStorage.setItem','function applyCombatBonuses()','target.jutsuDamage=Math.round','RESET DEV PROGRESSION',
  "multiSummonBtn.addEventListener('click'",'Array.from({length:10}','LEGACY OF THE SHINOBI','12 UNIT EVENT POOL','SKIP TO RESULTS',
