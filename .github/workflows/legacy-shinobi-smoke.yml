@@ -38,6 +38,17 @@ jobs:
       - run: npx playwright install --with-deps chromium webkit
       - name: Build audited Legacy runtime
         run: npm run build
+      - name: Inspect Legacy attack runtime
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const s=fs.readFileSync('dist/index.html','utf8');
+          for(const needle of ['function animateLunge','function unitAttackFrames','attackPose','function drawUnit','function renderUnit']){
+            const i=s.indexOf(needle);
+            console.log('\n===== '+needle+' @ '+i+' =====');
+            if(i>=0) console.log(s.slice(Math.max(0,i-1800),Math.min(s.length,i+7000)));
+          }
+          NODE
       - name: Start local build
         run: |
           python3 -m http.server 4173 --directory dist >/tmp/legacy-server.log 2>&1 &
