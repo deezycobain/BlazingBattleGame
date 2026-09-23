@@ -13,6 +13,7 @@ GRID=(74,74,82,255)
 TEXT=(240,240,244,255)
 WARN=(255,190,70,255)
 font=ImageFont.load_default()
+AUDIT_VERSION="v3"
 
 def checker(size,step=16):
     w,h=size
@@ -54,7 +55,7 @@ for uid in IDS:
     W,H=1900,1320
     canvas=Image.new("RGBA",(W,H),BG)
     d=ImageDraw.Draw(canvas)
-    d.text((24,18),f"{unit['display_name']} | {uid}",font=font,fill=TEXT)
+    d.text((24,18),f"{unit['display_name']} | {uid} | audit {AUDIT_VERSION}",font=font,fill=TEXT)
     y=48
     for kind,title in [("idle","IDLE"),("basic_attack","BASIC ATTACK")]:
         sp=ROOT/source[kind]["path"]
