@@ -1,7 +1,7 @@
 {
   "schema_version": 3,
   "id": "jackie_chan",
-  "display_name": "Jackie Chan",
+  "display_name": "Wong Fei-Hung",
   "title": "Drunken Master",
   "role": "playable",
   "archetype": "counter_fighter",
@@ -20,7 +20,7 @@
     "speed": 80
   },
   "combat": {
-    "mark": "JC",
+    "mark": "WF",
     "movement_range": 90,
     "basic_shape": {
       "type": "circle",
@@ -86,7 +86,7 @@
     "basic_attack": true,
     "jutsu": false,
     "recoil": false,
-    "notes": "Legacy of the Shinobi audited sprite pass. Six-frame idle/basic sheets are content-isolated and normalized to a shared bottom-center runtime canvas; dedicated VFX and jutsu remain deferred.",
+    "notes": "Legacy of the Shinobi audited sprite pass. Six-frame idle/basic sheets are content-isolated and normalized to a shared bottom-center runtime canvas; Wong Fei-Hung uses a deliberately slower Drunken Master cadence. Dedicated VFX, recoil, and jutsu remain deferred.",
     "animation_map": true
   },
   "balance": {
@@ -106,7 +106,7 @@
           "sprites/runtime/idle/frame_05.png",
           "sprites/runtime/idle/frame_06.png"
         ],
-        "frame_ms": 145,
+        "frame_ms": 220,
         "loop": true,
         "events": []
       },
@@ -119,7 +119,7 @@
           "sprites/runtime/attack/basic/frame_05.png",
           "sprites/runtime/attack/basic/frame_06.png"
         ],
-        "frame_ms": 105,
+        "frame_ms": 165,
         "loop": false,
         "events": [
           {
