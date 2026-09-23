@@ -110,7 +110,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
    }
    return results;
   },{names:NAMES});
-  const badRuntime=runtime.filter(x=>x.idleCount!==6||x.basicCount!==6||x.idleResolved!==6||x.attackResolved!==6||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!/\/sprites\/runtime\/idle\/frame_01\.png/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png/.test(x.basicSrc));
+  const badRuntime=runtime.filter(x=>x.idleCount!==6||x.basicCount!==6||x.idleResolved!==6||x.attackResolved!==6||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!/\/sprites\/runtime\/idle\/frame_01\.png(?:\?.*)?$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png(?:\?.*)?$/.test(x.basicSrc));
   if(badRuntime.length)throw new Error('Legacy battle animation runtime invalid: '+JSON.stringify(badRuntime));
 
   await page.goto(BASE+'/?legacyInventory=1',{waitUntil:'domcontentloaded'});
