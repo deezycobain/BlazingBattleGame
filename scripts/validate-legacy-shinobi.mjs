@@ -7,7 +7,6 @@ const names=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','
 const readJson=async rel=>JSON.parse(await fs.readFile(path.join(ROOT,rel),'utf8'));
 const exists=async rel=>{try{await fs.access(path.join(ROOT,rel));return true}catch{return false}};
 const assetPath=(id,rel)=>String(rel||'').startsWith('assets/')?String(rel):'assets/characters/'+id+'/'+rel;
-const stripIds=new Set(['rock_lee','mashle','jackie_chan','gabimaru','killua','zabuza']);
 const pngDimensions=async rel=>{
  const data=await fs.readFile(path.join(ROOT,rel));
  if(data.length<24||data.toString('ascii',1,4)!=='PNG')throw new Error('Legacy Shinobi validator: invalid PNG '+rel);
@@ -27,18 +26,21 @@ for(const id of ids){
 
  for(const kind of ['idle','basic_attack']){
   const source=unit.animation_standard?.source_sheets?.[kind];
-  const expectedLayout=stripIds.has(id)?{columns:6,rows:1}:{columns:3,rows:2};
+  const expectedLayout={columns:3,rows:2};
   if(!source||source.columns!==expectedLayout.columns||source.rows!==expectedLayout.rows)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' source-sheet metadata invalid');
   if(!String(source.path||'').startsWith('assets/events/legacy-of-shinobi/'))throw new Error('Legacy Shinobi validator: '+id+' '+kind+' source path not canonical');
   if(!await exists(source.path))throw new Error('Legacy Shinobi validator: missing '+source.path);
 
   const frames=unit.animation_standard?.animations?.[kind]?.frames;
   if(!Array.isArray(frames)||frames.length!==6)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' runtime frame list invalid');
+  const sourceDims=await pngDimensions(source.path);
+  if(sourceDims.width%3!==0||sourceDims.height%2!==0)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' source sheet is not evenly divisible as 3x2: '+sourceDims.width+'x'+sourceDims.height);
+  const expectedWidth=sourceDims.width/3,expectedHeight=sourceDims.height/2;
   for(const frame of frames){
    const framePath=assetPath(id,frame);
    if(!await exists(framePath))throw new Error('Legacy Shinobi validator: missing runtime frame '+framePath);
    const {width,height}=await pngDimensions(framePath);
-   if(!(width>0&&height>0&&width<height))throw new Error('Legacy Shinobi validator: '+id+' '+kind+' frame must be one portrait pose, got '+width+'x'+height+' at '+framePath);
+   if(width!==expectedWidth||height!==expectedHeight)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' frame crop mismatch; expected '+expectedWidth+'x'+expectedHeight+' from 3x2 sheet, got '+width+'x'+height+' at '+framePath);
   }
  }
 
@@ -58,4 +60,4 @@ if(home.includes(escaped+'SHELL_ID}')||home.includes(escaped+'FONT}'))throw new 
 const adapter=await fs.readFile(path.join(ROOT,'scripts/legacy-shinobi-postprocess.mjs'),'utf8');
 for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME',...ids,...names])if(!adapter.includes(marker))throw new Error('Legacy Shinobi validator: battle adapter missing '+marker);
 
-console.log('Legacy Shinobi PASS: 12 canonical units, card art, portrait-normalized and strip-cleaned six-frame idle/basic runtime frames, source-sheet layouts, Home banner, summon pool, and battle adapter validated.');
+console.log('Legacy Shinobi PASS: 12 canonical units, card art, verified 3x2 six-frame idle/basic crops, source-sheet layouts, Home banner, summon pool, and battle adapter validated.');
