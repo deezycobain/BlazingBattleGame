@@ -1,0 +1,36 @@
+name: Legacy Sprite Visual Audit
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "tools/render_legacy_sprite_audit.py"
+      - ".github/workflows/legacy-sprite-audit.yml"
+      - "assets/characters/kakashi/**"
+      - "assets/characters/obito/**"
+      - "assets/characters/jiraiya/**"
+      - "assets/characters/sasuke/**"
+      - "assets/characters/pain/**"
+      - "assets/characters/scorpion/**"
+      - "assets/characters/rock_lee/**"
+      - "assets/characters/mashle/**"
+      - "assets/characters/jackie_chan/**"
+      - "assets/characters/gabimaru/**"
+      - "assets/characters/killua/**"
+      - "assets/characters/zabuza/**"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - run: python3 -m pip install --disable-pip-version-check pillow
+      - name: Render visual sprite audit
+        run: python3 tools/render_legacy_sprite_audit.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legacy-sprite-visual-audit
+          path: legacy-sprite-audit-output
