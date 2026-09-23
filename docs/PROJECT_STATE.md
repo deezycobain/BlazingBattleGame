@@ -6,7 +6,7 @@ Repository: `deezycobain/BlazingBattleGame`.
 - Approved development SHA: `06319adbadec3b9eaf00f4a4b4a641c06158ef54`.
 - Checkpoint: `checkpoint/combat-runtime-stable-2026-09-23` at `06319adbadec3b9eaf00f4a4b4a641c06158ef54`.
 - Current continuity branch: `feature/project-continuity-and-asset-contract`.
-- Development URL, when deployed: `https://dev-blazing-battle-game.blazingbattle.workers.dev`.
+- Development URL, when deployed: `https://dev-blazing-battle-game.blazingbattle.workers.dev` (the repository's deployed-smoke CI targets this exact URL).
 
 Approved systems include the Home/UI shell, summon and Forge progression, Legacy of the Shinobi collection, Blazing Road, Journey scaffolding, canonical unit data, combat runtime, and approved combat presentation stabilization.
 

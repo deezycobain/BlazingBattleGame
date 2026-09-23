@@ -194,4 +194,6 @@ for(const token of forbidden){
 }
 
 console.log(`Runtime validation PASS: ${seen.size} units, ${resourceIds.size} resources (${physicalResourceCount} physical, ${proceduralResourceCount} procedural), ${Object.keys(runtimeMaps).length} runtime maps, ${referencedActionIds.size} executable action IDs, 0 runtime-shell resources, Pass 2/3 delegation verified.`);
-await import('./validate-atlas-contract.mjs');
+const {validateAtlasContracts}=await import('./validate-atlas-contract.mjs');
+await validateAtlasContracts();
+console.log('Atlas Contract v1 validation PASS: legacy assets exempt; every declared Contract-v1 atlas is structurally valid.');
