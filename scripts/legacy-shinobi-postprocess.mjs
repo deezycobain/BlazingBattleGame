@@ -67,6 +67,24 @@ if(!html.includes(attackAnchor))fail('unitAttackFrames anchor missing');
 if(!html.includes("function unitAttackFrames(name,kind){const legacyShinobiBasic=LEGACY_SHINOBI_BODY_RUNTIME.basic(name);"))
  html=html.replace(attackAnchor,"function unitAttackFrames(name,kind){const legacyShinobiBasic=LEGACY_SHINOBI_BODY_RUNTIME.basic(name);if(legacyShinobiBasic?.length)return legacyShinobiBasic;");
 
+
+/* Legacy attack renderer visual-state bridge.
+   The battle renderer passes a non-null visual transform while animateLunge is moving
+   the fighter. The legacy attack-frame branch was gated by !visual, so the six loaded
+   attack frames were never selected during a real normal attack. */
+const legacyAttackVisualGate='if(!visual&&attackState){';
+const legacyAttackVisualTarget='if((!visual||LEGACY_SHINOBI_BODY_RUNTIME.has(name))&&attackState){';
+if(html.includes(legacyAttackVisualGate))html=html.replace(legacyAttackVisualGate,legacyAttackVisualTarget);
+else if(!html.includes(legacyAttackVisualTarget))fail('Legacy attack visual-state renderer gate missing');
+
+/* Give the six-frame Legacy attack sheet enough screen time to read.
+   Six frames at the authored 105 ms cadence = 630 ms total. Impact lands during
+   the middle of the sequence, then the last frames play during recovery. */
+const lungeTimingSource="let start=performance.now(),dur=unitName==='Tyler'?360:175,backDur=unitName==='Tyler'?340:145,lungeHold=unitName==='Tyler'?100:65;";
+const lungeTimingTarget="const legacyShinobiAttack=LEGACY_SHINOBI_BODY_RUNTIME.has(unitName);let start=performance.now(),dur=legacyShinobiAttack?250:(unitName==='Tyler'?360:175),backDur=legacyShinobiAttack?190:(unitName==='Tyler'?340:145),lungeHold=legacyShinobiAttack?190:(unitName==='Tyler'?100:65);";
+if(html.includes(lungeTimingSource))html=html.replace(lungeTimingSource,lungeTimingTarget);
+else if(!html.includes(lungeTimingTarget))fail('Legacy animateLunge timing anchor missing');
+
 for(const id of IDS)if(!html.includes('"'+id+'":'))fail('final shell missing canonical unit data '+id);
 for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME','LEGACY OF THE SHINOBI',...IDS,...NAMES])if(!html.includes(marker))fail('final shell missing '+marker);
 await fs.writeFile(file,html);

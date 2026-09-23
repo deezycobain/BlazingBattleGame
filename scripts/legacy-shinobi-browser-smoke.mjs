@@ -114,6 +114,50 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   const badRuntime=runtime.filter(x=>x.idleCount!==6||x.basicCount!==6||x.idleResolved!==6||x.attackResolved!==6||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!normalized(x.idleDims)||!normalized(x.basicDims)||!/\/sprites\/runtime\/idle\/frame_01\.png\?legacySpriteAudit=v3$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png\?legacySpriteAudit=v3$/.test(x.basicSrc));
   if(badRuntime.length)throw new Error('Legacy battle animation runtime invalid: '+JSON.stringify(badRuntime));
 
+
+  // Legacy attack renderer probe: reproduce the real lunge condition where drawUnit
+  // receives a non-null visual transform. The attack sheet must still win over idle.
+  const attackRenderProbe=await page.evaluate(async ({names})=>{
+   const get=globalThis.eval;
+   const body=get('LEGACY_SHINOBI_BODY_RUNTIME');
+   const drawUnit=get('drawUnit');
+   const state=get('S');
+   const originalAnim=state.anim;
+   const originalAction=state.action;
+   const proto=CanvasRenderingContext2D.prototype;
+   const originalDrawImage=proto.drawImage;
+   const results=[];
+   const waitLoaded=images=>Promise.all(images.map(img=>{
+    if(img.complete)return Promise.resolve(img.naturalWidth>0);
+    return new Promise(resolve=>{img.addEventListener('load',()=>resolve(true),{once:true});img.addEventListener('error',()=>resolve(false),{once:true});setTimeout(()=>resolve(false),5000)});
+   }));
+   try{
+    for(const name of names){
+     const unit=get('canonicalUnit')(name);
+     const frames=body.basic(name)||[];
+     await waitLoaded(frames);
+     const seen=[];
+     proto.drawImage=function(image,...args){
+      const src=String(image?.src||'');
+      if(src)seen.push(src);
+      return originalDrawImage.call(this,image,...args);
+     };
+     state.action='normal';
+     state.anim={positions:{},attackPose:{[name]:{kind:'basic_attack',start:performance.now()-160,duration:630}}};
+     drawUnit(180,300,'','',false,{scale:1,rot:0,lift:0},name,false,1,1);
+     const expected='/assets/characters/'+unit.id+'/sprites/runtime/attack/basic/';
+     results.push({name,expected,seen,usedAttack:seen.some(src=>src.includes(expected))});
+    }
+   }finally{
+    proto.drawImage=originalDrawImage;
+    state.anim=originalAnim;
+    state.action=originalAction;
+   }
+   return results;
+  },{names:NAMES});
+  const missedAttackRender=attackRenderProbe.filter(result=>!result.usedAttack);
+  if(missedAttackRender.length)throw new Error('Legacy attack renderer probe failed: '+JSON.stringify(missedAttackRender));
+
   await page.goto(BASE+'/?legacyInventory=1',{waitUntil:'domcontentloaded'});
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
   await page.locator('#bbHomeApproved [data-nav="units"]').click();
