@@ -4,7 +4,8 @@
 const KEY='blazing.unitProgression.v1';
 const LEGACY_KEY='blazing.progression.v1';
 const VERSION=1;
-const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi','Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Jackie Chan','Gabimaru','Killua','Zabuza'];
+const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi','Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Wong Fei-Hung','Gabimaru','Killua','Zabuza'];
+const LEGACY_NAME_ALIASES=Object.freeze({'Wong Fei-Hung':'Jackie Chan'});
 const AWAKENING_COSTS=Object.freeze([1,1,1,1,2]);
 const CAPS=Object.freeze([10,20,30,40,50,50]);
 const MAX_LEVEL=50;
@@ -45,7 +46,7 @@ function migrateLegacy(){
     const legacy=JSON.parse(localStorage.getItem(LEGACY_KEY)||'null');
     if(!legacy?.units)return state;
     for(const name of FIGHTERS){
-      const old=legacy.units[name]||{};
+      const old=legacy.units[name]||legacy.units[LEGACY_NAME_ALIASES[name]]||{};
       if(old.shiny||Number(old.resonance)>=5){state.units[name]={level:50,xp:0,awakening:5,copies:Math.max(0,Math.floor(Number(old.shards)||0)),shiny:true,lifetimeXp:0};continue;}
       state.units[name].copies=Math.max(0,Math.floor(Number(old.resonance)||0)+Math.floor(Number(old.shards)||0));
     }
@@ -56,7 +57,7 @@ function normalize(input){
   const base=fresh();
   if(!input||typeof input!=='object')return base;
   base.totalBattleXp=Math.max(0,Math.floor(Number(input.totalBattleXp)||0));
-  for(const name of FIGHTERS)base.units[name]=normalizeUnit(input.units?.[name]);
+  for(const name of FIGHTERS)base.units[name]=normalizeUnit(input.units?.[name]??input.units?.[LEGACY_NAME_ALIASES[name]]);
   return base;
 }
 function load(){
@@ -178,5 +179,5 @@ function statMultipliers(data){
 }
 function reset(){localStorage.removeItem(KEY);const next=fresh();localStorage.setItem(KEY,JSON.stringify(next));window.dispatchEvent(new CustomEvent('bb:unit-progression',{detail:clone(next)}));return clone(next)}
 
-window.BlazingUnitProgression=Object.freeze({KEY,LEGACY_KEY,VERSION,FIGHTERS,AWAKENING_COSTS,CAPS,MAX_LEVEL,load,getState,unit,save,capForAwakening,xpForNextLevel,fullMarkCost,markCostToFinish,markCostToGate,isAtGate,nextAwakeningCost,canAwaken,addDuplicate,grantXp,battleXpFor,awardBattleXp,buyLevel,buyToGate,awaken,statMultipliers,reset});
+window.BlazingUnitProgression=Object.freeze({KEY,LEGACY_KEY,VERSION,FIGHTERS,LEGACY_NAME_ALIASES,AWAKENING_COSTS,CAPS,MAX_LEVEL,load,getState,unit,save,capForAwakening,xpForNextLevel,fullMarkCost,markCostToFinish,markCostToGate,isAtGate,nextAwakeningCost,canAwaken,addDuplicate,grantXp,battleXpFor,awardBattleXp,buyLevel,buyToGate,awaken,statMultipliers,reset});
 })();
