@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const ROOT=process.cwd();
 const ids=['kakashi','obito','jiraiya','sasuke','pain','scorpion','rock_lee','mashle','jackie_chan','gabimaru','killua','zabuza'];
-const names=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Jackie Chan','Gabimaru','Killua','Zabuza'];
+const names=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Wong Fei-Hung','Gabimaru','Killua','Zabuza'];
 const strips=new Set(['rock_lee','mashle','jackie_chan','gabimaru','killua','zabuza']);
 const readJson=async rel=>JSON.parse(await fs.readFile(path.join(ROOT,rel),'utf8'));
 const exists=async rel=>{try{await fs.access(path.join(ROOT,rel));return true}catch{return false}};
@@ -26,6 +26,7 @@ for(const id of ids)if(!indexed.has(id))throw new Error('Legacy Shinobi validato
 for(const id of ids){
  const unit=await readJson('assets/characters/'+id+'/data/unit.json');
  if(unit.id!==id)throw new Error('Legacy Shinobi validator: id mismatch '+id);
+ if(id==='jackie_chan'&&unit.display_name!=='Wong Fei-Hung')throw new Error('Legacy Shinobi validator: Drunken Master fighter must display as Wong Fei-Hung');
  if(!unit.collection?.inventory_visible||!unit.collection?.battle_ready)throw new Error('Legacy Shinobi validator: collection flags invalid '+id);
  if(unit.readiness?.jutsu!==false||unit.assets?.vfx!==null)throw new Error('Legacy Shinobi validator: jutsu/VFX must remain pending '+id);
  if(unit.animation_standard?.version!=='legacy-shinobi-v2-audited')throw new Error('Legacy Shinobi validator: old animation standard '+id);
@@ -84,7 +85,7 @@ const canonicalSummonCards={
  Scorpion:'assets/characters/scorpion/cards/legacy_of_shinobi_card.webp',
  'Rock Lee':'assets/characters/rock_lee/cards/legacy_of_shinobi_card.png',
  Mashle:'assets/characters/mashle/cards/legacy_of_shinobi_card.png',
- 'Jackie Chan':'assets/characters/jackie_chan/cards/legacy_of_shinobi_card.png'
+ 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/legacy_of_shinobi_card.png'
 };
 for(const [name,card] of Object.entries(canonicalSummonCards)){
  if(!progression.includes("'"+name+"':'"+card+"'"))throw new Error('Legacy Shinobi validator: summon card is not canonical '+name);
