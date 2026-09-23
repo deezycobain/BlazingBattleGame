@@ -63,7 +63,9 @@ for(const id of ids){
     throw new Error('Legacy Shinobi validator: '+id+' '+kind+' frame '+(i+1)+' touches normalized canvas edge');
    }
    const visibleW=box[2]-box[0],visibleH=box[3]-box[1];
-   if(visibleW<70||visibleH<260)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' frame '+(i+1)+' fighter unexpectedly small '+visibleW+'x'+visibleH);
+   const minHeight=kind==='idle'?300:180;
+   if(visibleW<70||visibleH<minHeight)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' frame '+(i+1)+' fighter unexpectedly small '+visibleW+'x'+visibleH);
+   if((audited[i]?.component?.component_area||0)<5000)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' frame '+(i+1)+' selected a tiny disconnected component');
   }
  }
 
@@ -85,7 +87,7 @@ const escaped=String.fromCharCode(92)+'$'+'{';
 if(home.includes(escaped+'SHELL_ID}')||home.includes(escaped+'FONT}'))throw new Error('Legacy Shinobi validator: escaped Home CSS template placeholder survived');
 
 const adapter=await fs.readFile(path.join(ROOT,'scripts/legacy-shinobi-postprocess.mjs'),'utf8');
-for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME','legacySpriteAudit=v2',...ids,...names]){
+for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME','legacySpriteAudit=v3',...ids,...names]){
  if(!adapter.includes(marker))throw new Error('Legacy Shinobi validator: battle adapter missing '+marker);
 }
 

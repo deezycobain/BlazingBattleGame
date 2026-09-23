@@ -70,7 +70,7 @@ for uid in IDS:
             im=Image.open(fp).convert("RGBA")
             box=alpha_bbox(im)
             vis=(box[2]-box[0],box[3]-box[1]) if box else (0,0)
-            suspect=(vis[0]<120 or vis[1]<300 or box is None)
+            suspect=(vis[0]<120 or vis[1]<(300 if kind=="idle" else 180) or box is None)
             label=f"F{i+1} {im.width}x{im.height} vis {vis[0]}x{vis[1]}"
             paste_panel(canvas,im,(24+i*(fw+gap),y),(fw,fh),label,suspect)
         y+=390

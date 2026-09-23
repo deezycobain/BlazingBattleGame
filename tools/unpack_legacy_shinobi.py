@@ -148,12 +148,17 @@ def isolate_subject(frame: Image.Image, core_box):
             visited[idx] = 1
             queue = deque([(sx, sy)])
             area = 0
+            core_hits = 0
             sum_x = sum_y = 0
             min_x = max_x = sx
             min_y = max_y = sy
             while queue:
                 x, y = queue.popleft()
                 area += 1
+                fx = x * 2
+                fy = y * 2
+                if core_box[0] <= fx <= core_box[2] and core_box[1] <= fy <= core_box[3]:
+                    core_hits += 1
                 sum_x += x
                 sum_y += y
                 min_x = min(min_x, x)
@@ -171,6 +176,7 @@ def isolate_subject(frame: Image.Image, core_box):
             if area >= 4:
                 components.append({
                     "area": area,
+                    "core_hits": core_hits,
                     "bbox": (min_x*2, min_y*2, min(frame.width,(max_x+1)*2), min(frame.height,(max_y+1)*2)),
                     "cx": (sum_x/area)*2,
                     "cy": (sum_y/area)*2,
@@ -179,9 +185,11 @@ def isolate_subject(frame: Image.Image, core_box):
     if not components:
         return None, None, None
 
-    cx0, cy0, cx1, cy1 = core_box
-    inside = [c for c in components if cx0 <= c["cx"] <= cx1 and cy0 <= c["cy"] <= cy1]
-    primary = max(inside or components, key=lambda c: c["area"])
+    # Pick the component that actually occupies the nominal cell most strongly.
+    # Centroid-only selection can choose a tiny detached spark/VFX fragment when a
+    # dynamic pose extends across a cell boundary (Scorpion attack frame 3 exposed this).
+    core_components = [c for c in components if c["core_hits"] > 0]
+    primary = max(core_components or components, key=lambda c: (c.get("core_hits", 0), c["area"]))
 
     # Seed the exact full-resolution component near the chosen half-res centroid.
     full_px = alpha.load()
@@ -244,6 +252,7 @@ def isolate_subject(frame: Image.Image, core_box):
     )
     component_audit={
         "component_area": area,
+        "selected_core_hits": primary.get("core_hits", 0),
         "component_bbox": [left,top,right+1,bottom+1],
         "discarded_components": max(0,len(components)-1),
     }
