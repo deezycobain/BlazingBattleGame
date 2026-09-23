@@ -16,8 +16,11 @@ html=html.replace(lunge,`${legacyBody}
 function animateLunge(unitName,from,to,onImpact,onDone,attackKind='punch'){
  let data=null,frames=[];try{data=canonicalUnit(unitName);frames=unitAttackFrames(unitName,attackKind)||[]}catch(_){}
  const token=ACTIVE_ACTION_TOKEN;
- if(window.BlazingCombatPresentation.runConfiguredAttack({unitData:data,unitName,from,target:to,frames,tokenAlive:()=>actionTokenAlive(token),onImpact,onDone,ensureState:ensureAnimState,lockFacing:(state,name,a,b)=>window.BlazingAttackPresentation.lockFacing(state,name,a,b),clearFacing:(state,name)=>window.BlazingAttackPresentation.clearFacing(state,name)}))return;
- return animateLegacyLunge(unitName,from,to,onImpact,onDone,attackKind);
+ if(window.BlazingCombatPresentation.runConfiguredAttack({unitData:data,unitName,from,target:to,frames,attackKind,state:S,bounds:BATTLE_BOUNDS,tokenAlive:()=>actionTokenAlive(token),onImpact,onDone,ensureState:ensureAnimState,lockFacing:(state,name,a,b)=>window.BlazingAttackPresentation.lockFacing(state,name,a,b),clearFacing:(state,name)=>window.BlazingAttackPresentation.clearFacing(state,name)}))return;
+ const fallbackTarget=window.BlazingCombatPresentation.isConfiguredMeleeBasic(data,attackKind)
+  ? window.BlazingCombatPresentation.contactPoint({from,target:to,state:S,bounds:BATTLE_BOUNDS,padding:8})
+  : to;
+ return animateLegacyLunge(unitName,from,fallbackTarget,onImpact,onDone,attackKind);
 }
 function addImpactFlash`);
 replaceOne(` } else {
@@ -37,8 +40,8 @@ replaceOne(`   S.bbRoadMapSource=setBattleMap(boss?'boss':'road',S.bbRoadStage||
    menuScreen.style.display='none';
    try{
     const actors=[];
-    for(const pair of S.pairs||[])for(const unit of pair.units||[])actors.push({idle:unitIdleFrames(unit.name),attack:unitAttackFrames(unit.name,'basic_attack')});
-    for(const enemy of S.enemies||[])actors.push({idle:unitIdleFrames(enemy.spriteKey||enemy.name),attack:unitAttackFrames(enemy.spriteKey||enemy.name,'basic_attack')});
+    for(const pair of S.pairs||[])for(const unit of pair.units||[])actors.push({name:unit.name,idle:unitIdleFrames(unit.name),attack:unitAttackFrames(unit.name,'basic_attack')});
+    for(const enemy of S.enemies||[])actors.push({name:enemy.spriteKey||enemy.name,idle:unitIdleFrames(enemy.spriteKey||enemy.name),attack:unitAttackFrames(enemy.spriteKey||enemy.name,'basic_attack')});
     const mapImage=boss?ANUBIS_PORTRAIT_MAP:LEVEL1_PORTRAIT_MAP;
     await window.BlazingCombatPresentation.prepareEncounter({mapImage,actors});
    }catch(error){menuTransitioning=false;gameStarted=false;S.log='Battle assets failed to load. Retry the encounter.';updateUI();return}
@@ -50,5 +53,20 @@ replaceOne(`   battleScreen.classList.add('active');
    menuScreen.style.display='none';
 
    requestAnimationFrame(()=>requestAnimationFrame(()=>{`,`   requestAnimationFrame(()=>requestAnimationFrame(()=>{`,'duplicate battle activation removal');
-for(const marker of ['BlazingCombatPresentation.prepareEncounter','function animateLegacyLunge','runConfiguredAttack','allowFallbackToken','constrainPoint'])if(!html.includes(marker))fail(`final shell missing ${marker}`);
+replaceOne(`   let h=(isEnemy?62:68)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus,
+       w=(isEnemy?42:48)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus;
+   let ratio=dims.w/dims.h;
+   if(ratio>0)w=h*ratio;`,`   let h=(isEnemy?62:68)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus,
+       w=(isEnemy?42:48)*(sizeScale||1)*UNIT_RENDER_SCALE*playerScale*playerRenderBonus;
+   let ratio=dims.w/dims.h;
+   if(ratio>0)w=h*ratio;
+   let spriteY=12-h;
+   const bbSpritePlacement=window.BlazingCombatPresentation.spritePlacement(name,spriteRef,idleFrames,{baseHeight:h,footY:12});
+   if(bbSpritePlacement){h=bbSpritePlacement.height;w=h*ratio;spriteY=bbSpritePlacement.y;}`,'normalized sprite placement');
+const drawImageSource='ctx.drawImage(spriteRef,-w/2,12-h,w,h);';
+const drawImageCount=html.split(drawImageSource).length-1;
+if(drawImageCount!==3)fail(`normalized sprite placement expected three body draws, found ${drawImageCount}`);
+html=html.replaceAll(drawImageSource,'ctx.drawImage(spriteRef,-w/2,spriteY,w,h);');
+replaceOne("runBasicAttack=animateLunge;basicTarget=au.name==='Tyler'&&Math.hypot(to.x-from.x,to.y-from.y)<40?{x:from.x+dx/len*40,y:from.y+dy/len*40}:to;",'runBasicAttack=animateLunge;basicTarget=enemy;','target-relative melee anchor');
+for(const marker of ['BlazingCombatPresentation.prepareEncounter','function animateLegacyLunge','runConfiguredAttack','spritePlacement','isConfiguredMeleeBasic','allowFallbackToken','constrainPoint'])if(!html.includes(marker))fail(`final shell missing ${marker}`);
 await fs.writeFile(file,html);console.log('Combat stabilization integration PASS: readiness, configured attacks, sprite fallback policy, and terrain geometry have one authority.');
