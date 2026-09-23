@@ -77,3 +77,4 @@ const post=await fs.readFile('scripts/battle-mobile-controls-postprocess.mjs','u
 for(const marker of ['runtime/combat/combat-loop-runtime.js','bb-combat-loop-runtime','runtime/modes/blazing-road-battle-refinements.js','bb-blazing-road-battle-refinements'])if(!post.includes(marker))throw new Error(`Production build does not inject combat-loop marker: ${marker}`);
 
 console.log('Combat loop validation PASS: canonical ordering, Road shared-team HP, reusable one-turn stun skips, portrait jutsu wiring, and victory/defeat outcomes.');
+await import('./validate-combat-stabilization.mjs');

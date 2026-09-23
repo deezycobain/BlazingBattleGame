@@ -63,13 +63,11 @@ const MAPS=Object.freeze([
     key:'lantern-garden',name:'Lantern Garden',src:'assets/maps/blazing-road/stage-03-lantern-garden.webp',
     presentation:presentation(1.12,'center 53%'),
     perspective:perspective(120,545,.90,1.00,1.00),
-    movement:terrain({allowed:broadFloor(),blocked:[
-      polygon([0,86],[54,86],[66,150],[70,230],[64,325],[70,430],[58,535],[0,560]),
-      polygon([430,86],[480,86],[480,562],[426,535],[419,438],[422,335],[416,238],[422,150]),
-      polygon([135,86],[345,86],[337,137],[320,157],[160,157],[143,136]),
-      ellipse(45,404,24,61),
-      ellipse(440,421,22,65)
-    ]})
+    // The bridge/path is the playable floor: narrow at the horizon and widening toward the camera.
+    movement:terrain({horizonY:142,allowed:[polygon(
+      [152,142],[328,142],[346,205],[362,286],[380,382],[402,474],[423,560],
+      [57,560],[78,474],[100,382],[118,286],[134,205]
+    )]})
   }),
   Object.freeze({
     key:'shinobi-overlook',name:'Shinobi Overlook',src:'assets/maps/blazing-road/stage-04-shinobi-overlook.webp',
