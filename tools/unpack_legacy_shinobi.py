@@ -41,9 +41,11 @@ def safe_target(base: Path, member: str) -> Path:
 
 def sheet_grid(width: int, height: int):
     ratio = width / max(1, height)
-    if ratio >= 3.5:
+    # Legacy packs v2/v3 use 6x1 strips at a 3:1 sheet ratio.
+    # The original v1 pack uses 3x2 sheets that are roughly square.
+    if ratio >= 2.4:
         return 6, 1
-    if ratio <= 0.29:
+    if ratio <= (1 / 2.4):
         return 1, 6
     if width >= height:
         return 3, 2

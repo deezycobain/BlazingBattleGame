@@ -7,6 +7,12 @@ const names=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','
 const readJson=async rel=>JSON.parse(await fs.readFile(path.join(ROOT,rel),'utf8'));
 const exists=async rel=>{try{await fs.access(path.join(ROOT,rel));return true}catch{return false}};
 const assetPath=(id,rel)=>String(rel||'').startsWith('assets/')?String(rel):'assets/characters/'+id+'/'+rel;
+const stripIds=new Set(['rock_lee','mashle','jackie_chan','gabimaru','killua','zabuza']);
+const pngDimensions=async rel=>{
+ const data=await fs.readFile(path.join(ROOT,rel));
+ if(data.length<24||data.toString('ascii',1,4)!=='PNG')throw new Error('Legacy Shinobi validator: invalid PNG '+rel);
+ return {width:data.readUInt32BE(16),height:data.readUInt32BE(20)};
+};
 
 const index=await readJson('runtime/registry/unit-index.json');
 const indexed=new Set((index.units||[]).map(x=>x.id));
@@ -21,7 +27,8 @@ for(const id of ids){
 
  for(const kind of ['idle','basic_attack']){
   const source=unit.animation_standard?.source_sheets?.[kind];
-  if(!source||source.columns!==3||source.rows!==2)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' source-sheet metadata invalid');
+  const expectedLayout=stripIds.has(id)?{columns:6,rows:1}:{columns:3,rows:2};
+  if(!source||source.columns!==expectedLayout.columns||source.rows!==expectedLayout.rows)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' source-sheet metadata invalid');
   if(!String(source.path||'').startsWith('assets/events/legacy-of-shinobi/'))throw new Error('Legacy Shinobi validator: '+id+' '+kind+' source path not canonical');
   if(!await exists(source.path))throw new Error('Legacy Shinobi validator: missing '+source.path);
 
@@ -30,6 +37,8 @@ for(const id of ids){
   for(const frame of frames){
    const framePath=assetPath(id,frame);
    if(!await exists(framePath))throw new Error('Legacy Shinobi validator: missing runtime frame '+framePath);
+   const {width,height}=await pngDimensions(framePath);
+   if(!(width>0&&height>0&&width<height))throw new Error('Legacy Shinobi validator: '+id+' '+kind+' frame must be one portrait pose, got '+width+'x'+height+' at '+framePath);
   }
  }
 
