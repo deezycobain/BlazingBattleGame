@@ -58,4 +58,4 @@ if(home.includes(escaped+'SHELL_ID}')||home.includes(escaped+'FONT}'))throw new 
 const adapter=await fs.readFile(path.join(ROOT,'scripts/legacy-shinobi-postprocess.mjs'),'utf8');
 for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME',...ids,...names])if(!adapter.includes(marker))throw new Error('Legacy Shinobi validator: battle adapter missing '+marker);
 
-console.log('Legacy Shinobi PASS: 12 canonical units, card art, six-frame idle/basic runtime frames and source sheets, Home banner, summon pool, and battle adapter validated.');
+console.log('Legacy Shinobi PASS: 12 canonical units, card art, portrait-normalized six-frame idle/basic runtime frames, source-sheet layouts, Home banner, summon pool, and battle adapter validated.');
