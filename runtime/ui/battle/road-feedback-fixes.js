@@ -9,8 +9,8 @@ const freezePoint=([x,y])=>Object.freeze({x,y});
 const original=base.MAPS.find(map=>map.key===LANTERN_KEY);
 if(!original)return;
 
-// Keep the existing authored blocked scenery for now. Do not invent another narrow
-// allowed corridor before the playable floor has been traced by hand in terrain draw mode.
+// Preserve the canonical authored bridge/path polygon. Presentation tuning must not
+// replace map geometry with a generic rectangle or a second competing corridor.
 const movement=original.movement||Object.freeze({allowed:Object.freeze([]),blocked:Object.freeze([])});
 const enemyAnchors=Object.freeze([
   freezePoint([195,238]),
