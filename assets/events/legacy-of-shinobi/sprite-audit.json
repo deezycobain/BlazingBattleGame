@@ -99,15 +99,15 @@
           },
           {
             "subject_box": [
-              0,
+              5,
               4,
-              405,
+              403,
               718
             ],
             "output_bbox": [
-              49,
+              63,
               38,
-              463,
+              449,
               742
             ],
             "output_size": [
@@ -115,18 +115,18 @@
               768
             ],
             "visible_size": [
-              414,
+              386,
               704
             ],
             "component": {
-              "component_area": 120979,
+              "component_area": 119875,
               "component_bbox": [
-                0,
+                26,
                 36,
                 382,
                 686
               ],
-              "discarded_components": 9
+              "discarded_components": 2
             },
             "frame": 2,
             "nominal_cell": [
@@ -141,7 +141,7 @@
               760,
               724
             ],
-            "sha256": "5f54b6ec5d630e7e32ec1f5959334b1306820367b631051b15d9fc9d67d7ecad"
+            "sha256": "1b7e5eff384a9e60130797f45343db31ea25c151591d8e695339929cb1ac141a"
           },
           {
             "subject_box": [
@@ -172,7 +172,7 @@
                 419,
                 686
               ],
-              "discarded_components": 8
+              "discarded_components": 6
             },
             "frame": 3,
             "nominal_cell": [
@@ -191,15 +191,15 @@
           },
           {
             "subject_box": [
-              0,
+              4,
               5,
               415,
               718
             ],
             "output_bbox": [
-              52,
+              57,
               38,
-              459,
+              455,
               742
             ],
             "output_size": [
@@ -207,18 +207,18 @@
               768
             ],
             "visible_size": [
-              407,
+              398,
               704
             ],
             "component": {
-              "component_area": 122986,
+              "component_area": 122788,
               "component_bbox": [
-                18,
+                26,
                 37,
                 393,
                 686
               ],
-              "discarded_components": 6
+              "discarded_components": 4
             },
             "frame": 4,
             "nominal_cell": [
@@ -233,19 +233,19 @@
               1498,
               724
             ],
-            "sha256": "2038a98610079a9582586434b9c2ca0e2a235e4b343b95b6cb77b790b5b6f7f3"
+            "sha256": "c21ad5c9eb3910130b989d6f381932661837d4a55c8e13bb58ffd31ce3143ff1"
           },
           {
             "subject_box": [
-              0,
+              5,
               8,
-              425,
+              424,
               718
             ],
             "output_bbox": [
-              48,
+              51,
               38,
-              463,
+              460,
               742
             ],
             "output_size": [
@@ -253,18 +253,18 @@
               768
             ],
             "visible_size": [
-              415,
+              409,
               704
             ],
             "component": {
-              "component_area": 122865,
+              "component_area": 122761,
               "component_bbox": [
-                21,
+                27,
                 40,
                 402,
                 686
               ],
-              "discarded_components": 8
+              "discarded_components": 3
             },
             "frame": 5,
             "nominal_cell": [
@@ -279,7 +279,7 @@
               1855,
               724
             ],
-            "sha256": "5480b09540f4759ab0cea6301bbd659a4cb6d2530c8e6d9a0b62edd5768bebdc"
+            "sha256": "66e77ee7073ce76be7f71bfd659d8753aa8e38b9aff17cc7d2e1919dfebca8ff"
           },
           {
             "subject_box": [
@@ -310,7 +310,7 @@
                 392,
                 686
               ],
-              "discarded_components": 3
+              "discarded_components": 2
             },
             "frame": 6,
             "nominal_cell": [
@@ -371,7 +371,7 @@
                 327,
                 615
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 1,
             "nominal_cell": [
@@ -417,7 +417,7 @@
                 421,
                 605
               ],
-              "discarded_components": 10
+              "discarded_components": 5
             },
             "frame": 2,
             "nominal_cell": [
@@ -463,7 +463,7 @@
                 457,
                 601
               ],
-              "discarded_components": 15
+              "discarded_components": 10
             },
             "frame": 3,
             "nominal_cell": [
@@ -509,7 +509,7 @@
                 396,
                 632
               ],
-              "discarded_components": 15
+              "discarded_components": 13
             },
             "frame": 4,
             "nominal_cell": [
@@ -528,14 +528,14 @@
           },
           {
             "subject_box": [
-              0,
+              5,
               187,
-              459,
+              458,
               624
             ],
             "output_bbox": [
               28,
-              313,
+              295,
               484,
               742
             ],
@@ -545,17 +545,17 @@
             ],
             "visible_size": [
               456,
-              429
+              447
             ],
             "component": {
-              "component_area": 81524,
+              "component_area": 81105,
               "component_bbox": [
-                13,
+                29,
                 207,
                 434,
                 604
               ],
-              "discarded_components": 19
+              "discarded_components": 15
             },
             "frame": 5,
             "nominal_cell": [
@@ -570,7 +570,7 @@
               1906,
               724
             ],
-            "sha256": "93732a4e977ce645b21be92bf87d56c8eb7215ee28fadd0b666fb1b8d10f8266"
+            "sha256": "41e63d4080215fd3c365b3fc5ac04612d5340f287ec31d11a3f223a32e61297c"
           },
           {
             "subject_box": [
@@ -601,7 +601,7 @@
                 339,
                 617
               ],
-              "discarded_components": 4
+              "discarded_components": 2
             },
             "frame": 6,
             "nominal_cell": [
@@ -675,7 +675,7 @@
                 347,
                 691
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 1,
             "nominal_cell": [
@@ -721,7 +721,7 @@
                 399,
                 693
               ],
-              "discarded_components": 5
+              "discarded_components": 4
             },
             "frame": 2,
             "nominal_cell": [
@@ -767,7 +767,7 @@
                 360,
                 691
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 3,
             "nominal_cell": [
@@ -813,7 +813,7 @@
                 454,
                 691
               ],
-              "discarded_components": 7
+              "discarded_components": 1
             },
             "frame": 4,
             "nominal_cell": [
@@ -859,7 +859,7 @@
                 373,
                 692
               ],
-              "discarded_components": 4
+              "discarded_components": 2
             },
             "frame": 5,
             "nominal_cell": [
@@ -905,7 +905,7 @@
                 385,
                 691
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -941,13 +941,13 @@
             "subject_box": [
               0,
               99,
-              330,
+              325,
               649
             ],
             "output_bbox": [
-              43,
+              59,
               68,
-              468,
+              453,
               742
             ],
             "output_size": [
@@ -955,18 +955,18 @@
               768
             ],
             "visible_size": [
-              425,
+              394,
               674
             ],
             "component": {
-              "component_area": 79100,
+              "component_area": 77840,
               "component_bbox": [
                 15,
                 124,
-                330,
+                307,
                 624
               ],
-              "discarded_components": 1
+              "discarded_components": 2
             },
             "frame": 1,
             "nominal_cell": [
@@ -981,7 +981,7 @@
               330,
               724
             ],
-            "sha256": "b024f80ba148346d887b9f697f01236178c668c1d9a6db6acb180665038ff277"
+            "sha256": "d5728f5c71493e454b0d60c8af2cae4553e642bc605dcb5ed6b75577bb4dd813"
           },
           {
             "subject_box": [
@@ -1031,14 +1031,14 @@
           },
           {
             "subject_box": [
-              0,
+              3,
               173,
-              414,
+              411,
               642
             ],
             "output_bbox": [
               28,
-              272,
+              207,
               484,
               742
             ],
@@ -1048,17 +1048,17 @@
             ],
             "visible_size": [
               456,
-              470
+              535
             ],
             "component": {
-              "component_area": 76186,
+              "component_area": 73908,
               "component_bbox": [
-                0,
+                25,
                 194,
-                414,
+                389,
                 621
               ],
-              "discarded_components": 6
+              "discarded_components": 2
             },
             "frame": 3,
             "nominal_cell": [
@@ -1073,7 +1073,7 @@
               1128,
               724
             ],
-            "sha256": "4189cbd1c7ecfa1c88741423b33eb0e36a3a265c92b4673bda1a25ecf5fd100d"
+            "sha256": "902971e445973c2a8b3f96f9ddca09a01c0912918a854ca770c6da90d481f457"
           },
           {
             "subject_box": [
@@ -1104,7 +1104,7 @@
                 439,
                 623
               ],
-              "discarded_components": 9
+              "discarded_components": 6
             },
             "frame": 4,
             "nominal_cell": [
@@ -1125,12 +1125,12 @@
             "subject_box": [
               32,
               124,
-              459,
+              454,
               655
             ],
             "output_bbox": [
               28,
-              164,
+              156,
               484,
               742
             ],
@@ -1140,17 +1140,17 @@
             ],
             "visible_size": [
               456,
-              578
+              586
             ],
             "component": {
-              "component_area": 80843,
+              "component_area": 80653,
               "component_bbox": [
                 55,
                 148,
-                436,
+                431,
                 631
               ],
-              "discarded_components": 8
+              "discarded_components": 6
             },
             "frame": 5,
             "nominal_cell": [
@@ -1165,7 +1165,7 @@
               1905,
               724
             ],
-            "sha256": "7f289eee87bfcf4cabd1752598422e670ea0af71a7ea02670b8977a10e70ee90"
+            "sha256": "f6ac6a2d19c3ee2b472166d693823859071d056a6c158f0009e631f16b7ebc90"
           },
           {
             "subject_box": [
@@ -1270,7 +1270,7 @@
                 430,
                 656
               ],
-              "discarded_components": 6
+              "discarded_components": 2
             },
             "frame": 1,
             "nominal_cell": [
@@ -1316,7 +1316,7 @@
                 452,
                 656
               ],
-              "discarded_components": 6
+              "discarded_components": 3
             },
             "frame": 2,
             "nominal_cell": [
@@ -1408,7 +1408,7 @@
                 433,
                 657
               ],
-              "discarded_components": 6
+              "discarded_components": 2
             },
             "frame": 4,
             "nominal_cell": [
@@ -1454,7 +1454,7 @@
                 442,
                 657
               ],
-              "discarded_components": 8
+              "discarded_components": 3
             },
             "frame": 5,
             "nominal_cell": [
@@ -1500,7 +1500,7 @@
                 464,
                 657
               ],
-              "discarded_components": 6
+              "discarded_components": 3
             },
             "frame": 6,
             "nominal_cell": [
@@ -1561,7 +1561,7 @@
                 414,
                 621
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -1580,14 +1580,14 @@
           },
           {
             "subject_box": [
-              37,
+              39,
               140,
-              512,
+              506,
               645
             ],
             "output_bbox": [
               28,
-              275,
+              241,
               484,
               742
             ],
@@ -1597,17 +1597,17 @@
             ],
             "visible_size": [
               456,
-              467
+              501
             ],
             "component": {
-              "component_area": 105529,
+              "component_area": 104590,
               "component_bbox": [
                 64,
                 163,
-                512,
+                481,
                 622
               ],
-              "discarded_components": 6
+              "discarded_components": 1
             },
             "frame": 2,
             "nominal_cell": [
@@ -1622,7 +1622,7 @@
               884,
               690
             ],
-            "sha256": "71bccaf46fe9a71b4d23d8a4d2d27db07d594a955938503769d6b1c732898c9d"
+            "sha256": "fd22fc3395585b2c2b3b5ba57facd94717eea4796b638fc32a144d8d2296c066"
           },
           {
             "subject_box": [
@@ -1653,7 +1653,7 @@
                 457,
                 622
               ],
-              "discarded_components": 9
+              "discarded_components": 6
             },
             "frame": 3,
             "nominal_cell": [
@@ -1674,12 +1674,12 @@
             "subject_box": [
               0,
               122,
-              467,
+              462,
               637
             ],
             "output_bbox": [
               28,
-              278,
+              245,
               484,
               742
             ],
@@ -1689,17 +1689,17 @@
             ],
             "visible_size": [
               456,
-              464
+              497
             ],
             "component": {
-              "component_area": 120398,
+              "component_area": 117659,
               "component_bbox": [
                 6,
                 145,
-                467,
+                436,
                 614
               ],
-              "discarded_components": 15
+              "discarded_components": 14
             },
             "frame": 4,
             "nominal_cell": [
@@ -1714,18 +1714,18 @@
               467,
               1254
             ],
-            "sha256": "71aa4253a5aca5b8fd4d91d6e8667ebf34193ec2866f756b73c747deb0d9d728"
+            "sha256": "8c502140e76ee8b8f767b63f6ccfcbca8b6ae1ef1c56aaba410aa66dd5a05ce9"
           },
           {
             "subject_box": [
-              56,
+              57,
               129,
-              550,
+              542,
               639
             ],
             "output_bbox": [
               28,
-              273,
+              253,
               484,
               742
             ],
@@ -1735,17 +1735,17 @@
             ],
             "visible_size": [
               456,
-              469
+              489
             ],
             "component": {
-              "component_area": 106717,
+              "component_area": 106035,
               "component_bbox": [
                 83,
                 152,
-                534,
+                516,
                 616
               ],
-              "discarded_components": 21
+              "discarded_components": 13
             },
             "frame": 5,
             "nominal_cell": [
@@ -1760,7 +1760,7 @@
               921,
               1254
             ],
-            "sha256": "e0237d9bc6f113bb4b9800094706d74c268cac4dbd5e126e288bcb6788c36715"
+            "sha256": "e65fa6eabcf6add3592c2707a91a3698851ebc38c972404e8383a0be9ac93800"
           },
           {
             "subject_box": [
@@ -1791,7 +1791,7 @@
                 419,
                 614
               ],
-              "discarded_components": 8
+              "discarded_components": 5
             },
             "frame": 6,
             "nominal_cell": [
@@ -1865,7 +1865,7 @@
                 393,
                 652
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -2049,7 +2049,7 @@
                 421,
                 655
               ],
-              "discarded_components": 4
+              "discarded_components": 2
             },
             "frame": 5,
             "nominal_cell": [
@@ -2095,7 +2095,7 @@
                 428,
                 655
               ],
-              "discarded_components": 4
+              "discarded_components": 2
             },
             "frame": 6,
             "nominal_cell": [
@@ -2156,7 +2156,7 @@
                 359,
                 614
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -2248,7 +2248,7 @@
                 481,
                 614
               ],
-              "discarded_components": 4
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -2267,14 +2267,14 @@
           },
           {
             "subject_box": [
-              0,
+              1,
               132,
-              400,
+              394,
               643
             ],
             "output_bbox": [
               28,
-              181,
+              138,
               484,
               742
             ],
@@ -2284,14 +2284,14 @@
             ],
             "visible_size": [
               456,
-              561
+              604
             ],
             "component": {
-              "component_area": 69625,
+              "component_area": 65871,
               "component_bbox": [
                 22,
                 155,
-                400,
+                373,
                 620
               ],
               "discarded_components": 3
@@ -2309,7 +2309,7 @@
               400,
               1254
             ],
-            "sha256": "9f5d45c1bfc60b08710e631774285742ff1787f18fa2ed08b9aee376cef0a137"
+            "sha256": "44094a11c070b04ac23d09ba01f878c8db979f2efd9daf9e5773f5d8ab736aa9"
           },
           {
             "subject_box": [
@@ -2340,7 +2340,7 @@
                 577,
                 618
               ],
-              "discarded_components": 9
+              "discarded_components": 7
             },
             "frame": 5,
             "nominal_cell": [
@@ -2386,7 +2386,7 @@
                 384,
                 620
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -2435,13 +2435,13 @@
             "subject_box": [
               0,
               189,
-              331,
+              326,
               656
             ],
             "output_bbox": [
-              40,
+              55,
               168,
-              472,
+              456,
               742
             ],
             "output_size": [
@@ -2449,18 +2449,18 @@
               768
             ],
             "visible_size": [
-              432,
+              401,
               574
             ],
             "component": {
-              "component_area": 62276,
+              "component_area": 59549,
               "component_bbox": [
                 11,
                 210,
-                331,
+                308,
                 635
               ],
-              "discarded_components": 0
+              "discarded_components": 1
             },
             "frame": 1,
             "nominal_cell": [
@@ -2475,18 +2475,18 @@
               331,
               724
             ],
-            "sha256": "a014b82ed3b6bd251770f3e2e0df2a01e80118837fb4e37a3f473bb5ac8eeacd"
+            "sha256": "ce13cd1356b54e6ad5d1eca7bb2dcafff8351906cf1d35e249f6570e12101208"
           },
           {
             "subject_box": [
-              0,
+              5,
               209,
-              419,
+              417,
               655
             ],
             "output_bbox": [
               28,
-              273,
+              239,
               484,
               742
             ],
@@ -2496,17 +2496,17 @@
             ],
             "visible_size": [
               456,
-              469
+              503
             ],
             "component": {
-              "component_area": 67441,
+              "component_area": 66540,
               "component_bbox": [
-                0,
+                27,
                 229,
                 395,
                 635
               ],
-              "discarded_components": 6
+              "discarded_components": 1
             },
             "frame": 2,
             "nominal_cell": [
@@ -2521,18 +2521,18 @@
               706,
               724
             ],
-            "sha256": "b9272bc62671f00975c51455fe0deec67f6a6065148ca9fea6b6caa959b75e61"
+            "sha256": "20a4f9bddd0eb77d7bf629f0a04107683b2f07f8a78cda77125ee68bbbbd0b57"
           },
           {
             "subject_box": [
-              0,
+              6,
               203,
-              487,
+              485,
               656
             ],
             "output_bbox": [
               28,
-              334,
+              303,
               484,
               742
             ],
@@ -2542,17 +2542,17 @@
             ],
             "visible_size": [
               456,
-              408
+              439
             ],
             "component": {
-              "component_area": 88621,
+              "component_area": 85616,
               "component_bbox": [
-                0,
+                32,
                 224,
                 459,
                 635
               ],
-              "discarded_components": 5
+              "discarded_components": 1
             },
             "frame": 3,
             "nominal_cell": [
@@ -2567,18 +2567,18 @@
               1126,
               724
             ],
-            "sha256": "be9554eb8abf72e0427bd002cecafff9e6c2c8ff58c6bf987f8ecd0c704ce263"
+            "sha256": "ab533c3a80d79ab97a6a2b7f299c345a6408fc51506230903edacc9f648c6395"
           },
           {
             "subject_box": [
-              6,
+              7,
               239,
               487,
               641
             ],
             "output_bbox": [
               28,
-              353,
+              352,
               484,
               742
             ],
@@ -2588,17 +2588,17 @@
             ],
             "visible_size": [
               456,
-              389
+              390
             ],
             "component": {
-              "component_area": 89187,
+              "component_area": 89173,
               "component_bbox": [
-                32,
+                33,
                 257,
                 461,
                 623
               ],
-              "discarded_components": 6
+              "discarded_components": 3
             },
             "frame": 4,
             "nominal_cell": [
@@ -2613,20 +2613,20 @@
               1561,
               724
             ],
-            "sha256": "d16924a688ad3f72791134cd4799e63ae0da6dbd415ef2ac25ee90f54102455c"
+            "sha256": "c0c1347da24a3aa36473fd70f4f6be519b69d29ebaa54521b60ba537d9146d87"
           },
           {
             "subject_box": [
-              0,
-              188,
-              436,
-              664
+              4,
+              189,
+              434,
+              653
             ],
             "output_bbox": [
               28,
-              263,
+              241,
               483,
-              741
+              742
             ],
             "output_size": [
               512,
@@ -2634,17 +2634,17 @@
             ],
             "visible_size": [
               455,
-              478
+              501
             ],
             "component": {
-              "component_area": 84496,
+              "component_area": 81863,
               "component_bbox": [
-                0,
+                27,
                 210,
                 411,
-                642
+                632
               ],
-              "discarded_components": 6
+              "discarded_components": 2
             },
             "frame": 5,
             "nominal_cell": [
@@ -2659,7 +2659,7 @@
               1915,
               724
             ],
-            "sha256": "e89dae6a8128160f1751dcfd8959422ece36183cdd41f2dbd0fb166bc31becd7"
+            "sha256": "8bce23b102d4e0086da20dc27d86fde31f0985bc28bbbf0a82834d0ff2a2c538"
           },
           {
             "subject_box": [
@@ -2690,7 +2690,7 @@
                 322,
                 635
               ],
-              "discarded_components": 3
+              "discarded_components": 2
             },
             "frame": 6,
             "nominal_cell": [
@@ -2797,7 +2797,7 @@
                 394,
                 707
               ],
-              "discarded_components": 3
+              "discarded_components": 2
             },
             "frame": 2,
             "nominal_cell": [
@@ -2843,7 +2843,7 @@
                 403,
                 707
               ],
-              "discarded_components": 6
+              "discarded_components": 4
             },
             "frame": 3,
             "nominal_cell": [
@@ -2862,15 +2862,15 @@
           },
           {
             "subject_box": [
+              5,
               0,
-              0,
-              381,
+              379,
               724
             ],
             "output_bbox": [
-              73,
+              86,
               38,
-              438,
+              426,
               742
             ],
             "output_size": [
@@ -2878,18 +2878,18 @@
               768
             ],
             "visible_size": [
-              365,
+              340,
               704
             ],
             "component": {
-              "component_area": 110606,
+              "component_area": 109694,
               "component_bbox": [
-                0,
+                25,
                 15,
                 359,
                 707
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 4,
             "nominal_cell": [
@@ -2904,7 +2904,7 @@
               1483,
               724
             ],
-            "sha256": "c990e2dbeba40225108deb8dbe7294782590c25c092534dca06bf01250e1ab7b"
+            "sha256": "4305774bd87bf5943897a5320f6d479c3f9c5fed9c4423bd2717763cf252bf52"
           },
           {
             "subject_box": [
@@ -3055,7 +3055,7 @@
                 388,
                 711
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 1,
             "nominal_cell": [
@@ -3101,7 +3101,7 @@
                 402,
                 711
               ],
-              "discarded_components": 5
+              "discarded_components": 2
             },
             "frame": 2,
             "nominal_cell": [
@@ -3147,7 +3147,7 @@
                 403,
                 710
               ],
-              "discarded_components": 4
+              "discarded_components": 1
             },
             "frame": 3,
             "nominal_cell": [
@@ -3193,7 +3193,7 @@
                 401,
                 710
               ],
-              "discarded_components": 4
+              "discarded_components": 2
             },
             "frame": 4,
             "nominal_cell": [
@@ -3239,7 +3239,7 @@
                 402,
                 710
               ],
-              "discarded_components": 4
+              "discarded_components": 1
             },
             "frame": 5,
             "nominal_cell": [
@@ -3365,14 +3365,14 @@
           },
           {
             "subject_box": [
-              0,
+              6,
               161,
-              414,
+              413,
               641
             ],
             "output_bbox": [
               28,
-              217,
+              194,
               484,
               742
             ],
@@ -3382,17 +3382,17 @@
             ],
             "visible_size": [
               456,
-              525
+              548
             ],
             "component": {
-              "component_area": 83870,
+              "component_area": 83560,
               "component_bbox": [
-                12,
+                28,
                 183,
                 391,
                 619
               ],
-              "discarded_components": 5
+              "discarded_components": 4
             },
             "frame": 2,
             "nominal_cell": [
@@ -3407,18 +3407,18 @@
               741,
               724
             ],
-            "sha256": "98037004f8de5d0bf36781de11f8264dff41a0a326a1cf93263dacdae138bee5"
+            "sha256": "768a7be40afc540036bb1487a4f065a212c11231c5297b00d3b66e5321ca4f22"
           },
           {
             "subject_box": [
-              0,
+              4,
               153,
-              406,
-              654
+              402,
+              652
             ],
             "output_bbox": [
               28,
-              231,
+              162,
               484,
               742
             ],
@@ -3428,17 +3428,17 @@
             ],
             "visible_size": [
               456,
-              511
+              580
             ],
             "component": {
-              "component_area": 75839,
+              "component_area": 70869,
               "component_bbox": [
-                0,
+                25,
                 176,
-                406,
-                631
+                381,
+                629
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -3453,18 +3453,18 @@
               1069,
               724
             ],
-            "sha256": "22874779aae975b5cad6a679a5d329afb8e545a97db2b1a8fe0c4522549f6622"
+            "sha256": "35cadbeadf6c8be4539d3f571f07c81b7925e9d3392aa36116be9ad9b88426ec"
           },
           {
             "subject_box": [
-              0,
+              7,
               65,
-              532,
+              530,
               656
             ],
             "output_bbox": [
               28,
-              254,
+              218,
               484,
               742
             ],
@@ -3474,17 +3474,17 @@
             ],
             "visible_size": [
               456,
-              488
+              524
             ],
             "component": {
-              "component_area": 98589,
+              "component_area": 93453,
               "component_bbox": [
-                0,
+                35,
                 92,
                 502,
                 629
               ],
-              "discarded_components": 15
+              "discarded_components": 14
             },
             "frame": 4,
             "nominal_cell": [
@@ -3499,18 +3499,18 @@
               1556,
               724
             ],
-            "sha256": "8f0266ae43181d52828b50d2c9f129bcb3c87f1858f7ae7cebf5ed6fde8d917f"
+            "sha256": "3c9262fae6631f2c9d0b2adfb45c551d07af0e98638cd2264197299199f5b102"
           },
           {
             "subject_box": [
-              0,
+              4,
               160,
-              407,
+              403,
               654
             ],
             "output_bbox": [
               28,
-              226,
+              167,
               484,
               742
             ],
@@ -3520,17 +3520,17 @@
             ],
             "visible_size": [
               456,
-              516
+              575
             ],
             "component": {
-              "component_area": 84264,
+              "component_area": 80359,
               "component_bbox": [
-                0,
+                25,
                 182,
-                398,
+                382,
                 632
               ],
-              "discarded_components": 9
+              "discarded_components": 7
             },
             "frame": 5,
             "nominal_cell": [
@@ -3545,7 +3545,7 @@
               1874,
               724
             ],
-            "sha256": "a744f1b796996c5cd25384d30ff860abf4f7a26f709e99d98cbd3880d3c14371"
+            "sha256": "d616c71d1ef365bd474504e4b32e03d05e1c025760fd20de98fa9b33a8ac8dfb"
           },
           {
             "subject_box": [
@@ -3650,7 +3650,7 @@
                 387,
                 610
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -3696,7 +3696,7 @@
                 429,
                 610
               ],
-              "discarded_components": 4
+              "discarded_components": 2
             },
             "frame": 2,
             "nominal_cell": [
@@ -3742,7 +3742,7 @@
                 437,
                 611
               ],
-              "discarded_components": 3
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -3788,7 +3788,7 @@
                 390,
                 664
               ],
-              "discarded_components": 3
+              "discarded_components": 0
             },
             "frame": 4,
             "nominal_cell": [
@@ -3834,7 +3834,7 @@
                 434,
                 664
               ],
-              "discarded_components": 6
+              "discarded_components": 0
             },
             "frame": 5,
             "nominal_cell": [
@@ -3880,7 +3880,7 @@
                 448,
                 664
               ],
-              "discarded_components": 5
+              "discarded_components": 0
             },
             "frame": 6,
             "nominal_cell": [
@@ -3941,7 +3941,7 @@
                 384,
                 631
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -3987,7 +3987,7 @@
                 433,
                 631
               ],
-              "discarded_components": 4
+              "discarded_components": 2
             },
             "frame": 2,
             "nominal_cell": [
@@ -4033,7 +4033,7 @@
                 464,
                 632
               ],
-              "discarded_components": 5
+              "discarded_components": 2
             },
             "frame": 3,
             "nominal_cell": [
@@ -4054,12 +4054,12 @@
             "subject_box": [
               0,
               114,
-              502,
+              495,
               641
             ],
             "output_bbox": [
               28,
-              298,
+              265,
               484,
               742
             ],
@@ -4069,17 +4069,17 @@
             ],
             "visible_size": [
               456,
-              444
+              477
             ],
             "component": {
-              "component_area": 121487,
+              "component_area": 114919,
               "component_bbox": [
                 11,
                 138,
-                502,
+                468,
                 617
               ],
-              "discarded_components": 6
+              "discarded_components": 5
             },
             "frame": 4,
             "nominal_cell": [
@@ -4094,18 +4094,18 @@
               502,
               1254
             ],
-            "sha256": "bdadefeae9f59342d3db6cffe0093681431e245f667429fba9d94025bdcd2752"
+            "sha256": "b1fc67c276c824c146bf00e75b925316f99f09dd83a52318ec5d97ce1834acba"
           },
           {
             "subject_box": [
-              0,
+              5,
               132,
-              521,
+              516,
               636
             ],
             "output_bbox": [
               28,
-              341,
+              285,
               484,
               742
             ],
@@ -4115,17 +4115,17 @@
             ],
             "visible_size": [
               456,
-              401
+              457
             ],
             "component": {
-              "component_area": 121008,
+              "component_area": 111121,
               "component_bbox": [
-                0,
+                32,
                 155,
-                521,
+                489,
                 613
               ],
-              "discarded_components": 5
+              "discarded_components": 3
             },
             "frame": 5,
             "nominal_cell": [
@@ -4140,7 +4140,7 @@
               926,
               1254
             ],
-            "sha256": "3c622045c9a3a6de4008534ab482b36f80a5ca68df03436956c52d9066d9a866"
+            "sha256": "6c9f0727e6e797eaa90e4ae9a2b362376b42e0fa1ca2f5e3557966ba584aefd5"
           },
           {
             "subject_box": [
@@ -4245,7 +4245,7 @@
                 341,
                 615
               ],
-              "discarded_components": 1
+              "discarded_components": 3
             },
             "frame": 1,
             "nominal_cell": [
@@ -4291,7 +4291,7 @@
                 421,
                 615
               ],
-              "discarded_components": 1
+              "discarded_components": 3
             },
             "frame": 2,
             "nominal_cell": [
@@ -4337,7 +4337,7 @@
                 415,
                 615
               ],
-              "discarded_components": 2
+              "discarded_components": 3
             },
             "frame": 3,
             "nominal_cell": [
@@ -4383,7 +4383,7 @@
                 342,
                 678
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 4,
             "nominal_cell": [
@@ -4429,7 +4429,7 @@
                 386,
                 678
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 5,
             "nominal_cell": [
@@ -4475,7 +4475,7 @@
                 431,
                 678
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -4536,7 +4536,7 @@
                 373,
                 625
               ],
-              "discarded_components": 4
+              "discarded_components": 3
             },
             "frame": 1,
             "nominal_cell": [
@@ -4582,7 +4582,7 @@
                 425,
                 624
               ],
-              "discarded_components": 13
+              "discarded_components": 11
             },
             "frame": 2,
             "nominal_cell": [
@@ -4628,7 +4628,7 @@
                 446,
                 627
               ],
-              "discarded_components": 4
+              "discarded_components": 3
             },
             "frame": 3,
             "nominal_cell": [
@@ -4648,13 +4648,13 @@
           {
             "subject_box": [
               0,
-              103,
-              391,
-              656
+              134,
+              385,
+              655
             ],
             "output_bbox": [
               28,
-              130,
+              122,
               484,
               742
             ],
@@ -4664,14 +4664,14 @@
             ],
             "visible_size": [
               456,
-              612
+              620
             ],
             "component": {
-              "component_area": 106293,
+              "component_area": 96164,
               "component_bbox": [
                 16,
-                128,
-                391,
+                158,
+                364,
                 631
               ],
               "discarded_components": 11
@@ -4689,18 +4689,18 @@
               391,
               1254
             ],
-            "sha256": "59fe91661419ac4436ae1915a5afde07a8bdcf30379fd7c88e194f32e904036f"
+            "sha256": "ffde3dfa3682e41f0af31e3ff9b592b7d0ceea9839b8128dc3d7893ef6eff566"
           },
           {
             "subject_box": [
               139,
               130,
-              629,
+              616,
               655
             ],
             "output_bbox": [
               28,
-              247,
+              230,
               484,
               742
             ],
@@ -4710,17 +4710,17 @@
             ],
             "visible_size": [
               456,
-              495
+              512
             ],
             "component": {
-              "component_area": 83407,
+              "component_area": 83091,
               "component_bbox": [
                 165,
                 154,
-                604,
+                590,
                 631
               ],
-              "discarded_components": 28
+              "discarded_components": 26
             },
             "frame": 5,
             "nominal_cell": [
@@ -4735,7 +4735,7 @@
               924,
               1254
             ],
-            "sha256": "9538ec7d8d3895fbbe4a9aa6b604d421abb6d08d4087c4be09dc0aa96e163dca"
+            "sha256": "0ed3e7f356df4b428f31f57348666cfb15c63f177ce25cbbf4e037aabcd58b83"
           },
           {
             "subject_box": [
@@ -4766,7 +4766,7 @@
                 414,
                 631
               ],
-              "discarded_components": 12
+              "discarded_components": 9
             },
             "frame": 6,
             "nominal_cell": [
@@ -4840,7 +4840,7 @@
                 345,
                 689
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 1,
             "nominal_cell": [
@@ -4886,7 +4886,7 @@
                 378,
                 690
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 2,
             "nominal_cell": [
@@ -4932,7 +4932,7 @@
                 376,
                 689
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 3,
             "nominal_cell": [
@@ -4978,7 +4978,7 @@
                 386,
                 689
               ],
-              "discarded_components": 3
+              "discarded_components": 0
             },
             "frame": 4,
             "nominal_cell": [
@@ -5024,7 +5024,7 @@
                 392,
                 690
               ],
-              "discarded_components": 3
+              "discarded_components": 0
             },
             "frame": 5,
             "nominal_cell": [
@@ -5131,7 +5131,7 @@
                 324,
                 636
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 1,
             "nominal_cell": [
@@ -5177,7 +5177,7 @@
                 380,
                 631
               ],
-              "discarded_components": 6
+              "discarded_components": 3
             },
             "frame": 2,
             "nominal_cell": [
@@ -5196,14 +5196,14 @@
           },
           {
             "subject_box": [
-              17,
+              18,
               149,
-              447,
+              443,
               659
             ],
             "output_bbox": [
               28,
-              221,
+              184,
               484,
               742
             ],
@@ -5213,17 +5213,17 @@
             ],
             "visible_size": [
               456,
-              521
+              558
             ],
             "component": {
-              "component_area": 67118,
+              "component_area": 64783,
               "component_bbox": [
                 41,
                 172,
-                447,
+                420,
                 636
               ],
-              "discarded_components": 5
+              "discarded_components": 3
             },
             "frame": 3,
             "nominal_cell": [
@@ -5238,7 +5238,7 @@
               1086,
               724
             ],
-            "sha256": "f86f2b6e6e11ce8b36bf25a85e4f79ebfb479c41ee44c059cb85a694bae82c02"
+            "sha256": "2e0f5f9f1960e396bd4aaca459f6cb2bcaf8703cfde37fc83f453dbcc4b6922f"
           },
           {
             "subject_box": [
@@ -5269,7 +5269,7 @@
                 502,
                 636
               ],
-              "discarded_components": 5
+              "discarded_components": 3
             },
             "frame": 4,
             "nominal_cell": [
@@ -5288,14 +5288,14 @@
           },
           {
             "subject_box": [
-              0,
+              4,
               148,
-              396,
+              392,
               659
             ],
             "output_bbox": [
               28,
-              166,
+              129,
               484,
               742
             ],
@@ -5305,14 +5305,14 @@
             ],
             "visible_size": [
               456,
-              576
+              613
             ],
             "component": {
-              "component_area": 68794,
+              "component_area": 68119,
               "component_bbox": [
-                6,
+                25,
                 171,
-                374,
+                371,
                 636
               ],
               "discarded_components": 2
@@ -5330,7 +5330,7 @@
               1859,
               724
             ],
-            "sha256": "a2815922459e8c20281560e9a89305c9d6f3e104ff1850baa7ad2d7772401cc9"
+            "sha256": "38560d3e5bdb431bf5d3f93ed73ef335201beeb7333ce7a415edda66fb1bbe7f"
           },
           {
             "subject_box": [
@@ -5361,7 +5361,7 @@
                 354,
                 636
               ],
-              "discarded_components": 4
+              "discarded_components": 2
             },
             "frame": 6,
             "nominal_cell": [
@@ -5435,7 +5435,7 @@
                 358,
                 621
               ],
-              "discarded_components": 1
+              "discarded_components": 3
             },
             "frame": 1,
             "nominal_cell": [
@@ -5481,7 +5481,7 @@
                 377,
                 620
               ],
-              "discarded_components": 1
+              "discarded_components": 2
             },
             "frame": 2,
             "nominal_cell": [
@@ -5573,7 +5573,7 @@
                 383,
                 676
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 4,
             "nominal_cell": [
@@ -5619,7 +5619,7 @@
                 379,
                 676
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 5,
             "nominal_cell": [
@@ -5665,7 +5665,7 @@
                 358,
                 676
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -5726,7 +5726,7 @@
                 372,
                 649
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -5772,7 +5772,7 @@
                 412,
                 647
               ],
-              "discarded_components": 6
+              "discarded_components": 1
             },
             "frame": 2,
             "nominal_cell": [
@@ -5818,7 +5818,7 @@
                 422,
                 643
               ],
-              "discarded_components": 6
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -5864,7 +5864,7 @@
                 503,
                 588
               ],
-              "discarded_components": 12
+              "discarded_components": 9
             },
             "frame": 4,
             "nominal_cell": [
@@ -5883,14 +5883,14 @@
           },
           {
             "subject_box": [
-              0,
+              4,
               44,
-              453,
+              449,
               600
             ],
             "output_bbox": [
               28,
-              233,
+              161,
               484,
               742
             ],
@@ -5900,17 +5900,17 @@
             ],
             "visible_size": [
               456,
-              509
+              581
             ],
             "component": {
-              "component_area": 121266,
+              "component_area": 111402,
               "component_bbox": [
-                0,
+                28,
                 69,
-                453,
+                425,
                 575
               ],
-              "discarded_components": 14
+              "discarded_components": 13
             },
             "frame": 5,
             "nominal_cell": [
@@ -5925,7 +5925,7 @@
               905,
               1254
             ],
-            "sha256": "e01122daea75b4bac562c9599e2e5ba9fbc019891a7752e9dd3fe282c93062f9"
+            "sha256": "f39bd16be9a243f51108a172c94769a39ebd98652a04d53ebf7696285dfae4ee"
           },
           {
             "subject_box": [
@@ -5956,7 +5956,7 @@
                 419,
                 593
               ],
-              "discarded_components": 8
+              "discarded_components": 7
             },
             "frame": 6,
             "nominal_cell": [
@@ -6030,7 +6030,7 @@
                 434,
                 619
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 1,
             "nominal_cell": [
@@ -6076,7 +6076,7 @@
                 426,
                 618
               ],
-              "discarded_components": 3
+              "discarded_components": 2
             },
             "frame": 2,
             "nominal_cell": [
@@ -6122,7 +6122,7 @@
                 456,
                 618
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 3,
             "nominal_cell": [
@@ -6168,7 +6168,7 @@
                 434,
                 678
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 4,
             "nominal_cell": [
@@ -6214,7 +6214,7 @@
                 425,
                 678
               ],
-              "discarded_components": 7
+              "discarded_components": 2
             },
             "frame": 5,
             "nominal_cell": [
@@ -6260,7 +6260,7 @@
                 456,
                 678
               ],
-              "discarded_components": 4
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -6321,7 +6321,7 @@
                 344,
                 598
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 1,
             "nominal_cell": [
@@ -6367,7 +6367,7 @@
                 458,
                 598
               ],
-              "discarded_components": 4
+              "discarded_components": 3
             },
             "frame": 2,
             "nominal_cell": [
@@ -6413,7 +6413,7 @@
                 249,
                 330
               ],
-              "discarded_components": 7
+              "discarded_components": 6
             },
             "frame": 3,
             "nominal_cell": [
@@ -6434,12 +6434,12 @@
             "subject_box": [
               0,
               130,
-              412,
+              407,
               632
             ],
             "output_bbox": [
-              28,
-              231,
+              29,
+              193,
               484,
               742
             ],
@@ -6448,18 +6448,18 @@
               768
             ],
             "visible_size": [
-              456,
-              511
+              455,
+              549
             ],
             "component": {
-              "component_area": 74746,
+              "component_area": 68943,
               "component_bbox": [
                 5,
                 153,
-                412,
+                384,
                 609
               ],
-              "discarded_components": 9
+              "discarded_components": 5
             },
             "frame": 4,
             "nominal_cell": [
@@ -6474,7 +6474,7 @@
               412,
               1254
             ],
-            "sha256": "8e8856b3f3ae50bc1c0b19d1e3fd579a33e600783ab72467cf032fd3e5340432"
+            "sha256": "b3bac72a5e615ce14c7e24d146cccb6ec3e51a42c81a72b521bb433b31b42570"
           },
           {
             "subject_box": [
@@ -6505,7 +6505,7 @@
                 557,
                 613
               ],
-              "discarded_components": 13
+              "discarded_components": 8
             },
             "frame": 5,
             "nominal_cell": [
@@ -6551,7 +6551,7 @@
                 419,
                 613
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -6644,15 +6644,15 @@
           },
           {
             "subject_box": [
-              0,
+              4,
               37,
-              421,
+              417,
               704
             ],
             "output_bbox": [
-              30,
+              42,
               38,
-              481,
+              470,
               742
             ],
             "output_size": [
@@ -6660,18 +6660,18 @@
               768
             ],
             "visible_size": [
-              451,
+              428,
               704
             ],
             "component": {
-              "component_area": 96108,
+              "component_area": 95688,
               "component_bbox": [
-                20,
+                26,
                 67,
-                409,
+                395,
                 674
               ],
-              "discarded_components": 5
+              "discarded_components": 3
             },
             "frame": 2,
             "nominal_cell": [
@@ -6686,19 +6686,19 @@
               761,
               724
             ],
-            "sha256": "55fda51dda3e8893a1501aa14c6c8825f0061cb48bd13b68ab93297a2626d4b9"
+            "sha256": "1e002cf54c788ea4aeed90d6e485deb840635270e37777659d3e118a7657a31a"
           },
           {
             "subject_box": [
-              6,
+              7,
               50,
-              435,
+              431,
               705
             ],
             "output_bbox": [
-              28,
-              64,
-              484,
+              32,
+              38,
+              479,
               742
             ],
             "output_size": [
@@ -6706,15 +6706,15 @@
               768
             ],
             "visible_size": [
-              456,
-              678
+              447,
+              704
             ],
             "component": {
-              "component_area": 96381,
+              "component_area": 95883,
               "component_bbox": [
                 30,
                 80,
-                430,
+                408,
                 675
               ],
               "discarded_components": 4
@@ -6732,19 +6732,19 @@
               1119,
               724
             ],
-            "sha256": "d47d39c312caf108c0d5fd9b681c52ee37204d28c06e1e9a34cebad6c2257b03"
+            "sha256": "e7472c7c1bd31b14f505adcb78fc42a5094f367f8adb187346e0dd7e0b6919ac"
           },
           {
             "subject_box": [
-              4,
+              5,
               49,
-              432,
+              428,
               705
             ],
             "output_bbox": [
-              28,
-              69,
-              484,
+              33,
+              38,
+              478,
               742
             ],
             "output_size": [
@@ -6752,18 +6752,18 @@
               768
             ],
             "visible_size": [
-              456,
-              673
+              445,
+              704
             ],
             "component": {
-              "component_area": 97357,
+              "component_area": 96649,
               "component_bbox": [
                 28,
                 79,
-                432,
+                405,
                 675
               ],
-              "discarded_components": 5
+              "discarded_components": 4
             },
             "frame": 4,
             "nominal_cell": [
@@ -6778,19 +6778,19 @@
               1473,
               724
             ],
-            "sha256": "091d3e773f47eafee86ae88e5c4f7063bb07a3cc3582fc1783ecca4395eadb65"
+            "sha256": "5911b35bfc90d5901b78c6cef124a8b75588ed6ec9f2c68eabd9e2bb1ba7b85d"
           },
           {
             "subject_box": [
-              2,
+              4,
               47,
-              434,
+              430,
               705
             ],
             "output_bbox": [
-              28,
-              74,
-              484,
+              32,
+              38,
+              479,
               742
             ],
             "output_size": [
@@ -6798,18 +6798,18 @@
               768
             ],
             "visible_size": [
-              456,
-              668
+              447,
+              704
             ],
             "component": {
-              "component_area": 95698,
+              "component_area": 95048,
               "component_bbox": [
-                26,
+                27,
                 77,
-                434,
+                407,
                 675
               ],
-              "discarded_components": 4
+              "discarded_components": 3
             },
             "frame": 5,
             "nominal_cell": [
@@ -6824,7 +6824,7 @@
               1829,
               724
             ],
-            "sha256": "b0a2bc9c2e4669ab215e585122f52c9fc003045f55e8920536df7cdbf0ccf19d"
+            "sha256": "0b76693a7ff48500353801778cec698684975822516abd1c001cf04df671c9b0"
           },
           {
             "subject_box": [
@@ -6891,13 +6891,13 @@
             "subject_box": [
               0,
               229,
-              344,
-              645
+              340,
+              644
             ],
             "output_bbox": [
-              31,
-              232,
-              481,
+              47,
+              233,
+              465,
               742
             ],
             "output_size": [
@@ -6905,16 +6905,16 @@
               768
             ],
             "visible_size": [
-              450,
-              510
+              418,
+              509
             ],
             "component": {
-              "component_area": 55077,
+              "component_area": 53392,
               "component_bbox": [
                 11,
                 248,
-                344,
-                626
+                321,
+                625
               ],
               "discarded_components": 1
             },
@@ -6931,18 +6931,18 @@
               344,
               724
             ],
-            "sha256": "b803814c77d7dffba03f7a715c953ca39811b0d5866e8bfbafa1954b68d0e699"
+            "sha256": "51c4e351e322a72e121b1b7eb3da6ace33d132c495db41773c022f6590874074"
           },
           {
             "subject_box": [
-              0,
+              4,
               86,
-              444,
+              440,
               653
             ],
             "output_bbox": [
               28,
-              191,
+              140,
               484,
               742
             ],
@@ -6952,17 +6952,17 @@
             ],
             "visible_size": [
               456,
-              551
+              602
             ],
             "component": {
-              "component_area": 73910,
+              "component_area": 71995,
               "component_bbox": [
-                18,
+                27,
                 112,
-                444,
+                417,
                 627
               ],
-              "discarded_components": 3
+              "discarded_components": 2
             },
             "frame": 2,
             "nominal_cell": [
@@ -6977,18 +6977,18 @@
               714,
               724
             ],
-            "sha256": "d935b7a23dadbee8eae963f96c32e6b5a70bf6791d36647ed5c576dcb69d1830"
+            "sha256": "f8d7623983816eceb01f08a791f12644a1e9583f275716a70c7c874696714f2b"
           },
           {
             "subject_box": [
-              0,
+              4,
               223,
-              508,
+              504,
               647
             ],
             "output_bbox": [
               28,
-              397,
+              348,
               484,
               742
             ],
@@ -6998,17 +6998,17 @@
             ],
             "visible_size": [
               456,
-              345
+              394
             ],
             "component": {
-              "component_area": 88168,
+              "component_area": 84639,
               "component_bbox": [
-                0,
+                31,
                 242,
-                508,
+                477,
                 628
               ],
-              "discarded_components": 10
+              "discarded_components": 7
             },
             "frame": 3,
             "nominal_cell": [
@@ -7023,18 +7023,18 @@
               1136,
               724
             ],
-            "sha256": "483ab93c19ae633877aa1ce3de794f91ac89ce9c16d1c34a46487001d24735b1"
+            "sha256": "325eb8c29a93c6434590592a3c735beeb305c6fec5d2d173ae5e1f6d240a3305"
           },
           {
             "subject_box": [
-              0,
+              4,
               277,
-              508,
-              644
+              504,
+              643
             ],
             "output_bbox": [
               28,
-              443,
+              403,
               484,
               742
             ],
@@ -7044,17 +7044,17 @@
             ],
             "visible_size": [
               456,
-              299
+              339
             ],
             "component": {
-              "component_area": 103714,
+              "component_area": 94233,
               "component_bbox": [
-                0,
+                31,
                 294,
-                508,
-                627
+                477,
+                626
               ],
-              "discarded_components": 8
+              "discarded_components": 2
             },
             "frame": 4,
             "nominal_cell": [
@@ -7069,18 +7069,18 @@
               1552,
               724
             ],
-            "sha256": "b0a75cdbfbfca3144cb33cc6d3953e18133ccb1bc5cf61f0f0f7f77f7a69cc71"
+            "sha256": "8e878fee29154f3b4d6cada5ca44fc0476cefa32077287a53fd30b5d79ccca5a"
           },
           {
             "subject_box": [
-              8,
+              10,
               85,
-              451,
+              446,
               655
             ],
             "output_bbox": [
-              29,
-              177,
+              28,
+              136,
               484,
               742
             ],
@@ -7089,18 +7089,18 @@
               768
             ],
             "visible_size": [
-              455,
-              565
+              456,
+              606
             ],
             "component": {
-              "component_area": 101735,
+              "component_area": 99670,
               "component_bbox": [
                 33,
                 111,
-                451,
+                423,
                 629
               ],
-              "discarded_components": 14
+              "discarded_components": 15
             },
             "frame": 5,
             "nominal_cell": [
@@ -7115,19 +7115,19 @@
               1916,
               724
             ],
-            "sha256": "18783f6da9e85e1e05894b9f11709f758b3be2f0f19cec0d9bb80f44c421d659"
+            "sha256": "e537e1b94a2e2793c2cfce1e9efb3f28ded2617e84d035c53bad80f72250d7a6"
           },
           {
             "subject_box": [
-              0,
+              5,
               241,
               330,
               647
             ],
             "output_bbox": [
-              36,
+              51,
               242,
-              476,
+              460,
               742
             ],
             "output_size": [
@@ -7135,18 +7135,18 @@
               768
             ],
             "visible_size": [
-              440,
+              409,
               500
             ],
             "component": {
-              "component_area": 52774,
+              "component_area": 51909,
               "component_bbox": [
-                0,
+                23,
                 259,
                 326,
                 629
               ],
-              "discarded_components": 5
+              "discarded_components": 3
             },
             "frame": 6,
             "nominal_cell": [
@@ -7161,7 +7161,7 @@
               2172,
               724
             ],
-            "sha256": "a4287f2df6ef5390e2103a7e585dd4239b28841b20fc203a3a8132c9151558a5"
+            "sha256": "4d5ee4bd1bed6d69b7abcd6e19fcfe9e15290f2b139e8318f597dcf3f50bacda"
           }
         ]
       }
