@@ -112,12 +112,36 @@ async function run(name,type){
     if(!home.legacyMarksHidden)throw new Error('legacy currency pill is visually exposed beside live Home HUD');
 
     await launchMode(page,'road');
+    const forgeReadyName=await page.evaluate(()=>{
+      const supported=new Set(['Crimson','Sub-Zero','Lebee','Senku','Tyler']);
+      const s=globalThis.eval('S');
+      const names=(Array.isArray(s?.pairs)?s.pairs:[]).flatMap(pair=>Array.isArray(pair?.units)?pair.units:[]).filter(unit=>unit&&unit.name&&unit.name!=='—').map(unit=>unit.name);
+      const name=names.find(unit=>supported.has(unit));
+      if(!name)throw new Error('Road smoke could not find a Forge-routable deployed fighter');
+      const state=window.BlazingUnitProgression.getState(),unit=state.units?.[name];
+      if(!unit)throw new Error(`Road smoke progression state missing ${name}`);
+      Object.assign(unit,{level:9,xp:0,awakening:0,copies:1,shiny:false});
+      window.BlazingUnitProgression.save(state);
+      return name;
+    });
     const road=await win(page);
     if(!road.victory||road.reward?.amount!==100||road.reward?.balance!==100||road.reward?.currency!=='BLAZING COINS')throw new Error(`Road reward incorrect: ${JSON.stringify(road)}`);
     if(road.xp?.amount!==650||road.xp?.units?.length!==6)throw new Error(`Road Battle XP incorrect: ${JSON.stringify(road.xp)}`);
     await page.locator('#bbMatchResults.active').waitFor({state:'visible',timeout:5000});
     const roadResult=await page.locator('#bbMatchResults').innerText();
-    if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BLAZING COINS/.test(roadResult)||!/\+650 XP/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
+    if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BLAZING COINS/.test(roadResult)||!/\+650 XP/.test(roadResult)||!/OPEN FORGE/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
+    const progressionResult=await page.evaluate(()=>{
+      const box=document.getElementById('bbResultsXp');
+      return {
+        ready:box?.dataset.forgeReady||'',
+        rows:box?.querySelectorAll('[data-progression-unit]').length||0,
+        readyRows:box?.querySelectorAll('.bb-results-xp-unit.ready').length||0,
+        text:box?.innerText||'',
+        three:document.getElementById('bbResultsActions')?.classList.contains('three')||false
+      };
+    });
+    if(progressionResult.ready!==forgeReadyName||progressionResult.rows!==road.xp.units.length||progressionResult.readyRows!==1||!progressionResult.three)throw new Error(`Road progression bridge state incorrect: ${JSON.stringify(progressionResult)}`);
+    if(!progressionResult.text.toLowerCase().includes(forgeReadyName.toLowerCase())||!/AWAKENING READY/.test(progressionResult.text)||!/LV\.9\s*→\s*LV\.10/.test(progressionResult.text))throw new Error(`Road progression bridge content incorrect: ${progressionResult.text}`);
     const roadIntermission=await page.evaluate(()=>{
       const box=document.getElementById('bbResultsRoad');
       return {
@@ -133,8 +157,16 @@ async function run(name,type){
     if(!/ROAD PROGRESS/.test(roadIntermission.text)||!/1\s*\/\s*10/.test(roadIntermission.text)||!/NEXT ENCOUNTER/.test(roadIntermission.text)||!/STAGE 2/.test(roadIntermission.text)||!/MOONLIT RUINS/i.test(roadIntermission.text)||!/HP\s+\d+%/.test(roadIntermission.text)||!/CHAKRA\s+\d+\/\d+/.test(roadIntermission.text))throw new Error(`Road intermission content incorrect: ${roadIntermission.text}`);
     const roadNames=road.xp.units.map(item=>item.name);
     const roadLevels=await page.evaluate(names=>Object.fromEntries(names.map(unit=>[unit,window.BlazingUnitProgression.unit(unit)])),roadNames);
-    if(Object.values(roadLevels).some(unit=>unit.level!==5||unit.xp!==105))throw new Error(`Road XP did not accelerate fresh team to Lv5 + 105 XP: ${JSON.stringify(roadLevels)}`);
-    await page.getByRole('button',{name:'MAIN MENU'}).click();
+    for(const [name,unit] of Object.entries(roadLevels)){
+      if(name===forgeReadyName){
+        if(unit.level!==10||unit.xp!==0||unit.copies!==1||unit.awakening!==0)throw new Error(`Forge-ready Road fighter progression incorrect: ${JSON.stringify({name,unit})}`);
+      }else if(unit.level!==5||unit.xp!==105)throw new Error(`Road XP did not accelerate fresh fighter to Lv5 + 105 XP: ${JSON.stringify({name,unit})}`);
+    }
+    await page.getByRole('button',{name:'OPEN FORGE'}).click();
+    await page.locator('#resonanceScreen.active').waitFor({state:'visible',timeout:5000});
+    const forgeName=(await page.locator('#forgeName').innerText()).trim();
+    if(forgeName.toLowerCase()!==forgeReadyName.toLowerCase())throw new Error(`Battle result Forge route opened the wrong fighter: expected ${forgeReadyName}, got ${forgeName}`);
+    await page.locator('#forgeBack').click();
     await waitHome(page);
     const liveRoad=await page.evaluate(()=>{
       window.BlazingHomeLivePolish.apply();window.BlazingHomeV8.apply();window.BlazingHomeV9.apply();
@@ -166,7 +198,7 @@ async function run(name,type){
     if(JSON.stringify(progressionAfterReload)!==JSON.stringify(progressionBeforeReload))throw new Error('Battle XP progression did not persist after reload');
     await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset()});
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-    console.log(`Results browser smoke PASS (${name}): Home v9, live currencies, Road reward/intermission carry preview, Stage 2 menu return, Castle rewards, and persistent progression verified.`);
+    console.log(`Results browser smoke PASS (${name}): Home v9, live currencies, Road reward/intermission carry preview, battle-to-Forge progression routing, Stage 2 menu return, Castle rewards, and persistent progression verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
