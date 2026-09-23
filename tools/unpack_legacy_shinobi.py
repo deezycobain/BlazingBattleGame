@@ -318,6 +318,22 @@ def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path):
             expanded = image.crop((ex_left, ex_top, ex_right, ex_bottom))
             core = (left-ex_left, top-ex_top, right-ex_left, bottom-ex_top)
 
+            # Hard spatial guard around the content-aware cell. This severs rare
+            # generated effects that physically connect one pose to its neighbor
+            # (Killua lightning was the clearest example) before component tracing.
+            # A small recovery margin keeps hair, feet and weapons that cross the
+            # detected gutter by a handful of pixels.
+            guard_x = max(10, round(cell_w * 0.035))
+            guard_y = max(10, round(cell_h * 0.025))
+            gx0 = max(0, core[0] - guard_x)
+            gy0 = max(0, core[1] - guard_y)
+            gx1 = min(expanded.width, core[2] + guard_x)
+            gy1 = min(expanded.height, core[3] + guard_y)
+            original_alpha = expanded.getchannel("A")
+            guarded_alpha = Image.new("L", expanded.size, 0)
+            guarded_alpha.paste(original_alpha.crop((gx0, gy0, gx1, gy1)), (gx0, gy0))
+            expanded.putalpha(guarded_alpha)
+
             cleaned, subject_box, component_audit = isolate_subject(expanded, core)
             if not subject_box or cleaned is None:
                 raise RuntimeError(f"{unit_id} {kind} frame {index+1}: subject isolation failed")
