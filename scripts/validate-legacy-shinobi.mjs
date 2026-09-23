@@ -27,6 +27,7 @@ for(const id of ids){
  const unit=await readJson('assets/characters/'+id+'/data/unit.json');
  if(unit.id!==id)throw new Error('Legacy Shinobi validator: id mismatch '+id);
  if(id==='jackie_chan'&&unit.display_name!=='Wong Fei-Hung')throw new Error('Legacy Shinobi validator: Drunken Master fighter must display as Wong Fei-Hung');
+ if(id==='jackie_chan'&&(unit.animation_standard?.animations?.idle?.frame_ms!==220||unit.animation_standard?.animations?.basic_attack?.frame_ms!==165))throw new Error('Legacy Shinobi validator: Wong Fei-Hung Drunken Master cadence must remain 220ms idle / 165ms basic');
  if(!unit.collection?.inventory_visible||!unit.collection?.battle_ready)throw new Error('Legacy Shinobi validator: collection flags invalid '+id);
  if(unit.readiness?.jutsu!==false||unit.assets?.vfx!==null)throw new Error('Legacy Shinobi validator: jutsu/VFX must remain pending '+id);
  if(unit.animation_standard?.version!=='legacy-shinobi-v2-audited')throw new Error('Legacy Shinobi validator: old animation standard '+id);
