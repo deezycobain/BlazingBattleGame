@@ -81,7 +81,7 @@
                 369,
                 686
               ],
-              "discarded_components": 4
+              "discarded_components": 1
             },
             "frame": 1,
             "nominal_cell": [
@@ -100,15 +100,15 @@
           },
           {
             "subject_box": [
-              5,
+              15,
               4,
               403,
               718
             ],
             "output_bbox": [
-              63,
+              68,
               38,
-              449,
+              443,
               742
             ],
             "output_size": [
@@ -116,19 +116,19 @@
               768
             ],
             "visible_size": [
-              386,
+              375,
               704
             ],
             "component": {
-              "component_area": 119875,
+              "component_area": 119625,
               "selected_core_hits": 29897,
               "component_bbox": [
-                26,
+                36,
                 36,
                 382,
                 686
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 2,
             "nominal_cell": [
@@ -143,7 +143,7 @@
               760,
               724
             ],
-            "sha256": "f71c951a24970b130d6eebead5bace03d7da5ae5abf400ba16054236d794fbde"
+            "sha256": "4ff2dc81714d50fc8d2418facc59119aef7ef83851328f8cced1b0623a8724d9"
           },
           {
             "subject_box": [
@@ -175,7 +175,7 @@
                 419,
                 686
               ],
-              "discarded_components": 6
+              "discarded_components": 2
             },
             "frame": 3,
             "nominal_cell": [
@@ -194,15 +194,15 @@
           },
           {
             "subject_box": [
-              4,
+              16,
               5,
-              415,
+              414,
               718
             ],
             "output_bbox": [
-              57,
+              63,
               38,
-              455,
+              449,
               742
             ],
             "output_size": [
@@ -210,19 +210,19 @@
               768
             ],
             "visible_size": [
-              398,
+              386,
               704
             ],
             "component": {
-              "component_area": 122788,
+              "component_area": 122163,
               "selected_core_hits": 30528,
               "component_bbox": [
-                26,
+                37,
                 37,
                 393,
                 686
               ],
-              "discarded_components": 4
+              "discarded_components": 1
             },
             "frame": 4,
             "nominal_cell": [
@@ -237,19 +237,19 @@
               1498,
               724
             ],
-            "sha256": "76e7479c7c173a2402559eaf0c611d7de7cc58bf56dc15109ca9c430524e6719"
+            "sha256": "04b43592d4b4cdb2267320caa505ce276626083d3b67730f6537279baa389dcb"
           },
           {
             "subject_box": [
-              5,
+              15,
               8,
-              424,
+              420,
               718
             ],
             "output_bbox": [
-              51,
+              59,
               38,
-              460,
+              452,
               742
             ],
             "output_size": [
@@ -257,19 +257,19 @@
               768
             ],
             "visible_size": [
-              409,
+              393,
               704
             ],
             "component": {
-              "component_area": 122761,
+              "component_area": 122125,
               "selected_core_hits": 30468,
               "component_bbox": [
-                27,
+                37,
                 40,
-                402,
+                398,
                 686
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 5,
             "nominal_cell": [
@@ -284,19 +284,19 @@
               1855,
               724
             ],
-            "sha256": "2d8f84b84d1210d6bebe9f171af724325f22d74287239079398ba3b25fbb5f30"
+            "sha256": "3a8ac67e571529eaf601a364dd3c7fd80ea25972bc62e1f224a9d1a9f12500e4"
           },
           {
             "subject_box": [
-              6,
+              16,
               8,
               395,
               718
             ],
             "output_bbox": [
-              57,
+              62,
               38,
-              454,
+              449,
               742
             ],
             "output_size": [
@@ -304,19 +304,19 @@
               768
             ],
             "visible_size": [
-              397,
+              387,
               704
             ],
             "component": {
-              "component_area": 116648,
+              "component_area": 116448,
               "selected_core_hits": 29079,
               "component_bbox": [
-                28,
+                37,
                 40,
                 392,
                 686
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -331,7 +331,7 @@
               2172,
               724
             ],
-            "sha256": "ee45455072822ed2be7fa9c328c2d2eab25632e3ee8e1dfb8936a6486eb29f4e"
+            "sha256": "638bbcdbed6b78e2e7b6d0e59701782aaa1876197bf883d6488f50418a49ef5e"
           }
         ]
       },
@@ -378,7 +378,7 @@
                 327,
                 615
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -399,12 +399,12 @@
             "subject_box": [
               20,
               240,
-              444,
+              442,
               622
             ],
             "output_bbox": [
               29,
-              322,
+              320,
               484,
               742
             ],
@@ -414,18 +414,18 @@
             ],
             "visible_size": [
               455,
-              420
+              422
             ],
             "component": {
-              "component_area": 64928,
+              "component_area": 64919,
               "selected_core_hits": 16210,
               "component_bbox": [
                 43,
                 257,
-                421,
+                419,
                 605
               ],
-              "discarded_components": 5
+              "discarded_components": 4
             },
             "frame": 2,
             "nominal_cell": [
@@ -440,18 +440,18 @@
               749,
               724
             ],
-            "sha256": "a3f3aaaf4627062625f9f9dec7d8d514d81d736d1808d46c0dbf5cf2e80aa4c3"
+            "sha256": "b7e3bf4b80d2012d713262a9a7b9a82ea233dbd6198b3e17f03ed58cf28c87d3"
           },
           {
             "subject_box": [
-              5,
+              18,
               185,
-              483,
+              477,
               621
             ],
             "output_bbox": [
               28,
-              318,
+              300,
               484,
               742
             ],
@@ -461,18 +461,18 @@
             ],
             "visible_size": [
               456,
-              424
+              442
             ],
             "component": {
-              "component_area": 73912,
+              "component_area": 73517,
               "selected_core_hits": 18348,
               "component_bbox": [
-                31,
+                43,
                 205,
-                457,
+                452,
                 601
               ],
-              "discarded_components": 10
+              "discarded_components": 9
             },
             "frame": 3,
             "nominal_cell": [
@@ -487,7 +487,7 @@
               1158,
               724
             ],
-            "sha256": "f84308bfe46d3098712852116154069876d296138fa0e478c18ffa08c3386276"
+            "sha256": "538a4cf449c42eafa2fb55a8f8cdd51ed230bcdf1c91ebd99baa45fce933f77e"
           },
           {
             "subject_box": [
@@ -519,7 +519,7 @@
                 396,
                 632
               ],
-              "discarded_components": 13
+              "discarded_components": 9
             },
             "frame": 4,
             "nominal_cell": [
@@ -538,14 +538,14 @@
           },
           {
             "subject_box": [
-              5,
+              17,
               187,
               458,
               624
             ],
             "output_bbox": [
               28,
-              295,
+              282,
               484,
               742
             ],
@@ -555,18 +555,18 @@
             ],
             "visible_size": [
               456,
-              447
+              460
             ],
             "component": {
-              "component_area": 81105,
+              "component_area": 80477,
               "selected_core_hits": 20099,
               "component_bbox": [
-                29,
+                41,
                 207,
                 434,
                 604
               ],
-              "discarded_components": 15
+              "discarded_components": 13
             },
             "frame": 5,
             "nominal_cell": [
@@ -581,7 +581,7 @@
               1906,
               724
             ],
-            "sha256": "aff193660353671ea6250c927dfed57dece4e83e840b535fe38db4b74b503c76"
+            "sha256": "a6e1bce5ef8a872b347c747eeaa06659033a9f6251e52e9fed0a7ad624c96f23"
           },
           {
             "subject_box": [
@@ -613,7 +613,7 @@
                 339,
                 617
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 6,
             "nominal_cell": [
@@ -688,7 +688,7 @@
                 347,
                 691
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -735,7 +735,7 @@
                 399,
                 693
               ],
-              "discarded_components": 4
+              "discarded_components": 0
             },
             "frame": 2,
             "nominal_cell": [
@@ -782,7 +782,7 @@
                 360,
                 691
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -829,7 +829,7 @@
                 454,
                 691
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 4,
             "nominal_cell": [
@@ -876,7 +876,7 @@
                 373,
                 692
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 5,
             "nominal_cell": [
@@ -923,7 +923,7 @@
                 385,
                 691
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 6,
             "nominal_cell": [
@@ -959,13 +959,13 @@
             "subject_box": [
               0,
               99,
-              325,
+              316,
               649
             ],
             "output_bbox": [
-              59,
+              64,
               68,
-              453,
+              447,
               742
             ],
             "output_size": [
@@ -973,19 +973,19 @@
               768
             ],
             "visible_size": [
-              394,
+              383,
               674
             ],
             "component": {
-              "component_area": 77840,
+              "component_area": 77466,
               "selected_core_hits": 19353,
               "component_bbox": [
                 15,
                 124,
-                307,
+                299,
                 624
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -1000,7 +1000,7 @@
               330,
               724
             ],
-            "sha256": "13c5e107864f64d5891466b89229c91d35d8531764703592c3b097596aa3a18a"
+            "sha256": "309da645c70a1202beff8e8cbdad73dcd278f67a0aacf077c197339455f3c44f"
           },
           {
             "subject_box": [
@@ -1032,7 +1032,7 @@
                 504,
                 620
               ],
-              "discarded_components": 4
+              "discarded_components": 2
             },
             "frame": 2,
             "nominal_cell": [
@@ -1051,14 +1051,14 @@
           },
           {
             "subject_box": [
-              3,
+              14,
               173,
-              411,
+              400,
               642
             ],
             "output_bbox": [
               28,
-              207,
+              176,
               484,
               742
             ],
@@ -1068,18 +1068,18 @@
             ],
             "visible_size": [
               456,
-              535
+              566
             ],
             "component": {
-              "component_area": 73908,
+              "component_area": 72883,
               "selected_core_hits": 18156,
               "component_bbox": [
-                25,
+                35,
                 194,
-                389,
+                379,
                 621
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -1094,7 +1094,7 @@
               1128,
               724
             ],
-            "sha256": "2f35527b95dc2b742e73ba52e1b8bd5c4d37ba11f53fe543a89ba83913dd43d6"
+            "sha256": "6d30e71610993d0bed4faedcf061b799b797f15747c13e1150c5b3a4b99fd59d"
           },
           {
             "subject_box": [
@@ -1145,14 +1145,14 @@
           },
           {
             "subject_box": [
-              32,
+              33,
               124,
-              454,
+              442,
               655
             ],
             "output_bbox": [
               28,
-              156,
+              139,
               484,
               742
             ],
@@ -1162,18 +1162,18 @@
             ],
             "visible_size": [
               456,
-              586
+              603
             ],
             "component": {
-              "component_area": 80653,
+              "component_area": 79920,
               "selected_core_hits": 19958,
               "component_bbox": [
                 55,
                 148,
-                431,
+                420,
                 631
               ],
-              "discarded_components": 6
+              "discarded_components": 1
             },
             "frame": 5,
             "nominal_cell": [
@@ -1188,7 +1188,7 @@
               1905,
               724
             ],
-            "sha256": "9356df6e7da1f8dc769bbc0c85c23b37f6224ed9c56273622f4e787384986d88"
+            "sha256": "92c5dc935c3e77c4aefdbae9610690c5655dce3f6c8aa8d7933797282ea4ccf3"
           },
           {
             "subject_box": [
@@ -1295,7 +1295,7 @@
                 430,
                 656
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 1,
             "nominal_cell": [
@@ -1436,7 +1436,7 @@
                 433,
                 657
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 4,
             "nominal_cell": [
@@ -1456,55 +1456,8 @@
           {
             "subject_box": [
               38,
-              24,
+              28,
               465,
-              657
-            ],
-            "output_bbox": [
-              33,
-              38,
-              478,
-              742
-            ],
-            "output_size": [
-              512,
-              768
-            ],
-            "visible_size": [
-              445,
-              704
-            ],
-            "component": {
-              "component_area": 131062,
-              "selected_core_hits": 32776,
-              "component_bbox": [
-                61,
-                54,
-                442,
-                657
-              ],
-              "discarded_components": 3
-            },
-            "frame": 5,
-            "nominal_cell": [
-              434,
-              657,
-              836,
-              1254
-            ],
-            "expanded_cell": [
-              390,
-              597,
-              880,
-              1254
-            ],
-            "sha256": "30776449253c9f3caaee2b3a299a4fdbe359505519c47e356efa2b2fe603f160"
-          },
-          {
-            "subject_box": [
-              58,
-              27,
-              464,
               657
             ],
             "output_bbox": [
@@ -1522,15 +1475,62 @@
               704
             ],
             "component": {
-              "component_area": 130781,
+              "component_area": 131049,
+              "selected_core_hits": 32776,
+              "component_bbox": [
+                61,
+                58,
+                442,
+                657
+              ],
+              "discarded_components": 1
+            },
+            "frame": 5,
+            "nominal_cell": [
+              434,
+              657,
+              836,
+              1254
+            ],
+            "expanded_cell": [
+              390,
+              597,
+              880,
+              1254
+            ],
+            "sha256": "2571a64023bea108fd726c700d77cb4c81613e2ac65c4273cb96eb0b35fd65ee"
+          },
+          {
+            "subject_box": [
+              58,
+              28,
+              464,
+              657
+            ],
+            "output_bbox": [
+              31,
+              38,
+              481,
+              742
+            ],
+            "output_size": [
+              512,
+              768
+            ],
+            "visible_size": [
+              450,
+              704
+            ],
+            "component": {
+              "component_area": 130777,
               "selected_core_hits": 32710,
               "component_bbox": [
                 81,
-                57,
+                58,
                 464,
                 657
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -1545,7 +1545,7 @@
               1254,
               1254
             ],
-            "sha256": "0b7ad5a53b9594987d857e679adef51bada3b1a6bcc15a77e5887c64c003a5e2"
+            "sha256": "24af745054eac60ca5640a01b521b836e48a2d067b348013b670171c46dbb153"
           }
         ]
       },
@@ -1611,14 +1611,14 @@
           },
           {
             "subject_box": [
-              39,
+              40,
               140,
-              506,
+              492,
               645
             ],
             "output_bbox": [
               28,
-              241,
+              225,
               484,
               742
             ],
@@ -1628,18 +1628,18 @@
             ],
             "visible_size": [
               456,
-              501
+              517
             ],
             "component": {
-              "component_area": 104590,
+              "component_area": 104152,
               "selected_core_hits": 26030,
               "component_bbox": [
                 64,
                 163,
-                481,
+                468,
                 622
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 2,
             "nominal_cell": [
@@ -1654,7 +1654,7 @@
               884,
               690
             ],
-            "sha256": "4c23cac5e787a7dfcd82059f9daa6dc49ff3f274d552bb31501d133b4d1377c7"
+            "sha256": "186d85a3d7dd0d01728e7255fb588b9c0bb9569f4bf52858a7567f9c02c62c55"
           },
           {
             "subject_box": [
@@ -1686,7 +1686,7 @@
                 457,
                 622
               ],
-              "discarded_components": 6
+              "discarded_components": 5
             },
             "frame": 3,
             "nominal_cell": [
@@ -1707,12 +1707,12 @@
             "subject_box": [
               0,
               122,
-              462,
+              448,
               637
             ],
             "output_bbox": [
               28,
-              245,
+              229,
               484,
               742
             ],
@@ -1722,18 +1722,18 @@
             ],
             "visible_size": [
               456,
-              497
+              513
             ],
             "component": {
-              "component_area": 117659,
-              "selected_core_hits": 29481,
+              "component_area": 116707,
+              "selected_core_hits": 29423,
               "component_bbox": [
                 6,
                 145,
-                436,
+                423,
                 614
               ],
-              "discarded_components": 14
+              "discarded_components": 11
             },
             "frame": 4,
             "nominal_cell": [
@@ -1748,18 +1748,18 @@
               467,
               1254
             ],
-            "sha256": "f9ca78368018c3da3c7fd52f4936d52a96df8c2f58da6d43a51bf107aba340df"
+            "sha256": "fadb967c18b566e20486894fb43751fb8fd052082b4f37760c082a8f64d201f2"
           },
           {
             "subject_box": [
-              57,
+              58,
               129,
-              542,
+              527,
               639
             ],
             "output_bbox": [
               28,
-              253,
+              237,
               484,
               742
             ],
@@ -1769,18 +1769,18 @@
             ],
             "visible_size": [
               456,
-              489
+              505
             ],
             "component": {
-              "component_area": 106035,
+              "component_area": 105145,
               "selected_core_hits": 26518,
               "component_bbox": [
                 83,
                 152,
-                516,
+                502,
                 616
               ],
-              "discarded_components": 13
+              "discarded_components": 9
             },
             "frame": 5,
             "nominal_cell": [
@@ -1795,7 +1795,7 @@
               921,
               1254
             ],
-            "sha256": "119037d4b9a60c17db3ed3adb3aec754919d598f2a2891fffdc5d5a166fc88ed"
+            "sha256": "2e18758fcf9bbf356580d9d76731d69bbd19a073ccf6771aa28c68a77bf9b5ca"
           },
           {
             "subject_box": [
@@ -1827,7 +1827,7 @@
                 419,
                 614
               ],
-              "discarded_components": 5
+              "discarded_components": 2
             },
             "frame": 6,
             "nominal_cell": [
@@ -1949,7 +1949,7 @@
                 426,
                 652
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 2,
             "nominal_cell": [
@@ -1996,7 +1996,7 @@
                 419,
                 652
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -2043,7 +2043,7 @@
                 390,
                 655
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 4,
             "nominal_cell": [
@@ -2090,7 +2090,7 @@
                 421,
                 655
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 5,
             "nominal_cell": [
@@ -2137,7 +2137,7 @@
                 428,
                 655
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -2246,7 +2246,7 @@
                 431,
                 612
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 2,
             "nominal_cell": [
@@ -2312,14 +2312,14 @@
           },
           {
             "subject_box": [
-              1,
+              2,
               132,
-              394,
+              382,
               643
             ],
             "output_bbox": [
               28,
-              138,
+              118,
               484,
               742
             ],
@@ -2329,18 +2329,18 @@
             ],
             "visible_size": [
               456,
-              604
+              624
             ],
             "component": {
-              "component_area": 65871,
-              "selected_core_hits": 16264,
+              "component_area": 64878,
+              "selected_core_hits": 16244,
               "component_bbox": [
                 22,
                 155,
-                373,
+                362,
                 620
               ],
-              "discarded_components": 3
+              "discarded_components": 2
             },
             "frame": 4,
             "nominal_cell": [
@@ -2355,7 +2355,7 @@
               400,
               1254
             ],
-            "sha256": "02049c7f2bd75e74dc315ce9a642a700aa700a1a84e2394c33131d2ea14e44ed"
+            "sha256": "b29cd44fa6712f8504f3188161875df35e8589463a7b288710b66029d2793e95"
           },
           {
             "subject_box": [
@@ -2387,7 +2387,7 @@
                 577,
                 618
               ],
-              "discarded_components": 7
+              "discarded_components": 4
             },
             "frame": 5,
             "nominal_cell": [
@@ -2434,7 +2434,7 @@
                 384,
                 620
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 6,
             "nominal_cell": [
@@ -2483,13 +2483,13 @@
             "subject_box": [
               0,
               189,
-              326,
+              317,
               656
             ],
             "output_bbox": [
-              55,
+              61,
               168,
-              444,
+              449,
               742
             ],
             "output_size": [
@@ -2497,19 +2497,19 @@
               768
             ],
             "visible_size": [
-              389,
+              388,
               574
             ],
             "component": {
-              "component_area": 59549,
+              "component_area": 59271,
               "selected_core_hits": 14822,
               "component_bbox": [
                 11,
                 210,
-                308,
+                300,
                 635
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -2524,18 +2524,18 @@
               331,
               724
             ],
-            "sha256": "ced605a05912819b2298b3287e4b92a6a2d0da3da3b3acaa45f9591f5aa792b6"
+            "sha256": "380fd109cb14df1dfce5d86c8569a7055f2a1d6a76c69af6ed2bb96b4fd7a068"
           },
           {
             "subject_box": [
-              5,
+              17,
               209,
-              417,
+              416,
               655
             ],
             "output_bbox": [
-              45,
-              239,
+              32,
+              223,
               484,
               742
             ],
@@ -2544,14 +2544,14 @@
               768
             ],
             "visible_size": [
-              439,
-              503
+              452,
+              519
             ],
             "component": {
-              "component_area": 66540,
+              "component_area": 66304,
               "selected_core_hits": 16567,
               "component_bbox": [
-                27,
+                38,
                 229,
                 395,
                 635
@@ -2571,18 +2571,18 @@
               706,
               724
             ],
-            "sha256": "c23e07a9aeaf67a55f4cd85cd6276fa3ae4d13b16e946afd68dbf5fbb342b46e"
+            "sha256": "370c45719e8b8c10891b4dea2fdf3b555389a86f123eced21471a47ba131bff7"
           },
           {
             "subject_box": [
-              6,
-              203,
-              485,
-              656
+              19,
+              204,
+              484,
+              641
             ],
             "output_bbox": [
               28,
-              303,
+              306,
               484,
               742
             ],
@@ -2592,16 +2592,16 @@
             ],
             "visible_size": [
               456,
-              439
+              436
             ],
             "component": {
-              "component_area": 85616,
+              "component_area": 84391,
               "selected_core_hits": 21049,
               "component_bbox": [
-                32,
+                44,
                 224,
                 459,
-                635
+                621
               ],
               "discarded_components": 1
             },
@@ -2618,18 +2618,18 @@
               1126,
               724
             ],
-            "sha256": "65b58fb6f431806bef458666c7c50be67df6df328e439906f9140e551989e1d3"
+            "sha256": "2118ebd81845bb947bb718039e7a6737ab2712083dc04ed80a809fddebe8a58e"
           },
           {
             "subject_box": [
-              7,
+              21,
               239,
-              487,
+              486,
               641
             ],
             "output_bbox": [
               28,
-              352,
+              340,
               484,
               742
             ],
@@ -2639,13 +2639,13 @@
             ],
             "visible_size": [
               456,
-              390
+              402
             ],
             "component": {
-              "component_area": 89173,
+              "component_area": 88478,
               "selected_core_hits": 22090,
               "component_bbox": [
-                33,
+                46,
                 257,
                 461,
                 623
@@ -2665,19 +2665,19 @@
               1561,
               724
             ],
-            "sha256": "180721807b69c3666a4d58f8318cf32bae7a8d3c5054db2b40d466f64a3a85a6"
+            "sha256": "fadbfb2cfa049352887de092ce857f379d92c8e415c2a7314c65316663a7f894"
           },
           {
             "subject_box": [
-              4,
+              16,
               189,
-              434,
+              426,
               653
             ],
             "output_bbox": [
               28,
-              241,
-              483,
+              216,
+              484,
               742
             ],
             "output_size": [
@@ -2685,19 +2685,19 @@
               768
             ],
             "visible_size": [
-              455,
-              501
+              456,
+              526
             ],
             "component": {
-              "component_area": 81863,
+              "component_area": 80753,
               "selected_core_hits": 20157,
               "component_bbox": [
-                27,
+                38,
                 210,
-                411,
+                404,
                 632
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 5,
             "nominal_cell": [
@@ -2712,7 +2712,7 @@
               1915,
               724
             ],
-            "sha256": "20b0c06fb1f62566ca972edd2dc42c14e0aea240d99fe9bf5cc890979d244fa8"
+            "sha256": "28405bdfb2a14e3bc96396816271c54fe55524efb2aed25badff9acc21ecb194"
           },
           {
             "subject_box": [
@@ -2744,7 +2744,7 @@
                 322,
                 635
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -2806,7 +2806,7 @@
                 352,
                 707
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -2853,7 +2853,7 @@
                 394,
                 707
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 2,
             "nominal_cell": [
@@ -2900,7 +2900,7 @@
                 403,
                 707
               ],
-              "discarded_components": 4
+              "discarded_components": 1
             },
             "frame": 3,
             "nominal_cell": [
@@ -2919,15 +2919,15 @@
           },
           {
             "subject_box": [
-              5,
+              16,
               0,
-              379,
+              378,
               724
             ],
             "output_bbox": [
-              86,
+              91,
               38,
-              426,
+              421,
               742
             ],
             "output_size": [
@@ -2935,19 +2935,19 @@
               768
             ],
             "visible_size": [
-              340,
+              330,
               704
             ],
             "component": {
-              "component_area": 109694,
+              "component_area": 109310,
               "selected_core_hits": 27297,
               "component_bbox": [
-                25,
+                35,
                 15,
                 359,
                 707
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 4,
             "nominal_cell": [
@@ -2962,7 +2962,7 @@
               1483,
               724
             ],
-            "sha256": "00dc83dcd9930bcf8a61cdce0b322e125e051907cba9a2ff41546f46c3660979"
+            "sha256": "12a46e93b6c96992df1e220cb3c0010d0e15dc2e11edce004d7705566b9e377d"
           },
           {
             "subject_box": [
@@ -2994,7 +2994,7 @@
                 393,
                 707
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 5,
             "nominal_cell": [
@@ -3041,7 +3041,7 @@
                 393,
                 707
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 6,
             "nominal_cell": [
@@ -3116,7 +3116,7 @@
                 388,
                 711
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -3163,7 +3163,7 @@
                 402,
                 711
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 2,
             "nominal_cell": [
@@ -3210,7 +3210,7 @@
                 403,
                 710
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -3257,7 +3257,7 @@
                 401,
                 710
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 4,
             "nominal_cell": [
@@ -3413,7 +3413,7 @@
                 324,
                 629
               ],
-              "discarded_components": 1
+              "discarded_components": 2
             },
             "frame": 1,
             "nominal_cell": [
@@ -3432,14 +3432,14 @@
           },
           {
             "subject_box": [
-              6,
+              18,
               161,
-              413,
+              412,
               641
             ],
             "output_bbox": [
               28,
-              194,
+              177,
               484,
               742
             ],
@@ -3449,18 +3449,18 @@
             ],
             "visible_size": [
               456,
-              548
+              565
             ],
             "component": {
-              "component_area": 83560,
+              "component_area": 82978,
               "selected_core_hits": 20668,
               "component_bbox": [
-                28,
+                39,
                 183,
                 391,
                 619
               ],
-              "discarded_components": 4
+              "discarded_components": 2
             },
             "frame": 2,
             "nominal_cell": [
@@ -3475,19 +3475,19 @@
               741,
               724
             ],
-            "sha256": "9ba40868a7d1224750419209d6721ff7dfb4c8baaa962b6d0a5717cb7b898a81"
+            "sha256": "91b7f7eaaadce7afcd3cf3dba75e722e45647638129226b798c8a8977135d0ff"
           },
           {
             "subject_box": [
-              4,
-              153,
-              402,
-              652
+              15,
+              154,
+              391,
+              644
             ],
             "output_bbox": [
-              28,
-              162,
-              484,
+              29,
+              140,
+              483,
               742
             ],
             "output_size": [
@@ -3495,19 +3495,19 @@
               768
             ],
             "visible_size": [
-              456,
-              580
+              454,
+              602
             ],
             "component": {
-              "component_area": 70869,
+              "component_area": 69046,
               "selected_core_hits": 17215,
               "component_bbox": [
-                25,
+                35,
                 176,
-                381,
-                629
+                371,
+                622
               ],
-              "discarded_components": 0
+              "discarded_components": 1
             },
             "frame": 3,
             "nominal_cell": [
@@ -3522,18 +3522,18 @@
               1069,
               724
             ],
-            "sha256": "4bb5f9a1e38b743b8f798c4d47a8f898da54843efabd793fb6f5e7f8c64954fa"
+            "sha256": "3f889027223fa1d0eb068e7f7936862fbe0909f25263cc3221891f7f2022171b"
           },
           {
             "subject_box": [
-              7,
+              23,
               65,
-              530,
+              529,
               656
             ],
             "output_bbox": [
               28,
-              218,
+              200,
               484,
               742
             ],
@@ -3543,18 +3543,18 @@
             ],
             "visible_size": [
               456,
-              524
+              542
             ],
             "component": {
-              "component_area": 93453,
+              "component_area": 93039,
               "selected_core_hits": 23438,
               "component_bbox": [
-                35,
+                50,
                 92,
                 502,
                 629
               ],
-              "discarded_components": 14
+              "discarded_components": 9
             },
             "frame": 4,
             "nominal_cell": [
@@ -3569,19 +3569,19 @@
               1556,
               724
             ],
-            "sha256": "8369e3bd500bc5c17b59f57afe5b17ad443f0f552527cd2e2c83c755be359250"
+            "sha256": "e4deb8dae986657cfd49662dbfdd203a75a0da9a32c942cc23cabb8bc0735fc2"
           },
           {
             "subject_box": [
-              4,
+              15,
               160,
-              403,
-              654
+              392,
+              653
             ],
             "output_bbox": [
               28,
-              167,
-              484,
+              136,
+              483,
               742
             ],
             "output_size": [
@@ -3589,19 +3589,19 @@
               768
             ],
             "visible_size": [
-              456,
-              575
+              455,
+              606
             ],
             "component": {
-              "component_area": 80359,
+              "component_area": 78454,
               "selected_core_hits": 19537,
               "component_bbox": [
-                25,
+                35,
                 182,
-                382,
-                632
+                372,
+                631
               ],
-              "discarded_components": 7
+              "discarded_components": 4
             },
             "frame": 5,
             "nominal_cell": [
@@ -3616,7 +3616,7 @@
               1874,
               724
             ],
-            "sha256": "137ce0b40751bd42f7cedfb837ed0f45fe8e3db84285a9747c60a1fdc8659299"
+            "sha256": "b3543fbcd51747d76a818d364618ed56958192b4327645612994d667e2812cd0"
           },
           {
             "subject_box": [
@@ -3770,7 +3770,7 @@
                 429,
                 610
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 2,
             "nominal_cell": [
@@ -4067,7 +4067,7 @@
                 433,
                 631
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 2,
             "nominal_cell": [
@@ -4135,12 +4135,12 @@
             "subject_box": [
               0,
               114,
-              495,
+              481,
               641
             ],
             "output_bbox": [
               28,
-              265,
+              250,
               484,
               742
             ],
@@ -4150,18 +4150,18 @@
             ],
             "visible_size": [
               456,
-              477
+              492
             ],
             "component": {
-              "component_area": 114919,
+              "component_area": 112170,
               "selected_core_hits": 28056,
               "component_bbox": [
                 11,
                 138,
-                468,
+                454,
                 617
               ],
-              "discarded_components": 5
+              "discarded_components": 1
             },
             "frame": 4,
             "nominal_cell": [
@@ -4176,18 +4176,18 @@
               502,
               1254
             ],
-            "sha256": "02a0599ad2e10a44ea1da018b3b20fbcbf73aa13006f73188491cf9b02ab3b79"
+            "sha256": "def7a22f42f7787297c6ad92c253680034b54ceb107407b3d8e67cb314486f0e"
           },
           {
             "subject_box": [
-              5,
+              19,
               132,
-              516,
+              502,
               636
             ],
             "output_bbox": [
               28,
-              285,
+              257,
               484,
               742
             ],
@@ -4197,18 +4197,18 @@
             ],
             "visible_size": [
               456,
-              457
+              485
             ],
             "component": {
-              "component_area": 111121,
+              "component_area": 107208,
               "selected_core_hits": 26671,
               "component_bbox": [
-                32,
+                45,
                 155,
-                489,
+                476,
                 613
               ],
-              "discarded_components": 3
+              "discarded_components": 0
             },
             "frame": 5,
             "nominal_cell": [
@@ -4223,7 +4223,7 @@
               926,
               1254
             ],
-            "sha256": "9f443171ce8787785a51ad29026802b4d314a956c7a9eb3549b887c579a1c0ec"
+            "sha256": "0ac26771278a14eb918ed16ba131ab0fe28bcf4731b3bd6cb7fafe299b9224a1"
           },
           {
             "subject_box": [
@@ -4255,7 +4255,7 @@
                 411,
                 619
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -4330,7 +4330,7 @@
                 341,
                 615
               ],
-              "discarded_components": 3
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -4377,7 +4377,7 @@
                 421,
                 615
               ],
-              "discarded_components": 3
+              "discarded_components": 0
             },
             "frame": 2,
             "nominal_cell": [
@@ -4424,7 +4424,7 @@
                 415,
                 615
               ],
-              "discarded_components": 3
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -4471,7 +4471,7 @@
                 342,
                 678
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 4,
             "nominal_cell": [
@@ -4518,7 +4518,7 @@
                 386,
                 678
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 5,
             "nominal_cell": [
@@ -4565,7 +4565,7 @@
                 431,
                 678
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 6,
             "nominal_cell": [
@@ -4627,7 +4627,7 @@
                 373,
                 625
               ],
-              "discarded_components": 3
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -4674,7 +4674,7 @@
                 425,
                 624
               ],
-              "discarded_components": 11
+              "discarded_components": 9
             },
             "frame": 2,
             "nominal_cell": [
@@ -4742,12 +4742,12 @@
             "subject_box": [
               0,
               134,
-              385,
+              374,
               655
             ],
             "output_bbox": [
               28,
-              122,
+              104,
               484,
               742
             ],
@@ -4757,18 +4757,18 @@
             ],
             "visible_size": [
               456,
-              620
+              638
             ],
             "component": {
-              "component_area": 96164,
+              "component_area": 93779,
               "selected_core_hits": 23434,
               "component_bbox": [
                 16,
                 158,
-                364,
+                354,
                 631
               ],
-              "discarded_components": 11
+              "discarded_components": 8
             },
             "frame": 4,
             "nominal_cell": [
@@ -4783,18 +4783,18 @@
               391,
               1254
             ],
-            "sha256": "7e19c0b46335d756c90d5c319cae9822dde8484c4301e89d2df902db20607505"
+            "sha256": "5ce7141d2601cb7cb7f8ddf6f23a8f72ba742019154d37ac06069a3f7efed7e2"
           },
           {
             "subject_box": [
-              139,
+              140,
               130,
-              616,
+              599,
               655
             ],
             "output_bbox": [
               28,
-              230,
+              210,
               484,
               742
             ],
@@ -4804,18 +4804,18 @@
             ],
             "visible_size": [
               456,
-              512
+              532
             ],
             "component": {
-              "component_area": 83091,
+              "component_area": 82303,
               "selected_core_hits": 20568,
               "component_bbox": [
                 165,
                 154,
-                590,
+                574,
                 631
               ],
-              "discarded_components": 26
+              "discarded_components": 19
             },
             "frame": 5,
             "nominal_cell": [
@@ -4830,7 +4830,7 @@
               924,
               1254
             ],
-            "sha256": "fdf4538e45bfa25ededbe84e02a9ceab28f7b0a8896f8695b7856a60dd2158a6"
+            "sha256": "ee97220391516adaf11ecdd0a2f2194c638a575ee5cadb34d2d9c2e4fb6ecf8e"
           },
           {
             "subject_box": [
@@ -4862,7 +4862,7 @@
                 414,
                 631
               ],
-              "discarded_components": 9
+              "discarded_components": 5
             },
             "frame": 6,
             "nominal_cell": [
@@ -4937,7 +4937,7 @@
                 345,
                 689
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -4984,7 +4984,7 @@
                 378,
                 690
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 2,
             "nominal_cell": [
@@ -5031,7 +5031,7 @@
                 376,
                 689
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -5172,7 +5172,7 @@
                 393,
                 690
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 6,
             "nominal_cell": [
@@ -5234,7 +5234,7 @@
                 324,
                 636
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -5300,14 +5300,14 @@
           },
           {
             "subject_box": [
-              18,
+              19,
               149,
-              443,
+              431,
               659
             ],
             "output_bbox": [
               28,
-              184,
+              167,
               484,
               742
             ],
@@ -5317,18 +5317,18 @@
             ],
             "visible_size": [
               456,
-              558
+              575
             ],
             "component": {
-              "component_area": 64783,
+              "component_area": 63896,
               "selected_core_hits": 15951,
               "component_bbox": [
                 41,
                 172,
-                420,
+                409,
                 636
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 3,
             "nominal_cell": [
@@ -5343,7 +5343,7 @@
               1086,
               724
             ],
-            "sha256": "2e88c106371cb267a42e4f5347f063678a1fb737c716165b2dc007c4a5075743"
+            "sha256": "3fc7b5f2025aca7d63da7e9a7e60c6a7b1c06c21c886542cc13216bf0c9c9bf3"
           },
           {
             "subject_box": [
@@ -5375,7 +5375,7 @@
                 502,
                 636
               ],
-              "discarded_components": 3
+              "discarded_components": 2
             },
             "frame": 4,
             "nominal_cell": [
@@ -5394,15 +5394,15 @@
           },
           {
             "subject_box": [
-              4,
+              14,
               148,
-              392,
+              382,
               659
             ],
             "output_bbox": [
-              28,
-              129,
-              484,
+              34,
+              114,
+              477,
               742
             ],
             "output_size": [
@@ -5410,19 +5410,19 @@
               768
             ],
             "visible_size": [
-              456,
-              613
+              443,
+              628
             ],
             "component": {
-              "component_area": 68119,
+              "component_area": 67510,
               "selected_core_hits": 16833,
               "component_bbox": [
-                25,
+                34,
                 171,
-                371,
+                362,
                 636
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 5,
             "nominal_cell": [
@@ -5437,7 +5437,7 @@
               1859,
               724
             ],
-            "sha256": "ef39a66987381d5ea2ad23fd8d4de42a162f2828886485bfabfa79428aef7526"
+            "sha256": "c82dc60206463e8cb85f27aa13885d8213a160b96bba5976052aabde9f329872"
           },
           {
             "subject_box": [
@@ -5469,7 +5469,7 @@
                 354,
                 636
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -5544,7 +5544,7 @@
                 358,
                 621
               ],
-              "discarded_components": 3
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -5591,7 +5591,7 @@
                 377,
                 620
               ],
-              "discarded_components": 2
+              "discarded_components": 0
             },
             "frame": 2,
             "nominal_cell": [
@@ -5638,7 +5638,7 @@
                 359,
                 621
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -5685,7 +5685,7 @@
                 383,
                 676
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 4,
             "nominal_cell": [
@@ -5732,7 +5732,7 @@
                 379,
                 676
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 5,
             "nominal_cell": [
@@ -5779,7 +5779,7 @@
                 358,
                 676
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 6,
             "nominal_cell": [
@@ -5888,7 +5888,7 @@
                 412,
                 647
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 2,
             "nominal_cell": [
@@ -5956,13 +5956,13 @@
             "subject_box": [
               0,
               128,
-              533,
+              525,
               610
             ],
             "output_bbox": [
               28,
-              343,
-              483,
+              337,
+              484,
               742
             ],
             "output_size": [
@@ -5970,19 +5970,19 @@
               768
             ],
             "visible_size": [
-              455,
-              399
+              456,
+              405
             ],
             "component": {
-              "component_area": 94877,
+              "component_area": 94647,
               "selected_core_hits": 23647,
               "component_bbox": [
                 2,
                 150,
-                503,
+                495,
                 588
               ],
-              "discarded_components": 9
+              "discarded_components": 5
             },
             "frame": 4,
             "nominal_cell": [
@@ -5997,18 +5997,18 @@
               547,
               1254
             ],
-            "sha256": "273cb0510123815e6de9e1371b22ad2703979e11a8ff9ddb95c902b550eed23a"
+            "sha256": "f4c18b53977ef7b203442eb6c610dfaa3f477fa8f89a3bbf06f3d3ee2eb74864"
           },
           {
             "subject_box": [
-              4,
+              17,
               44,
-              449,
+              436,
               600
             ],
             "output_bbox": [
               28,
-              161,
+              127,
               484,
               742
             ],
@@ -6018,18 +6018,18 @@
             ],
             "visible_size": [
               456,
-              581
+              615
             ],
             "component": {
-              "component_area": 111402,
+              "component_area": 107719,
               "selected_core_hits": 26816,
               "component_bbox": [
-                28,
+                39,
                 69,
-                425,
+                414,
                 575
               ],
-              "discarded_components": 13
+              "discarded_components": 9
             },
             "frame": 5,
             "nominal_cell": [
@@ -6044,7 +6044,7 @@
               905,
               1254
             ],
-            "sha256": "fedab6aafabf0bac639ff248df643e3c3702f6d7238191d1e494581f3f76ea18"
+            "sha256": "c75b0e347c9aaa0344354ee0a006de54798d75e2f090504c68a066959dd92b8b"
           },
           {
             "subject_box": [
@@ -6076,7 +6076,7 @@
                 419,
                 593
               ],
-              "discarded_components": 7
+              "discarded_components": 6
             },
             "frame": 6,
             "nominal_cell": [
@@ -6151,7 +6151,7 @@
                 434,
                 619
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -6198,7 +6198,7 @@
                 426,
                 618
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 2,
             "nominal_cell": [
@@ -6245,7 +6245,7 @@
                 456,
                 618
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 3,
             "nominal_cell": [
@@ -6292,7 +6292,7 @@
                 434,
                 678
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 4,
             "nominal_cell": [
@@ -6339,7 +6339,7 @@
                 425,
                 678
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 5,
             "nominal_cell": [
@@ -6386,7 +6386,7 @@
                 456,
                 678
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 6,
             "nominal_cell": [
@@ -6448,7 +6448,7 @@
                 344,
                 598
               ],
-              "discarded_components": 1
+              "discarded_components": 0
             },
             "frame": 1,
             "nominal_cell": [
@@ -6495,7 +6495,7 @@
                 458,
                 598
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 2,
             "nominal_cell": [
@@ -6514,15 +6514,15 @@
           },
           {
             "subject_box": [
-              220,
-              306,
-              257,
-              338
+              23,
+              157,
+              531,
+              615
             ],
             "output_bbox": [
-              242,
-              720,
-              269,
+              28,
+              339,
+              484,
               742
             ],
             "output_size": [
@@ -6530,19 +6530,19 @@
               768
             ],
             "visible_size": [
-              27,
-              22
+              456,
+              403
             ],
             "component": {
-              "component_area": 224,
+              "component_area": 70164,
               "selected_core_hits": 17459,
               "component_bbox": [
-                228,
-                314,
-                249,
-                330
+                51,
+                178,
+                522,
+                594
               ],
-              "discarded_components": 6
+              "discarded_components": 5
             },
             "frame": 3,
             "nominal_cell": [
@@ -6557,18 +6557,18 @@
               1254,
               690
             ],
-            "sha256": "362cfb0a68d80df74d0b7e465c6109496359ca1507fc157e010aa75775dc8e6f"
+            "sha256": "d0baa1f5c86d6889a62a3fab398a3a6088b2c1d2f2f0e4991b3c014a2839a9a4"
           },
           {
             "subject_box": [
               0,
               130,
-              407,
+              395,
               632
             ],
             "output_bbox": [
               29,
-              193,
+              177,
               484,
               742
             ],
@@ -6578,15 +6578,15 @@
             ],
             "visible_size": [
               455,
-              549
+              565
             ],
             "component": {
-              "component_area": 68943,
-              "selected_core_hits": 17904,
+              "component_area": 68804,
+              "selected_core_hits": 17214,
               "component_bbox": [
                 5,
                 153,
-                384,
+                373,
                 609
               ],
               "discarded_components": 5
@@ -6604,7 +6604,7 @@
               412,
               1254
             ],
-            "sha256": "b15ccb910112305578d40803889816c88fb11873d26f29fed7f14f0cbb678baf"
+            "sha256": "eee18544a953d5dce0ab074f3e9d14d3d561e53ccf7782bfcaa8e4ac8599ff9f"
           },
           {
             "subject_box": [
@@ -6636,7 +6636,7 @@
                 557,
                 613
               ],
-              "discarded_components": 8
+              "discarded_components": 4
             },
             "frame": 5,
             "nominal_cell": [
@@ -6777,15 +6777,15 @@
           },
           {
             "subject_box": [
-              4,
+              15,
               37,
-              417,
+              406,
               704
             ],
             "output_bbox": [
-              42,
+              53,
               38,
-              470,
+              458,
               742
             ],
             "output_size": [
@@ -6793,19 +6793,19 @@
               768
             ],
             "visible_size": [
-              428,
+              405,
               704
             ],
             "component": {
-              "component_area": 95688,
+              "component_area": 94978,
               "selected_core_hits": 23714,
               "component_bbox": [
-                26,
+                36,
                 67,
-                395,
+                385,
                 674
               ],
-              "discarded_components": 3
+              "discarded_components": 2
             },
             "frame": 2,
             "nominal_cell": [
@@ -6820,19 +6820,19 @@
               761,
               724
             ],
-            "sha256": "b495f2c86ead61583ced443b7985e052f29b7e3e9885d6afe7805cf811616357"
+            "sha256": "20f64c0bad23306c3cb9b1fdc4214632f57c552ad5a70489274773cc4b801083"
           },
           {
             "subject_box": [
-              7,
+              15,
               50,
-              431,
+              420,
               705
             ],
             "output_bbox": [
-              32,
+              42,
               38,
-              479,
+              469,
               742
             ],
             "output_size": [
@@ -6840,19 +6840,19 @@
               768
             ],
             "visible_size": [
-              447,
+              427,
               704
             ],
             "component": {
-              "component_area": 95883,
+              "component_area": 95571,
               "selected_core_hits": 23873,
               "component_bbox": [
-                30,
+                37,
                 80,
-                408,
+                398,
                 675
               ],
-              "discarded_components": 4
+              "discarded_components": 2
             },
             "frame": 3,
             "nominal_cell": [
@@ -6867,19 +6867,19 @@
               1119,
               724
             ],
-            "sha256": "4120d192f7008ad626e0f95da36f5d8ed8888872b847725d4736181a4958cda8"
+            "sha256": "6a26a9251c81d98d9041d5df6a8fd88a42bf0f22f1c97c332b22f96a823371a9"
           },
           {
             "subject_box": [
-              5,
+              16,
               49,
-              428,
+              416,
               705
             ],
             "output_bbox": [
-              33,
+              44,
               38,
-              478,
+              467,
               742
             ],
             "output_size": [
@@ -6887,19 +6887,19 @@
               768
             ],
             "visible_size": [
-              445,
+              423,
               704
             ],
             "component": {
-              "component_area": 96649,
+              "component_area": 96201,
               "selected_core_hits": 24033,
               "component_bbox": [
-                28,
+                37,
                 79,
-                405,
+                395,
                 675
               ],
-              "discarded_components": 4
+              "discarded_components": 3
             },
             "frame": 4,
             "nominal_cell": [
@@ -6914,19 +6914,19 @@
               1473,
               724
             ],
-            "sha256": "9f0a606e5cce4d165aceb98a5611bc9274ff5d28e17a4a571ec0dbab28d7a3b7"
+            "sha256": "9c8d8023ec80da7a27eefd0fb4f6bb08a88a8809cfef5ec94955693e83653b82"
           },
           {
             "subject_box": [
-              4,
+              15,
               47,
-              430,
+              419,
               705
             ],
             "output_bbox": [
-              32,
+              44,
               38,
-              479,
+              468,
               742
             ],
             "output_size": [
@@ -6934,19 +6934,19 @@
               768
             ],
             "visible_size": [
-              447,
+              424,
               704
             ],
             "component": {
-              "component_area": 95048,
+              "component_area": 94611,
               "selected_core_hits": 23603,
               "component_bbox": [
-                27,
+                37,
                 77,
-                407,
+                397,
                 675
               ],
-              "discarded_components": 3
+              "discarded_components": 2
             },
             "frame": 5,
             "nominal_cell": [
@@ -6961,7 +6961,7 @@
               1829,
               724
             ],
-            "sha256": "35c3fbdcec6c9d8d0e0f003c6e4cd5964289f26fd1c6faef7a72fa1ea94a5a4e"
+            "sha256": "0ff37eddd13cb2d6ae59e2f40266dc3a4bc4da69bf5f2e00661656d8bdab494c"
           },
           {
             "subject_box": [
@@ -6993,7 +6993,7 @@
                 418,
                 675
               ],
-              "discarded_components": 3
+              "discarded_components": 1
             },
             "frame": 6,
             "nominal_cell": [
@@ -7029,13 +7029,13 @@
             "subject_box": [
               0,
               229,
-              340,
+              330,
               644
             ],
             "output_bbox": [
-              47,
+              53,
               233,
-              465,
+              459,
               742
             ],
             "output_size": [
@@ -7043,16 +7043,16 @@
               768
             ],
             "visible_size": [
-              418,
+              406,
               509
             ],
             "component": {
-              "component_area": 53392,
+              "component_area": 52869,
               "selected_core_hits": 13224,
               "component_bbox": [
                 11,
                 248,
-                321,
+                312,
                 625
               ],
               "discarded_components": 1
@@ -7070,18 +7070,18 @@
               344,
               724
             ],
-            "sha256": "bd84a70597f2e78f403bcad15692bcf96d5c7af4d010a82d9e839ec88eedd4f5"
+            "sha256": "3ab49a7dcc0b36bb674a66655755949ce6ce4904b88dac09bd130eb176cd0bfc"
           },
           {
             "subject_box": [
-              4,
+              16,
               86,
-              440,
+              428,
               653
             ],
             "output_bbox": [
               28,
-              140,
+              104,
               484,
               742
             ],
@@ -7091,18 +7091,18 @@
             ],
             "visible_size": [
               456,
-              602
+              638
             ],
             "component": {
-              "component_area": 71995,
+              "component_area": 71020,
               "selected_core_hits": 17741,
               "component_bbox": [
-                27,
+                38,
                 112,
-                417,
+                406,
                 627
               ],
-              "discarded_components": 2
+              "discarded_components": 1
             },
             "frame": 2,
             "nominal_cell": [
@@ -7117,18 +7117,18 @@
               714,
               724
             ],
-            "sha256": "dc4a426f0452ea2e3a8d5dd2cd72f07ddb45ac20f238bb7ca9b31e5a5418cda9"
+            "sha256": "874fa9ce27737f2e2700b224961234df3c5f0bb92d60efc6cdecc3a935640f86"
           },
           {
             "subject_box": [
-              4,
+              19,
               223,
-              504,
+              489,
               647
             ],
             "output_bbox": [
               28,
-              348,
+              324,
               484,
               742
             ],
@@ -7138,18 +7138,18 @@
             ],
             "visible_size": [
               456,
-              394
+              418
             ],
             "component": {
-              "component_area": 84639,
+              "component_area": 83035,
               "selected_core_hits": 20732,
               "component_bbox": [
-                31,
+                44,
                 242,
-                477,
+                464,
                 628
               ],
-              "discarded_components": 7
+              "discarded_components": 5
             },
             "frame": 3,
             "nominal_cell": [
@@ -7164,18 +7164,18 @@
               1136,
               724
             ],
-            "sha256": "9b407ebe709b591f4517d966eec130878847915facd0c33ace338866e2022a07"
+            "sha256": "ce0b806230400a71b28d8c345e0a265f2a667ccde1fddd7b0c45f2b1468d502c"
           },
           {
             "subject_box": [
-              4,
+              19,
               277,
-              504,
+              489,
               643
             ],
             "output_bbox": [
               28,
-              403,
+              382,
               484,
               742
             ],
@@ -7185,15 +7185,15 @@
             ],
             "visible_size": [
               456,
-              339
+              360
             ],
             "component": {
-              "component_area": 94233,
+              "component_area": 91038,
               "selected_core_hits": 22748,
               "component_bbox": [
-                31,
+                44,
                 294,
-                477,
+                464,
                 626
               ],
               "discarded_components": 2
@@ -7211,18 +7211,18 @@
               1552,
               724
             ],
-            "sha256": "f2cc7b1040ec986d43ac48e48606d02397e9270e47a00eb6281f2610049cd4ad"
+            "sha256": "67f60b1f4f3f0b31b360f69b3a4ff226a595497612d82c9f2feb94c70d51a145"
           },
           {
             "subject_box": [
-              10,
+              17,
               85,
-              446,
+              434,
               655
             ],
             "output_bbox": [
               28,
-              136,
+              109,
               484,
               742
             ],
@@ -7232,18 +7232,18 @@
             ],
             "visible_size": [
               456,
-              606
+              633
             ],
             "component": {
-              "component_area": 99670,
+              "component_area": 98600,
               "selected_core_hits": 24614,
               "component_bbox": [
-                33,
+                39,
                 111,
-                423,
+                412,
                 629
               ],
-              "discarded_components": 15
+              "discarded_components": 14
             },
             "frame": 5,
             "nominal_cell": [
@@ -7258,19 +7258,19 @@
               1916,
               724
             ],
-            "sha256": "0900b3565b0bd88078e4a8f06346b7efbf7c232ade0d13c2fe29e9ade4caff2b"
+            "sha256": "31bd8ee479452aae43911bd7e0499876727a8acfd34edba32e75a69dd2c8be84"
           },
           {
             "subject_box": [
-              5,
+              13,
               241,
               330,
               647
             ],
             "output_bbox": [
-              51,
+              57,
               242,
-              460,
+              455,
               742
             ],
             "output_size": [
@@ -7278,14 +7278,14 @@
               768
             ],
             "visible_size": [
-              409,
+              398,
               500
             ],
             "component": {
-              "component_area": 51909,
+              "component_area": 51402,
               "selected_core_hits": 12781,
               "component_bbox": [
-                23,
+                31,
                 259,
                 326,
                 629
@@ -7305,7 +7305,7 @@
               2172,
               724
             ],
-            "sha256": "6640f150dd93daacdd751d4858af988efa5a81fa9d1fa58734705cfff446b8be"
+            "sha256": "cfa3acdec1b701c86b3be1bd9976223d0c4846d29fc67f299d636bcfcd22b3a5"
           }
         ]
       }
