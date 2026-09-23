@@ -27,7 +27,9 @@ if(!camera.includes("mode='intro'")||!camera.includes("mode='combat'")||!camera.
 if(!camera.includes('Math.max(fightHoldMs,transitionMs)'))throw new Error('Road presentation v2: combat must stay locked until the camera transition finishes');
 
 const perspectivePass=await fs.readFile('scripts/road-perspective-postprocess.mjs','utf8');
-for(const marker of ['bbRoadDepthY','bbRoadDepthScale','ctx.getTransform?.().f','visualScaleForY'])if(!perspectivePass.includes(marker))throw new Error(`Road presentation v2: perspective postprocess missing ${marker}`);
+for(const marker of ['bbRoadDepthY','bbRoadDepthScale','const bbRoadDepthY=Number(y)','visualScaleForY'])if(!perspectivePass.includes(marker))throw new Error(`Road presentation v2: perspective postprocess missing ${marker}`);
+const shadowPass=await fs.readFile('scripts/battle-shadow-polish-postprocess.mjs','utf8');
+for(const marker of ['VISIBLE WORLD-SPACE CONTACT SHADOW','isEnemy ? .14 : .125','shadowBlur=4.4'])if(!shadowPass.includes(marker))throw new Error(`Road presentation v2: visible contact-shadow pass missing ${marker}`);
 const countdownPass=await fs.readFile('scripts/road-countdown-lock-postprocess.mjs','utf8');
 if(!countdownPass.includes('BlazingRoadCamera?.isCombatLocked?.()'))throw new Error('Road presentation v2: countdown tick gate missing');
 const introSmoke=await fs.readFile('scripts/road-intro-browser-smoke.mjs','utf8');
