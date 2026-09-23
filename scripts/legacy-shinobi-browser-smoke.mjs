@@ -110,7 +110,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
    }
    return results;
   },{names:NAMES});
-  const badRuntime=runtime.filter(x=>x.idleCount!==6||x.basicCount!==6||x.idleResolved!==6||x.attackResolved!==6||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!/\/sprites\/runtime\/idle\/frame_01\.png(?:\?.*)?$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png(?:\?.*)?$/.test(x.basicSrc));
+  const normalized=dims=>Array.isArray(dims)&&dims.length===6&&dims.every(([w,h])=>w===512&&h===768);\n  const badRuntime=runtime.filter(x=>x.idleCount!==6||x.basicCount!==6||x.idleResolved!==6||x.attackResolved!==6||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!normalized(x.idleDims)||!normalized(x.basicDims)||!/\/sprites\/runtime\/idle\/frame_01\.png\?legacySpriteAudit=v2$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png\?legacySpriteAudit=v2$/.test(x.basicSrc));
   if(badRuntime.length)throw new Error('Legacy battle animation runtime invalid: '+JSON.stringify(badRuntime));
 
   await page.goto(BASE+'/?legacyInventory=1',{waitUntil:'domcontentloaded'});
@@ -128,7 +128,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   if(inventory.missing.length||inventory.broken.length)throw new Error('Legacy inventory invalid: '+JSON.stringify(inventory));
 
   if(errors.length)throw new Error('page errors: '+errors.join(' | '));
-  console.log('Legacy Shinobi browser smoke PASS ('+browserName+'): Home promo -> 12-unit summon banner -> inventory cards -> playable roster -> six-frame idle/basic runtime.');
+  console.log('Legacy Shinobi browser smoke PASS ('+browserName+'): Home promo -> 12-unit summon banner -> inventory cards -> playable roster -> audited 512x768 six-frame idle/basic runtime.');
   await context.close();
  }finally{
   if(browser)await browser.close().catch(()=>{});
