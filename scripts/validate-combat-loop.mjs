@@ -45,8 +45,9 @@ if(loop.outcome(roadAlive)!=='defeat')throw new Error('Road team did not defeat 
 // Road authored initiative must consume a reusable stun exactly when that actor's turn arrives.
 const combatSource=await fs.readFile('runtime/combat/combat-runtime.js','utf8');
 const roadTurnsSource=await fs.readFile('runtime/combat/road-round-turns.js','utf8');
+let roadPaused=false;
 const roadSandbox={
- window:{addEventListener:()=>{}},
+ window:{addEventListener:()=>{},BlazingBattlePause:{isPaused:()=>roadPaused}},
  console,
  S:null,
  document:{
@@ -69,6 +70,18 @@ if(!stunSnap?.active||stunSnap.current?.name!=='Next Enemy')throw new Error(`One
 if(roadSandbox.window.BlazingCombatRuntime.hasStatus(stunnedEnemy,'stun'))throw new Error('Road initiative did not consume the stunned actor\'s one-turn status');
 if(!/stunned and loses the turn/i.test(roadSandbox.S.log))throw new Error(`Road stun skip did not publish a combat log message: ${roadSandbox.S.log}`);
 
+// Pausing must freeze the Road controller itself, not only the legacy engine tick.
+// A sentinel gauge state should remain untouched until Resume reasserts round ownership.
+roadPaused=true;
+for(const actor of [roadPair,stunnedEnemy,nextEnemy])actor.gauge=37;
+roadTurns.sync();
+const pausedGauges=[roadPair.gauge,stunnedEnemy.gauge,nextEnemy.gauge];
+if(pausedGauges.some(value=>value!==37))throw new Error(`Road round controller mutated gauges while paused: ${JSON.stringify(pausedGauges)}`);
+roadPaused=false;
+roadTurns.sync();
+const resumedGauges=[roadPair.gauge,stunnedEnemy.gauge,nextEnemy.gauge];
+if(resumedGauges.every(value=>value===37))throw new Error('Road round controller did not resume after pause release');
+
 const dock=await fs.readFile('runtime/ui/battle/battle-dock.js','utf8');
 for(const marker of ['BlazingCombatLoop','bb-dock-turns','bb-turn-queue','BlazingRoadSharedHp','toggleJutsu','YOUR TURN','ENEMY TURN'])if(!dock.includes(marker))throw new Error(`Battle dock missing combat-loop marker: ${marker}`);
 const css=await fs.readFile('runtime/ui/battle/battle-dock.css','utf8');
@@ -76,5 +89,5 @@ for(const marker of ['.bb-dock-turns','.bb-turn-chip.current','.bb-dock-unit.arm
 const post=await fs.readFile('scripts/battle-mobile-controls-postprocess.mjs','utf8');
 for(const marker of ['runtime/combat/combat-loop-runtime.js','bb-combat-loop-runtime','runtime/modes/blazing-road-battle-refinements.js','bb-blazing-road-battle-refinements'])if(!post.includes(marker))throw new Error(`Production build does not inject combat-loop marker: ${marker}`);
 
-console.log('Combat loop validation PASS: canonical ordering, Road shared-team HP, reusable one-turn stun skips, portrait jutsu wiring, and victory/defeat outcomes.');
+console.log('Combat loop validation PASS: canonical ordering, Road shared-team HP, pause-safe round initiative, reusable one-turn stun skips, portrait jutsu wiring, and victory/defeat outcomes.');
 await import('./validate-combat-stabilization.mjs');
