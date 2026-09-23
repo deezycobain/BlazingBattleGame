@@ -75,18 +75,44 @@ function returnJourney(s,kind){
  setTimeout(()=>window.BlazingRealmExplorer?.open?.('run'),120);
 }
 function launch(mode){returnHome();setTimeout(()=>document.getElementById(mode==='road'?'level1Btn':'boss1Btn')?.click(),180)}
+function openForge(name){
+ returnHome();
+ setTimeout(()=>{if(window.BlazingProgression?.openForge)window.BlazingProgression.openForge(name);else document.getElementById('forgeBtn')?.click()},120);
+}
+
+const FORGE_ROUTE_UNITS=new Set(['Crimson','Sub-Zero','Lebee','Senku','Tyler']);
+function progressionRow(item){
+ const api=window.BlazingUnitProgression,name=item?.name||'Fighter',u=api?.unit?.(name)||item?.unit||null;
+ if(!u)return null;
+ const level=Math.max(1,Math.floor(Number(u.level)||1)),awakening=Math.max(0,Math.floor(Number(u.awakening)||0));
+ const cap=Math.max(level,Math.floor(Number(api?.capForAwakening?.(awakening))||50));
+ const atGate=!!api?.isAtGate?.(u),gate=api?.canAwaken?.(name)||null,shiny=!!u.shiny;
+ const xpNeed=!atGate&&!shiny?Math.max(1,Math.floor(Number(api?.xpForNextLevel?.(level))||1)):0;
+ const xpNow=Math.max(0,Math.floor(Number(u.xp)||0));
+ const pct=xpNeed?Math.max(0,Math.min(100,Math.round(xpNow/xpNeed*100))):100;
+ const gained=Math.max(0,Math.floor(Number(item?.levelsGained)||0)),before=Math.max(1,level-gained);
+ const levelLabel=gained>0?`LV.${before} → LV.${level}`:`LV.${level}`;
+ let status='',ready=false;
+ if(shiny)status='SHINY • MAX PROGRESSION';
+ else if(atGate&&gate?.ok){ready=FORGE_ROUTE_UNITS.has(name);status=`AWAKENING READY • ${gate.cost} COP${gate.cost===1?'Y':'IES'} BANKED`}
+ else if(atGate){
+  const missing=Math.max(0,Math.floor(Number(gate?.cost)||0)-Math.floor(Number(u.copies)||0));
+  status=`AWAKENING GATE • NEED ${missing} MORE COP${missing===1?'Y':'IES'}`;
+ }else status=`${xpNow} / ${xpNeed} XP • NEXT LV.${Math.min(cap,level+1)}`;
+ return {name,level,levelLabel,status,pct,ready,atGate,shiny};
+}
 
 function renderXp(s,victory){
  const box=document.getElementById('bbResultsXp'),xp=s?.bbVictoryXp;
- if(!box)return;
- if(!victory||!xp||!Number(xp.amount)){box.hidden=true;box.innerHTML='';return}
- const leveled=(Array.isArray(xp.units)?xp.units:[]).filter(item=>Number(item?.levelsGained)>0);
- const locked=(Array.isArray(xp.units)?xp.units:[]).filter(item=>item?.locked);
- const notes=[];
- if(leveled.length)notes.push(leveled.map(item=>`${escapeHtml(item.name)} → LV.${escapeHtml(item.level)}`).join(' • '));
- if(locked.length)notes.push(locked.map(item=>`${escapeHtml(item.name)} reached Awakening gate`).join(' • '));
+ if(!box)return {readyName:null,units:[]};
+ if(!victory||!xp||!Number(xp.amount)){box.hidden=true;box.innerHTML='';return {readyName:null,units:[]}}
+ const units=(Array.isArray(xp.units)?xp.units:[]).map(progressionRow).filter(Boolean);
+ const ready=units.find(item=>item.ready)||null;
+ const rows=units.map(item=>`<div class="bb-results-xp-unit${item.ready?' ready':''}" data-progression-unit="${escapeHtml(item.name)}"><div class="bb-results-xp-unit-head"><b>${escapeHtml(item.name)}</b><em>${escapeHtml(item.levelLabel)}</em></div><div class="bb-results-xp-track"><i style="width:${item.pct}%"></i></div><small>${escapeHtml(item.status)}</small></div>`).join('');
  box.hidden=false;
- box.innerHTML=`<strong>+${escapeHtml(xp.amount)} XP</strong><span>DEPLOYED TEAM BATTLE XP</span>${notes.length?`<small>${notes.join('<br>')}</small>`:''}`;
+ box.dataset.forgeReady=ready?.name||'';
+ box.innerHTML=`<div class="bb-results-xp-head"><strong>+${escapeHtml(xp.amount)} XP</strong><span>DEPLOYED TEAM BATTLE XP</span></div>${rows?`<div class="bb-results-xp-grid">${rows}</div>`:''}`;
+ return {readyName:ready?.name||null,units};
 }
 
 function renderRoadIntermission(s,{victory=false,roadComplete=false,stage=1}={}){
@@ -134,12 +160,18 @@ function showResult(kind,s){
  if(victory&&journeyReward){rewardBox.hidden=false;rewardBox.innerHTML='<strong>◈ +'+escapeHtml(journeyReward.amount||0)+'</strong><span>'+escapeHtml(String(journeyReward.resource||'route reward').replaceAll('_',' '))+'</span>';balance.textContent='JOURNEY REWARD SECURED'}
  else if(victory&&reward){rewardBox.hidden=false;rewardBox.innerHTML='<strong>'+escapeHtml(reward.symbol)+' +'+escapeHtml(reward.amount)+'</strong><span>'+escapeHtml(reward.currency)+'</span>';balance.textContent='BALANCE '+reward.balance+' '+reward.currency}
  else{rewardBox.hidden=true;rewardBox.innerHTML='';balance.textContent=victory?'':'NO BLAZING COINS EARNED'}
- renderXp(s,victory);
+ const progression=renderXp(s,victory);
  renderRoadIntermission(s,{victory,roadComplete,stage});
  const actions=document.getElementById('bbResultsActions');actions.replaceChildren();actions.className='bb-results-actions';
  const add=(label,cls,fn)=>{const btn=document.createElement('button');btn.type='button';btn.textContent=label;if(cls)btn.className=cls;btn.addEventListener('click',fn);actions.appendChild(btn)};
- if(roadComplete){actions.classList.add('two');add('RESTART ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
- else if(victory&&mode==='road'){actions.classList.add('two');add('CONTINUE ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
+ if(roadComplete){
+  if(progression.readyName){actions.classList.add('three');add('OPEN FORGE','primary',()=>openForge(progression.readyName));add('RESTART ROAD','',()=>launch('road'));add('MAIN MENU','',returnHome)}
+  else{actions.classList.add('two');add('RESTART ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
+ }
+ else if(victory&&mode==='road'){
+  if(progression.readyName){actions.classList.add('three');add('CONTINUE ROAD','primary',()=>launch('road'));add('OPEN FORGE','',()=>openForge(progression.readyName));add('MAIN MENU','',returnHome)}
+  else{actions.classList.add('two');add('CONTINUE ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
+ }
  else if(!victory&&mode==='road'){actions.classList.add('two');add('RESTART ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
  else if(!victory&&mode==='castle'){actions.classList.add('two');add('RETRY BOSS','primary',()=>launch('castle'));add('MAIN MENU','',returnHome)}
  else if(mode==='exploration'){actions.classList.add('two');add(victory?'CONTINUE JOURNEY':'RETURN TO ROUTE','primary',()=>returnJourney(s,kind));add('MAIN MENU','',returnHome)}
