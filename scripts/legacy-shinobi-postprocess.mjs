@@ -33,7 +33,7 @@ html=html.replace(activeRx,"const ACTIVE_PLAYABLE_UNITS=Object.freeze(["+activeN
 
 const runtime=String.raw`
 const LEGACY_SHINOBI_BODY_RUNTIME=(()=>{
- const names=new Set(${JSON.stringify(NAMES)}),cache=new Map();
+ const names=new Set(${JSON.stringify(NAMES)}),attackScales=Object.freeze({"Kakashi":1.025,"Obito":1.107,"Jiraiya":1.128,"Sasuke":1,"Pain":1.001,"Scorpion":1.148,"Rock Lee":1.021,"Mashle":1.04,"Jackie Chan":1.09,"Gabimaru":1.144,"Killua":1,"Zabuza":1.18}),cache=new Map();
  const resolve=(name,kind)=>{
   if(!names.has(name))return null;
   let unit=null;try{unit=canonicalUnit(name)}catch(_){return null}
