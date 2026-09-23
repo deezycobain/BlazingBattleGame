@@ -128,13 +128,13 @@
     "source_sheets": {
       "idle": {
         "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/idle_6f.png",
-        "columns": 6,
-        "rows": 1
+        "columns": 3,
+        "rows": 2
       },
       "basic_attack": {
         "path": "assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/basic_attack_6f.png",
-        "columns": 6,
-        "rows": 1
+        "columns": 3,
+        "rows": 2
       }
     }
   }
