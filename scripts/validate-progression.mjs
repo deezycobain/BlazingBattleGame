@@ -21,7 +21,7 @@ const runtimeMarkers=[
  'candidate=rollStats(u.locks,u.roll)','KEEP CURRENT','ACCEPT NEW','summonEmbers=999999','spendEmbers=function()',
  'localStorage.setItem','function applyCombatBonuses()','target.jutsuDamage=Math.round','RESET DEV PROGRESSION',
  "multiSummonBtn.addEventListener('click'",'Array.from({length:10}','LEGACY OF THE SHINOBI','12 UNIT EVENT POOL','SKIP TO RESULTS',
- 'showSummonResultsNow','bb-shiny-awakening','data-open-forge','cardForSummon=function(name){return CARD_ART[name]',
+ 'showSummonResultsNow','bb-shiny-awakening','data-open-forge','function summonArt(name)','cardForSummon=function(name){return summonArt(name)',
  'const FORGE_ART=','const SHINY_CUTOUT=','const SHINY_POPOUT_PROFILE=',"'Sub-Zero':'ice-hand'","'Tyler':'head-hand'",
  "'Lebee':'lebee-hand-hair'","'Senku':'senku-hand-hair'",'syncRevealArt','syncResultArt','dataset.popoutProfile',
  'assets/characters/crimson/art/current_collection_art.jpg','assets/characters/subzero/art/full_art_absolute_zero_v2.jpeg',
