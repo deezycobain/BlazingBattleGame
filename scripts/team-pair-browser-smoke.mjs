@@ -34,6 +34,9 @@ for(const [name,type] of Object.entries({chromium,webkit})){
   const norm=value=>String(value||'').trim().toLowerCase();
   if(!ui.visible||ui.slots!==6||ui.pairs!==3||ui.save!=='SAVE 3 PAIRS'||JSON.stringify(ui.names.map(norm))!==JSON.stringify(ui.team.map(norm)))throw new Error('team editor pair UI invalid: '+JSON.stringify(ui));
 
+  const artContract=await page.evaluate(()=>{const root=document.getElementById('teamScreen');const tagged=[...root.querySelectorAll('img[data-bb-team-unit]')];return{tagged:tagged.length,stale:tagged.map(img=>({unit:img.dataset.bbTeamUnit,src:img.getAttribute('src')||'',kind:img.dataset.bbTeamArt||''})).filter(row=>/legacy_of_shinobi_card|\/cards\//i.test(row.src)),bodyCount:tagged.filter(img=>img.dataset.bbTeamArt==='body').length,fullCount:tagged.filter(img=>img.dataset.bbTeamArt==='full').length,text:(root.textContent||'').replace(/\s+/g,' ')}});
+  if(artContract.tagged<6||artContract.stale.length||artContract.bodyCount<1||artContract.fullCount<1||!/Wong Fei-Hung/i.test(artContract.text)||/Jackie Chan/i.test(artContract.text))throw new Error('team editor clean-art contract invalid: '+JSON.stringify(artContract));
+
   const presentation=await page.evaluate(()=>{
    const root=document.getElementById('teamScreen');
    const slot=root?.querySelector('.teamSlot[data-team-slot]');
@@ -61,6 +64,6 @@ for(const [name,type] of Object.entries({chromium,webkit})){
    return {before,partner,after,active:get('S.pairs[0].active'),reserveVisible};
   });
   if(!swap.reserveVisible||!swap.partner||swap.partner==='—'||swap.after!==swap.partner||swap.after===swap.before||swap.active!==1)throw new Error('partner portrait swap failed outside Road: '+JSON.stringify(swap));
-  console.log('Team pair smoke PASS ('+name+'): 6 selected units -> compact 3-pair editor with full-height art, mobile scrolling, fixed Save, and live portrait swap.');
+  console.log('Team pair smoke PASS ('+name+'): 6 selected units -> clean full/body art, compact 3-pair editor, mobile scrolling, fixed Save, and live portrait swap.');
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
