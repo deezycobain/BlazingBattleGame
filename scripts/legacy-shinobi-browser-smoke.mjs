@@ -79,6 +79,21 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   },{names:NAMES});
   if(!/LEGACYOFTHE?SHINOBI/i.test(String(summon.title||'').replace(/[^A-Z]/gi,''))||summon.fighterCount!==12||summon.missingNames.length||!summon.singleVisible||!summon.multiVisible)throw new Error('Legacy summon lobby invalid: '+JSON.stringify(summon));
 
+  // Regression: the visible reveal must use the illustration-only presentation
+  // crop, never the older trading-card source with baked fighter names.
+  await page.evaluate(()=>{window.__bbLegacyOriginalRandom=Math.random;Math.random=()=>0});
+  await page.locator('#singleSummonBtn').click();
+  await page.locator('#summonPullScreen.active').waitFor({state:'visible',timeout:10000});
+  await page.waitForFunction(()=>String(document.querySelector('#summonPullScreen .summonedTradingCard')?.getAttribute('src')||'').includes('/kakashi/cards/legacy_summon_art.png'),null,{timeout:10000});
+  const cleanReveal=await page.evaluate(()=>({
+    src:document.querySelector('#summonPullScreen .summonedTradingCard')?.getAttribute('src')||'',
+    name:document.querySelector('#summonPullScreen .bb-card-nameplate')?.textContent?.trim()||'',
+    oldNamed:[...document.querySelectorAll('#summonPullScreen img')].map(img=>img.getAttribute('src')||'').filter(src=>/kakashi\/cards\/legacy_of_shinobi_card/i.test(src))
+  }));
+  await page.evaluate(()=>{if(window.__bbLegacyOriginalRandom)Math.random=window.__bbLegacyOriginalRandom});
+  if(!/\/kakashi\/cards\/legacy_summon_art\.png$/.test(cleanReveal.src)||cleanReveal.name!=='KAKASHI'||cleanReveal.oldNamed.length)throw new Error('Kakashi summon reveal is not using clean presentation art: '+JSON.stringify(cleanReveal));
+  await page.locator('#bbSkipReveal').click().catch(()=>{});
+
   const attackScaleValues=await page.evaluate(names=>{
    const body=globalThis.eval('LEGACY_SHINOBI_BODY_RUNTIME');
    return Object.fromEntries(names.map(name=>[name,body.attackScale(name)]));
@@ -188,7 +203,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   if(inventory.missing.length||inventory.broken.length)throw new Error('Legacy inventory invalid: '+JSON.stringify(inventory));
 
   if(errors.length)throw new Error('page errors: '+errors.join(' | '));
-  console.log('Legacy Shinobi browser smoke PASS ('+browserName+'): Home promo -> 12-unit summon banner -> inventory cards -> playable roster -> audited 512x768 six-frame idle/basic runtime.');
+  console.log('Legacy Shinobi browser smoke PASS ('+browserName+'): Home promo -> 12-unit summon banner -> clean Kakashi reveal art -> inventory cards -> playable roster -> audited 512x768 six-frame idle/basic runtime.');
   await context.close();
  }finally{
   if(browser)await browser.close().catch(()=>{});
