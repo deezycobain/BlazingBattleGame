@@ -86,7 +86,7 @@ async function run(name,type){
 
   await page.waitForFunction(()=>{
     const root=document.getElementById('bb-itachi-tsukuyomi-cinematic'),overlays=[...root?.querySelectorAll('.bb-tsu-overlay')||[]],mandalas=[...root?.querySelectorAll('.bb-tsu-mandala')||[]];
-    return root?.classList.contains('bb-active')&&overlays.length===2&&mandalas.length===2&&overlays.some(img=>img.complete&&img.naturalWidth>0)&&mandalas.some(img=>img.complete&&img.naturalWidth>0);
+    return root?.classList.contains('bb-active')&&overlays.length===2&&mandalas.length===2;
   },null,{timeout:3000});
   const takeover=await page.evaluate(()=>{
     const root=document.getElementById('bb-itachi-tsukuyomi-cinematic'),rect=root?.getBoundingClientRect(),style=root?getComputedStyle(root):null;
@@ -94,6 +94,10 @@ async function run(name,type){
     return {active:!!root?.classList.contains('bb-active'),position:style?.position||'',width:rect?.width||0,height:rect?.height||0,viewportW:innerWidth,viewportH:innerHeight,phase:root?.dataset.phase||'',overlayCount:overlays.length,mandalaCount:mandalas.length,overlay:overlays[0]?.getAttribute('src')||'',mandala:mandalas[0]?.getAttribute('src')||''};
   });
   if(!takeover.active||takeover.position!=='fixed'||takeover.width<takeover.viewportW*.98||takeover.height<takeover.viewportH*.98||takeover.overlayCount!==2||takeover.mandalaCount!==2||!takeover.overlay.includes('/tsukuyomi/overlay/')||!takeover.mandala.includes('/tsukuyomi/mandala/'))throw new Error(`Tsukuyomi did not take over full viewport with dual authored layers: ${JSON.stringify(takeover)}`);
+  await page.waitForFunction(()=>{
+    const root=document.getElementById('bb-itachi-tsukuyomi-cinematic'),overlays=[...root?.querySelectorAll('.bb-tsu-overlay')||[]],mandalas=[...root?.querySelectorAll('.bb-tsu-mandala')||[]];
+    return overlays.some(img=>img.complete&&img.naturalWidth>0)&&mandalas.some(img=>img.complete&&img.naturalWidth>0);
+  },null,{timeout:5000});
 
   if(name==='chromium'){
     for(const [at,label,phase] of [[700,'ritual','ritual'],[1500,'nightmare','nightmare'],[2300,'release','release']]){
