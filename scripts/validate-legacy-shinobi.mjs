@@ -93,15 +93,18 @@ for(const id of ids){
 const progression=await fs.readFile(path.join(ROOT,'runtime/ui/progression/progression.js'),'utf8');
 for(const name of names)if(!progression.includes("'"+name+"'"))throw new Error('Legacy Shinobi validator: summon pool missing '+name);
 const canonicalSummonCards={
- Kakashi:'assets/characters/kakashi/cards/legacy_of_shinobi_card.webp',
- Obito:'assets/characters/obito/cards/legacy_of_shinobi_card.webp',
- Jiraiya:'assets/characters/jiraiya/cards/legacy_of_shinobi_card.webp',
- Sasuke:'assets/characters/sasuke/cards/legacy_of_shinobi_card.webp',
- Pain:'assets/characters/pain/cards/legacy_of_shinobi_card.webp',
- Scorpion:'assets/characters/scorpion/cards/legacy_of_shinobi_card.webp',
- 'Rock Lee':'assets/characters/rock_lee/cards/legacy_of_shinobi_card.png',
- Mashle:'assets/characters/mashle/cards/legacy_of_shinobi_card.png',
- 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/wong_fei_hung_refresh.png'
+ Kakashi:'assets/characters/kakashi/cards/legacy_summon_art.png',
+ Obito:'assets/characters/obito/cards/legacy_summon_art.png',
+ Jiraiya:'assets/characters/jiraiya/cards/legacy_summon_art.png',
+ Sasuke:'assets/characters/sasuke/cards/legacy_summon_art.png',
+ Pain:'assets/characters/pain/cards/legacy_summon_art.png',
+ Scorpion:'assets/characters/scorpion/cards/legacy_summon_art.png',
+ 'Rock Lee':'assets/characters/rock_lee/cards/legacy_summon_art.png',
+ Mashle:'assets/characters/mashle/cards/legacy_summon_art.png',
+ 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/legacy_summon_art.png',
+ Gabimaru:'assets/characters/gabimaru/cards/legacy_summon_art.png',
+ Killua:'assets/characters/killua/cards/legacy_summon_art.png',
+ Zabuza:'assets/characters/zabuza/cards/legacy_summon_art.png'
 };
 for(const [name,card] of Object.entries(canonicalSummonCards)){
  if(!progression.includes("'"+name+"':'"+card+"'"))throw new Error('Legacy Shinobi validator: summon card is not canonical '+name);
