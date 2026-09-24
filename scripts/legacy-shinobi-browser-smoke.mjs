@@ -98,7 +98,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
     const card=document.querySelector('#pullResultsGrid .pullCard'),image=card?.querySelector('.resultTradingCard'),frame=image?.closest('.bb-legacy-art-frame'),mask=frame?.querySelector('.bb-legacy-name-mask'),fr=frame?.getBoundingClientRect(),mr=mask?.getBoundingClientRect(),style=image?getComputedStyle(image):null;
     return {src:image?.getAttribute('src')||'',name:card?.querySelector('.charName')?.textContent?.trim()||'',fit:style?.objectFit||'',transform:style?.transform||'',legacyClass:card?.classList.contains('bb-legacy-full-card')||false,maskCoverage:fr?.height?mr.height/fr.height:0,oldCrop:[...document.querySelectorAll('#pullResultsGrid img')].map(img=>img.getAttribute('src')||'').filter(src=>/legacy_summon_art\.png/i.test(src))};
   });
-  if(!/\/kakashi\/cards\/legacy_of_shinobi_card\.webp$/.test(cleanResult.src)||cleanResult.name!=='KAKASHI'||cleanResult.fit!=='contain'||cleanResult.transform!=='none'||!cleanResult.legacyClass||cleanResult.maskCoverage<.27||cleanResult.oldCrop.length)throw new Error('Kakashi results card is not using canonical full-card/no-crop presentation: '+JSON.stringify(cleanResult));
+  if(!/\/kakashi\/cards\/legacy_of_shinobi_card\.webp$/.test(cleanResult.src)||String(cleanResult.name||'').toUpperCase()!=='KAKASHI'||cleanResult.fit!=='contain'||cleanResult.transform!=='none'||!cleanResult.legacyClass||cleanResult.maskCoverage<.27||cleanResult.oldCrop.length)throw new Error('Kakashi results card is not using canonical full-card/no-crop presentation: '+JSON.stringify(cleanResult));
 
   const attackScaleValues=await page.evaluate(names=>{
    const body=globalThis.eval('LEGACY_SHINOBI_BODY_RUNTIME');
