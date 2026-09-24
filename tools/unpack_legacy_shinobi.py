@@ -60,18 +60,26 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def make_name_free_presentation_art(source_path: Path, dest_path: Path):
-    """Crop away the baked fighter-name strip while preserving the illustrated Legacy poster art."""
+    """Extract the illustration panel only, excluding baked top/bottom fighter-name graphics."""
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     with Image.open(source_path).convert("RGBA") as image:
         width, height = image.size
-        # Legacy poster titles live in the lower fifth; keep the illustrated upper 80%.
-        bottom = max(1, min(height, int(round(height * 0.80))))
-        cropped = image.crop((0, 0, width, bottom))
+        # Legacy cards share a centered illustration. The top banner and lower
+        # branding/name treatment are authored into the source pixels, so a
+        # simple bottom trim is insufficient. Keep the central character art.
+        left = int(round(width * 0.16))
+        right = int(round(width * 0.84))
+        top = int(round(height * 0.17))
+        bottom = int(round(height * 0.64))
+        if right <= left or bottom <= top:
+            raise RuntimeError(f"Invalid name-free crop for {source_path.relative_to(ROOT)}")
+        cropped = image.crop((left, top, right, bottom))
         cropped.save(dest_path, format="PNG", optimize=True)
         return {
             "path": dest_path.relative_to(ROOT).as_posix(),
             "source_size": [width, height],
-            "crop_box": [0, 0, width, bottom],
+            "crop_box": [left, top, right, bottom],
+            "crop_ratios": [0.16, 0.17, 0.84, 0.64],
             "size": [cropped.width, cropped.height],
             "sha256": sha256_file(dest_path),
         }
