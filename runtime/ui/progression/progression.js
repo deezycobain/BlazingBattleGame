@@ -7,8 +7,8 @@ const LEGACY_FIGHTERS=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','R
 const FIGHTERS=[...CORE_FIGHTERS,...LEGACY_FIGHTERS],FORGE_FIGHTERS=CORE_FIGHTERS,SUMMON_FIGHTERS=LEGACY_FIGHTERS;
 const IDS={
  'Crimson':'crimson','Sub-Zero':'subzero','Lebee':'lebee','Senku':'senku','Tyler':'tyler','Itachi':'itachi',
- 'Kakashi':'assets/characters/kakashi/cards/legacy_summon_art.png','Obito':'obito','Jiraiya':'jiraiya','Sasuke':'sasuke','Pain':'pain','Scorpion':'scorpion',
- 'Rock Lee':'assets/characters/rock_lee/cards/legacy_summon_art.png','Mashle':'mashle','Wong Fei-Hung':'jackie_chan','Gabimaru':'gabimaru','Killua':'killua','Zabuza':'zabuza'
+ 'Kakashi':'kakashi','Obito':'obito','Jiraiya':'jiraiya','Sasuke':'sasuke','Pain':'pain','Scorpion':'scorpion',
+ 'Rock Lee':'rock_lee','Mashle':'mashle','Wong Fei-Hung':'jackie_chan','Gabimaru':'gabimaru','Killua':'killua','Zabuza':'zabuza'
 };
 const CARD_ART={
  'Crimson':'assets/characters/crimson/art/current_collection_art.jpg',
@@ -17,13 +17,13 @@ const CARD_ART={
  'Senku':'assets/characters/senku/cards/senku_card.jpeg',
  'Tyler':'assets/characters/tyler/cards/current_collection_card.png',
  'Itachi':'assets/characters/itachi/art/itachi_full_art.png',
- 'Kakashi':'assets/characters/kakashi/cards/legacy_of_shinobi_card.webp',
+ 'Kakashi':'assets/characters/kakashi/cards/legacy_summon_art.png',
  'Obito':'assets/characters/obito/cards/legacy_summon_art.png',
  'Jiraiya':'assets/characters/jiraiya/cards/legacy_summon_art.png',
  'Sasuke':'assets/characters/sasuke/cards/legacy_summon_art.png',
  'Pain':'assets/characters/pain/cards/legacy_summon_art.png',
  'Scorpion':'assets/characters/scorpion/cards/legacy_summon_art.png',
- 'Rock Lee':'assets/characters/rock_lee/cards/legacy_of_shinobi_card.png',
+ 'Rock Lee':'assets/characters/rock_lee/cards/legacy_summon_art.png',
  'Mashle':'assets/characters/mashle/cards/legacy_summon_art.png',
  'Wong Fei-Hung':'assets/characters/jackie_chan/cards/legacy_summon_art.png',
  'Gabimaru':'assets/characters/gabimaru/cards/legacy_summon_art.png',
