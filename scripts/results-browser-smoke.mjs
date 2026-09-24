@@ -131,17 +131,22 @@ async function run(name,type){
     const roadResult=await page.locator('#bbMatchResults').innerText();
     if(!/VICTORY/.test(roadResult)||!/100/.test(roadResult)||!/BLAZING COINS/.test(roadResult)||!/\+650 XP/.test(roadResult)||!/OPEN FORGE/.test(roadResult)||!/MAIN MENU/.test(roadResult))throw new Error(`Road results content incorrect: ${roadResult}`);
     const progressionResult=await page.evaluate(()=>{
-      const box=document.getElementById('bbResultsXp');
+      const box=document.getElementById('bbResultsXp'),readyRow=box?.querySelector('.bb-results-xp-unit.ready'),readyStatus=readyRow?.querySelector('small'),readyName=readyRow?.querySelector('b'),readyLevel=readyRow?.querySelector('em');
+      const visible=node=>{if(!node)return false;const style=getComputedStyle(node),rect=node.getBoundingClientRect();return style.display!=='none'&&style.visibility!=='hidden'&&(Number.parseFloat(style.opacity)||0)>.01&&rect.width>0&&rect.height>0};
       return {
         ready:box?.dataset.forgeReady||'',
         rows:box?.querySelectorAll('[data-progression-unit]').length||0,
         readyRows:box?.querySelectorAll('.bb-results-xp-unit.ready').length||0,
-        text:box?.innerText||'',
+        text:box?.textContent||'',
+        readyName:readyName?.textContent?.trim()||'',
+        readyLevel:readyLevel?.textContent?.trim()||'',
+        readyStatus:readyStatus?.textContent?.trim()||'',
+        readyStatusVisible:visible(readyStatus),
         three:document.getElementById('bbResultsActions')?.classList.contains('three')||false
       };
     });
     if(progressionResult.ready!==forgeReadyName||progressionResult.rows!==road.xp.units.length||progressionResult.readyRows!==1||!progressionResult.three)throw new Error(`Road progression bridge state incorrect: ${JSON.stringify(progressionResult)}`);
-    if(!progressionResult.text.toLowerCase().includes(forgeReadyName.toLowerCase())||!/AWAKENING READY/.test(progressionResult.text)||!/LV\.9\s*→\s*LV\.10/.test(progressionResult.text))throw new Error(`Road progression bridge content incorrect: ${progressionResult.text}`);
+    if(progressionResult.readyName.toLowerCase()!==forgeReadyName.toLowerCase()||!/AWAKENING READY/.test(progressionResult.readyStatus)||!/LV\.9\s*→\s*LV\.10/.test(progressionResult.readyLevel)||!progressionResult.readyStatusVisible)throw new Error(`Road progression bridge content incorrect: ${JSON.stringify(progressionResult)}`);
     const roadIntermission=await page.evaluate(()=>{
       const box=document.getElementById('bbResultsRoad');
       return {
