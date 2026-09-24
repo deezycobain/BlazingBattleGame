@@ -62,6 +62,12 @@ for(const id of ids){
    ];
    if(source.columns!==3||source.rows!==2||source.source_size?.[0]!==1536||source.source_size?.[1]!==1024)throw new Error('Legacy Shinobi validator: Wong refresh must remain exact 1536x1024 3x2');
    if(JSON.stringify(audited.map(frame=>frame.nominal_cell))!==JSON.stringify(expectedCells))throw new Error('Legacy Shinobi validator: Wong refresh cell boundaries drifted from exact 512px grid');
+   if(kind==='basic_attack'){
+    const areas=audited.map(frame=>(frame.visible_size?.[0]||0)*(frame.visible_size?.[1]||0)).sort((a,b)=>a-b);
+    const medianArea=(areas[2]+areas[3])/2;
+    const lastArea=(audited[5]?.visible_size?.[0]||0)*(audited[5]?.visible_size?.[1]||0);
+    if(!medianArea||lastArea>medianArea*1.16)throw new Error('Legacy Shinobi validator: Wong attack frame 6 scale ballooned again');
+   }
   }
 
   for(let i=0;i<frames.length;i++){
