@@ -68,9 +68,9 @@
     }
   },
   "assets": {
-    "art": "cards/legacy_of_shinobi_card.png",
-    "card": "cards/legacy_of_shinobi_card.png",
-    "portrait": "cards/legacy_of_shinobi_card.png",
+    "art": "cards/wong_fei_hung_refresh.png",
+    "card": "cards/wong_fei_hung_refresh.png",
+    "portrait": "cards/wong_fei_hung_refresh.png",
     "icon": null,
     "sprites": {
       "idle": "sprites/runtime/idle/",
@@ -86,7 +86,7 @@
     "basic_attack": true,
     "jutsu": false,
     "recoil": false,
-    "notes": "Legacy of the Shinobi audited sprite pass. Six-frame idle/basic sheets are content-isolated and normalized to a shared bottom-center runtime canvas; dedicated VFX and jutsu remain deferred.",
+    "notes": "Wong Fei-Hung refresh pack active. Six-frame Drunken Master idle/basic are normalized to bottom-center runtime canvases with intentionally uneven slow-to-snap presentation timing.",
     "animation_map": true
   },
   "balance": {
@@ -132,12 +132,12 @@
     "vfx": {},
     "source_sheets": {
       "idle": {
-        "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/idle_6f.png",
-        "columns": 6,
-        "rows": 1,
+        "path": "assets/events/legacy-of-shinobi/wong-fei-hung-refresh/legacy_of_the_shinobi_jackie_chan_refresh/jackie_chan/idle_6f_3x2.png",
+        "columns": 3,
+        "rows": 2,
         "source_size": [
-          2172,
-          724
+          1536,
+          1024
         ],
         "normalized_canvas": [
           512,
@@ -146,12 +146,12 @@
         "anchor": "bottom_center"
       },
       "basic_attack": {
-        "path": "assets/events/legacy-of-shinobi/package-v2/legacy_of_the_shinobi_banner_pack_v2/jackie_chan/basic_attack_6f.png",
-        "columns": 6,
-        "rows": 1,
+        "path": "assets/events/legacy-of-shinobi/wong-fei-hung-refresh/legacy_of_the_shinobi_jackie_chan_refresh/jackie_chan/basic_attack_6f_3x2.png",
+        "columns": 3,
+        "rows": 2,
         "source_size": [
-          2172,
-          724
+          1536,
+          1024
         ],
         "normalized_canvas": [
           512,

@@ -219,9 +219,37 @@
           "sha256": "cab60fc9d104306e7ab114cc8322161a175daf3c0b04632d1b6c61433890ae14"
         }
       ]
+    },
+    {
+      "version": "wong-fei-hung-refresh",
+      "source_archive": "legacy_of_the_shinobi_jackie_chan_refresh.zip",
+      "source_sha256": "00a17e1d005c3bb1b07e0773597cee24bf00868c43d6c238be245ef1d07f3a35",
+      "file_count": 4,
+      "files": [
+        {
+          "path": "assets/events/legacy-of-shinobi/wong-fei-hung-refresh/legacy_of_the_shinobi_jackie_chan_refresh/manifest.txt",
+          "size": 204,
+          "sha256": "a5af568bbe5006542156f8739d857c73f28e38d40ea1567af3870f9f1d3ce8ee"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/wong-fei-hung-refresh/legacy_of_the_shinobi_jackie_chan_refresh/jackie_chan/card_art.png",
+          "size": 3573522,
+          "sha256": "138167e5ad9578fb2e962b6fff87ad68b32bbe0d458725fc4bdb1b89839b26e4"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/wong-fei-hung-refresh/legacy_of_the_shinobi_jackie_chan_refresh/jackie_chan/basic_attack_6f_3x2.png",
+          "size": 2533698,
+          "sha256": "c15004d2979bffe751cbfb8a0e2fd2988b48de0e04a626ff536d5fabe574d45c"
+        },
+        {
+          "path": "assets/events/legacy-of-shinobi/wong-fei-hung-refresh/legacy_of_the_shinobi_jackie_chan_refresh/jackie_chan/idle_6f_3x2.png",
+          "size": 2694634,
+          "sha256": "f3745d5d8590af3cee7552062eaf3ae230ee333f5a1c278c83686235727e4f86"
+        }
+      ]
     }
   ],
-  "total_file_count": 39,
+  "total_file_count": 43,
   "generated_units": [
     "gabimaru",
     "jackie_chan",

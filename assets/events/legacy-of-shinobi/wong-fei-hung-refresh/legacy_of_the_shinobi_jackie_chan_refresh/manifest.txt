@@ -1,0 +1,8 @@
+Unit: Jackie Chan (Drunken Master refresh)
+Contents:
+- jackie_chan/card_art.png
+- jackie_chan/idle_6f_3x2.png
+- jackie_chan/basic_attack_6f_3x2.png
+Format:
+- 6 total frames each sprite sheet
+- 3x2 layout
