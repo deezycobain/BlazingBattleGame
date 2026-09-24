@@ -39,6 +39,5 @@ if(teamRuntimeRx.test(html))html=html.replace(teamRuntimeRx,teamRuntime);
 else{
  const at=html.toLowerCase().lastIndexOf('</body>');if(at<0)throw new Error('Team editor theme: closing body missing');html=html.slice(0,at)+teamRuntime+html.slice(at);
 }
-}
 for(const marker of ['bb-team-scroll-theme','bb-team-blazing-layout-v2','bb-team-theme-runtime','overflow-y:auto!important','position:fixed!important;z-index:60!important','object-fit:cover!important','data-bb-team-art','fromSrc=units.find','legacy_of_shinobi_card','linear-gradient(180deg,rgba(255,248,226,.95)','observer.observe(document.body,{subtree:true,childList:true,attributes:true'])if(!html.includes(marker))throw new Error(`Team editor theme: built shell missing ${marker}`);
 await fs.writeFile(file,html);console.log('Team editor routing/theme applied with non-recursive child-list observation.');
