@@ -1,5 +1,19 @@
 # Development Changelog
 
+## 2026-09-23 — Wong Fei-Hung refresh + team-editor art cleanup (uncheckpointed dev)
+
+Branch: `dev`  
+Asset materialization commit: `c370474`  
+Checkpoint: none yet.
+
+Changes: integrated `legacy_of_the_shinobi_jackie_chan_refresh.zip` as Wong Fei-Hung's canonical refresh source, including refreshed card art plus new 3x2 idle/basic sheets normalized into six 512x768 bottom-center runtime frames. Wong retains the Drunken Master identity, 220 ms idle / 165 ms basic authored cadence, and receives repeated frame holds plus small per-attack timing variance for a slow, off-rhythm windup with sharper contact motion and loose recovery. The Edit Team screen now avoids old named trading-card art: core fighters prefer clean full art while Legacy fighters fall back to clean normalized body art; Wong specifically uses his refreshed idle body there.
+
+Pipeline: the Legacy unpack workflow now recognizes the Wong refresh archive, accepts 1536x1024 square-cell 3x2 sheets, and rebases before its bot push so generated assets are not lost when `dev` moves concurrently. The refresh unpack/materialization workflow completed successfully.
+
+Validation status: targeted Legacy cadence checks and clean-art browser guards are wired. A fresh full `dev` build/deployed smoke is required on the post-materialization head before this pass is checkpoint-approved or promoted to `main`.
+
+Remaining scope: recoil/hit-reaction standardization for player/enemy units remains the next combat-feel pass. Inventory presentation, Jutsus, reusable VFX, elements/type balance, and field/status effects remain later focused passes.
+
 Git history is the detailed record. This file tracks approved engineering milestones and important project-governance changes.
 
 ## 2026-09-23 — Battle-to-progression results bridge (uncheckpointed dev)
