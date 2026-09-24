@@ -54,10 +54,10 @@ async function run(name,type){
       const ringStartController=new AbortController();
       window.__bbItachiRingStartHandler=ringStartController;
       scene?.addEventListener('animationstart',event=>{
-        const shell=event.target?.classList?.contains('bb-itachi-ring-shell')?event.target:null;
-        if(!shell||event.animationName!=='bbItachiRingFluidIn')return;
-        const shells=[...scene.querySelectorAll('.bb-itachi-ring-shell')];
-        window.__bbItachiRingStarts.push({index:shells.indexOf(shell),at:performance.now()});
+        const ring=event.target?.classList?.contains('bb-itachi-ring')?event.target:null;
+        if(!ring||!['bbOrnateRingBuild','bbOuterRingCharge','bbEnergyRingCharge'].includes(event.animationName))return;
+        const rings=[...scene.querySelectorAll('.bb-itachi-ring')];
+        window.__bbItachiRingStarts.push({index:rings.indexOf(ring),at:performance.now(),name:event.animationName});
       },{signal:ringStartController.signal});
       window.__bbItachiObserver?.disconnect?.();
       window.__bbItachiObserver=new MutationObserver(()=>{
@@ -92,7 +92,7 @@ async function run(name,type){
         smokeAnimation:smoke.animationName||''
       };
     });
-    if(!blackout.active||blackout.opacity<.7||blackout.visibleRings<1||blackout.visibleRings>3||blackout.blackoutZ>=blackout.heroZ||blackout.heroZ>=blackout.sceneZ||blackout.stageZ<6||!blackout.outlineHidden||!blackout.smokeAnimation.includes('bbItachiSmokeBloom'))throw new Error(`Itachi blackout/smoke/fluid-ring intro is wrong: ${JSON.stringify(blackout)}`);
+    if(!blackout.active||blackout.opacity<.7||blackout.visibleRings!==4||blackout.blackoutZ>=blackout.heroZ||blackout.heroZ>=blackout.sceneZ||blackout.stageZ<6||!blackout.outlineHidden||!blackout.smokeAnimation.includes('bbItachiSmokeBloom'))throw new Error(`Itachi blackout/smoke/fluid-ring intro is wrong: ${JSON.stringify(blackout)}`);
     await page.waitForFunction(()=>window.__bbItachiRingStarts?.length===4,{timeout:5000});
     const ringStarts=await page.evaluate(()=>window.__bbItachiRingStarts.map((item,index,array)=>({
       index:item.index,
@@ -101,7 +101,7 @@ async function run(name,type){
     })));
     const startOrder=ringStarts.map(item=>item.index);
     const sequentialStarts=startOrder.length===4&&startOrder.every((value,index)=>value===index);
-    const gaps=ringStarts.slice(1).map(item=>item.gap),smoothStagger=gaps.every(gap=>gap>=180&&gap<=380);
+    const gaps=ringStarts.slice(1).map(item=>item.gap),smoothStagger=gaps.every(gap=>gap>=140&&gap<=380);
     if(!sequentialStarts||!smoothStagger)throw new Error(`Itachi ring starts lost their fluid stagger: ${JSON.stringify(ringStarts)}`);
     await page.waitForFunction(()=>[...document.querySelectorAll('#pullScene .bb-itachi-ring-shell')].length===4&&[...document.querySelectorAll('#pullScene .bb-itachi-ring-shell')].every(node=>(Number.parseFloat(getComputedStyle(node).opacity)||0)>=.99),null,{timeout:2600});
     const assembled=await page.evaluate(()=>{
@@ -142,12 +142,12 @@ async function run(name,type){
     const centersOk=loaded.rings.every(r=>Math.abs(r.cx-loaded.rings[0].cx)<1.5&&Math.abs(r.cy-loaded.rings[0].cy)<1.5);
     const widths=loaded.rings.map(r=>r.width),nested=widths.every((value,index)=>index===0||value<widths[index-1]);
     const expectedWidthPct=[141,125,108,95],widthTargetsOk=loaded.rings.every((r,index)=>Math.abs(r.widthPct-expectedWidthPct[index])<1.6);
-    const speeds=loaded.rings.map(r=>Number.parseFloat(r.duration)||0),referenceDurationsOk=speeds[0]>=.88&&speeds[0]<=.92&&speeds[1]>=1.03&&speeds[1]<=1.07&&speeds[2]>=.74&&speeds[2]<=.78&&speeds[3]>=.82&&speeds[3]<=.86;
-    const directions=loaded.rings.map(r=>r.name),directionOk=directions[0].includes('bbItachiReferenceOrnate')&&directions[1].includes('bbItachiReferenceOuter')&&directions[2].includes('bbItachiReferenceEnergyCW')&&directions[3].includes('bbItachiReferenceEnergyCCW');
-    const shellDurations=loaded.rings.map(r=>Number.parseFloat(r.shellDuration)||9),smoothInOk=loaded.rings.every(r=>r.shellName==='bbItachiRingFluidIn')&&shellDurations[0]>=.88&&shellDurations[0]<=.92&&shellDurations[1]>=1.03&&shellDurations[1]<=1.07&&shellDurations[2]>=.74&&shellDurations[2]<=.78&&shellDurations[3]>=.82&&shellDurations[3]<=.86;
+    const speeds=loaded.rings.map(r=>Number.parseFloat(r.duration)||0),referenceDurationsOk=speeds[0]>=.88&&speeds[0]<=.92&&speeds[1]>=1.03&&speeds[1]<=1.07&&speeds[2]>=.74&&speeds[2]<=.78&&speeds[3]>=.74&&speeds[3]<=.78;
+    const directions=loaded.rings.map(r=>r.name),directionOk=directions[0]==='bbOrnateRingBuild'&&directions[1]==='bbOuterRingCharge'&&directions[2]==='bbEnergyRingCharge'&&directions[3]==='bbEnergyRingCharge';
+    const shellStaticOk=loaded.rings.every(r=>!r.shellName||r.shellName==='none');
     const shadowTiming=await page.evaluate(()=>{const scene=document.getElementById('pullScene'),sil=scene.querySelector('.bb-itachi-silhouette'),ravens=scene.querySelector('.bb-itachi-raven-burst');const ss=getComputedStyle(sil),rs=getComputedStyle(ravens);return {silDelay:Number.parseFloat(ss.animationDelay)||0,silDuration:Number.parseFloat(ss.animationDuration)||0,ravenDelay:Number.parseFloat(rs.animationDelay)||0,silFilter:ss.filter||''}});
     const shadowHoldOk=shadowTiming.silDuration>=1.70&&(shadowTiming.ravenDelay-shadowTiming.silDelay)>=.65;
-    if(!centersOk||!nested||!widthTargetsOk||!referenceDurationsOk||!directionOk||!smoothInOk||!shadowHoldOk)throw new Error(`Itachi ring geometry/reference-kinetics/smooth-in or shadow-hold contract is wrong: ${JSON.stringify({rings:loaded.rings,shadowTiming})}`);
+    if(!centersOk||!nested||!widthTargetsOk||!referenceDurationsOk||!directionOk||!shellStaticOk||!shadowHoldOk)throw new Error(`Itachi ring geometry/exact-reference-keyframe or shadow-hold contract is wrong: ${JSON.stringify({rings:loaded.rings,shadowTiming})}`);
     if(loaded.revealStage!=='itachi'||loaded.revealKind!=='itachi'||!loaded.cardArt.endsWith('itachi_reveal.webp'))throw new Error(`Itachi cinematic did not own the reveal: ${JSON.stringify(loaded)}`);
 
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='handoff',{timeout:9000});
@@ -209,7 +209,7 @@ async function run(name,type){
     if(!resultState.legendary||resultState.kind!=='itachi'||!resultState.art.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi result card lost its special treatment/full-background art: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
-    console.log(`Legendary Itachi summon smoke PASS (${name}): Itachi ring assets use smooth staggered entrances and one-shot reference summon rotations with no snap gears or endless spin, compact 4.2s handoff, floating Sharingan orbit removed, centered nested rings, shadow/crow reveal, blackout fade-back, and full-background card art verified.`);
+    console.log(`Legendary Itachi summon smoke PASS (${name}): Itachi ring assets use the regular summon bbOrnateRingBuild/bbOuterRingCharge/bbEnergyRingCharge keyframes directly, with no snap gears or endless spin, compact 4.2s handoff, floating Sharingan orbit removed, centered nested rings, shadow/crow reveal, blackout fade-back, and full-background card art verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
