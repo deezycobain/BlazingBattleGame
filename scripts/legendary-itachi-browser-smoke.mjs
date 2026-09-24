@@ -40,7 +40,7 @@ async function run(name,type){
       hasTestHook:typeof window.BlazingSummonCinematic?.testItachi==='function',
       styleHref:document.querySelector('link[data-bb-itachi-summon]')?.getAttribute('href')||''
     }));
-    if(contract.version!=='6.15.0-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
+    if(contract.version!=='6.16.0-itachi')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
     if(JSON.stringify(contract.timeline)!==JSON.stringify(EXPECTED_TIMES))throw new Error(`Itachi timeline contract changed: ${JSON.stringify(contract.timeline)}`);
     if(Object.keys(contract.itachiVfx||{}).length!==11||contract.itachiVfx?.orbit||!String(contract.itachiVfx?.middle||'').endsWith('itachi_ring_middle_enamel.webp'))throw new Error(`expected 11 Itachi VFX mappings with the floating Sharingan orbit removed: ${JSON.stringify(contract.itachiVfx)}`);
     if(!contract.hasTestHook||!contract.styleHref.includes('legendary-itachi-summon.css')||!String(contract.itachiCardArt||'').endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi test/style hook missing: ${JSON.stringify(contract)}`);
@@ -104,17 +104,40 @@ async function run(name,type){
     const gaps=ringStarts.slice(1).map(item=>item.gap);
     const threeBeatStarts=gaps.length===3&&gaps[0]>=140&&gaps[0]<=380&&gaps[1]>=140&&gaps[1]<=420&&Math.abs(gaps[2])<=45;
     if(!sequentialStarts||!threeBeatStarts)throw new Error(`Itachi ring starts lost the regular-summon three-beat cadence: ${JSON.stringify(ringStarts)}`);
-    await page.waitForFunction(()=>[...document.querySelectorAll('#pullScene .bb-itachi-ring-shell')].length===4&&[...document.querySelectorAll('#pullScene .bb-itachi-ring-shell')].every(node=>(Number.parseFloat(getComputedStyle(node).opacity)||0)>=.99),null,{timeout:2600});
-    const assembled=await page.evaluate(()=>{
-      const scene=document.getElementById('pullScene');
-      return {
-        ringOpacities:[...scene.querySelectorAll('.bb-itachi-ring-shell')].map(node=>Number.parseFloat(getComputedStyle(node).opacity)||0),
-        environmentOpacity:Number.parseFloat(getComputedStyle(scene.querySelector('.bb-itachi-environment')).opacity)||0,
-        environmentDisplay:getComputedStyle(scene.querySelector('.bb-itachi-environment')).display
-      };
+    await page.waitForTimeout(1150);
+    const ringParity=await page.evaluate(()=>{
+      const screen=document.getElementById('summonPullScreen'),scene=document.getElementById('pullScene');
+      const referenceScene=document.createElement('div');
+      referenceScene.className='pullScene bb-cinematic-running';
+      referenceScene.style.cssText='position:fixed;left:-10000px;top:-10000px;width:300px;height:300px;pointer-events:none;';
+      screen.append(referenceScene);
+      const specs=[
+        ['.bb-itachi-ring-flame','bb-portal-ring bb-portal-ring-ornate'],
+        ['.bb-itachi-ring-outer','bb-portal-ring bb-portal-ring-outer'],
+        ['.bb-itachi-ring-middle','bb-portal-ring bb-portal-ring-energy'],
+        ['.bb-itachi-ring-inner','bb-portal-ring bb-portal-ring-energy']
+      ];
+      const rows=specs.map(([selector,referenceClass])=>{
+        const itachi=scene.querySelector(selector),reference=document.createElement('img');
+        reference.className=referenceClass;referenceScene.append(reference);
+        const a=getComputedStyle(itachi),b=getComputedStyle(reference);
+        return {
+          selector,
+          name:a.animationName,referenceName:b.animationName,
+          duration:a.animationDuration,referenceDuration:b.animationDuration,
+          delay:a.animationDelay,referenceDelay:b.animationDelay,
+          easing:a.animationTimingFunction,referenceEasing:b.animationTimingFunction,
+          opacity:Number.parseFloat(a.opacity)||0
+        };
+      });
+      const environment=scene.querySelector('.bb-itachi-environment'),environmentStyle=getComputedStyle(environment);
+      const result={rows,environmentOpacity:Number.parseFloat(environmentStyle.opacity)||0,environmentDisplay:environmentStyle.display};
+      referenceScene.remove();
+      return result;
     });
-    if(assembled.ringOpacities.length!==4||assembled.ringOpacities.some(value=>value<.99)||assembled.environmentOpacity>.01||assembled.environmentDisplay!=='none')throw new Error(`Itachi ring assembly still contains translucent overlap/background ghosting: ${JSON.stringify(assembled)}`);
-    if(name==='chromium')await page.screenshot({path:'test-artifacts/itachi-summon-four-ring-assembly-chromium.png'});
+    const exactReference=ringParity.rows.length===4&&ringParity.rows.every(row=>row.name===row.referenceName&&row.duration===row.referenceDuration&&row.delay===row.referenceDelay&&row.easing===row.referenceEasing);
+    const referenceFade=ringParity.rows.every(row=>row.opacity<=.05);
+    if(!exactReference||!referenceFade||ringParity.environmentOpacity>.01||ringParity.environmentDisplay!=='none')throw new Error(`Itachi rings do not visually inherit the regular summon motion/fade contract: ${JSON.stringify(ringParity)}`);
 
     const loaded=await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
@@ -211,7 +234,7 @@ async function run(name,type){
     if(!resultState.legendary||resultState.kind!=='itachi'||!resultState.art.endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi result card lost its special treatment/full-background art: ${JSON.stringify(resultState)}`);
     if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
 
-    console.log(`Legendary Itachi summon smoke PASS (${name}): Itachi ring assets use the regular summon bbOrnateRingBuild/bbOuterRingCharge/bbEnergyRingCharge keyframes directly, with no snap gears or endless spin, compact 4.2s handoff, floating Sharingan orbit removed, centered nested rings, shadow/crow reveal, blackout fade-back, and full-background card art verified.`);
+    console.log(`Legendary Itachi summon smoke PASS (${name}): Itachi ring assets use the regular summon bbOrnateRingBuild/bbOuterRingCharge/bbEnergyRingCharge keyframes directly, including the same opacity fade, with no snap gears, forced opaque holds, or endless spin, compact 4.2s handoff, floating Sharingan orbit removed, centered nested rings, shadow/crow reveal, blackout fade-back, and full-background card art verified.`);
   }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
