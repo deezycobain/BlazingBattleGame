@@ -42,8 +42,11 @@ for(const id of ids){
  const teamArt=assetPath(id,unit.assets?.team_art);
  if(!presentation||unit.assets?.summon_art!=='cards/legacy_summon_art.png'||unit.assets?.team_art!=='cards/legacy_summon_art.png')throw new Error('Legacy Shinobi validator: name-free presentation art mapping invalid '+id);
  if(!await exists(summonArt)||!await exists(teamArt))throw new Error('Legacy Shinobi validator: name-free presentation art missing '+id);
- if(presentation.path!==summonArt||presentation.size?.[0]!==presentation.source_size?.[0]||presentation.size?.[1]!==Math.round((presentation.source_size?.[1]||0)*.80))throw new Error('Legacy Shinobi validator: presentation crop contract drifted '+id);
- if(presentation.crop_box?.[0]!==0||presentation.crop_box?.[1]!==0||presentation.crop_box?.[2]!==presentation.source_size?.[0]||presentation.crop_box?.[3]!==presentation.size?.[1])throw new Error('Legacy Shinobi validator: presentation crop box invalid '+id);
+ const sourceW=presentation.source_size?.[0]||0,sourceH=presentation.source_size?.[1]||0;
+ const expectedCrop=[Math.round(sourceW*.16),Math.round(sourceH*.17),Math.round(sourceW*.84),Math.round(sourceH*.64)];
+ const expectedSize=[expectedCrop[2]-expectedCrop[0],expectedCrop[3]-expectedCrop[1]];
+ if(presentation.path!==summonArt||JSON.stringify(presentation.crop_ratios)!==JSON.stringify([.16,.17,.84,.64])||JSON.stringify(presentation.size)!==JSON.stringify(expectedSize))throw new Error('Legacy Shinobi validator: illustration-only presentation crop contract drifted '+id);
+ if(JSON.stringify(presentation.crop_box)!==JSON.stringify(expectedCrop))throw new Error('Legacy Shinobi validator: illustration-only presentation crop box invalid '+id);
 
  for(const kind of ['idle','basic_attack']){
   const source=unit.animation_standard?.source_sheets?.[kind];
