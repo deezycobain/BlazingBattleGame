@@ -58,15 +58,18 @@ function runConfiguredAttack({unitData,unitName,from,target,frames,attackKind='b
  const baseTiming=timelineFor(unitData,frames?.length||0);if(!baseTiming||!isConfiguredMeleeBasic(unitData,attackKind))return false;
  const drunkenMaster=unitData?.display_name==='Wong Fei-Hung'||unitName==='Wong Fei-Hung';
  const cadenceScale=drunkenMaster?(.94+Math.random()*.14):1;
+ const drunkenFrameMs=Math.round(baseTiming.frameMs*cadenceScale);
+ const drunkenImpactMs=Math.round(baseTiming.impactMs*cadenceScale);
+ const drunkenAnimationMs=Math.round(baseTiming.animationMs*cadenceScale);
+ const drunkenRecoveryMs=Math.round(baseTiming.recoveryMs*(.96+Math.random()*.12));
  const timing=drunkenMaster?Object.freeze({
   ...baseTiming,
-  frameMs:Math.round(baseTiming.frameMs*cadenceScale),
-  impactMs:Math.round(baseTiming.impactMs*cadenceScale),
-  animationMs:Math.round(baseTiming.animationMs*cadenceScale),
-  recoveryMs:Math.round(baseTiming.recoveryMs*(.96+Math.random()*.12)),
-  totalMs:0
+  frameMs:drunkenFrameMs,
+  impactMs:drunkenImpactMs,
+  animationMs:drunkenAnimationMs,
+  recoveryMs:drunkenRecoveryMs,
+  totalMs:drunkenAnimationMs+drunkenRecoveryMs
  }):baseTiming;
- if(drunkenMaster)timing.totalMs=timing.animationMs+timing.recoveryMs;
  const contact=contactPoint({from,target,state,bounds,padding:8}),distance=Math.hypot(contact.x-from.x,contact.y-from.y);
  const normalApproach=Math.max(110,Math.min(260,Math.round(distance*1.45)));
  const hesitationMs=drunkenMaster?Math.round(125+Math.random()*175):0;
