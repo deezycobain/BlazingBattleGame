@@ -36,14 +36,11 @@
 #summonPullScreen .pullScene[data-bb-special-reveal="itachi"].bb-cinematic-running .bb-itachi-stage-vfx{opacity:1}
 #summonPullScreen .pullScene[data-bb-special-reveal="itachi"] .pullCardWrap{filter:drop-shadow(0 0 26px rgba(128,11,16,.18))}
 #summonPullScreen .pullScene[data-bb-special-reveal="itachi"]:not([data-bb-itachi-stage="handoff"]) .pullCardWrap::before,#summonPullScreen .pullScene[data-bb-special-reveal="itachi"]:not([data-bb-itachi-stage="handoff"]) .pullCardWrap::after{content:none!important;display:none!important;opacity:0!important;box-shadow:none!important;border-color:transparent!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-shell-flame{animation:bbItachiRingFluidIn .90s cubic-bezier(.18,.70,.24,1) .21s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-shell-outer{animation:bbItachiRingFluidIn 1.05s cubic-bezier(.18,.70,.24,1) .47s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-shell-middle{animation:bbItachiRingFluidIn .76s cubic-bezier(.18,.70,.24,1) .81s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-shell-inner{animation:bbItachiRingFluidIn .84s cubic-bezier(.18,.70,.24,1) 1.02s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-flame{animation:bbItachiReferenceOrnate .90s linear .21s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-outer{animation:bbItachiReferenceOuter 1.05s linear .47s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-middle{animation:bbItachiReferenceEnergyCW .76s linear .81s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-inner{animation:bbItachiReferenceEnergyCCW .84s linear 1.02s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-shell{opacity:1!important;animation:none!important;transform:translate3d(-50%,-50%,0)!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-flame{animation:bbOrnateRingBuild .90s linear .21s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-outer{animation:bbOuterRingCharge 1.05s linear .47s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-middle{animation:bbEnergyRingCharge .76s linear .81s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-inner{animation:bbEnergyRingCharge .76s linear .97s both!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-shadow-lotus{animation:bbItachiShadowLotus 1.46s cubic-bezier(.18,.58,.24,1) 1.72s both!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-silhouette{animation:bbItachiSilhouette 1.72s cubic-bezier(.18,.54,.24,1) 1.98s both!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-raven-burst{animation:bbItachiRavens 1.34s cubic-bezier(.16,.60,.24,1) 2.68s both!important}
