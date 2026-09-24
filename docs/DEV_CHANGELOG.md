@@ -1,5 +1,17 @@
 # Development Changelog
 
+## 2026-09-24 — Legacy full-card presentation correction + Itachi reference kinetics (uncheckpointed dev)
+
+Branch: `dev`  
+Starting head: `a8d40c6`  
+Checkpoint: none yet.
+
+Changes: retired the generated `legacy_summon_art.png` center-crop workaround. Legacy Edit Team, summon reveal, and summon results now route to each fighter's canonical full card at native aspect ratio with `object-fit: contain`, no presentation scale transform, and a UI-owned lower matte that covers the baked source-name zone so the UI nameplate is the only visible fighter name. The unpacker now deletes the obsolete cropped derivatives instead of regenerating them. Wong Fei-Hung's 250 ms idle / 190 ms basic cadence and fixed-scale Drunken Master runtime remain unchanged.
+
+Itachi verification: the Itachi ring stack directly uses `bbOrnateRingBuild`, `bbOuterRingCharge`, and `bbEnergyRingCharge` from the regular summon cinematic with the same .90 s / 1.05 s / .76 s durations and .21 s / .47 s / .81 s three-beat start timing. The special visual assets remain Itachi-specific; the movement curve/rotation trajectory is shared with the reference rather than duplicated.
+
+Validation target: full `dev` build, targeted Legacy browser smoke, paired-team smoke, Itachi integration smoke, Road persistence/gameplay smoke, and deployed commit check before calling this pass test-ready.
+
 ## 2026-09-23 — Wong Fei-Hung refresh + team-editor art cleanup (uncheckpointed dev)
 
 Branch: `dev`  

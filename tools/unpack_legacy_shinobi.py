@@ -59,285 +59,19 @@ def safe_target(base: Path, member: str) -> Path:
 def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
-def make_name_free_presentation_art(source_path: Path, dest_path: Path):
-    """Extract the illustration panel only, excluding baked top/bottom fighter-name graphics."""
-    dest_path.parent.mkdir(parents=True, exist_ok=True)
-    with Image.open(source_path).convert("RGBA") as image:
+def full_card_presentation_meta(card_path: Path):
+    """Describe the canonical full card used by presentation UIs without creating a crop."""
+    with Image.open(card_path) as image:
         width, height = image.size
-        # Legacy cards share a centered illustration. The top banner and lower
-        # branding/name treatment are authored into the source pixels, so a
-        # simple bottom trim is insufficient. Keep the central character art.
-        left = int(round(width * 0.16))
-        right = int(round(width * 0.84))
-        top = int(round(height * 0.17))
-        bottom = int(round(height * 0.64))
-        if right <= left or bottom <= top:
-            raise RuntimeError(f"Invalid name-free crop for {source_path.relative_to(ROOT)}")
-        cropped = image.crop((left, top, right, bottom))
-        cropped.save(dest_path, format="PNG", optimize=True)
-        return {
-            "path": dest_path.relative_to(ROOT).as_posix(),
-            "source_size": [width, height],
-            "crop_box": [left, top, right, bottom],
-            "crop_ratios": [0.16, 0.17, 0.84, 0.64],
-            "size": [cropped.width, cropped.height],
-            "sha256": sha256_file(dest_path),
-        }
-
-def layout_for(unit_id: str):
-    return (6, 1) if unit_id in STRIP_UNITS else (3, 2)
-
-def alpha_bbox(image: Image.Image):
-    alpha = image.getchannel("A")
-    mask = alpha.point(lambda value: 255 if value > ALPHA_THRESHOLD else 0)
-    return mask.getbbox()
-
-def choose_x_boundary(alpha: Image.Image, y0: int, y1: int, expected: int, radius: int) -> int:
-    px = alpha.load()
-    lo = max(2, expected - radius)
-    hi = min(alpha.width - 2, expected + radius)
-    best = expected
-    best_score = None
-    for x in range(lo, hi + 1):
-        mass = 0
-        for xx in range(max(0, x - 1), min(alpha.width, x + 2)):
-            mass += sum(1 for y in range(y0, y1) if px[xx, y] > ALPHA_THRESHOLD)
-        score = mass + abs(x - expected) * 0.03
-        if best_score is None or score < best_score:
-            best_score = score
-            best = x
-    return best
-
-def choose_y_boundary(alpha: Image.Image, expected: int, radius: int) -> int:
-    px = alpha.load()
-    lo = max(2, expected - radius)
-    hi = min(alpha.height - 2, expected + radius)
-    best = expected
-    best_score = None
-    for y in range(lo, hi + 1):
-        mass = 0
-        for yy in range(max(0, y - 1), min(alpha.height, y + 2)):
-            mass += sum(1 for x in range(alpha.width) if px[x, yy] > ALPHA_THRESHOLD)
-        score = mass + abs(y - expected) * 0.03
-        if best_score is None or score < best_score:
-            best_score = score
-            best = y
-    return best
-
-def grid_cells(image: Image.Image, cols: int, rows: int):
-    alpha = image.getchannel("A")
-    if rows == 1:
-        y_bounds = [0, image.height]
-    else:
-        approx_h = image.height / rows
-        y_bounds = [0]
-        for row in range(1, rows):
-            expected = round(image.height * row / rows)
-            radius = max(18, round(approx_h * 0.16))
-            y_bounds.append(choose_y_boundary(alpha, expected, radius))
-        y_bounds.append(image.height)
-
-    cells = []
-    for row in range(rows):
-        y0, y1 = y_bounds[row], y_bounds[row + 1]
-        approx_w = image.width / cols
-        x_bounds = [0]
-        for col in range(1, cols):
-            expected = round(image.width * col / cols)
-            radius = max(18, round(approx_w * 0.18))
-            x_bounds.append(choose_x_boundary(alpha, y0, y1, expected, radius))
-        x_bounds.append(image.width)
-        for col in range(cols):
-            cells.append((x_bounds[col], y0, x_bounds[col + 1], y1))
-    if len(cells) != 6:
-        raise RuntimeError(f"Expected 6 cells, got {len(cells)} from {cols}x{rows}")
-    return cells
-
-def isolate_subject(frame: Image.Image, core_box):
-    # Find all half-resolution components first so the intended pose can be chosen
-    # by its centroid inside the nominal cell. Then flood-fill that exact component
-    # at full resolution and clear every unrelated pixel. This is the key difference
-    # from the old crop-only approach: neighboring hair, legs, cloth and weapons are
-    # removed instead of merely sitting inside a wider transparent crop.
-    alpha = frame.getchannel("A")
-    threshold_mask = alpha.point(lambda value: 255 if value > ALPHA_THRESHOLD else 0)
-    small_w = max(1, (frame.width + 1) // 2)
-    small_h = max(1, (frame.height + 1) // 2)
-    small = threshold_mask.resize((small_w, small_h), Image.Resampling.NEAREST)
-    px = small.load()
-    visited = bytearray(small_w * small_h)
-    components = []
-
-    for sy in range(small_h):
-        for sx in range(small_w):
-            idx = sy * small_w + sx
-            if visited[idx] or px[sx, sy] == 0:
-                continue
-            visited[idx] = 1
-            queue = deque([(sx, sy)])
-            area = 0
-            core_hits = 0
-            core_seed = None
-            sum_x = sum_y = 0
-            min_x = max_x = sx
-            min_y = max_y = sy
-            while queue:
-                x, y = queue.popleft()
-                area += 1
-                fx = x * 2
-                fy = y * 2
-                if core_box[0] <= fx <= core_box[2] and core_box[1] <= fy <= core_box[3]:
-                    core_hits += 1
-                    if core_seed is None:
-                        core_seed = (fx, fy)
-                sum_x += x
-                sum_y += y
-                min_x = min(min_x, x)
-                max_x = max(max_x, x)
-                min_y = min(min_y, y)
-                max_y = max(max_y, y)
-                for nx, ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1),(x-1,y-1),(x+1,y-1),(x-1,y+1),(x+1,y+1)):
-                    if nx < 0 or ny < 0 or nx >= small_w or ny >= small_h:
-                        continue
-                    nidx = ny * small_w + nx
-                    if visited[nidx] or px[nx, ny] == 0:
-                        continue
-                    visited[nidx] = 1
-                    queue.append((nx, ny))
-            if area >= 4:
-                components.append({
-                    "area": area,
-                    "core_hits": core_hits,
-                    "seed": core_seed or (sx*2, sy*2),
-                    "bbox": (min_x*2, min_y*2, min(frame.width,(max_x+1)*2), min(frame.height,(max_y+1)*2)),
-                    "cx": (sum_x/area)*2,
-                    "cy": (sum_y/area)*2,
-                })
-
-    if not components:
-        return None, None, None
-
-    # Pick the component that actually occupies the nominal cell most strongly.
-    # Centroid-only selection can choose a tiny detached spark/VFX fragment when a
-    # dynamic pose extends across a cell boundary (Scorpion attack frame 3 exposed this).
-    core_components = [c for c in components if c["core_hits"] > 0]
-    primary = max(core_components or components, key=lambda c: (c.get("core_hits", 0), c["area"]))
-
-    # Seed from a pixel known to belong to the chosen half-resolution component.
-    # Using the component centroid is unsafe for crescent / ring / lunging poses:
-    # the centroid can fall on transparent space next to a detached VFX island.
-    full_px = alpha.load()
-    seed_x = max(0, min(frame.width-1, round(primary["seed"][0])))
-    seed_y = max(0, min(frame.height-1, round(primary["seed"][1])))
-    seed = None
-    for radius in range(0, 8):
-        x0=max(0,seed_x-radius); x1=min(frame.width-1,seed_x+radius)
-        y0=max(0,seed_y-radius); y1=min(frame.height-1,seed_y+radius)
-        for y in range(y0,y1+1):
-            for x in range(x0,x1+1):
-                if full_px[x,y] > ALPHA_THRESHOLD:
-                    seed=(x,y); break
-            if seed: break
-        if seed: break
-    if not seed:
-        return None, None, None
-
-    selected = bytearray(frame.width * frame.height)
-    queue = deque([seed])
-    selected[seed[1]*frame.width+seed[0]] = 1
-    left=right=seed[0]
-    top=bottom=seed[1]
-    area=0
-    while queue:
-        x,y=queue.popleft()
-        area += 1
-        left=min(left,x); right=max(right,x)
-        top=min(top,y); bottom=max(bottom,y)
-        for nx,ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1),(x-1,y-1),(x+1,y-1),(x-1,y+1),(x+1,y+1)):
-            if nx<0 or ny<0 or nx>=frame.width or ny>=frame.height:
-                continue
-            nidx=ny*frame.width+nx
-            if selected[nidx] or full_px[nx,ny] <= ALPHA_THRESHOLD:
-                continue
-            selected[nidx]=1
-            queue.append((nx,ny))
-
-    if area < 100:
-        return None, None, None
-
-    # Preserve original antialiased alpha for the selected component only.
-    cleaned = frame.copy()
-    clean_alpha = Image.new("L", frame.size, 0)
-    clean_px = clean_alpha.load()
-    for y in range(frame.height):
-        row=y*frame.width
-        for x in range(frame.width):
-            if selected[row+x]:
-                clean_px[x,y]=full_px[x,y]
-    cleaned.putalpha(clean_alpha)
-
-    pad_x=max(8,round((right-left+1)*0.06))
-    pad_y=max(8,round((bottom-top+1)*0.05))
-    subject_box=(
-        max(0,left-pad_x),
-        max(0,top-pad_y),
-        min(frame.width,right+1+pad_x),
-        min(frame.height,bottom+1+pad_y),
-    )
-    component_audit={
-        "component_area": area,
-        "selected_core_hits": primary.get("core_hits", 0),
-        "component_bbox": [left,top,right+1,bottom+1],
-        "discarded_components": max(0,len(components)-1),
+    return {
+        "path": card_path.relative_to(ROOT).as_posix(),
+        "source_size": [width, height],
+        "crop_box": [0, 0, width, height],
+        "crop_ratios": [0.0, 0.0, 1.0, 1.0],
+        "size": [width, height],
+        "sha256": sha256_file(card_path),
+        "presentation_mode": "full_card_ui_matted",
     }
-    return cleaned, subject_box, component_audit
-
-def keep_largest_component(image: Image.Image):
-    alpha = image.getchannel("A")
-    px = alpha.load()
-    visited = bytearray(image.width * image.height)
-    components = []
-
-    for sy in range(image.height):
-        for sx in range(image.width):
-            idx = sy * image.width + sx
-            if visited[idx] or px[sx, sy] <= ALPHA_THRESHOLD:
-                continue
-            visited[idx] = 1
-            queue = deque([(sx, sy)])
-            points = []
-            while queue:
-                x, y = queue.popleft()
-                points.append((x, y))
-                for nx, ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1),(x-1,y-1),(x+1,y-1),(x-1,y+1),(x+1,y+1)):
-                    if nx < 0 or ny < 0 or nx >= image.width or ny >= image.height:
-                        continue
-                    nidx = ny * image.width + nx
-                    if visited[nidx] or px[nx, ny] <= ALPHA_THRESHOLD:
-                        continue
-                    visited[nidx] = 1
-                    queue.append((nx, ny))
-            if points:
-                components.append(points)
-
-    if not components:
-        return image
-
-    primary = max(components, key=len)
-    keep = bytearray(image.width * image.height)
-    for x, y in primary:
-        keep[y * image.width + x] = 1
-
-    cleaned = image.copy()
-    clean_alpha = Image.new("L", image.size, 0)
-    out = clean_alpha.load()
-    for y in range(image.height):
-        row = y * image.width
-        for x in range(image.width):
-            if keep[row + x]:
-                out[x, y] = px[x, y]
-    cleaned.putalpha(clean_alpha)
-    return cleaned
 
 def normalize_pose(frame: Image.Image, subject_box, fixed_scale=None):
     content = frame.crop(subject_box)
@@ -682,8 +416,10 @@ for unit_id, source_dir in sorted(unit_sources.items()):
     card_dir.mkdir(parents=True, exist_ok=True)
     card_name = f"legacy_of_shinobi_card{source_card.suffix.lower()}"
     shutil.copy2(source_card, card_dir / card_name)
-    presentation_name = "legacy_summon_art.png"
-    presentation_meta = make_name_free_presentation_art(source_card, card_dir / presentation_name)
+    retired_crop = card_dir / "legacy_summon_art.png"
+    if retired_crop.exists():
+        retired_crop.unlink()
+    presentation_meta = full_card_presentation_meta(card_dir / card_name)
 
     idle_meta = split_sheet(
         unit_id,
@@ -701,8 +437,8 @@ for unit_id, source_dir in sorted(unit_sources.items()):
     data_dir = canonical / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     data = unit_json(unit_id, card_name)
-    data["assets"]["summon_art"] = f"cards/{presentation_name}"
-    data["assets"]["team_art"] = f"cards/{presentation_name}"
+    data["assets"]["summon_art"] = f"cards/{card_name}"
+    data["assets"]["team_art"] = f"cards/{card_name}"
     data["animation_standard"]["source_sheets"] = {
         "idle": {
             "path": source_dir.relative_to(ROOT).joinpath("idle_6f.png").as_posix(),
@@ -844,10 +580,12 @@ def apply_wong_refresh(audit_units, packages):
         data["assets"]["card"] = f"cards/{card_name}"
         data["assets"]["portrait"] = f"cards/{card_name}"
     canonical_card = canonical / data["assets"]["art"]
-    presentation_name = "legacy_summon_art.png"
-    presentation_meta = make_name_free_presentation_art(canonical_card, canonical / "cards" / presentation_name)
-    data["assets"]["summon_art"] = f"cards/{presentation_name}"
-    data["assets"]["team_art"] = f"cards/{presentation_name}"
+    retired_crop = canonical / "cards" / "legacy_summon_art.png"
+    if retired_crop.exists():
+        retired_crop.unlink()
+    presentation_meta = full_card_presentation_meta(canonical_card)
+    data["assets"]["summon_art"] = data["assets"]["art"]
+    data["assets"]["team_art"] = data["assets"]["art"]
     data_path.write_text(json.dumps(data, indent=2) + "\n")
 
     with Image.open(canonical_card) as card:

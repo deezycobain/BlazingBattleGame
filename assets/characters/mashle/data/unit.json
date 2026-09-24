@@ -78,8 +78,8 @@
       "jutsu": null
     },
     "vfx": null,
-    "summon_art": "cards/legacy_summon_art.png",
-    "team_art": "cards/legacy_summon_art.png"
+    "summon_art": "cards/legacy_of_shinobi_card.png",
+    "team_art": "cards/legacy_of_shinobi_card.png"
   },
   "readiness": {
     "collection": true,

@@ -79,20 +79,26 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   },{names:NAMES});
   if(!/LEGACYOFTHE?SHINOBI/i.test(String(summon.title||'').replace(/[^A-Z]/gi,''))||summon.fighterCount!==12||summon.missingNames.length||!summon.singleVisible||!summon.multiVisible)throw new Error('Legacy summon lobby invalid: '+JSON.stringify(summon));
 
-  // Regression: the visible reveal must use the illustration-only presentation
-  // crop, never the older trading-card source with baked fighter names.
+  // Regression: Legacy reveal/results must use the canonical full card with no source crop/zoom.
+  // The lower UI matte hides the baked source-name zone so the UI nameplate is the only visible fighter name.
   await page.evaluate(()=>{window.__bbLegacyOriginalRandom=Math.random;Math.random=()=>0});
   await page.locator('#singleSummonBtn').click();
   await page.locator('#summonPullScreen.active').waitFor({state:'visible',timeout:10000});
-  await page.waitForFunction(()=>String(document.querySelector('#summonPullScreen .summonedTradingCard')?.getAttribute('src')||'').includes('/kakashi/cards/legacy_summon_art.png'),null,{timeout:10000});
-  const cleanReveal=await page.evaluate(()=>({
-    src:document.querySelector('#summonPullScreen .summonedTradingCard')?.getAttribute('src')||'',
-    name:document.querySelector('#summonPullScreen .bb-card-nameplate')?.textContent?.trim()||'',
-    oldNamed:[...document.querySelectorAll('#summonPullScreen img')].map(img=>img.getAttribute('src')||'').filter(src=>/kakashi\/cards\/legacy_of_shinobi_card/i.test(src))
-  }));
+  await page.waitForFunction(()=>/\/kakashi\/cards\/legacy_of_shinobi_card\.webp$/.test(String(document.querySelector('#summonPullScreen .summonedTradingCard')?.getAttribute('src')||'')),null,{timeout:10000});
+  const cleanReveal=await page.evaluate(()=>{
+    const image=document.querySelector('#summonPullScreen .summonedTradingCard'),frame=image?.closest('.bb-legacy-art-frame'),mask=frame?.querySelector('.bb-legacy-name-mask'),wrap=document.getElementById('pullCardWrap');
+    const fr=frame?.getBoundingClientRect(),mr=mask?.getBoundingClientRect(),style=image?getComputedStyle(image):null;
+    return {src:image?.getAttribute('src')||'',name:(document.querySelector('#summonPullScreen .bb-card-nameplate')||document.querySelector('#summonPullScreen .pullName'))?.textContent?.trim()||'',fit:style?.objectFit||'',transform:style?.transform||'',legacyClass:wrap?.classList.contains('bb-legacy-full-card')||false,frame:!!frame,maskCoverage:fr?.height?mr.height/fr.height:0,oldCrop:[...document.querySelectorAll('#summonPullScreen img')].map(img=>img.getAttribute('src')||'').filter(src=>/legacy_summon_art\.png/i.test(src))};
+  });
   await page.evaluate(()=>{if(window.__bbLegacyOriginalRandom)Math.random=window.__bbLegacyOriginalRandom});
-  if(!/\/kakashi\/cards\/legacy_summon_art\.png$/.test(cleanReveal.src)||cleanReveal.name!=='KAKASHI'||cleanReveal.oldNamed.length)throw new Error('Kakashi summon reveal is not using clean presentation art: '+JSON.stringify(cleanReveal));
-  await page.locator('#bbSkipReveal').click().catch(()=>{});
+  if(!/\/kakashi\/cards\/legacy_of_shinobi_card\.webp$/.test(cleanReveal.src)||cleanReveal.name!=='KAKASHI'||cleanReveal.fit!=='contain'||cleanReveal.transform!=='none'||!cleanReveal.legacyClass||!cleanReveal.frame||cleanReveal.maskCoverage<.27||cleanReveal.oldCrop.length)throw new Error('Kakashi reveal is not using canonical full-card/no-crop presentation: '+JSON.stringify(cleanReveal));
+  await page.locator('#bbSkipReveal').click();
+  await page.locator('#pullResultsPanel.active').waitFor({state:'visible',timeout:10000});
+  const cleanResult=await page.evaluate(()=>{
+    const card=document.querySelector('#pullResultsGrid .pullCard'),image=card?.querySelector('.resultTradingCard'),frame=image?.closest('.bb-legacy-art-frame'),mask=frame?.querySelector('.bb-legacy-name-mask'),fr=frame?.getBoundingClientRect(),mr=mask?.getBoundingClientRect(),style=image?getComputedStyle(image):null;
+    return {src:image?.getAttribute('src')||'',name:card?.querySelector('.charName')?.textContent?.trim()||'',fit:style?.objectFit||'',transform:style?.transform||'',legacyClass:card?.classList.contains('bb-legacy-full-card')||false,maskCoverage:fr?.height?mr.height/fr.height:0,oldCrop:[...document.querySelectorAll('#pullResultsGrid img')].map(img=>img.getAttribute('src')||'').filter(src=>/legacy_summon_art\.png/i.test(src))};
+  });
+  if(!/\/kakashi\/cards\/legacy_of_shinobi_card\.webp$/.test(cleanResult.src)||cleanResult.name!=='KAKASHI'||cleanResult.fit!=='contain'||cleanResult.transform!=='none'||!cleanResult.legacyClass||cleanResult.maskCoverage<.27||cleanResult.oldCrop.length)throw new Error('Kakashi results card is not using canonical full-card/no-crop presentation: '+JSON.stringify(cleanResult));
 
   const attackScaleValues=await page.evaluate(names=>{
    const body=globalThis.eval('LEGACY_SHINOBI_BODY_RUNTIME');
@@ -203,7 +209,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   if(inventory.missing.length||inventory.broken.length)throw new Error('Legacy inventory invalid: '+JSON.stringify(inventory));
 
   if(errors.length)throw new Error('page errors: '+errors.join(' | '));
-  console.log('Legacy Shinobi browser smoke PASS ('+browserName+'): Home promo -> 12-unit summon banner -> clean Kakashi reveal art -> inventory cards -> playable roster -> audited 512x768 six-frame idle/basic runtime.');
+  console.log('Legacy Shinobi browser smoke PASS ('+browserName+'): Home promo -> 12-unit summon banner -> full-card Kakashi reveal/results -> inventory cards -> playable roster -> audited 512x768 six-frame idle/basic runtime.');
   await context.close();
  }finally{
   if(browser)await browser.close().catch(()=>{});
