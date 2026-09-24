@@ -75,7 +75,7 @@ async function run(name,type){
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbSpecialReveal==='itachi',{timeout:5000});
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='ignite',{timeout:10000});
 
-    await page.waitForTimeout(720);
+    await page.waitForTimeout(650);
     const blackout=await page.evaluate(()=>{
       const screen=document.getElementById('summonPullScreen'),layer=screen?.querySelector(':scope > .bb-itachi-blackout');
       const hero=screen?.querySelector('.pullHeroArea'),scene=screen?.querySelector('.pullScene'),stage=screen?.querySelector('.bb-itachi-stage-vfx'),wrap=screen?.querySelector('.pullCardWrap');
@@ -92,7 +92,7 @@ async function run(name,type){
         smokeAnimation:smoke.animationName||''
       };
     });
-    if(!blackout.active||blackout.opacity<.7||blackout.visibleRings!==0||blackout.blackoutZ>=blackout.heroZ||blackout.heroZ>=blackout.sceneZ||blackout.stageZ<6||!blackout.outlineHidden||!blackout.smokeAnimation.includes('bbItachiSmokeBloom'))throw new Error(`Itachi blackout/smoke/card-frame intro is wrong: ${JSON.stringify(blackout)}`);
+    if(!blackout.active||blackout.opacity<.7||blackout.visibleRings<1||blackout.visibleRings>3||blackout.blackoutZ>=blackout.heroZ||blackout.heroZ>=blackout.sceneZ||blackout.stageZ<6||!blackout.outlineHidden||!blackout.smokeAnimation.includes('bbItachiSmokeBloom'))throw new Error(`Itachi blackout/smoke/fluid-ring intro is wrong: ${JSON.stringify(blackout)}`);
     await page.waitForFunction(()=>window.__bbItachiRingStarts?.length===4,{timeout:5000});
     const ringStarts=await page.evaluate(()=>window.__bbItachiRingStarts.map((item,index,array)=>({
       index:item.index,
