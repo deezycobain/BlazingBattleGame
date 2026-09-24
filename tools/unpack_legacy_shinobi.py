@@ -15,6 +15,8 @@ ARCHIVES = [
     ROOT / "legacy_of_the_shinobi_banner_pack_v2.zip",
     ROOT / "legacy_of_the_shinobi_banner_pack_v3_clean_cards.zip",
 ]
+WONG_REFRESH_ARCHIVE = ROOT / "legacy_of_the_shinobi_jackie_chan_refresh.zip"
+WONG_REFRESH_ROOT = EVENT_ROOT / "wong-fei-hung-refresh"
 MANIFEST = EVENT_ROOT / "extracted-manifest.json"
 AUDIT_REPORT = EVENT_ROOT / "sprite-audit.json"
 UNIT_INDEX = ROOT / "runtime" / "registry" / "unit-index.json"
@@ -352,9 +354,18 @@ def normalize_pose(frame: Image.Image, subject_box):
         "visible_size": [out_bbox[2]-out_bbox[0], out_bbox[3]-out_bbox[1]],
     }
 
-def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path):
+def auto_layout_for_sheet(sheet_path: Path):
+    with Image.open(sheet_path) as image:
+        ratio = image.width / max(1, image.height)
+    if ratio >= 2.35:
+        return (6, 1)
+    if 0.80 <= ratio <= 1.25:
+        return (3, 2)
+    raise RuntimeError(f"Cannot infer six-frame layout for {sheet_path.relative_to(ROOT)} from aspect ratio {ratio:.3f}")
+
+def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path, layout=None):
     output_dir.mkdir(parents=True, exist_ok=True)
-    cols, rows = layout_for(unit_id)
+    cols, rows = layout or layout_for(unit_id)
 
     with Image.open(sheet_path).convert("RGBA") as image:
         source_w, source_h = image.width, image.height
@@ -541,13 +552,13 @@ def unit_json(unit_id: str, card_name: str):
             "animations": {
                 "idle": {
                     "frames": [f"sprites/runtime/idle/frame_{i:02d}.png" for i in range(1,7)],
-                    "frame_ms": 145,
+                    "frame_ms": 220 if unit_id == "jackie_chan" else 145,
                     "loop": True,
                     "events": [],
                 },
                 "basic_attack": {
                     "frames": [f"sprites/runtime/attack/basic/frame_{i:02d}.png" for i in range(1,7)],
-                    "frame_ms": 105,
+                    "frame_ms": 165 if unit_id == "jackie_chan" else 105,
                     "loop": False,
                     "events": [{"frame":4,"event":"apply_melee"}],
                 },
@@ -679,6 +690,134 @@ for unit_id, source_dir in sorted(unit_sources.items()):
         "basic_attack": {k:v for k,v in attack_meta.items() if k != "frames"},
     }
     generated_units.append(unit_id)
+
+
+def refresh_asset_candidates(root: Path):
+    images = [p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in {".png",".jpg",".jpeg",".webp"}]
+    def score(path: Path, kind: str):
+        name = path.name.lower()
+        rel = path.relative_to(root).as_posix().lower()
+        size = path.stat().st_size
+        if kind == "idle":
+            hits = (5 if "idle_6f" in name else 0) + (3 if "idle" in name else 0) + (2 if "sheet" in name else 0)
+        elif kind == "attack":
+            hits = (5 if "basic_attack_6f" in name else 0) + (4 if "basic" in name else 0) + (3 if "attack" in name else 0) + (2 if "sheet" in name else 0)
+        else:
+            hits = (5 if "card_art" in name else 0) + (4 if "full_art" in name else 0) + (3 if "portrait" in name else 0) + (2 if "card" in name else 0)
+        if "idle" in rel and kind != "idle":
+            hits -= 4
+        if ("attack" in rel or "basic" in rel) and kind != "attack":
+            hits -= 4
+        return (hits, size)
+    def choose(kind):
+        ranked = sorted(images, key=lambda p: score(p, kind), reverse=True)
+        return ranked[0] if ranked and score(ranked[0], kind)[0] > 0 else None
+    return images, choose("idle"), choose("attack"), choose("card")
+
+def apply_wong_refresh(audit_units, packages):
+    if not WONG_REFRESH_ARCHIVE.exists():
+        return
+    if WONG_REFRESH_ROOT.exists():
+        shutil.rmtree(WONG_REFRESH_ROOT)
+    WONG_REFRESH_ROOT.mkdir(parents=True, exist_ok=True)
+    files = []
+    with zipfile.ZipFile(WONG_REFRESH_ARCHIVE) as zf:
+        for info in zf.infolist():
+            if info.is_dir():
+                safe_target(WONG_REFRESH_ROOT, info.filename).mkdir(parents=True, exist_ok=True)
+                continue
+            dest = safe_target(WONG_REFRESH_ROOT, info.filename)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            data = zf.read(info)
+            dest.write_bytes(data)
+            files.append({
+                "path": dest.relative_to(ROOT).as_posix(),
+                "size": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+            })
+    images, idle_sheet, attack_sheet, card_art = refresh_asset_candidates(WONG_REFRESH_ROOT)
+    print("Wong Fei-Hung refresh archive entries:")
+    for item in files:
+        print(" -", item["path"])
+    if not idle_sheet or not attack_sheet:
+        discovered = ", ".join(p.relative_to(ROOT).as_posix() for p in images)
+        raise RuntimeError(f"Wong refresh requires recognizable idle and basic-attack sheets. Discovered: {discovered}")
+
+    unit_id = "jackie_chan"
+    canonical = ROOT / "assets" / "characters" / unit_id
+    idle_meta = split_sheet(
+        unit_id, "idle", idle_sheet,
+        canonical / "sprites" / "runtime" / "idle",
+        layout=auto_layout_for_sheet(idle_sheet),
+    )
+    attack_meta = split_sheet(
+        unit_id, "basic_attack", attack_sheet,
+        canonical / "sprites" / "runtime" / "attack" / "basic",
+        layout=auto_layout_for_sheet(attack_sheet),
+    )
+
+    data_path = canonical / "data" / "unit.json"
+    data = json.loads(data_path.read_text())
+    data["display_name"] = "Wong Fei-Hung"
+    data["title"] = "Drunken Master"
+    data["combat"]["mark"] = "WFH"
+    data["animation_standard"]["animations"]["idle"]["frame_ms"] = 220
+    data["animation_standard"]["animations"]["basic_attack"]["frame_ms"] = 165
+    data["animation_standard"]["source_sheets"] = {
+        "idle": {
+            "path": idle_sheet.relative_to(ROOT).as_posix(),
+            "columns": idle_meta["columns"],
+            "rows": idle_meta["rows"],
+            "source_size": idle_meta["source_size"],
+            "normalized_canvas": idle_meta["output_canvas"],
+            "anchor": idle_meta["anchor"],
+        },
+        "basic_attack": {
+            "path": attack_sheet.relative_to(ROOT).as_posix(),
+            "columns": attack_meta["columns"],
+            "rows": attack_meta["rows"],
+            "source_size": attack_meta["source_size"],
+            "normalized_canvas": attack_meta["output_canvas"],
+            "anchor": attack_meta["anchor"],
+        },
+    }
+    data["readiness"]["notes"] = "Wong Fei-Hung refresh pack active. Six-frame Drunken Master idle/basic are normalized to bottom-center runtime canvases with intentionally uneven slow-to-snap presentation timing."
+    if card_art:
+        card_dir = canonical / "cards"
+        card_dir.mkdir(parents=True, exist_ok=True)
+        card_name = f"wong_fei_hung_refresh{card_art.suffix.lower()}"
+        shutil.copy2(card_art, card_dir / card_name)
+        data["assets"]["art"] = f"cards/{card_name}"
+        data["assets"]["card"] = f"cards/{card_name}"
+        data["assets"]["portrait"] = f"cards/{card_name}"
+    data_path.write_text(json.dumps(data, indent=2) + "\n")
+
+    canonical_card = canonical / data["assets"]["art"]
+    with Image.open(canonical_card) as card:
+        card_size = [card.width, card.height]
+        card_mode = card.mode
+    audit_units[unit_id] = {
+        "display_name": "Wong Fei-Hung",
+        "package": WONG_REFRESH_ROOT.relative_to(ROOT).as_posix(),
+        "card": {
+            "path": canonical_card.relative_to(ROOT).as_posix(),
+            "size": card_size,
+            "mode": card_mode,
+            "sha256": sha256_file(canonical_card),
+        },
+        "idle": {k:v for k,v in idle_meta.items() if k != "frames"},
+        "basic_attack": {k:v for k,v in attack_meta.items() if k != "frames"},
+    }
+    packages.append({
+        "version": "wong-fei-hung-refresh",
+        "source_archive": WONG_REFRESH_ARCHIVE.name,
+        "source_sha256": sha256_file(WONG_REFRESH_ARCHIVE),
+        "file_count": len(files),
+        "files": files,
+    })
+    print(f"Applied Wong Fei-Hung refresh from {WONG_REFRESH_ARCHIVE.name}: idle={idle_sheet.relative_to(ROOT)}, attack={attack_sheet.relative_to(ROOT)}, card={card_art.relative_to(ROOT) if card_art else 'preserved canonical card'}")
+
+apply_wong_refresh(audit_units, packages)
 
 index_data = json.loads(UNIT_INDEX.read_text())
 existing = [entry for entry in index_data.get("units", []) if entry.get("id") not in UNIT_META]
