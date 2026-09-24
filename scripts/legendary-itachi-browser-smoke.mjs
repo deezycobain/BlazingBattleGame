@@ -101,8 +101,9 @@ async function run(name,type){
     })));
     const startOrder=ringStarts.map(item=>item.index);
     const sequentialStarts=startOrder.length===4&&startOrder.every((value,index)=>value===index);
-    const gaps=ringStarts.slice(1).map(item=>item.gap),smoothStagger=gaps.every(gap=>gap>=140&&gap<=380);
-    if(!sequentialStarts||!smoothStagger)throw new Error(`Itachi ring starts lost their fluid stagger: ${JSON.stringify(ringStarts)}`);
+    const gaps=ringStarts.slice(1).map(item=>item.gap);
+    const threeBeatStarts=gaps.length===3&&gaps[0]>=140&&gaps[0]<=380&&gaps[1]>=140&&gaps[1]<=420&&Math.abs(gaps[2])<=45;
+    if(!sequentialStarts||!threeBeatStarts)throw new Error(`Itachi ring starts lost the regular-summon three-beat cadence: ${JSON.stringify(ringStarts)}`);
     await page.waitForFunction(()=>[...document.querySelectorAll('#pullScene .bb-itachi-ring-shell')].length===4&&[...document.querySelectorAll('#pullScene .bb-itachi-ring-shell')].every(node=>(Number.parseFloat(getComputedStyle(node).opacity)||0)>=.99),null,{timeout:2600});
     const assembled=await page.evaluate(()=>{
       const scene=document.getElementById('pullScene');
