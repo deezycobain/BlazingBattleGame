@@ -57,7 +57,7 @@ function timelineFor(unitData,frameCount){const animation=configuredBasic(unitDa
 function runConfiguredAttack({unitData,unitName,from,target,frames,attackKind='basic_attack',state,bounds,tokenAlive,onImpact,onDone,ensureState,lockFacing,clearFacing,requestFrame=requestAnimationFrame}){
  const baseTiming=timelineFor(unitData,frames?.length||0);if(!baseTiming||!isConfiguredMeleeBasic(unitData,attackKind))return false;
  const drunkenMaster=unitData?.display_name==='Wong Fei-Hung'||unitName==='Wong Fei-Hung';
- const cadenceScale=drunkenMaster?(.94+Math.random()*.14):1;
+ const cadenceScale=drunkenMaster?(.98+Math.random()*.10):1;
  const drunkenFrameMs=Math.round(baseTiming.frameMs*cadenceScale);
  const drunkenImpactMs=Math.round(baseTiming.impactMs*cadenceScale);
  const drunkenAnimationMs=Math.round(baseTiming.animationMs*cadenceScale);
@@ -71,16 +71,16 @@ function runConfiguredAttack({unitData,unitName,from,target,frames,attackKind='b
   totalMs:drunkenAnimationMs+drunkenRecoveryMs
  }):baseTiming;
  const contact=contactPoint({from,target,state,bounds,padding:8}),distance=Math.hypot(contact.x-from.x,contact.y-from.y);
- const normalApproach=Math.max(110,Math.min(260,Math.round(distance*1.45)));
- const hesitationMs=drunkenMaster?Math.round(125+Math.random()*175):0;
- const approachMs=drunkenMaster?Math.round(105+Math.random()*55):normalApproach;
- const returnMs=drunkenMaster?Math.round(280+Math.random()*130):normalApproach;
+ const normalApproach=Math.max(150,Math.min(310,Math.round(distance*1.65)));
+ const hesitationMs=drunkenMaster?Math.round(180+Math.random()*150):0;
+ const approachMs=drunkenMaster?Math.round(180+Math.random()*60):normalApproach;
+ const returnMs=drunkenMaster?Math.round(360+Math.random()*120):normalApproach;
  let started=performance.now(),phase=drunkenMaster?'hesitate':'approach',attackStart=0,impacted=false;
- const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
- const snapEase=t=>t<.72?.28*Math.pow(t/.72,2):.28+.72*(1-Math.pow(1-(t-.72)/.28,3));
+ const ease=t=>t*t*(3-2*t);
+ const drunkenEase=t=>t<.62?.44*ease(t/.62):.44+.56*ease((t-.62)/.38);
  const step=now=>{if(!tokenAlive())return;const live=ensureState();let elapsed=now-started;
-  if(phase==='hesitate'){if(elapsed<hesitationMs)return requestFrame(step);phase='approach';started=now;elapsed=0}
-  if(phase==='approach'){const t=Math.min(1,elapsed/approachMs),moveEase=drunkenMaster?snapEase(t):ease(t);live.positions[unitName]={x:from.x+(contact.x-from.x)*moveEase,y:from.y+(contact.y-from.y)*moveEase};if(t<1)return requestFrame(step);phase='attack';attackStart=now;if(!live.attackPose)live.attackPose={};live.attackPose[unitName]={kind:'basic_attack',start:attackStart,duration:timing.animationMs,frameMs:timing.frameMs};lockFacing(live,unitName,contact,target);return requestFrame(step)}
+  if(phase==='hesitate'){if(elapsed<hesitationMs){const p=elapsed/Math.max(1,hesitationMs),sway=Math.sin(p*Math.PI*2.2);live.positions[unitName]={x:from.x+sway*2.4,y:from.y+Math.sin(p*Math.PI*1.2)*1.4};return requestFrame(step)}phase='approach';started=now;elapsed=0}
+  if(phase==='approach'){const t=Math.min(1,elapsed/approachMs),moveEase=drunkenMaster?drunkenEase(t):ease(t),sway=drunkenMaster?Math.sin(t*Math.PI*2.15)*3.2*(1-t):0;live.positions[unitName]={x:from.x+(contact.x-from.x)*moveEase,y:from.y+(contact.y-from.y)*moveEase+sway};if(t<1)return requestFrame(step);phase='attack';attackStart=now;if(!live.attackPose)live.attackPose={};live.attackPose[unitName]={kind:'basic_attack',start:attackStart,duration:timing.animationMs,frameMs:timing.frameMs};lockFacing(live,unitName,contact,target);return requestFrame(step)}
   if(phase==='attack'){elapsed=now-attackStart;if(!impacted&&elapsed>=timing.impactMs){impacted=true;try{onImpact?.()}catch(error){console.error('Attack impact callback failed:',error);return}}if(elapsed<timing.totalMs)return requestFrame(step);phase='return';attackStart=now;if(live.attackPose)delete live.attackPose[unitName];return requestFrame(step)}
   const t=Math.min(1,(now-attackStart)/returnMs),returnEase=drunkenMaster?1-Math.pow(1-t,2):ease(t);live.positions[unitName]={x:contact.x+(from.x-contact.x)*returnEase,y:contact.y+(from.y-contact.y)*returnEase};if(t<1)return requestFrame(step);delete live.positions[unitName];clearFacing(live,unitName);try{onDone?.()}catch(error){console.error('Attack completion callback failed:',error)}
  };requestFrame(step);return true
