@@ -40,9 +40,10 @@ for(const id of ids){
 
  for(const kind of ['idle','basic_attack']){
   const source=unit.animation_standard?.source_sheets?.[kind];
-  const expected=strips.has(id)?{columns:6,rows:1}:{columns:3,rows:2};
-  if(!source||source.columns!==expected.columns||source.rows!==expected.rows){
-   throw new Error('Legacy Shinobi validator: '+id+' '+kind+' layout invalid; expected '+expected.columns+'x'+expected.rows);
+  const refreshWong=id==='jackie_chan'&&String(source?.path||'').includes('wong-fei-hung-refresh');
+  const allowedLayouts=refreshWong?[[6,1],[3,2]]:[strips.has(id)?[6,1]:[3,2]];
+  if(!source||!allowedLayouts.some(([columns,rows])=>source.columns===columns&&source.rows===rows)){
+   throw new Error('Legacy Shinobi validator: '+id+' '+kind+' layout invalid; allowed '+allowedLayouts.map(x=>x.join('x')).join(' or '));
   }
   if(!String(source.path||'').startsWith('assets/events/legacy-of-shinobi/'))throw new Error('Legacy Shinobi validator: '+id+' '+kind+' source path not canonical');
   if(!await exists(source.path))throw new Error('Legacy Shinobi validator: missing '+source.path);
@@ -103,10 +104,10 @@ const escaped=String.fromCharCode(92)+'$'+'{';
 if(home.includes(escaped+'SHELL_ID}')||home.includes(escaped+'FONT}'))throw new Error('Legacy Shinobi validator: escaped Home CSS template placeholder survived');
 
 const adapter=await fs.readFile(path.join(ROOT,'scripts/legacy-shinobi-postprocess.mjs'),'utf8');
-for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME','legacySpriteAudit=v3',...ids,...names]){
+for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME','legacySpriteAudit=v4',...ids,...names]){
  if(!adapter.includes(marker))throw new Error('Legacy Shinobi validator: battle adapter missing '+marker);
 }
-for(const marker of ["drunkenMasterAttack=unitName==='Wong Fei-Hung'","dur=drunkenMasterAttack?320","backDur=drunkenMasterAttack?320","lungeHold=drunkenMasterAttack?350"]){
+for(const marker of ["drunkenPatterns","basic_attack:Object.freeze([0,0,0,1,1,2,3,4,4,5,5,5])","LEGACY_SHINOBI_BODY_RUNTIME.sequence","drunkenVariance=drunkenMasterAttack?(.90+Math.random()*.20):1","Math.round(300*drunkenVariance)","Math.round(350*drunkenHoldVariance)"]){
  if(!adapter.includes(marker))throw new Error('Legacy Shinobi validator: Wong Fei-Hung drunken movement cadence missing '+marker);
 }
 
