@@ -27,7 +27,7 @@ for(const id of ids){
  const unit=await readJson('assets/characters/'+id+'/data/unit.json');
  if(unit.id!==id)throw new Error('Legacy Shinobi validator: id mismatch '+id);
  if(id==='jackie_chan'&&unit.display_name!=='Wong Fei-Hung')throw new Error('Legacy Shinobi validator: Drunken Master fighter must display as Wong Fei-Hung');
- if(id==='jackie_chan'&&(unit.animation_standard?.animations?.idle?.frame_ms!==220||unit.animation_standard?.animations?.basic_attack?.frame_ms!==165))throw new Error('Legacy Shinobi validator: Wong Fei-Hung Drunken Master cadence must remain 220ms idle / 165ms basic');
+ if(id==='jackie_chan'&&(unit.animation_standard?.animations?.idle?.frame_ms!==250||unit.animation_standard?.animations?.basic_attack?.frame_ms!==190))throw new Error('Legacy Shinobi validator: Wong Fei-Hung Drunken Master cadence must remain 250ms idle / 190ms basic');
  if(!unit.collection?.inventory_visible||!unit.collection?.battle_ready)throw new Error('Legacy Shinobi validator: collection flags invalid '+id);
  if(unit.readiness?.jutsu!==false||unit.assets?.vfx!==null)throw new Error('Legacy Shinobi validator: jutsu/VFX must remain pending '+id);
  if(unit.animation_standard?.version!=='legacy-shinobi-v2-audited')throw new Error('Legacy Shinobi validator: old animation standard '+id);
@@ -115,12 +115,12 @@ const adapter=await fs.readFile(path.join(ROOT,'scripts/legacy-shinobi-postproce
 for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME','legacySpriteAudit=v4',...ids,...names]){
  if(!adapter.includes(marker))throw new Error('Legacy Shinobi validator: battle adapter missing '+marker);
 }
-for(const marker of ["drunkenPatterns","basic_attack:Object.freeze([0,1,2,3,4,5])","LEGACY_SHINOBI_BODY_RUNTIME.sequence","drunkenVariance=drunkenMasterAttack?(.90+Math.random()*.20):1","Math.round(300*drunkenVariance)","Math.round(350*drunkenHoldVariance)"]){
+for(const marker of ["drunkenPatterns","basic_attack:Object.freeze([0,1,2,3,4,5])","LEGACY_SHINOBI_BODY_RUNTIME.sequence","drunkenVariance=drunkenMasterAttack?(.96+Math.random()*.10):1","Math.round(245*drunkenVariance)","Math.round(380*drunkenHoldVariance)"]){
  if(!adapter.includes(marker))throw new Error('Legacy Shinobi validator: Wong Fei-Hung fallback drunken cadence missing '+marker);
 }
 const combatPresentation=await fs.readFile(path.join(ROOT,'runtime/combat/combat-presentation-controller.js'),'utf8');
-for(const marker of ["unitData?.display_name==='Wong Fei-Hung'","hesitationMs=drunkenMaster?Math.round(125+Math.random()*175):0","approachMs=drunkenMaster?Math.round(105+Math.random()*55):normalApproach","returnMs=drunkenMaster?Math.round(280+Math.random()*130):normalApproach","snapEase=t=>"]){
+for(const marker of ["unitData?.display_name==='Wong Fei-Hung'","hesitationMs=drunkenMaster?Math.round(180+Math.random()*150):0","approachMs=drunkenMaster?Math.round(180+Math.random()*60):normalApproach","returnMs=drunkenMaster?Math.round(360+Math.random()*120):normalApproach","drunkenEase=t=>","Math.sin(t*Math.PI*2.15)*3.2*(1-t)"]){
  if(!combatPresentation.includes(marker))throw new Error('Legacy Shinobi validator: configured Wong Fei-Hung drunken cadence missing '+marker);
 }
 
-console.log('Legacy Shinobi PASS: 12-unit roster audited; Wong refresh uses exact 1536x1024 3x2 source cells, refreshed card art, clean team-editor body art, synchronized six-frame attacks, and configured Drunken Master timing; runtime frames remain 512x768 bottom-center anchored.');
+console.log('Legacy Shinobi PASS: 12-unit roster audited; Wong refresh uses exact 1536x1024 3x2 source cells, fixed-scale six-frame runtime art, 250ms/190ms Drunken Master cadence, synchronized contact timing, and smoother configured melee travel; runtime frames remain 512x768 bottom-center anchored.');
