@@ -377,7 +377,7 @@ def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path, lay
         ratio = source_w / max(1, source_h)
         if cols == 6 and ratio < 2.35:
             raise RuntimeError(f"{unit_id} {kind}: expected 6x1 strip, got {source_w}x{source_h}")
-        if cols == 3 and not (0.80 <= ratio <= 1.25):
+        if cols == 3 and not (0.80 <= ratio <= 1.80):
             raise RuntimeError(f"{unit_id} {kind}: expected 3x2 grid, got {source_w}x{source_h}")
 
         cells = grid_cells(image, cols, rows)
