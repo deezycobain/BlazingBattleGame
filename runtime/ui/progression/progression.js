@@ -25,7 +25,7 @@ const CARD_ART={
  'Scorpion':'assets/characters/scorpion/cards/legacy_of_shinobi_card.webp',
  'Rock Lee':'assets/characters/rock_lee/cards/legacy_of_shinobi_card.png',
  'Mashle':'assets/characters/mashle/cards/legacy_of_shinobi_card.png',
- 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/legacy_of_shinobi_card.png',
+ 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/wong_fei_hung_refresh.png',
  'Gabimaru':'assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/gabimaru/card_art.png',
  'Killua':'assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/killua/card_art.png',
  'Zabuza':'assets/events/legacy-of-shinobi/package-v3/legacy_of_the_shinobi_banner_pack_v3_clean_cards/zabuza/card_art.png'
