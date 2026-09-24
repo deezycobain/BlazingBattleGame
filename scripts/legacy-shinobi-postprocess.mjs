@@ -49,7 +49,7 @@ const LEGACY_SHINOBI_BODY_RUNTIME=(()=>{
  };
  const drunkenPatterns=Object.freeze({
   idle:Object.freeze([0,0,1,1,1,2,3,3,4,4,5,5]),
-  basic_attack:Object.freeze([0,0,0,1,1,2,3,4,4,5,5,5])
+  basic_attack:Object.freeze([0,1,2,3,4,5])
  });
  const sequence=(name,kind,frames)=>{
   if(name!=='Wong Fei-Hung'||!Array.isArray(frames)||frames.length!==6)return frames;
