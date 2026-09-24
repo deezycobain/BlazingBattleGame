@@ -369,7 +369,20 @@ def auto_layout_for_sheet(sheet_path: Path):
         return (3, 2)
     raise RuntimeError(f"Cannot infer six-frame layout for {sheet_path.relative_to(ROOT)} from aspect ratio {ratio:.3f}")
 
-def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path, layout=None):
+def exact_square_grid_cells(image: Image.Image, cols: int, rows: int):
+    if image.width % cols or image.height % rows:
+        raise RuntimeError(f"Exact grid requires divisible dimensions, got {image.width}x{image.height} for {cols}x{rows}")
+    cell_w = image.width // cols
+    cell_h = image.height // rows
+    if cell_w != cell_h:
+        raise RuntimeError(f"Exact grid requires square cells, got {cell_w}x{cell_h}")
+    return [
+        (col*cell_w, row*cell_h, (col+1)*cell_w, (row+1)*cell_h)
+        for row in range(rows)
+        for col in range(cols)
+    ]
+
+def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path, layout=None, exact_cells=False):
     output_dir.mkdir(parents=True, exist_ok=True)
     cols, rows = layout or layout_for(unit_id)
 
@@ -381,7 +394,7 @@ def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path, lay
         if cols == 3 and not (0.80 <= ratio <= 1.80):
             raise RuntimeError(f"{unit_id} {kind}: expected 3x2 grid, got {source_w}x{source_h}")
 
-        cells = grid_cells(image, cols, rows)
+        cells = exact_square_grid_cells(image, cols, rows) if exact_cells else grid_cells(image, cols, rows)
         frames = []
         audit_frames = []
 
@@ -755,11 +768,13 @@ def apply_wong_refresh(audit_units, packages):
         unit_id, "idle", idle_sheet,
         canonical / "sprites" / "runtime" / "idle",
         layout=auto_layout_for_sheet(idle_sheet),
+        exact_cells=True,
     )
     attack_meta = split_sheet(
         unit_id, "basic_attack", attack_sheet,
         canonical / "sprites" / "runtime" / "attack" / "basic",
         layout=auto_layout_for_sheet(attack_sheet),
+        exact_cells=True,
     )
 
     data_path = canonical / "data" / "unit.json"
