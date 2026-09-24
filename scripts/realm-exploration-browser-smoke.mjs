@@ -43,7 +43,7 @@ async function run(name,type){
   s=await sample(page);
   const initialShift=s.layerShift;
   await page.evaluate(()=>window.BlazingRealmExplorer.setAutoRun(true));
-  await page.waitForFunction(initial=>Number.parseInt(document.querySelector('#bbRealmExplorer [data-run-distance]')?.textContent||'0',10)>450&&document.querySelector('#bbRealmExplorer .bb-run-layer[data-role="distant"]')?.style.getPropertyValue('--layer-shift')!==initial,initialShift,{timeout:5000});
+  await page.waitForFunction(initial=>window.BlazingRealmExplorer.loadState().distance>450&&document.querySelector('#bbRealmExplorer .bb-run-layer[data-role="distant"]')?.style.getPropertyValue('--layer-shift')!==initial,initialShift,{timeout:5000});
   await page.evaluate(()=>window.BlazingRealmExplorer.setAutoRun(false));
   await page.waitForTimeout(180);
   s=await sample(page);if(!(s.run.distance>450)||s.layerShift===initialShift)throw new Error('runner/parallax did not advance: '+JSON.stringify(s));
