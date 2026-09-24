@@ -123,4 +123,4 @@ for(const marker of ["unitData?.display_name==='Wong Fei-Hung'","hesitationMs=dr
  if(!combatPresentation.includes(marker))throw new Error('Legacy Shinobi validator: configured Wong Fei-Hung drunken cadence missing '+marker);
 }
 
-console.log('Legacy Shinobi PASS: all 12 cards and 24 source sheets audited; mixed 3x2/6x1 layouts mapped explicitly; 144 runtime frames normalized to 512x768 bottom-center canvases; banner, inventory, roster, and battle adapters validated.');
+console.log('Legacy Shinobi PASS: 12-unit roster audited; Wong refresh uses exact 1536x1024 3x2 source cells, refreshed card art, clean team-editor body art, synchronized six-frame attacks, and configured Drunken Master timing; runtime frames remain 512x768 bottom-center anchored.');
