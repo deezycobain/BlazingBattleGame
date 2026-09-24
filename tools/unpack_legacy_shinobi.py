@@ -355,11 +355,16 @@ def normalize_pose(frame: Image.Image, subject_box):
     }
 
 def auto_layout_for_sheet(sheet_path: Path):
+    name = sheet_path.name.lower()
     with Image.open(sheet_path) as image:
         ratio = image.width / max(1, image.height)
+    if "3x2" in name:
+        return (3, 2)
+    if "6x1" in name:
+        return (6, 1)
     if ratio >= 2.35:
         return (6, 1)
-    if 0.80 <= ratio <= 1.25:
+    if 0.80 <= ratio <= 1.80:
         return (3, 2)
     raise RuntimeError(f"Cannot infer six-frame layout for {sheet_path.relative_to(ROOT)} from aspect ratio {ratio:.3f}")
 
