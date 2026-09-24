@@ -10,6 +10,7 @@ on:
       - "legacy_of_the_shinobi_banner_pack_v1_under25.zip"
       - "legacy_of_the_shinobi_banner_pack_v2.zip"
       - "legacy_of_the_shinobi_banner_pack_v3_clean_cards.zip"
+      - "legacy_of_the_shinobi_jackie_chan_refresh.zip"
 
 permissions:
   contents: write
