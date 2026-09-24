@@ -17,6 +17,7 @@ ARCHIVES = [
 ]
 WONG_REFRESH_ARCHIVE = ROOT / "legacy_of_the_shinobi_jackie_chan_refresh.zip"
 WONG_REFRESH_ROOT = EVENT_ROOT / "wong-fei-hung-refresh"
+# Team editor intentionally uses the refreshed runtime body frame, not trading-card art.
 MANIFEST = EVENT_ROOT / "extracted-manifest.json"
 AUDIT_REPORT = EVENT_ROOT / "sprite-audit.json"
 UNIT_INDEX = ROOT / "runtime" / "registry" / "unit-index.json"
