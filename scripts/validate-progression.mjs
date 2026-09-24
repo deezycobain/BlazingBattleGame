@@ -10,6 +10,7 @@ const js=await read('runtime/ui/progression/progression.js');
 const css=await read('runtime/ui/progression/progression.css');
 const cinematicJs=await read('runtime/ui/progression/summon-cinematic.js');
 const cinematicCss=await read('runtime/ui/progression/summon-cinematic.css');
+const itachiCss=await read('runtime/ui/progression/legendary-itachi-summon.css');
 const pkg=JSON.parse(await read('package.json'));
 
 try{new vm.Script(js)}catch(error){fail(`runtime syntax error: ${error.message}`)}
