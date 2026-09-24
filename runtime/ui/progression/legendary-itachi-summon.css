@@ -40,7 +40,7 @@
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-flame{animation:bbOrnateRingBuild .90s linear .21s both!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-outer{animation:bbOuterRingCharge 1.05s linear .47s both!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-middle{animation:bbEnergyRingCharge .76s linear .81s both!important}
-#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-inner{animation:bbEnergyRingCharge .76s linear .97s both!important}
+#summonPullScreen .pullScene.bb-itachi-running .bb-itachi-ring-inner{animation:bbEnergyRingCharge .76s linear .81s both!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-shadow-lotus{animation:bbItachiShadowLotus 1.46s cubic-bezier(.18,.58,.24,1) 1.72s both!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-silhouette{animation:bbItachiSilhouette 1.72s cubic-bezier(.18,.54,.24,1) 1.98s both!important}
 #summonPullScreen .pullScene.bb-itachi-running .bb-itachi-raven-burst{animation:bbItachiRavens 1.34s cubic-bezier(.16,.60,.24,1) 2.68s both!important}
