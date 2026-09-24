@@ -69,18 +69,19 @@ async function run(name,type){
    const s=globalThis.eval('S'),front=globalThis.eval('front'),begin=globalThis.eval('beginActionToken'),animate=globalThis.eval('animateItachiTsukuyomi');
    const pair=s.pairs.find(p=>front(p)?.name==='Itachi'),targets=s.enemies.filter(e=>e.hp>0).slice(0,3),enemy=targets[0];if(!pair||!enemy||targets.length<2)return {error:'missing pair/enemies'};
    for(const target of targets){target.maxHp=Math.max(Number(target.maxHp)||0,200);target.hp=200;target.gauge=-1000;target.statusEffects={}}
-   s.phase='resolve';s.floaters=[];begin();const before=targets.map(target=>({hp:target.hp,gauge:target.gauge})),start=performance.now();window.__bbItachiJutsuSmokeStart=start;let sawImpact=false,sawStun=false,impactStatusSnapshot=null;
+   s.phase='resolve';s.floaters=[];begin();const before=targets.map(target=>({hp:target.hp,gauge:target.gauge})),start=performance.now();window.__bbItachiJutsuSmokeStart=start;let sawImpact=false,sawStun=false,impactStatusSnapshot=null,maxStunPulses=0;
    const outcome=await new Promise(resolve=>{
     const sample=setInterval(()=>{
       sawImpact||=s.floaters.some(f=>f?.kind==='itachiTsukuyomiImpact');
       sawStun||=s.floaters.some(f=>f?.kind==='itachiStunPulse');
+      maxStunPulses=Math.max(maxStunPulses,s.floaters.filter(f=>f?.kind==='itachiStunPulse').length);
       if(sawImpact&&!impactStatusSnapshot)impactStatusSnapshot=targets.map(target=>({hp:target.hp,stun:window.BlazingCombatRuntime.getStatus(target,'stun')?.turns||0}));
     },16);
     animate('Itachi',{x:pair.x,y:pair.y},enemy,()=>window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:1}),()=>{clearInterval(sample);resolve({elapsed:performance.now()-start})});
     setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},7000);
    });
    const root=document.getElementById('bb-itachi-tsukuyomi-cinematic');
-   return {...outcome,before,impactStatusSnapshot,after:targets.map(target=>({hp:target.hp,gauge:target.gauge,stun:window.BlazingCombatRuntime.getStatus(target,'stun')?.turns||0})),sawImpact,sawStun,dim:!!s.jutsuDim,domStillActive:!!root?.classList.contains('bb-active')};
+   return {...outcome,before,impactStatusSnapshot,after:targets.map(target=>({hp:target.hp,gauge:target.gauge,stun:window.BlazingCombatRuntime.getStatus(target,'stun')?.turns||0})),sawImpact,sawStun,maxStunPulses,expectedSecondary:Math.max(0,targets.length-1),dim:!!s.jutsuDim,domStillActive:!!root?.classList.contains('bb-active')};
   }).then(result=>({ok:true,result}),error=>({ok:false,error:String(error?.stack||error?.message||error)}));
 
   await page.waitForFunction(()=>{
@@ -108,9 +109,15 @@ async function run(name,type){
   const jutsuResult=jutsuOutcome.result;
   const primaryDamaged=jutsuResult.after?.[0]?.hp===jutsuResult.before?.[0]?.hp-1;
   const secondaryUndamaged=jutsuResult.after?.slice(1).every((state,index)=>state.hp===jutsuResult.before[index+1].hp);
-  const secondaryStunnedAtImpact=jutsuResult.impactStatusSnapshot?.slice(1).every(state=>state.stun===1);
+  const secondaryPulseCoverage=jutsuResult.maxStunPulses===jutsuResult.expectedSecondary;
   const primaryNotStunnedAtImpact=jutsuResult.impactStatusSnapshot?.[0]?.stun===0;
-  if(jutsuResult.error||jutsuResult.timeout||jutsuResult.domStillActive||!jutsuResult.sawImpact||!jutsuResult.sawStun||!primaryDamaged||!secondaryUndamaged||!secondaryStunnedAtImpact||!primaryNotStunnedAtImpact||jutsuResult.elapsed<3400)throw new Error(`Tsukuyomi failed: ${JSON.stringify(jutsuResult)}`);
+  const statusFanout=await page.evaluate(()=>{
+   const targets=[{statusEffects:{}},{statusEffects:{}}];
+   const results=window.BlazingCombatRuntime.execute('apply_status_targets',{targets,parameters:{effect:'stun',turns:1,source:'Itachi'}});
+   return {count:results?.length||0,turns:targets.map(target=>window.BlazingCombatRuntime.getStatus(target,'stun')?.turns||0)};
+  });
+  const statusFanoutOk=statusFanout.count===2&&statusFanout.turns.every(turns=>turns===1);
+  if(jutsuResult.error||jutsuResult.timeout||jutsuResult.domStillActive||!jutsuResult.sawImpact||!jutsuResult.sawStun||!primaryDamaged||!secondaryUndamaged||!secondaryPulseCoverage||!primaryNotStunnedAtImpact||!statusFanoutOk||jutsuResult.elapsed<3400)throw new Error(`Tsukuyomi failed: ${JSON.stringify({jutsuResult,statusFanout})}`);
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
   console.log(`Itachi battle smoke PASS (${name}): smooth dual-layer Tsukuyomi takeover, battlefield impact VFX, single primary damage, and one-turn secondary stun verified.`);
   await context.close();
