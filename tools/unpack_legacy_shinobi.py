@@ -314,14 +314,14 @@ def keep_largest_component(image: Image.Image):
     cleaned.putalpha(clean_alpha)
     return cleaned
 
-def normalize_pose(frame: Image.Image, subject_box):
+def normalize_pose(frame: Image.Image, subject_box, fixed_scale=None):
     content = frame.crop(subject_box)
     bbox = alpha_bbox(content)
     if not bbox:
         raise RuntimeError("Frame contains no visible fighter pixels")
     content = content.crop(bbox)
 
-    scale = min(CONTENT_MAX_W / content.width, CONTENT_MAX_H / content.height, 1.35)
+    scale = min(CONTENT_MAX_W / content.width, CONTENT_MAX_H / content.height, 1.35) if fixed_scale is None else min(float(fixed_scale), CONTENT_MAX_W / content.width, CONTENT_MAX_H / content.height)
     out_w = max(1, round(content.width * scale))
     out_h = max(1, round(content.height * scale))
     content = content.resize((out_w, out_h), Image.Resampling.LANCZOS)
@@ -382,7 +382,7 @@ def exact_square_grid_cells(image: Image.Image, cols: int, rows: int):
         for col in range(cols)
     ]
 
-def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path, layout=None, exact_cells=False):
+def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path, layout=None, exact_cells=False, fixed_scale=None):
     output_dir.mkdir(parents=True, exist_ok=True)
     cols, rows = layout or layout_for(unit_id)
 
@@ -434,7 +434,7 @@ def split_sheet(unit_id: str, kind: str, sheet_path: Path, output_dir: Path, lay
             if not subject_box or cleaned is None:
                 raise RuntimeError(f"{unit_id} {kind} frame {index+1}: subject isolation failed")
 
-            normalized, frame_audit = normalize_pose(cleaned, subject_box)
+            normalized, frame_audit = normalize_pose(cleaned, subject_box, fixed_scale=fixed_scale)
             frame_audit["component"] = component_audit
             frame_path = output_dir / f"frame_{index+1:02d}.png"
             normalized.save(frame_path, optimize=True)
@@ -571,13 +571,13 @@ def unit_json(unit_id: str, card_name: str):
             "animations": {
                 "idle": {
                     "frames": [f"sprites/runtime/idle/frame_{i:02d}.png" for i in range(1,7)],
-                    "frame_ms": 220 if unit_id == "jackie_chan" else 145,
+                    "frame_ms": 250 if unit_id == "jackie_chan" else 145,
                     "loop": True,
                     "events": [],
                 },
                 "basic_attack": {
                     "frames": [f"sprites/runtime/attack/basic/frame_{i:02d}.png" for i in range(1,7)],
-                    "frame_ms": 165 if unit_id == "jackie_chan" else 105,
+                    "frame_ms": 190 if unit_id == "jackie_chan" else 120,
                     "loop": False,
                     "events": [{"frame":4,"event":"apply_melee"}],
                 },
@@ -769,12 +769,14 @@ def apply_wong_refresh(audit_units, packages):
         canonical / "sprites" / "runtime" / "idle",
         layout=auto_layout_for_sheet(idle_sheet),
         exact_cells=True,
+        fixed_scale=0.92,
     )
     attack_meta = split_sheet(
         unit_id, "basic_attack", attack_sheet,
         canonical / "sprites" / "runtime" / "attack" / "basic",
         layout=auto_layout_for_sheet(attack_sheet),
         exact_cells=True,
+        fixed_scale=0.92,
     )
 
     data_path = canonical / "data" / "unit.json"
@@ -782,8 +784,8 @@ def apply_wong_refresh(audit_units, packages):
     data["display_name"] = "Wong Fei-Hung"
     data["title"] = "Drunken Master"
     data["combat"]["mark"] = "WFH"
-    data["animation_standard"]["animations"]["idle"]["frame_ms"] = 220
-    data["animation_standard"]["animations"]["basic_attack"]["frame_ms"] = 165
+    data["animation_standard"]["animations"]["idle"]["frame_ms"] = 250
+    data["animation_standard"]["animations"]["basic_attack"]["frame_ms"] = 190
     data["animation_standard"]["source_sheets"] = {
         "idle": {
             "path": idle_sheet.relative_to(ROOT).as_posix(),
@@ -802,7 +804,7 @@ def apply_wong_refresh(audit_units, packages):
             "anchor": attack_meta["anchor"],
         },
     }
-    data["readiness"]["notes"] = "Wong Fei-Hung refresh pack active. Six-frame Drunken Master idle/basic are normalized to bottom-center runtime canvases with intentionally uneven slow-to-snap presentation timing."
+    data["readiness"]["notes"] = "Wong Fei-Hung refresh pack active. Six-frame Drunken Master idle/basic preserve a fixed source scale on bottom-center runtime canvases; playback uses slow sway, hesitation, readable contact and loose recovery."
     if card_art:
         card_dir = canonical / "cards"
         card_dir.mkdir(parents=True, exist_ok=True)
