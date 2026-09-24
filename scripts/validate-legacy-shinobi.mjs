@@ -37,6 +37,13 @@ for(const id of ids){
  const unitAudit=audit.units?.[id];
  if(!unitAudit)throw new Error('Legacy Shinobi validator: audit entry missing '+id);
  if(!unitAudit.card?.size||Math.min(...unitAudit.card.size)<512||!unitAudit.card.sha256)throw new Error('Legacy Shinobi validator: card audit invalid '+id);
+ const presentation=unitAudit.presentation_art;
+ const summonArt=assetPath(id,unit.assets?.summon_art);
+ const teamArt=assetPath(id,unit.assets?.team_art);
+ if(!presentation||unit.assets?.summon_art!=='cards/legacy_summon_art.png'||unit.assets?.team_art!=='cards/legacy_summon_art.png')throw new Error('Legacy Shinobi validator: name-free presentation art mapping invalid '+id);
+ if(!await exists(summonArt)||!await exists(teamArt))throw new Error('Legacy Shinobi validator: name-free presentation art missing '+id);
+ if(presentation.path!==summonArt||presentation.size?.[0]!==presentation.source_size?.[0]||presentation.size?.[1]!==Math.round((presentation.source_size?.[1]||0)*.80))throw new Error('Legacy Shinobi validator: presentation crop contract drifted '+id);
+ if(presentation.crop_box?.[0]!==0||presentation.crop_box?.[1]!==0||presentation.crop_box?.[2]!==presentation.source_size?.[0]||presentation.crop_box?.[3]!==presentation.size?.[1])throw new Error('Legacy Shinobi validator: presentation crop box invalid '+id);
 
  for(const kind of ['idle','basic_attack']){
   const source=unit.animation_standard?.source_sheets?.[kind];
@@ -132,4 +139,4 @@ for(const marker of ["unitData?.display_name==='Wong Fei-Hung'","hesitationMs=dr
  if(!combatPresentation.includes(marker))throw new Error('Legacy Shinobi validator: configured Wong Fei-Hung drunken cadence missing '+marker);
 }
 
-console.log('Legacy Shinobi PASS: 12-unit roster audited; Wong refresh uses exact 1536x1024 3x2 source cells, fixed-scale six-frame runtime art, 250ms/190ms Drunken Master cadence, synchronized contact timing, and smoother configured melee travel; runtime frames remain 512x768 bottom-center anchored.');
+console.log('Legacy Shinobi PASS: 12-unit roster audited; name-free upper-80% presentation art is enforced for summon/team UI; Wong refresh remains fixed-scale at 250ms/190ms with synchronized contact timing; runtime frames remain 512x768 bottom-center anchored.');
