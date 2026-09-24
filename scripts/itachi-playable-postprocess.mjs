@@ -93,6 +93,7 @@ const pairStyle=`<style id="bb-team-pair-style">
 #teamScreen .bb-team-pair>span{font:900 7px/1 system-ui,sans-serif;letter-spacing:.13em;text-align:center;color:#876b49}
 #teamScreen .bb-team-pair .teamSlot{width:100%!important;min-width:0!important;min-height:0!important;padding:0!important}
 #teamScreen .bb-team-pair .teamSlot img{width:100%!important;height:100%!important;min-height:100%!important;object-fit:cover!important;object-position:center 28%!important;border-radius:inherit!important}
+#teamScreen .bb-team-pair .teamSlot img[data-bb-team-art="body"]{object-fit:contain!important;object-position:center bottom!important;padding:7% 7% 17%!important;background:radial-gradient(circle at 50% 34%,rgba(104,92,78,.34),rgba(31,29,30,.92) 62%,#151517 100%)!important}
 #teamScreen .bb-team-pair .teamSlotName{display:block!important;margin-top:4px!important;font-size:8px!important;line-height:1.05!important;text-align:center!important}
 #teamScreen .bb-team-pair .teamSlot[data-team-slot="1"],#teamScreen .bb-team-pair .teamSlot[data-team-slot="3"],#teamScreen .bb-team-pair .teamSlot[data-team-slot="5"]{transform:scale(.94);transform-origin:center top}
 #teamScreen .bb-team-pair .teamSlot.selected{outline:2px solid #44b9e8!important;box-shadow:0 0 0 3px rgba(68,185,232,.18),0 4px 12px rgba(42,89,110,.18)!important}
