@@ -3,10 +3,10 @@
 ## 2026-09-23 — Wong Fei-Hung refresh + team-editor art cleanup (uncheckpointed dev)
 
 Branch: `dev`  
-Asset materialization commit: `c370474`  
+Asset materialization commit: `6e1dd77`  
 Checkpoint: none yet.
 
-Changes: integrated `legacy_of_the_shinobi_jackie_chan_refresh.zip` as Wong Fei-Hung's canonical refresh source, including refreshed card art plus new 3x2 idle/basic sheets normalized into six 512x768 bottom-center runtime frames. Wong retains the Drunken Master identity, 220 ms idle / 165 ms basic authored cadence, and receives repeated frame holds plus small per-attack timing variance for a slow, off-rhythm windup with sharper contact motion and loose recovery. The Edit Team screen now avoids old named trading-card art: core fighters prefer clean full art while Legacy fighters fall back to clean normalized body art; Wong specifically uses his refreshed idle body there.
+Changes: integrated `legacy_of_the_shinobi_jackie_chan_refresh.zip` as Wong Fei-Hung's canonical refresh source, including refreshed card art plus new 1536x1024 3x2 idle/basic sheets split on exact 512x512 source cells and normalized into six 512x768 bottom-center runtime frames. Wong retains the Drunken Master identity and 220 ms idle / 165 ms basic authored cadence. Idle uses irregular repeated holds, while the configured melee path keeps all six attack poses and the authored hit frame intact, adding randomized hesitation, a late snap into range, small cadence variation, and a looser recovery. The Edit Team screen now avoids old named trading-card art: core fighters prefer clean full art while Legacy fighters fall back to clean normalized body art; Wong specifically uses his refreshed idle body there.
 
 Pipeline: the Legacy unpack workflow now recognizes the Wong refresh archive, accepts 1536x1024 square-cell 3x2 sheets, and rebases before its bot push so generated assets are not lost when `dev` moves concurrently. The refresh unpack/materialization workflow completed successfully.
 
