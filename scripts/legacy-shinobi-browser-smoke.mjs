@@ -24,6 +24,8 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   if(response&&!response.ok())throw new Error('root HTTP '+response.status());
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
   await page.waitForFunction(()=>document.querySelector('#bbHomeApproved')?.dataset?.bbHomeLayout==='v9-polish',{timeout:30000});
+  const loading=page.locator('#bb-loading-screen');
+  if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
 
   const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
   if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error('commit mismatch: expected '+EXPECT.slice(0,12)+', got '+(meta?.commit||'missing'));
