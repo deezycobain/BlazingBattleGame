@@ -55,13 +55,31 @@ async function prepareEncounter({mapImage,actors=[]}={}){
 function configuredBasic(unitData){const animation=unitData?.animation_standard?.animations?.basic_attack;return Array.isArray(animation?.frames)&&animation.frames.length?animation:null}
 function timelineFor(unitData,frameCount){const animation=configuredBasic(unitData);if(!animation)return null;const frameMs=Math.max(1,Number(animation.frame_ms)||100);const event=(animation.events||[]).find(item=>/apply_melee|apply_damage|release_projectile/.test(item?.event||''));const impactFrame=Math.max(1,Math.min(frameCount,Number(event?.frame)||Math.ceil(frameCount*.6)));const animationMs=Math.max(frameMs,frameCount*frameMs),recoveryMs=Math.max(90,Math.round(frameMs*.9));return Object.freeze({frameMs,impactMs:(impactFrame-1)*frameMs,animationMs,recoveryMs,totalMs:animationMs+recoveryMs})}
 function runConfiguredAttack({unitData,unitName,from,target,frames,attackKind='basic_attack',state,bounds,tokenAlive,onImpact,onDone,ensureState,lockFacing,clearFacing,requestFrame=requestAnimationFrame}){
- const timing=timelineFor(unitData,frames?.length||0);if(!timing||!isConfiguredMeleeBasic(unitData,attackKind))return false;
- const contact=contactPoint({from,target,state,bounds,padding:8}),distance=Math.hypot(contact.x-from.x,contact.y-from.y),approachMs=Math.max(110,Math.min(260,Math.round(distance*1.45))),started=performance.now();let phase='approach',attackStart=0,impacted=false;
+ const baseTiming=timelineFor(unitData,frames?.length||0);if(!baseTiming||!isConfiguredMeleeBasic(unitData,attackKind))return false;
+ const drunkenMaster=unitData?.display_name==='Wong Fei-Hung'||unitName==='Wong Fei-Hung';
+ const cadenceScale=drunkenMaster?(.94+Math.random()*.14):1;
+ const timing=drunkenMaster?Object.freeze({
+  ...baseTiming,
+  frameMs:Math.round(baseTiming.frameMs*cadenceScale),
+  impactMs:Math.round(baseTiming.impactMs*cadenceScale),
+  animationMs:Math.round(baseTiming.animationMs*cadenceScale),
+  recoveryMs:Math.round(baseTiming.recoveryMs*(.96+Math.random()*.12)),
+  totalMs:0
+ }):baseTiming;
+ if(drunkenMaster)timing.totalMs=timing.animationMs+timing.recoveryMs;
+ const contact=contactPoint({from,target,state,bounds,padding:8}),distance=Math.hypot(contact.x-from.x,contact.y-from.y);
+ const normalApproach=Math.max(110,Math.min(260,Math.round(distance*1.45)));
+ const hesitationMs=drunkenMaster?Math.round(125+Math.random()*175):0;
+ const approachMs=drunkenMaster?Math.round(105+Math.random()*55):normalApproach;
+ const returnMs=drunkenMaster?Math.round(280+Math.random()*130):normalApproach;
+ let started=performance.now(),phase=drunkenMaster?'hesitate':'approach',attackStart=0,impacted=false;
  const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+ const snapEase=t=>t<.72?.28*Math.pow(t/.72,2):.28+.72*(1-Math.pow(1-(t-.72)/.28,3));
  const step=now=>{if(!tokenAlive())return;const live=ensureState();let elapsed=now-started;
-  if(phase==='approach'){const t=Math.min(1,elapsed/approachMs);live.positions[unitName]={x:from.x+(contact.x-from.x)*ease(t),y:from.y+(contact.y-from.y)*ease(t)};if(t<1)return requestFrame(step);phase='attack';attackStart=now;if(!live.attackPose)live.attackPose={};live.attackPose[unitName]={kind:'basic_attack',start:attackStart,duration:timing.animationMs,frameMs:timing.frameMs};lockFacing(live,unitName,contact,target);return requestFrame(step)}
+  if(phase==='hesitate'){if(elapsed<hesitationMs)return requestFrame(step);phase='approach';started=now;elapsed=0}
+  if(phase==='approach'){const t=Math.min(1,elapsed/approachMs),moveEase=drunkenMaster?snapEase(t):ease(t);live.positions[unitName]={x:from.x+(contact.x-from.x)*moveEase,y:from.y+(contact.y-from.y)*moveEase};if(t<1)return requestFrame(step);phase='attack';attackStart=now;if(!live.attackPose)live.attackPose={};live.attackPose[unitName]={kind:'basic_attack',start:attackStart,duration:timing.animationMs,frameMs:timing.frameMs};lockFacing(live,unitName,contact,target);return requestFrame(step)}
   if(phase==='attack'){elapsed=now-attackStart;if(!impacted&&elapsed>=timing.impactMs){impacted=true;try{onImpact?.()}catch(error){console.error('Attack impact callback failed:',error);return}}if(elapsed<timing.totalMs)return requestFrame(step);phase='return';attackStart=now;if(live.attackPose)delete live.attackPose[unitName];return requestFrame(step)}
-  const t=Math.min(1,(now-attackStart)/approachMs);live.positions[unitName]={x:contact.x+(from.x-contact.x)*ease(t),y:contact.y+(from.y-contact.y)*ease(t)};if(t<1)return requestFrame(step);delete live.positions[unitName];clearFacing(live,unitName);try{onDone?.()}catch(error){console.error('Attack completion callback failed:',error)}
+  const t=Math.min(1,(now-attackStart)/returnMs),returnEase=drunkenMaster?1-Math.pow(1-t,2):ease(t);live.positions[unitName]={x:contact.x+(from.x-contact.x)*returnEase,y:contact.y+(from.y-contact.y)*returnEase};if(t<1)return requestFrame(step);delete live.positions[unitName];clearFacing(live,unitName);try{onDone?.()}catch(error){console.error('Attack completion callback failed:',error)}
  };requestFrame(step);return true
 }
 function constrainPoint({state,point,from,bounds,padding=4}){if(state?.bbRunMode==='road'&&window.BlazingRoadContent?.constrainMovementPoint)return window.BlazingRoadContent.constrainMovementPoint(state.bbRoadContent?.map,point,from||point,{padding});return{x:Math.max(bounds.left,Math.min(bounds.right,point.x)),y:Math.max(bounds.top,Math.min(bounds.bottom,point.y))}}
