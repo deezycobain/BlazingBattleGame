@@ -81,7 +81,7 @@ async function run(name,type){
    });
    const root=document.getElementById('bb-itachi-tsukuyomi-cinematic');
    return {...outcome,before,impactStatusSnapshot,after:targets.map(target=>({hp:target.hp,gauge:target.gauge,stun:window.BlazingCombatRuntime.getStatus(target,'stun')?.turns||0})),sawImpact,sawStun,dim:!!s.jutsuDim,domStillActive:!!root?.classList.contains('bb-active')};
-  });
+  }).then(result=>({ok:true,result}),error=>({ok:false,error:String(error?.stack||error?.message||error)}));
 
   await page.waitForFunction(()=>{
     const root=document.getElementById('bb-itachi-tsukuyomi-cinematic'),overlays=[...root?.querySelectorAll('.bb-tsu-overlay')||[]],mandalas=[...root?.querySelectorAll('.bb-tsu-mandala')||[]];
@@ -103,7 +103,9 @@ async function run(name,type){
     await page.waitForFunction(()=>{try{const s=globalThis.eval('S');return s.floaters.some(f=>f?.kind==='itachiTsukuyomiImpact')}catch{return false}},null,{timeout:1800});
     await page.screenshot({path:`test-artifacts/itachi-tsukuyomi-impact-${name}.png`});
   }
-  const jutsuResult=await jutsuPromise;
+  const jutsuOutcome=await jutsuPromise;
+  if(!jutsuOutcome.ok)throw new Error(jutsuOutcome.error);
+  const jutsuResult=jutsuOutcome.result;
   const primaryDamaged=jutsuResult.after?.[0]?.hp===jutsuResult.before?.[0]?.hp-1;
   const secondaryUndamaged=jutsuResult.after?.slice(1).every((state,index)=>state.hp===jutsuResult.before[index+1].hp);
   const secondaryStunnedAtImpact=jutsuResult.impactStatusSnapshot?.slice(1).every(state=>state.stun===1);
