@@ -41,18 +41,28 @@ const LEGACY_SHINOBI_BODY_RUNTIME=(()=>{
   if(!Array.isArray(rels)||rels.length!==6)return null;
   const key=name+':'+kind;
   if(!cache.has(key)){
-   const cacheTag='?legacySpriteAudit=v3';
+   const cacheTag='?legacySpriteAudit=v4';
    const paths=rels.map(rel=>(/^assets\//.test(rel)?rel:'assets/characters/'+unit.id+'/'+rel)+cacheTag);
    cache.set(key,makeImageFrames(paths));
   }
   return cache.get(key);
+ };
+ const drunkenPatterns=Object.freeze({
+  idle:Object.freeze([0,0,1,1,1,2,3,3,4,4,5,5]),
+  basic_attack:Object.freeze([0,0,0,1,1,2,3,4,4,5,5,5])
+ });
+ const sequence=(name,kind,frames)=>{
+  if(name!=='Wong Fei-Hung'||!Array.isArray(frames)||frames.length!==6)return frames;
+  const pattern=drunkenPatterns[kind];
+  return pattern?pattern.map(index=>frames[index]).filter(Boolean):frames;
  };
  return Object.freeze({
   names:Object.freeze([...names]),
   has:name=>names.has(name),
   attackScale:name=>attackScales[name]||1,
   idle:name=>resolve(name,'idle'),
-  basic:name=>resolve(name,'basic_attack')
+  basic:name=>resolve(name,'basic_attack'),
+  sequence
  });
 })();
 `;
@@ -61,12 +71,12 @@ const idleAnchor='function unitIdleFrames(name){';
 const idleAt=html.indexOf(idleAnchor);if(idleAt<0)fail('unitIdleFrames anchor missing');
 if(!html.includes('const LEGACY_SHINOBI_BODY_RUNTIME=(()=>{'))html=html.slice(0,idleAt)+runtime+'\n'+html.slice(idleAt);
 if(!html.includes("function unitIdleFrames(name){const legacyShinobiIdle=LEGACY_SHINOBI_BODY_RUNTIME.idle(name);"))
- html=html.replace(idleAnchor,"function unitIdleFrames(name){const legacyShinobiIdle=LEGACY_SHINOBI_BODY_RUNTIME.idle(name);if(legacyShinobiIdle?.length)return legacyShinobiIdle;");
+ html=html.replace(idleAnchor,"function unitIdleFrames(name){const legacyShinobiIdle=LEGACY_SHINOBI_BODY_RUNTIME.idle(name);if(legacyShinobiIdle?.length)return LEGACY_SHINOBI_BODY_RUNTIME.sequence(name,'idle',legacyShinobiIdle);");
 
 const attackAnchor='function unitAttackFrames(name,kind){';
 if(!html.includes(attackAnchor))fail('unitAttackFrames anchor missing');
 if(!html.includes("function unitAttackFrames(name,kind){const legacyShinobiBasic=LEGACY_SHINOBI_BODY_RUNTIME.basic(name);"))
- html=html.replace(attackAnchor,"function unitAttackFrames(name,kind){const legacyShinobiBasic=LEGACY_SHINOBI_BODY_RUNTIME.basic(name);if(legacyShinobiBasic?.length)return legacyShinobiBasic;");
+ html=html.replace(attackAnchor,"function unitAttackFrames(name,kind){const legacyShinobiBasic=LEGACY_SHINOBI_BODY_RUNTIME.basic(name);if(legacyShinobiBasic?.length)return LEGACY_SHINOBI_BODY_RUNTIME.sequence(name,'basic_attack',legacyShinobiBasic);");
 
 
 /* Legacy attack renderer visual-state bridge.
@@ -79,11 +89,11 @@ if(html.includes(legacyAttackVisualGate))html=html.replace(legacyAttackVisualGat
 else if(!html.includes(legacyAttackVisualTarget))fail('Legacy attack visual-state renderer gate missing');
 
 /* Give the six-frame Legacy attack sheet enough screen time to read.
-   Most Legacy fighters retain the shared cadence. Wong Fei-Hung is intentionally
-   slower and looser: his 6 x 165 ms Drunken Master attack owns a full 990 ms
-   movement cycle so the lunge does not outrun the authored frames. */
+   Wong Fei-Hung uses repeated frame holds around the authored six poses so his
+   motion lingers, then snaps through the contact poses. Each attack also receives
+   a small timing variance so the Drunken Master rhythm never feels metronomic. */
 const lungeTimingSource="let start=performance.now(),dur=unitName==='Tyler'?360:175,backDur=unitName==='Tyler'?340:145,lungeHold=unitName==='Tyler'?100:65;";
-const lungeTimingTarget="const legacyShinobiAttack=LEGACY_SHINOBI_BODY_RUNTIME.has(unitName),drunkenMasterAttack=unitName==='Wong Fei-Hung';let start=performance.now(),dur=drunkenMasterAttack?320:(legacyShinobiAttack?205:(unitName==='Tyler'?360:175)),backDur=drunkenMasterAttack?320:(legacyShinobiAttack?240:(unitName==='Tyler'?340:145)),lungeHold=drunkenMasterAttack?350:(legacyShinobiAttack?185:(unitName==='Tyler'?100:65));";
+const lungeTimingTarget="const legacyShinobiAttack=LEGACY_SHINOBI_BODY_RUNTIME.has(unitName),drunkenMasterAttack=unitName==='Wong Fei-Hung',drunkenVariance=drunkenMasterAttack?(.90+Math.random()*.20):1,drunkenHoldVariance=drunkenMasterAttack?(.96+Math.random()*.10):1;let start=performance.now(),dur=drunkenMasterAttack?Math.round(300*drunkenVariance):(legacyShinobiAttack?205:(unitName==='Tyler'?360:175)),backDur=drunkenMasterAttack?Math.round(340*(2-drunkenVariance)):(legacyShinobiAttack?240:(unitName==='Tyler'?340:145)),lungeHold=drunkenMasterAttack?Math.round(350*drunkenHoldVariance):(legacyShinobiAttack?185:(unitName==='Tyler'?100:65));";
 if(html.includes(lungeTimingSource))html=html.replace(lungeTimingSource,lungeTimingTarget);
 else if(!html.includes(lungeTimingTarget))fail('Legacy animateLunge timing anchor missing');
 
