@@ -55,6 +55,14 @@ for(const id of ids){
   if(!Array.isArray(frames)||frames.length!==6)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' frame list invalid');
   const audited=unitAudit?.[kind]?.audit_frames;
   if(!Array.isArray(audited)||audited.length!==6)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' audit list invalid');
+  if(refreshWong){
+   const expectedCells=[
+    [0,0,512,512],[512,0,1024,512],[1024,0,1536,512],
+    [0,512,512,1024],[512,512,1024,1024],[1024,512,1536,1024]
+   ];
+   if(source.columns!==3||source.rows!==2||source.source_size?.[0]!==1536||source.source_size?.[1]!==1024)throw new Error('Legacy Shinobi validator: Wong refresh must remain exact 1536x1024 3x2');
+   if(JSON.stringify(audited.map(frame=>frame.nominal_cell))!==JSON.stringify(expectedCells))throw new Error('Legacy Shinobi validator: Wong refresh cell boundaries drifted from exact 512px grid');
+  }
 
   for(let i=0;i<frames.length;i++){
    const framePath=assetPath(id,frames[i]);
