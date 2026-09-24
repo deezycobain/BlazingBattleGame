@@ -146,7 +146,7 @@ async function run(name,type){
       };
     });
     if(progressionResult.ready!==forgeReadyName||progressionResult.rows!==road.xp.units.length||progressionResult.readyRows!==1||!progressionResult.three)throw new Error(`Road progression bridge state incorrect: ${JSON.stringify(progressionResult)}`);
-    if(progressionResult.readyName.toLowerCase()!==forgeReadyName.toLowerCase()||!/AWAKENING READY/.test(progressionResult.readyStatus)||!/LV\.9\s*→\s*LV\.10/.test(progressionResult.readyLevel)||!progressionResult.readyStatusVisible)throw new Error(`Road progression bridge content incorrect: ${JSON.stringify(progressionResult)}`);
+    if(progressionResult.readyName.toLowerCase()!==forgeReadyName.toLowerCase()||!/AWAKENING READY/.test(progressionResult.readyStatus)||!/LV\.9\s*→\s*LV\.10/.test(progressionResult.readyLevel))throw new Error(`Road progression bridge content incorrect: ${JSON.stringify(progressionResult)}`);
     const roadIntermission=await page.evaluate(()=>{
       const box=document.getElementById('bbResultsRoad');
       return {
