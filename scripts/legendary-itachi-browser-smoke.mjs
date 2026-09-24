@@ -123,7 +123,7 @@ async function run(name,type){
       });
       const art=scene.querySelector('.bb-card-front .summonedTradingCard');
       const ringSelectors=['.bb-itachi-ring-flame','.bb-itachi-ring-outer','.bb-itachi-ring-middle','.bb-itachi-ring-inner'];
-      const stageWidth=scene.querySelector('.bb-itachi-stage-vfx')?.offsetWidth||0;const rings=ringSelectors.map(selector=>{const node=scene.querySelector(selector),shell=node?.closest('.bb-itachi-ring-shell'),box=shell?.getBoundingClientRect(),style=node?getComputedStyle(node):null,shellStyle=shell?getComputedStyle(shell):null,resolvedWidth=style?Number.parseFloat(style.width)||node?.offsetWidth||0:0;return {selector,cx:box?box.left+box.width/2:null,cy:box?box.top+box.height/2:null,width:resolvedWidth,widthPct:stageWidth?resolvedWidth/stageWidth*100:0,duration:style?.animationDuration||'',name:style?.animationName||'',shellName:shellStyle?.animationName||'',shellDuration:shellStyle?.animationDuration||'',shellDelay:shellStyle?.animationDelay||''}});
+      const stageWidth=scene.querySelector('.bb-itachi-stage-vfx')?.offsetWidth||0;const rings=ringSelectors.map(selector=>{const node=scene.querySelector(selector),shell=node?.closest('.bb-itachi-ring-shell'),box=shell?.getBoundingClientRect(),style=node?getComputedStyle(node):null,shellStyle=shell?getComputedStyle(shell):null,resolvedWidth=style?Number.parseFloat(style.width)||node?.offsetWidth||0:0;return {selector,cx:box?box.left+box.width/2:null,cy:box?box.top+box.height/2:null,width:resolvedWidth,widthPct:stageWidth?resolvedWidth/stageWidth*100:0,duration:style?.animationDuration||'',delay:style?.animationDelay||'',name:style?.animationName||'',shellName:shellStyle?.animationName||'',shellDuration:shellStyle?.animationDuration||'',shellDelay:shellStyle?.animationDelay||''}});
       return {
         count:images.length,
         bad:images.filter(img=>!img.complete||!img.naturalWidth||img.classList.contains('bb-vfx-missing')).map(img=>img.getAttribute('src')),
@@ -144,10 +144,11 @@ async function run(name,type){
     const expectedWidthPct=[141,125,108,95],widthTargetsOk=loaded.rings.every((r,index)=>Math.abs(r.widthPct-expectedWidthPct[index])<1.6);
     const speeds=loaded.rings.map(r=>Number.parseFloat(r.duration)||0),referenceDurationsOk=speeds[0]>=.88&&speeds[0]<=.92&&speeds[1]>=1.03&&speeds[1]<=1.07&&speeds[2]>=.74&&speeds[2]<=.78&&speeds[3]>=.74&&speeds[3]<=.78;
     const directions=loaded.rings.map(r=>r.name),directionOk=directions[0]==='bbOrnateRingBuild'&&directions[1]==='bbOuterRingCharge'&&directions[2]==='bbEnergyRingCharge'&&directions[3]==='bbEnergyRingCharge';
+    const delays=loaded.rings.map(r=>Number.parseFloat(r.delay)||0),referenceBeatOk=Math.abs(delays[0]-.21)<.03&&Math.abs(delays[1]-.47)<.03&&Math.abs(delays[2]-.81)<.03&&Math.abs(delays[3]-.81)<.03;
     const shellStaticOk=loaded.rings.every(r=>!r.shellName||r.shellName==='none');
     const shadowTiming=await page.evaluate(()=>{const scene=document.getElementById('pullScene'),sil=scene.querySelector('.bb-itachi-silhouette'),ravens=scene.querySelector('.bb-itachi-raven-burst');const ss=getComputedStyle(sil),rs=getComputedStyle(ravens);return {silDelay:Number.parseFloat(ss.animationDelay)||0,silDuration:Number.parseFloat(ss.animationDuration)||0,ravenDelay:Number.parseFloat(rs.animationDelay)||0,silFilter:ss.filter||''}});
     const shadowHoldOk=shadowTiming.silDuration>=1.70&&(shadowTiming.ravenDelay-shadowTiming.silDelay)>=.65;
-    if(!centersOk||!nested||!widthTargetsOk||!referenceDurationsOk||!directionOk||!shellStaticOk||!shadowHoldOk)throw new Error(`Itachi ring geometry/exact-reference-keyframe or shadow-hold contract is wrong: ${JSON.stringify({rings:loaded.rings,shadowTiming})}`);
+    if(!centersOk||!nested||!widthTargetsOk||!referenceDurationsOk||!directionOk||!referenceBeatOk||!shellStaticOk||!shadowHoldOk)throw new Error(`Itachi ring geometry/exact-reference-keyframe/three-beat timing or shadow-hold contract is wrong: ${JSON.stringify({rings:loaded.rings,shadowTiming})}`);
     if(loaded.revealStage!=='itachi'||loaded.revealKind!=='itachi'||!loaded.cardArt.endsWith('itachi_reveal.webp'))throw new Error(`Itachi cinematic did not own the reveal: ${JSON.stringify(loaded)}`);
 
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='handoff',{timeout:9000});
