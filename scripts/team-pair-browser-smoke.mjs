@@ -34,6 +34,7 @@ for(const [name,type] of Object.entries({chromium,webkit})){
   const norm=value=>String(value||'').trim().toLowerCase();
   if(!ui.visible||ui.slots!==6||ui.pairs!==3||ui.save!=='SAVE 3 PAIRS'||JSON.stringify(ui.names.map(norm))!==JSON.stringify(ui.team.map(norm)))throw new Error('team editor pair UI invalid: '+JSON.stringify(ui));
 
+  await page.waitForFunction(()=>document.querySelectorAll('#teamScreen img[data-bb-team-unit]').length>=6,{timeout:4000});
   const artContract=await page.evaluate(()=>{const root=document.getElementById('teamScreen');const tagged=[...root.querySelectorAll('img[data-bb-team-unit]')],rows=tagged.map(img=>({unit:img.dataset.bbTeamUnit,src:img.getAttribute('src')||'',kind:img.dataset.bbTeamArt||''}));return{tagged:tagged.length,stale:rows.filter(row=>/legacy_of_shinobi_card|\/cards\//i.test(row.src)),bodyCount:rows.filter(row=>row.kind==='body').length,fullCount:rows.filter(row=>row.kind==='full').length,wong:rows.find(row=>row.unit==='jackie_chan')||null,text:(root.textContent||'').replace(/\s+/g,' ')}});
   if(artContract.tagged<6||artContract.stale.length||artContract.bodyCount<1||artContract.fullCount<1||!artContract.wong||artContract.wong.kind!=='body'||!/\/jackie_chan\/sprites\/runtime\/idle\/frame_01\.png/i.test(artContract.wong.src)||!/Wong Fei-Hung/i.test(artContract.text)||/Jackie Chan/i.test(artContract.text))throw new Error('team editor clean-art contract invalid: '+JSON.stringify(artContract));
 
