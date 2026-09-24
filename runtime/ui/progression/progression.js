@@ -67,6 +67,11 @@ function art(name){
  const data=window.BLAZING_UNIT_DATA?.[IDS[name]];const rel=data?.assets?.card||data?.assets?.art;
  return rel?`assets/characters/${IDS[name]}/${rel}`:'';
 }
+function summonArt(name){
+ const id=IDS[name],data=window.BLAZING_UNIT_DATA?.[id],rel=data?.assets?.summon_art;
+ if(rel)return /^assets\//.test(rel)?rel:`assets/characters/${id}/${rel}`;
+ return CARD_ART[name]||'';
+}
 function weightedRarity(name){return name==='Tyler'?'super':'legendary'}
 function randomCore(){const name=SUMMON_FIGHTERS[Math.floor(Math.random()*SUMMON_FIGHTERS.length)];return {name,rarity:weightedRarity(name)}}
 function rollStats(locks=[],current=null){
@@ -113,8 +118,8 @@ function installSummonOverhaul(){
  const revealMeta=document.querySelector('#summonPullScreen .pullCardMeta'),revealBadge=document.getElementById('pullNewBadge');if(revealMeta&&revealBadge)revealMeta.before(revealBadge);
  const title=document.querySelector('#pullResultsPanel .pullResultsTitle');if(title&&!document.getElementById('bbShinySummary'))title.insertAdjacentHTML('afterend','<div id="bbShinySummary" class="bb-shiny-summary" hidden></div>');
 }
-function syncRevealArt(pull){const image=document.querySelector('#summonPullScreen .summonedTradingCard');if(image&&pull&&CARD_ART[pull.name]){image.src=CARD_ART[pull.name];image.alt=`${pull.name} summon art`}}
-function syncResultArt(pulls){[...document.querySelectorAll('#pullResultsGrid .pullCard')].forEach((card,index)=>{const pull=pulls?.[index],image=card.querySelector('.resultTradingCard')||card.querySelector('img');if(image&&pull&&CARD_ART[pull.name]){image.src=CARD_ART[pull.name];image.alt=`${pull.name} summon art`}})}
+function syncRevealArt(pull){const image=document.querySelector('#summonPullScreen .summonedTradingCard'),src=pull?summonArt(pull.name):'';if(image&&pull&&src){image.src=src;image.alt=`${pull.name} summon art`}}
+function syncResultArt(pulls){[...document.querySelectorAll('#pullResultsGrid .pullCard')].forEach((card,index)=>{const pull=pulls?.[index],image=card.querySelector('.resultTradingCard')||card.querySelector('img'),src=pull?summonArt(pull.name):'';if(image&&pull&&src){image.src=src;image.alt=`${pull.name} summon art`}})}
 function installDom(){
  const menuActions=document.querySelector('#menuScreen .menuActions');if(menuActions&&!document.getElementById('forgeBtn'))menuActions.insertAdjacentHTML('beforeend','<button id="forgeBtn" class="forgeNode" aria-label="Open Resonance Forge"><span class="forgeWord">FORGE</span><span class="forgeSigil">✦</span></button>');
  if(!document.getElementById('resonanceScreen')){const screen=document.createElement('div');screen.id='resonanceScreen';screen.className='screen';screen.innerHTML=forgeMarkup();document.body.appendChild(screen)}
@@ -173,7 +178,7 @@ function acceptRoll(){if(!candidate)return;const u=unit();u.roll=candidate;candi
 function resetDevProgression(){if(!confirm('Reset all summon duplicates, Shiny unlocks, shards, and stat rolls?'))return;state=fresh();candidate=null;save();renderForge('Developer progression reset. Summon to build Resonance again.')}
 function refreshInventoryBadges(){document.querySelectorAll('.unitTile[data-unit]').forEach(tile=>{const name=tile.dataset.unit;if(!state.units[name])return;let badge=tile.querySelector('.bb-resonance-badge');if(!badge){badge=document.createElement('span');badge.className='bb-resonance-badge';tile.appendChild(badge)}const u=unit(name);badge.textContent=u.resonance>=5?'SHINY':`R${u.resonance}/5`;badge.classList.toggle('maxed',u.resonance>=5)})}
 function activateSummons(){
- cardForSummon=function(name){return CARD_ART[name]||''};
+ cardForSummon=function(name){return summonArt(name)};
  summonEmbers=999999;document.querySelectorAll('#emberCount,#pullEmberCount').forEach(el=>{el.textContent='∞';el.classList.add('bb-dev-infinity')});
  spendEmbers=function(){document.querySelectorAll('#emberCount,#pullEmberCount').forEach(el=>el.textContent='∞');return true};
  rosterForRarity=function(){return SUMMON_FIGHTERS};summonOne=function(){return randomCore()};
