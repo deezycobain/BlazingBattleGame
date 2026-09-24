@@ -118,8 +118,15 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
    return results;
   },{names:NAMES});
   const normalized=dims=>Array.isArray(dims)&&dims.length===6&&dims.every(([w,h])=>w===512&&h===768);
-  const badRuntime=runtime.filter(x=>x.idleCount!==6||x.basicCount!==6||x.idleResolved!==6||x.attackResolved!==6||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!normalized(x.idleDims)||!normalized(x.basicDims)||!/\/sprites\/runtime\/idle\/frame_01\.png\?legacySpriteAudit=v3$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png\?legacySpriteAudit=v3$/.test(x.basicSrc));
+  const badRuntime=runtime.filter(x=>{
+   const drunken=x.name==='Wong Fei-Hung';
+   const expectedResolved=drunken?12:6;
+   return x.idleCount!==6||x.basicCount!==6||x.idleResolved!==expectedResolved||x.attackResolved!==expectedResolved||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!normalized(x.idleDims)||!normalized(x.basicDims)||!/\/sprites\/runtime\/idle\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.basicSrc);
+  });
   if(badRuntime.length)throw new Error('Legacy battle animation runtime invalid: '+JSON.stringify(badRuntime));
+
+  const drunkenCadence=await page.evaluate(()=>{const get=globalThis.eval,idle=get('unitIdleFrames')('Wong Fei-Hung')||[],basic=get('unitAttackFrames')('Wong Fei-Hung','basic_attack')||[];const src=frames=>frames.map(frame=>String(frame?.src||'').replace(/^.*\/frame_(\d+)\.png.*$/,'$1'));return{idle:src(idle),basic:src(basic)}});
+  if(JSON.stringify(drunkenCadence.idle)!==JSON.stringify(['01','01','02','02','02','03','04','04','05','05','06','06'])||JSON.stringify(drunkenCadence.basic)!==JSON.stringify(['01','01','01','02','02','03','04','05','05','06','06','06']))throw new Error('Wong Fei-Hung drunken frame-hold cadence invalid: '+JSON.stringify(drunkenCadence));
 
 
   // Legacy attack renderer probe: reproduce the real lunge condition where drawUnit
