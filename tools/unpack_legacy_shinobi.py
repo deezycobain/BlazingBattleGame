@@ -795,6 +795,7 @@ def apply_wong_refresh(audit_units, packages):
         data["assets"]["art"] = f"cards/{card_name}"
         data["assets"]["card"] = f"cards/{card_name}"
         data["assets"]["portrait"] = f"cards/{card_name}"
+        data["assets"]["team_art"] = f"cards/{card_name}"
     data_path.write_text(json.dumps(data, indent=2) + "\n")
 
     canonical_card = canonical / data["assets"]["art"]
