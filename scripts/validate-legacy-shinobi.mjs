@@ -87,7 +87,7 @@ const canonicalSummonCards={
  Scorpion:'assets/characters/scorpion/cards/legacy_of_shinobi_card.webp',
  'Rock Lee':'assets/characters/rock_lee/cards/legacy_of_shinobi_card.png',
  Mashle:'assets/characters/mashle/cards/legacy_of_shinobi_card.png',
- 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/legacy_of_shinobi_card.png'
+ 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/wong_fei_hung_refresh.png'
 };
 for(const [name,card] of Object.entries(canonicalSummonCards)){
  if(!progression.includes("'"+name+"':'"+card+"'"))throw new Error('Legacy Shinobi validator: summon card is not canonical '+name);
