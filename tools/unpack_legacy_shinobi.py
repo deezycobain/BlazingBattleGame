@@ -64,6 +64,7 @@ def make_name_free_presentation_art(source_path: Path, dest_path: Path):
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     with Image.open(source_path).convert("RGBA") as image:
         width, height = image.size
+        # Legacy poster titles live in the lower fifth; keep the illustrated upper 80%.
         bottom = max(1, min(height, int(round(height * 0.80))))
         cropped = image.crop((0, 0, width, bottom))
         cropped.save(dest_path, format="PNG", optimize=True)
