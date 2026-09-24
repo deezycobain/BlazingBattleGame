@@ -36,7 +36,7 @@ for(const [name,type] of Object.entries({chromium,webkit})){
 
   await page.waitForFunction(()=>document.querySelectorAll('#teamScreen img[data-bb-team-unit]').length>=6,{timeout:4000});
   const artContract=await page.evaluate(()=>{const root=document.getElementById('teamScreen');const tagged=[...root.querySelectorAll('img[data-bb-team-unit]')],rows=tagged.map(img=>({unit:img.dataset.bbTeamUnit,src:img.getAttribute('src')||'',kind:img.dataset.bbTeamArt||''}));return{tagged:tagged.length,cardCount:rows.filter(row=>row.kind==='card').length,fullCount:rows.filter(row=>row.kind==='full').length,bodyCount:rows.filter(row=>row.kind==='body').length,wong:rows.find(row=>row.unit==='jackie_chan')||null,text:(root.textContent||'').replace(/\s+/g,' ')}});
-  if(artContract.tagged<6||artContract.cardCount<1||!artContract.wong||artContract.wong.kind!=='card'||!/\/jackie_chan\/cards\/wong_fei_hung_refresh\.png/i.test(artContract.wong.src)||!/Wong Fei-Hung/i.test(artContract.text)||/Jackie Chan/i.test(artContract.text))throw new Error('team editor canonical-card contract invalid: '+JSON.stringify(artContract));
+  if(artContract.tagged<6||artContract.cardCount<1||!artContract.wong||artContract.wong.kind!=='card'||!/\/jackie_chan\/cards\/legacy_summon_art\.png/i.test(artContract.wong.src)||!/Wong Fei-Hung/i.test(artContract.text)||/Jackie Chan/i.test(artContract.text))throw new Error('team editor name-free card-art contract invalid: '+JSON.stringify(artContract));
 
   const presentation=await page.evaluate(()=>{
    const root=document.getElementById('teamScreen');
@@ -65,6 +65,6 @@ for(const [name,type] of Object.entries({chromium,webkit})){
    return {before,partner,after,active:get('S.pairs[0].active'),reserveVisible};
   });
   if(!swap.reserveVisible||!swap.partner||swap.partner==='—'||swap.after!==swap.partner||swap.after===swap.before||swap.active!==1)throw new Error('partner portrait swap failed outside Road: '+JSON.stringify(swap));
-  console.log('Team pair smoke PASS ('+name+'): 6 selected units -> canonical card/full art, compact 3-pair editor, mobile scrolling, fixed Save, and live portrait swap.');
+  console.log('Team pair smoke PASS ('+name+'): 6 selected units -> name-free card/full art, compact 3-pair editor, mobile scrolling, fixed Save, and live portrait swap.');
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
