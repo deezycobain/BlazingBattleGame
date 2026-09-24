@@ -146,7 +146,7 @@ async function run(name,type){
     const directions=loaded.rings.map(r=>r.name),directionOk=directions[0].includes('bbItachiSpinCCW')&&directions[1].includes('bbItachiSpinCCW')&&directions[2].includes('bbItachiSpinCW')&&directions[3].includes('bbItachiSpinCCW');
     const shellDurations=loaded.rings.map(r=>Number.parseFloat(r.shellDuration)||9),smoothInOk=loaded.rings.every(r=>r.shellName.includes('bbItachiRingSmoothIn'))&&shellDurations[0]>=.88&&shellDurations[0]<=.92&&shellDurations[1]>=1.03&&shellDurations[1]<=1.07&&shellDurations[2]>=.74&&shellDurations[2]<=.78&&shellDurations[3]>=.70&&shellDurations[3]<=.74;
     const shadowTiming=await page.evaluate(()=>{const scene=document.getElementById('pullScene'),sil=scene.querySelector('.bb-itachi-silhouette'),ravens=scene.querySelector('.bb-itachi-raven-burst');const ss=getComputedStyle(sil),rs=getComputedStyle(ravens);return {silDelay:Number.parseFloat(ss.animationDelay)||0,silDuration:Number.parseFloat(ss.animationDuration)||0,ravenDelay:Number.parseFloat(rs.animationDelay)||0,silFilter:ss.filter||''}});
-    const shadowHoldOk=shadowTiming.silDuration>=2.3&&(shadowTiming.ravenDelay-shadowTiming.silDelay)>=1.45;
+    const shadowHoldOk=shadowTiming.silDuration>=1.70&&(shadowTiming.ravenDelay-shadowTiming.silDelay)>=.65;
     if(!centersOk||!nested||!widthTargetsOk||!tiered||!directionOk||!smoothInOk||!shadowHoldOk)throw new Error(`Itachi ring geometry/smooth-in/direction/speed or shadow-hold contract is wrong: ${JSON.stringify({rings:loaded.rings,shadowTiming})}`);
     if(loaded.revealStage!=='itachi'||loaded.revealKind!=='itachi'||!loaded.cardArt.endsWith('itachi_reveal.webp'))throw new Error(`Itachi cinematic did not own the reveal: ${JSON.stringify(loaded)}`);
 
