@@ -119,7 +119,7 @@
           "sprites/runtime/attack/basic/frame_05.png",
           "sprites/runtime/attack/basic/frame_06.png"
         ],
-        "frame_ms": 105,
+        "frame_ms": 120,
         "loop": false,
         "events": [
           {
