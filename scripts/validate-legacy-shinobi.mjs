@@ -142,4 +142,4 @@ for(const marker of ["unitData?.display_name==='Wong Fei-Hung'","hesitationMs=dr
  if(!combatPresentation.includes(marker))throw new Error('Legacy Shinobi validator: configured Wong Fei-Hung drunken cadence missing '+marker);
 }
 
-console.log('Legacy Shinobi PASS: 12-unit roster audited; name-free upper-80% presentation art is enforced for summon/team UI; Wong refresh remains fixed-scale at 250ms/190ms with synchronized contact timing; runtime frames remain 512x768 bottom-center anchored.');
+console.log('Legacy Shinobi PASS: 12-unit roster audited; illustration-only name-free presentation art is enforced for summon/team UI; Wong refresh remains fixed-scale at 250ms/190ms with synchronized contact timing; runtime frames remain 512x768 bottom-center anchored.');
