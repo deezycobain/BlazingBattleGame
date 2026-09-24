@@ -17,7 +17,7 @@ ARCHIVES = [
 ]
 WONG_REFRESH_ARCHIVE = ROOT / "legacy_of_the_shinobi_jackie_chan_refresh.zip"
 WONG_REFRESH_ROOT = EVENT_ROOT / "wong-fei-hung-refresh"
-# Team editor intentionally uses the refreshed runtime body frame, not trading-card art.
+# Team/summon presentation uses a name-free crop derived from canonical Legacy poster art.
 MANIFEST = EVENT_ROOT / "extracted-manifest.json"
 AUDIT_REPORT = EVENT_ROOT / "sprite-audit.json"
 UNIT_INDEX = ROOT / "runtime" / "registry" / "unit-index.json"
@@ -58,6 +58,22 @@ def safe_target(base: Path, member: str) -> Path:
 
 def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def make_name_free_presentation_art(source_path: Path, dest_path: Path):
+    """Crop away the baked fighter-name strip while preserving the illustrated Legacy poster art."""
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    with Image.open(source_path).convert("RGBA") as image:
+        width, height = image.size
+        bottom = max(1, min(height, int(round(height * 0.80))))
+        cropped = image.crop((0, 0, width, bottom))
+        cropped.save(dest_path, format="PNG", optimize=True)
+        return {
+            "path": dest_path.relative_to(ROOT).as_posix(),
+            "source_size": [width, height],
+            "crop_box": [0, 0, width, bottom],
+            "size": [cropped.width, cropped.height],
+            "sha256": sha256_file(dest_path),
+        }
 
 def layout_for(unit_id: str):
     return (6, 1) if unit_id in STRIP_UNITS else (3, 2)
@@ -657,6 +673,8 @@ for unit_id, source_dir in sorted(unit_sources.items()):
     card_dir.mkdir(parents=True, exist_ok=True)
     card_name = f"legacy_of_shinobi_card{source_card.suffix.lower()}"
     shutil.copy2(source_card, card_dir / card_name)
+    presentation_name = "legacy_summon_art.png"
+    presentation_meta = make_name_free_presentation_art(source_card, card_dir / presentation_name)
 
     idle_meta = split_sheet(
         unit_id,
@@ -674,6 +692,8 @@ for unit_id, source_dir in sorted(unit_sources.items()):
     data_dir = canonical / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     data = unit_json(unit_id, card_name)
+    data["assets"]["summon_art"] = f"cards/{presentation_name}"
+    data["assets"]["team_art"] = f"cards/{presentation_name}"
     data["animation_standard"]["source_sheets"] = {
         "idle": {
             "path": source_dir.relative_to(ROOT).joinpath("idle_6f.png").as_posix(),
@@ -705,6 +725,7 @@ for unit_id, source_dir in sorted(unit_sources.items()):
             "mode": card_mode,
             "sha256": sha256_file(source_card),
         },
+        "presentation_art": presentation_meta,
         "idle": {k:v for k,v in idle_meta.items() if k != "frames"},
         "basic_attack": {k:v for k,v in attack_meta.items() if k != "frames"},
     }
@@ -813,9 +834,13 @@ def apply_wong_refresh(audit_units, packages):
         data["assets"]["art"] = f"cards/{card_name}"
         data["assets"]["card"] = f"cards/{card_name}"
         data["assets"]["portrait"] = f"cards/{card_name}"
+    canonical_card = canonical / data["assets"]["art"]
+    presentation_name = "legacy_summon_art.png"
+    presentation_meta = make_name_free_presentation_art(canonical_card, canonical / "cards" / presentation_name)
+    data["assets"]["summon_art"] = f"cards/{presentation_name}"
+    data["assets"]["team_art"] = f"cards/{presentation_name}"
     data_path.write_text(json.dumps(data, indent=2) + "\n")
 
-    canonical_card = canonical / data["assets"]["art"]
     with Image.open(canonical_card) as card:
         card_size = [card.width, card.height]
         card_mode = card.mode
@@ -828,6 +853,7 @@ def apply_wong_refresh(audit_units, packages):
             "mode": card_mode,
             "sha256": sha256_file(canonical_card),
         },
+        "presentation_art": presentation_meta,
         "idle": {k:v for k,v in idle_meta.items() if k != "frames"},
         "basic_attack": {k:v for k,v in attack_meta.items() if k != "frames"},
     }
