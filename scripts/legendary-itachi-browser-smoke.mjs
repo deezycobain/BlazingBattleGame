@@ -101,9 +101,11 @@ async function run(name,type){
     })));
     const startOrder=ringStarts.map(item=>item.index);
     const sequentialStarts=startOrder.length===4&&startOrder.every((value,index)=>value===index);
-    const gaps=ringStarts.slice(1).map(item=>item.gap);
-    const threeBeatStarts=gaps.length===3&&gaps[0]>=140&&gaps[0]<=380&&gaps[1]>=140&&gaps[1]<=420&&Math.abs(gaps[2])<=45;
-    if(!sequentialStarts||!threeBeatStarts)throw new Error(`Itachi ring starts lost the regular-summon three-beat cadence: ${JSON.stringify(ringStarts)}`);
+    if(!sequentialStarts)throw new Error(`Itachi ring start order changed: ${JSON.stringify(ringStarts)}`);
+    // Do not assert animationstart wall-clock gaps here. Under CI load WebKit may dispatch
+    // delayed animationstart events in a later task even when CSS delays are exact.
+    // Exact cadence is verified below by comparing computed delay/duration/easing
+    // directly against temporary regular-summon reference rings.
     await page.waitForTimeout(1150);
     const ringParity=await page.evaluate(()=>{
       const screen=document.getElementById('summonPullScreen'),scene=document.getElementById('pullScene');
