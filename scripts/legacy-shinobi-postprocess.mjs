@@ -88,12 +88,11 @@ const legacyAttackVisualTarget='if((!visual||LEGACY_SHINOBI_BODY_RUNTIME.has(nam
 if(html.includes(legacyAttackVisualGate))html=html.replace(legacyAttackVisualGate,legacyAttackVisualTarget);
 else if(!html.includes(legacyAttackVisualTarget))fail('Legacy attack visual-state renderer gate missing');
 
-/* Give the six-frame Legacy attack sheet enough screen time to read.
-   Wong Fei-Hung uses repeated frame holds around the authored six poses so his
-   motion lingers, then snaps through the contact poses. Each attack also receives
-   a small timing variance so the Drunken Master rhythm never feels metronomic. */
+/* Keep the six-frame Legacy attack sheet readable even if the configured combat
+   presentation path is unavailable. Wong stays slower and looser instead of
+   using the old late snap; the authored contact pose remains unchanged. */
 const lungeTimingSource="let start=performance.now(),dur=unitName==='Tyler'?360:175,backDur=unitName==='Tyler'?340:145,lungeHold=unitName==='Tyler'?100:65;";
-const lungeTimingTarget="const legacyShinobiAttack=LEGACY_SHINOBI_BODY_RUNTIME.has(unitName),drunkenMasterAttack=unitName==='Wong Fei-Hung',drunkenVariance=drunkenMasterAttack?(.90+Math.random()*.20):1,drunkenHoldVariance=drunkenMasterAttack?(.96+Math.random()*.10):1;let start=performance.now(),dur=drunkenMasterAttack?Math.round(300*drunkenVariance):(legacyShinobiAttack?205:(unitName==='Tyler'?360:175)),backDur=drunkenMasterAttack?Math.round(340*(2-drunkenVariance)):(legacyShinobiAttack?240:(unitName==='Tyler'?340:145)),lungeHold=drunkenMasterAttack?Math.round(350*drunkenHoldVariance):(legacyShinobiAttack?185:(unitName==='Tyler'?100:65));";
+const lungeTimingTarget="const legacyShinobiAttack=LEGACY_SHINOBI_BODY_RUNTIME.has(unitName),drunkenMasterAttack=unitName==='Wong Fei-Hung',drunkenVariance=drunkenMasterAttack?(.96+Math.random()*.10):1,drunkenHoldVariance=drunkenMasterAttack?(.98+Math.random()*.08):1;let start=performance.now(),dur=drunkenMasterAttack?Math.round(245*drunkenVariance):(legacyShinobiAttack?235:(unitName==='Tyler'?360:175)),backDur=drunkenMasterAttack?Math.round(410*(2-drunkenVariance)):(legacyShinobiAttack?270:(unitName==='Tyler'?340:145)),lungeHold=drunkenMasterAttack?Math.round(380*drunkenHoldVariance):(legacyShinobiAttack?205:(unitName==='Tyler'?100:65));";
 if(html.includes(lungeTimingSource))html=html.replace(lungeTimingSource,lungeTimingTarget);
 else if(!html.includes(lungeTimingTarget))fail('Legacy animateLunge timing anchor missing');
 
