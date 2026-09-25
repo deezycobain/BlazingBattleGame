@@ -109,7 +109,7 @@ try{Road.advanceStage(failed)}catch{blocked=true}
 assert(blocked,'Failed Road run was allowed to advance');
 
 const resultsSource=await fs.readFile('runtime/ui/battle/match-results.js','utf8');
-for(const marker of ['bbResultsRoad','renderRoadIntermission','ROAD PROGRESS','NEXT ENCOUNTER','RUN RESOURCES CARRY FORWARD','data-road-node','data-progression-unit','FORGE_ROUTE_UNITS','OPEN FORGE','progression.readyName']){
+for(const marker of ['bbResultsRoad','renderRoadIntermission','ROAD PROGRESS','NEXT ENCOUNTER','RUN RESOURCES CARRY FORWARD','data-road-node','data-progression-unit','api?.fighters?.()','OPEN FORGE','progression.readyName']){
   assert(resultsSource.includes(marker),`Road results/progression bridge is missing ${marker}`);
 }
 const resultsCss=await fs.readFile('runtime/ui/home/home-official-dev.css','utf8');
