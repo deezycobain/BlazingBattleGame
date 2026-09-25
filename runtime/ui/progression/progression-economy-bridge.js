@@ -2,14 +2,14 @@
 'use strict';
 const P=()=>window.BlazingUnitProgression;
 const E=()=>window.BlazingEconomy;
-const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler'];
+const fighters=()=>window.BlazingUnitProgression?.fighters?.()||window.BlazingUnitProgression?.FIGHTERS||[];
 let current='Tyler',fxTimer=0,forgeStatus={name:'',message:'',tone:''};
 
 function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
 function roman(n){return ['I','II','III','IV','V'][Math.max(0,Math.min(4,n-1))]||String(n)}
 function selectedName(){
  const raw=document.getElementById('forgeName')?.textContent?.trim().toLowerCase();
- const found=FIGHTERS.find(name=>name.toLowerCase()===raw);
+ const found=fighters().find(name=>name.toLowerCase()===raw);
  return found||current;
 }
 function refreshCombat(){try{window.BlazingProgression?.applyCombatBonuses?.()}catch{}}

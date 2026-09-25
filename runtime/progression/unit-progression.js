@@ -5,6 +5,8 @@ const KEY='blazing.unitProgression.v1';
 const LEGACY_KEY='blazing.progression.v1';
 const VERSION=1;
 const FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi','Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Wong Fei-Hung','Gabimaru','Killua','Zabuza'];
+function fighterNames(){const dynamic=Object.values(window.BLAZING_UNIT_DATA||{}).filter(unit=>unit?.role==='playable'&&unit?.display_name).map(unit=>unit.display_name);return [...new Set([...FIGHTERS,...dynamic])]}
+function known(name){return fighterNames().includes(name)}
 const LEGACY_NAME_ALIASES=Object.freeze({'Wong Fei-Hung':'Jackie Chan'});
 const AWAKENING_COSTS=Object.freeze([1,1,1,1,2]);
 const CAPS=Object.freeze([10,20,30,40,50,50]);
@@ -18,7 +20,7 @@ const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const clone=value=>JSON.parse(JSON.stringify(value));
 
 function freshUnit(){return {level:1,xp:0,awakening:0,copies:0,shiny:false,lifetimeXp:0}}
-function fresh(){return {version:VERSION,totalBattleXp:0,units:Object.fromEntries(FIGHTERS.map(name=>[name,freshUnit()]))}}
+function fresh(){return {version:VERSION,totalBattleXp:0,units:Object.fromEntries(fighterNames().map(name=>[name,freshUnit()]))}}
 function capForAwakening(awakening){return CAPS[clamp(Math.floor(Number(awakening)||0),0,5)]}
 function xpForNextLevel(level){
   const current=clamp(Math.floor(Number(level)||1),1,MAX_LEVEL);
@@ -45,7 +47,7 @@ function migrateLegacy(){
   try{
     const legacy=JSON.parse(localStorage.getItem(LEGACY_KEY)||'null');
     if(!legacy?.units)return state;
-    for(const name of FIGHTERS){
+    for(const name of fighterNames()){
       const old=legacy.units[name]||legacy.units[LEGACY_NAME_ALIASES[name]]||{};
       if(old.shiny||Number(old.resonance)>=5){state.units[name]={level:50,xp:0,awakening:5,copies:Math.max(0,Math.floor(Number(old.shards)||0)),shiny:true,lifetimeXp:0};continue;}
       state.units[name].copies=Math.max(0,Math.floor(Number(old.resonance)||0)+Math.floor(Number(old.shards)||0));
@@ -57,7 +59,7 @@ function normalize(input){
   const base=fresh();
   if(!input||typeof input!=='object')return base;
   base.totalBattleXp=Math.max(0,Math.floor(Number(input.totalBattleXp)||0));
-  for(const name of FIGHTERS)base.units[name]=normalizeUnit(input.units?.[name]??input.units?.[LEGACY_NAME_ALIASES[name]]);
+  for(const name of fighterNames())base.units[name]=normalizeUnit(input.units?.[name]??input.units?.[LEGACY_NAME_ALIASES[name]]);
   return base;
 }
 function load(){
@@ -84,13 +86,13 @@ function canAwaken(name){
   return {ok:u.awakening<5&&u.level>=cap&&u.copies>=cost,levelReady:u.level>=cap,copiesReady:u.copies>=cost,cost,cap,unit:u};
 }
 function addDuplicate(name,count=1){
-  if(!FIGHTERS.includes(name))return null;
+  if(!known(name))return null;
   const state=load(),u=state.units[name],amount=Math.max(1,Math.floor(Number(count)||1));
   u.copies+=amount;const saved=save(state);
   return {name,added:amount,copies:saved.units[name].copies,unit:clone(saved.units[name])};
 }
 function grantXp(name,amount){
-  if(!FIGHTERS.includes(name))return null;
+  if(!known(name))return null;
   const state=load(),u=state.units[name],earned=Math.max(0,Math.floor(Number(amount)||0));
   let remaining=earned,levels=0;
   u.lifetimeXp+=earned;state.totalBattleXp+=earned;
@@ -112,7 +114,7 @@ function battleXpFor({mode,stage=1,boss=1}={}){
 }
 function awardBattleXp({mode,stage=1,boss=1,names=[]}={}){
   const amount=battleXpFor({mode,stage,boss});
-  const unique=[...new Set((Array.isArray(names)?names:[]).filter(name=>FIGHTERS.includes(name)))];
+  const unique=[...new Set((Array.isArray(names)?names:[]).filter(name=>known(name)))];
   const results=unique.map(name=>grantXp(name,amount)).filter(Boolean);
   return Object.freeze({amount,mode,stage,boss,units:results});
 }
@@ -122,9 +124,9 @@ function markCostForUnit(data){
   const need=xpForNextLevel(u.level),remaining=Math.max(1,need-u.xp),full=fullMarkCost(u.level);
   return Math.max(15,Math.ceil(full*(remaining/need)));
 }
-function markCostToFinish(name){return FIGHTERS.includes(name)?markCostForUnit(unit(name)):0}
+function markCostToFinish(name){return known(name)?markCostForUnit(unit(name)):0}
 function markCostToGate(name){
-  if(!FIGHTERS.includes(name))return 0;
+  if(!known(name))return 0;
   const u=unit(name),cap=capForAwakening(u.awakening);
   if(u.level>=MAX_LEVEL||u.level>=cap)return 0;
   let total=markCostForUnit(u);
@@ -132,7 +134,7 @@ function markCostToGate(name){
   return total;
 }
 function buyLevel(name){
-  if(!FIGHTERS.includes(name))return {ok:false,reason:'UNKNOWN_UNIT'};
+  if(!known(name))return {ok:false,reason:'UNKNOWN_UNIT'};
   const state=load(),u=state.units[name],cap=capForAwakening(u.awakening);
   if(u.level>=MAX_LEVEL)return {ok:false,reason:'MAX_LEVEL',unit:clone(u)};
   if(u.level>=cap)return {ok:false,reason:'AWAKENING_REQUIRED',unit:clone(u),cap};
@@ -145,7 +147,7 @@ function buyLevel(name){
   return {ok:true,cost,balance:spent.balance,name,level:next.level,cap:capForAwakening(next.awakening),locked:isAtGate(next),unit:clone(next)};
 }
 function buyToGate(name){
-  if(!FIGHTERS.includes(name))return {ok:false,reason:'UNKNOWN_UNIT'};
+  if(!known(name))return {ok:false,reason:'UNKNOWN_UNIT'};
   const state=load(),u=state.units[name],cap=capForAwakening(u.awakening);
   if(u.level>=MAX_LEVEL)return {ok:false,reason:'MAX_LEVEL',unit:clone(u),cap};
   if(u.level>=cap)return {ok:false,reason:'AWAKENING_REQUIRED',unit:clone(u),cap};
@@ -160,7 +162,7 @@ function buyToGate(name){
   return {ok:true,cost,balance:spent.balance,name,level:next.level,levelsGained:next.level-before,cap,awakening:next.awakening,locked:isAtGate(next),unit:clone(next)};
 }
 function awaken(name){
-  if(!FIGHTERS.includes(name))return {ok:false,reason:'UNKNOWN_UNIT'};
+  if(!known(name))return {ok:false,reason:'UNKNOWN_UNIT'};
   const state=load(),u=state.units[name],check=canAwaken(name);
   if(u.awakening>=5)return {ok:false,reason:'MAX_AWAKENING',unit:clone(u)};
   if(!check.levelReady)return {ok:false,reason:'LEVEL_REQUIRED',requiredLevel:check.cap,unit:clone(u)};
@@ -179,5 +181,5 @@ function statMultipliers(data){
 }
 function reset(){localStorage.removeItem(KEY);const next=fresh();localStorage.setItem(KEY,JSON.stringify(next));window.dispatchEvent(new CustomEvent('bb:unit-progression',{detail:clone(next)}));return clone(next)}
 
-window.BlazingUnitProgression=Object.freeze({KEY,LEGACY_KEY,VERSION,FIGHTERS,LEGACY_NAME_ALIASES,AWAKENING_COSTS,CAPS,MAX_LEVEL,load,getState,unit,save,capForAwakening,xpForNextLevel,fullMarkCost,markCostToFinish,markCostToGate,isAtGate,nextAwakeningCost,canAwaken,addDuplicate,grantXp,battleXpFor,awardBattleXp,buyLevel,buyToGate,awaken,statMultipliers,reset});
+window.BlazingUnitProgression=Object.freeze({KEY,LEGACY_KEY,VERSION,FIGHTERS,fighters:fighterNames,LEGACY_NAME_ALIASES,AWAKENING_COSTS,CAPS,MAX_LEVEL,load,getState,unit,save,capForAwakening,xpForNextLevel,fullMarkCost,markCostToFinish,markCostToGate,isAtGate,nextAwakeningCost,canAwaken,addDuplicate,grantXp,battleXpFor,awardBattleXp,buyLevel,buyToGate,awaken,statMultipliers,reset});
 })();

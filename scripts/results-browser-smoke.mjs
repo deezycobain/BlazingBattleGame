@@ -113,7 +113,7 @@ async function run(name,type){
 
     await launchMode(page,'road');
     const forgeReadyName=await page.evaluate(()=>{
-      const supported=new Set(['Crimson','Sub-Zero','Lebee','Senku','Tyler']);
+      const supported=new Set(window.BlazingProgression?.fighters?.()||window.BlazingUnitProgression?.fighters?.()||window.BlazingUnitProgression?.FIGHTERS||[]);
       const s=globalThis.eval('S');
       const names=(Array.isArray(s?.pairs)?s.pairs:[]).flatMap(pair=>Array.isArray(pair?.units)?pair.units:[]).filter(unit=>unit&&unit.name&&unit.name!=='—').map(unit=>unit.name);
       const name=names.find(unit=>supported.has(unit));

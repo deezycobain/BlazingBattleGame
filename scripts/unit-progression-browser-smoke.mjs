@@ -27,6 +27,13 @@ async function run(name,type){
   await page.evaluate(()=>{window.BlazingUnitProgression.reset();window.BlazingEconomy.reset()});
   await page.evaluate(()=>window.BlazingProgression.openForge('Lebee'));
   await page.locator('#resonanceScreen.active #bbLevelProgression').waitFor({state:'visible'});
+  const forgeRegistry=await page.evaluate(()=>({fighters:window.BlazingProgression.fighters(),progression:window.BlazingUnitProgression.fighters(),buttons:[...document.querySelectorAll('#forgeRoster [data-fighter]')].map(node=>node.dataset.fighter)}));
+  if(forgeRegistry.fighters.length<18||forgeRegistry.progression.length<18||!forgeRegistry.fighters.includes('Kakashi')||!forgeRegistry.buttons.includes('Kakashi'))throw new Error(`Forge registry did not expose every current playable unit: ${JSON.stringify(forgeRegistry)}`);
+  await page.evaluate(()=>window.BlazingProgression.openForge('Kakashi'));
+  await page.waitForFunction(()=>document.getElementById('forgeName')?.textContent?.trim()==='KAKASHI');
+  const legacyForge=await page.evaluate(()=>({name:document.getElementById('forgeName')?.textContent?.trim()||'',src:document.getElementById('forgePortrait')?.getAttribute('src')||''}));
+  if(legacyForge.name!=='KAKASHI'||!/\/kakashi\/sprites\/runtime\/idle\/frame_01\.png/i.test(legacyForge.src))throw new Error(`Legacy Forge art/route incorrect: ${JSON.stringify(legacyForge)}`);
+  await page.evaluate(()=>window.BlazingProgression.openForge('Lebee'));
   let panel=await page.locator('#bbLevelProgression').innerText();
   if(!/LV\.\s*1\s*\/\s*10/i.test(panel)||!/DUPLICATES\s*0/i.test(panel))throw new Error(`fresh progression panel incorrect: ${panel}`);
 

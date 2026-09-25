@@ -4,12 +4,18 @@ const KEY='blazing.progression.v1';
 const MAX_RESONANCE=5,STAT_BUDGET=12,MAX_STAT=5;
 const CORE_FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi'];
 const LEGACY_FIGHTERS=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Wong Fei-Hung','Gabimaru','Killua','Zabuza'];
-const FIGHTERS=[...CORE_FIGHTERS,...LEGACY_FIGHTERS],FORGE_FIGHTERS=CORE_FIGHTERS,SUMMON_FIGHTERS=LEGACY_FIGHTERS;
+const FIGHTERS=[...CORE_FIGHTERS,...LEGACY_FIGHTERS],FORGE_FIGHTERS=FIGHTERS,SUMMON_FIGHTERS=LEGACY_FIGHTERS;
 const IDS={
  'Crimson':'crimson','Sub-Zero':'subzero','Lebee':'lebee','Senku':'senku','Tyler':'tyler','Itachi':'itachi',
  'Kakashi':'kakashi','Obito':'obito','Jiraiya':'jiraiya','Sasuke':'sasuke','Pain':'pain','Scorpion':'scorpion',
  'Rock Lee':'rock_lee','Mashle':'mashle','Wong Fei-Hung':'jackie_chan','Gabimaru':'gabimaru','Killua':'killua','Zabuza':'zabuza'
 };
+function registryUnits(){return Object.values(window.BLAZING_UNIT_DATA||{}).filter(unit=>unit?.role==='playable'&&unit?.display_name)}
+function unitData(name){const norm=v=>String(v||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');return registryUnits().find(unit=>norm(unit.display_name)===norm(name)||norm(unit.id)===norm(name))||window.BLAZING_UNIT_DATA?.[IDS[name]]||null}
+function unitId(name){return unitData(name)?.id||IDS[name]||String(name||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'_')}
+function fighterNames(){return [...new Set([...FIGHTERS,...registryUnits().map(unit=>unit.display_name).filter(Boolean)])]}
+function forgeFighters(){return fighterNames()}
+function canForge(name){return forgeFighters().includes(name)}
 const CARD_ART={
  'Crimson':'assets/characters/crimson/art/current_collection_art.jpg',
  'Sub-Zero':'assets/characters/subzero/art/full_art_absolute_zero_v2.jpeg',
@@ -58,17 +64,18 @@ let forgeArtToken=0,forgeArtRequestedKey='';
 const BASE_RUNTIME=typeof BATTLE_ROSTER==='undefined'?{}:Object.fromEntries(FIGHTERS.filter(name=>BATTLE_ROSTER[name]).map(name=>[name,{...BATTLE_ROSTER[name]}]));
 
 function freshUnit(){return {resonance:0,shards:0,shiny:false,roll:null,locks:[]}}
-function fresh(){return {version:1,totalPulls:0,units:Object.fromEntries(FIGHTERS.map(name=>[name,freshUnit()]))}}
-function load(){try{const parsed=JSON.parse(localStorage.getItem(KEY)||'null');const base=fresh();if(!parsed)return base;for(const name of FIGHTERS){const legacyName=name==='Wong Fei-Hung'?'Jackie Chan':name;base.units[name]={...freshUnit(),...(parsed.units?.[name]||parsed.units?.[legacyName]||{})}};base.totalPulls=Number(parsed.totalPulls)||0;return base}catch(_){return fresh()}}
+function fresh(){return {version:1,totalPulls:0,units:Object.fromEntries(fighterNames().map(name=>[name,freshUnit()]))}}
+function load(){try{const parsed=JSON.parse(localStorage.getItem(KEY)||'null');const base=fresh();if(!parsed)return base;for(const name of fighterNames()){const legacyName=name==='Wong Fei-Hung'?'Jackie Chan':name;base.units[name]={...freshUnit(),...(parsed.units?.[name]||parsed.units?.[legacyName]||{})}};base.totalPulls=Number(parsed.totalPulls)||0;return base}catch(_){return fresh()}}
 function save(){localStorage.setItem(KEY,JSON.stringify(state));applyCombatBonuses();refreshInventoryBadges()}
 function unit(name=selected){return state.units[name]||(state.units[name]=freshUnit())}
 function art(name){
  if(FORGE_ART[name])return FORGE_ART[name];
- const data=window.BLAZING_UNIT_DATA?.[IDS[name]];const rel=data?.assets?.card||data?.assets?.art;
- return rel?`assets/characters/${IDS[name]}/${rel}`:'';
+ const data=unitData(name),id=unitId(name),assets=data?.assets||{},clean=assets.forge_art_clean||assets.presentation_art;
+ const rel=clean||(LEGACY_FIGHTERS.includes(name)?data?.animation_standard?.animations?.idle?.frames?.[0]:(assets.art||assets.card||assets.portrait));
+ return rel?(/^assets\//.test(rel)?rel:`assets/characters/${id}/${rel}`):'';
 }
 function summonArt(name){
- const id=IDS[name],data=window.BLAZING_UNIT_DATA?.[id],assets=data?.assets||{},rel=assets.summon_art_clean||assets.presentation_art||assets.summon_art;
+ const id=unitId(name),data=unitData(name),assets=data?.assets||{},rel=assets.summon_art_clean||assets.presentation_art||assets.summon_art;
  if(rel)return /^assets\//.test(rel)?rel:`assets/characters/${id}/${rel}`;
  return CARD_ART[name]||'';
 }
@@ -147,7 +154,7 @@ function showSummonResultsNow(){
  ++summonSequenceToken;if(nextPullResolver){nextPullResolver();nextPullResolver=null}
  renderDedicatedResults(activeSummonPulls);
 }
-function openForge(name){selected=FORGE_FIGHTERS.includes(name)?name:'Itachi';candidate=null;document.querySelectorAll('.screen').forEach(s=>{if(s.id!=='resonanceScreen')s.classList.remove('active')});const menu=document.getElementById('menuScreen');if(menu)menu.style.display='none';const screen=document.getElementById('resonanceScreen');screen.classList.add('active');screen.scrollTop=0;renderForge();window.scrollTo(0,0)}
+function openForge(name){const roster=forgeFighters();selected=roster.includes(name)?name:(roster.includes('Itachi')?'Itachi':roster[0]);candidate=null;document.querySelectorAll('.screen').forEach(s=>{if(s.id!=='resonanceScreen')s.classList.remove('active')});const menu=document.getElementById('menuScreen');if(menu)menu.style.display='none';const screen=document.getElementById('resonanceScreen');screen.classList.add('active');screen.scrollTop=0;renderForge();window.scrollTo(0,0)}
 function closeForge(){document.getElementById('resonanceScreen').classList.remove('active');const menu=document.getElementById('menuScreen');if(menu){menu.style.display='grid';menu.classList.remove('leaving')}}
 function fitForgeArtwork(image){
  const depth=image.closest('.forgeArtDepth'),ratio=image.naturalWidth&&image.naturalHeight?image.naturalWidth/image.naturalHeight:.75;if(!depth)return;
@@ -162,7 +169,7 @@ function syncForgeArtwork(card,name,shiny,portraitSrc,cutout){
  const token=++forgeArtToken;card.classList.add('artSwitching');card.setAttribute('aria-busy','true');
  Promise.all([preloadForgeAsset(portraitSrc),preloadForgeAsset(cutout)]).then(()=>{
   if(token!==forgeArtToken)return;
-  card.classList.toggle('shiny',shiny);card.classList.toggle('hasPopout',!!cutout);card.dataset.fighter=IDS[name];card.dataset.popoutProfile=cutout?SHINY_POPOUT_PROFILE[name]||'none':'none';
+  card.classList.toggle('shiny',shiny);card.classList.toggle('hasPopout',!!cutout);card.dataset.fighter=unitId(name);card.dataset.popoutProfile=cutout?SHINY_POPOUT_PROFILE[name]||'none':'none';
   const portrait=document.getElementById('forgePortrait');portrait.onload=()=>fitForgeArtwork(portrait);portrait.src=portraitSrc;portrait.alt=`${name} card`;if(portrait.complete)fitForgeArtwork(portrait);
   const popout=document.getElementById('forgePopout');popout.hidden=!cutout;popout.alt=cutout?`${name} Shiny foreground`:'';if(cutout)popout.src=cutout;else popout.removeAttribute('src');
   card.dataset.forgeArtKey=key;void card.offsetWidth;
@@ -171,7 +178,7 @@ function syncForgeArtwork(card,name,shiny,portraitSrc,cutout){
 }
 function renderForge(message=''){
  const u=unit();const maxed=u.resonance>=MAX_RESONANCE;
- document.getElementById('forgeRoster').innerHTML=FORGE_FIGHTERS.map(name=>{const x=unit(name);return `<button class="forgeFighter ${name===selected?'active':''} ${x.resonance>=5?'maxed':''}" data-fighter="${name}">${name}<small>${x.resonance>=5?'SHINY • ':''}R${x.resonance}/5 • ${x.shards} ✦</small></button>`}).join('');
+ document.getElementById('forgeRoster').innerHTML=forgeFighters().map(name=>{const x=unit(name);return `<button class="forgeFighter ${name===selected?'active':''} ${x.resonance>=5?'maxed':''}" data-fighter="${name}">${name}<small>${x.resonance>=5?'SHINY • ':''}R${x.resonance}/5 • ${x.shards} ✦</small></button>`}).join('');
  const card=document.getElementById('forgeCard'),cutout=u.shiny?SHINY_CUTOUT[selected]:null;syncForgeArtwork(card,selected,u.shiny,art(selected),cutout);
  document.getElementById('forgeName').textContent=selected.toUpperCase();const rank=document.getElementById('forgeRank');rank.textContent=maxed?'SHINY AWAKENED':`RESONANCE ${u.resonance} / 5`;rank.classList.toggle('shinyText',maxed);document.getElementById('forgePips').innerHTML=pipHtml(u);document.getElementById('forgeShardCount').textContent=u.shards;
  document.getElementById('forgeCurrent').innerHTML=statsHtml(u.roll,u.locks);document.getElementById('forgeBuildName').textContent=maxed?buildName(u.roll):`${5-u.resonance} MORE DUPLICATE${5-u.resonance===1?'':'S'} TO AWAKEN`;
@@ -204,5 +211,5 @@ function activateSummons(){
  const featured=document.querySelector('#summonScreen .showcaseSubline');if(featured)featured.textContent='12 LEGACY OF THE SHINOBI FIGHTERS • EQUAL DEV TEST ODDS';
 }
 installDom();activateSummons();applyCombatBonuses();refreshInventoryBadges();
-window.BlazingProgression=Object.freeze({getState:()=>JSON.parse(JSON.stringify(state)),openForge,rollStats,buildName,applyPull,applyCombatBonuses});
+window.BlazingProgression=Object.freeze({getState:()=>JSON.parse(JSON.stringify(state)),openForge,rollStats,buildName,applyPull,applyCombatBonuses,fighters:forgeFighters,canForge});
 })();

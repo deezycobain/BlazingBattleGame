@@ -80,7 +80,6 @@ function openForge(name){
  setTimeout(()=>{if(window.BlazingProgression?.openForge)window.BlazingProgression.openForge(name);else document.getElementById('forgeBtn')?.click()},120);
 }
 
-const FORGE_ROUTE_UNITS=new Set(['Crimson','Sub-Zero','Lebee','Senku','Tyler']);
 function progressionRow(item){
  const api=window.BlazingUnitProgression,name=item?.name||'Fighter',u=api?.unit?.(name)||item?.unit||null;
  if(!u)return null;
@@ -94,7 +93,7 @@ function progressionRow(item){
  const levelLabel=gained>0?`LV.${before} → LV.${level}`:`LV.${level}`;
  let status='',ready=false;
  if(shiny)status='SHINY • MAX PROGRESSION';
- else if(atGate&&gate?.ok){ready=FORGE_ROUTE_UNITS.has(name);status=`AWAKENING READY • ${gate.cost} COP${gate.cost===1?'Y':'IES'} BANKED`}
+ else if(atGate&&gate?.ok){ready=(api?.fighters?.()||api?.FIGHTERS||[]).includes(name);status=`AWAKENING READY • ${gate.cost} COP${gate.cost===1?'Y':'IES'} BANKED`}
  else if(atGate){
   const missing=Math.max(0,Math.floor(Number(gate?.cost)||0)-Math.floor(Number(u.copies)||0));
   status=`AWAKENING GATE • NEED ${missing} MORE COP${missing===1?'Y':'IES'}`;
