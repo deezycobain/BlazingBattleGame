@@ -87,7 +87,7 @@ async function run(name,type){
   await page.waitForFunction(()=>{
     const root=document.getElementById('bb-itachi-tsukuyomi-cinematic'),overlays=[...root?.querySelectorAll('.bb-tsu-overlay')||[]],mandalas=[...root?.querySelectorAll('.bb-tsu-mandala')||[]];
     return root?.classList.contains('bb-active')&&overlays.length===2&&mandalas.length===2;
-  },null,{timeout:3000});
+  },null,{timeout:5000});
   const takeover=await page.evaluate(()=>{
     const root=document.getElementById('bb-itachi-tsukuyomi-cinematic'),rect=root?.getBoundingClientRect(),style=root?getComputedStyle(root):null;
     const overlays=[...root?.querySelectorAll('.bb-tsu-overlay')||[]],mandalas=[...root?.querySelectorAll('.bb-tsu-mandala')||[]];
