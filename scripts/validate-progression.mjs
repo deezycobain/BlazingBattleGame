@@ -39,7 +39,7 @@ for(const marker of runtimeMarkers)if(!js.includes(marker))fail(`runtime missing
 const styleMarkers=[
  '#coreSummonNotice{display:none!important}','.forgeNode','.forgeCard.shiny','.forgeCandidate.active','.bb-resonance-badge',
  'SUMMON OVERHAUL','.bb-summon-lobby','.bb-skip-reveal','object-fit:contain!important',
- '.bb-shiny-awakening .pullCardWrap::after','animation:bbShinySweep 1.05s','grid-template-columns:repeat(2,minmax(0,1fr))',
+ '.bb-shiny-awakening .pullCardWrap::after','animation:bbShinySweep 1.05s','grid-template-columns:repeat(5,minmax(0,1fr))',
  '.bb-shiny-awakening .pullHeroArea::after','@keyframes bbGoldFlow','.forgeArtDepth','.forgePopout',
  '[data-popout-profile="head-hand"]','[data-popout-profile="ice-hand"]','[data-popout-profile="lebee-hand-hair"]',
  '[data-popout-profile="senku-hand-hair"]','radial-gradient(ellipse 24% 11.5% at 40% 0%',
