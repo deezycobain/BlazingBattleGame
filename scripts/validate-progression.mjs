@@ -54,7 +54,7 @@ const styleMarkers=[
  '.forgeCard.shiny .forgeHoloTexture','repeating-conic-gradient','@keyframes forgeHoloDrift','overflow-y:auto!important',
  'width:min(100%,var(--forge-art-max,323px))','aspect-ratio:var(--forge-art-ratio,.75)'
 ];
-for(const marker of styleMarkers)if(!css.includes(marker))fail(`style missing ${marker}`);
+for(const marker of styleMarkers)if(!css.includes(marker)&&!cinematicCss.includes(marker))fail(`style missing ${marker}`);
 
 for(const obsolete of ['installTylerPopoutFraming','bbTylerSelectivePopoutV3','bbTylerPopLayer','bbTylerPopFx','bbTylerPopHand','bbTylerPopHair','MutationObserver']){
  if(js.includes(obsolete)||css.includes(obsolete))fail(`stacked pop-out implementation survived: ${obsolete}`);
