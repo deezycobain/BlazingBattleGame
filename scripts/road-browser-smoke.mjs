@@ -15,8 +15,9 @@ async function waitForHome(page){
   await page.waitForFunction(()=>typeof window.BlazingRoadRun==='object'&&typeof window.BlazingApprovedHomeCompat==='object',{timeout:30000});
   const loading=page.locator('#bb-loading-screen');
   if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
-  await page.waitForFunction(()=>document.readyState==='complete',{timeout:30000});
-  await page.waitForTimeout(120);
+  // Home/runtime readiness is authoritative here; waiting for document.readyState='complete'
+  // is brittle in Chromium because late non-critical resources can remain pending after reload.
+  await page.waitForTimeout(180);
 }
 
 async function readBattle(page){
