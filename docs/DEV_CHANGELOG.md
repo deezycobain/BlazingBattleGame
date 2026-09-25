@@ -1,5 +1,15 @@
 # Development Changelog
 
+## 2026-09-24 — Efficient development governance + deterministic display smoke
+
+Branch: `dev`  
+Checkpoint: none; workflow governance and test-harness stabilization only.
+
+Changes: added permanent Blazing Battle operating rules covering risk-proportional questions, proactive better-path/risk warnings, preservation of approved systems, clean branch/asset discipline, and an efficiency-first validation ladder. Targeted affected tests are the default during development; full regression remains required for checkpoints, stable promotion, major cross-system changes, or broader uncertainty. Flaky CI should be made deterministic and retried at the narrowest useful scope rather than weakening coverage or repeatedly restarting unrelated checks.
+
+Test harness: aligned the Retina/display-quality Home readiness gate with the canonical Home v9 readiness signals instead of relying on a generic document-ready condition that produced a Chromium-only false timeout after the same runtime had already passed the main Home, Road, combat, progression, and WebKit Retina checks.
+
+
 ## 2026-09-24 — Legacy full-card presentation correction + Itachi reference kinetics (uncheckpointed dev)
 
 Branch: `dev`  

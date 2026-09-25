@@ -6,9 +6,9 @@ const TYPES={chromium,webkit};
 
 async function waitForHome(page){
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
-  const loading=page.locator('#bb-loading-screen');
-  if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(async()=>loading.waitFor({state:'detached',timeout:5000}));
-  await page.waitForFunction(()=>document.readyState==='complete'&&typeof window.BlazingApprovedHomeCompat==='object',{timeout:30000});
+  await page.waitForFunction(()=>typeof window.BlazingMobileShellFixes==='object'&&typeof window.BlazingApprovedHomeCompat==='object'&&typeof window.BlazingHomeLivePolish==='object'&&typeof window.BlazingHomeV8==='object'&&typeof window.BlazingHomeV9==='object'&&typeof window.BlazingHomeFeedbackFixes==='object',{timeout:30000});
+  await page.waitForFunction(()=>document.querySelector('#bbHomeApproved')?.dataset?.bbHomeLayout==='v9-polish'&&document.querySelector('#bbHomeApproved')?.dataset?.bbHomeFeedback==='r1',{timeout:10000});
+  await page.waitForTimeout(300);
 }
 async function enterRoad(page){
   const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');

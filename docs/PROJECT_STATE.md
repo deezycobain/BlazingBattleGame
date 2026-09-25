@@ -19,6 +19,10 @@ The repository should normally have only `main`, `dev`, zero to two active exper
 - `dev` may advance beyond the last checkpoint as approved development and organizational housekeeping land. The latest checkpoint remains the rollback/reference milestone until a new checkpoint is intentionally created.
 - Development URL, when deployed: `https://dev-blazing-battle-game.blazingbattle.workers.dev` (the repository's deployed-smoke CI targets this exact URL).
 
+## Engineering operating rules
+
+Permanent workflow rules are defined in `docs/WORKING_RULES.md`. Development should optimize for the fastest safe path: ask only risk-relevant questions, preserve approved systems, surface better alternatives and downside risk early, use targeted validation before broad regression, retry only the failed gate when appropriate, prefer state-based tests, verify exact deployed SHAs, and avoid branch churn, duplicate systems, asset clutter, or temporary hacks becoming permanent.
+
 ## Current uncheckpointed dev work
 
 `dev` currently extends the approved baseline with authored speed-based Road round initiative, pause/status-safe turn ownership, a Road results intermission that previews the next encounter and carried run resources, and a battle-to-progression bridge that shows each deployed unit's persistent level/XP/Awakening state after victory. When a supported deployed unit has reached an Awakening gate and already owns the required duplicate copies, the result flow can route directly to that unit in Forge without discarding the active Road run. These changes do not alter the Road persistence schema, combat-stabilization postprocessor contract, or Character Sprite / Atlas Contract v1. Full validation/build/browser-smoke execution is still required before checkpoint approval or stable promotion.
