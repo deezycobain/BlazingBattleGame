@@ -102,6 +102,21 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   });
   if(!/\/kakashi\/cards\/legacy_of_shinobi_card\.webp$/.test(cleanResult.src)||String(cleanResult.name||'').toUpperCase()!=='KAKASHI'||cleanResult.fit!=='contain'||cleanResult.transform!=='none'||!cleanResult.legacyClass||!cleanResult.fallback||cleanResult.wrapped||cleanResult.mask||cleanResult.oldCrop.length)throw new Error('Kakashi results card is not using direct full-card/no-crop presentation: '+JSON.stringify(cleanResult));
 
+  // Ten-pull results stay compact: five cards on row one, five below, all using canonical summon art.
+  await page.locator('#returnToSummonsBtn').click();
+  await page.locator('#summonScreen.active #multiSummonBtn').waitFor({state:'visible',timeout:10000});
+  await page.locator('#multiSummonBtn').click();
+  await page.locator('#summonPullScreen.active').waitFor({state:'visible',timeout:10000});
+  await page.locator('#bbSkipReveal').click();
+  await page.locator('#pullResultsPanel.active').waitFor({state:'visible',timeout:10000});
+  await page.waitForFunction(()=>{const cards=[...document.querySelectorAll('#pullResultsGrid .pullCard')];return cards.length===10&&cards.every(card=>{const img=card.querySelector('.resultTradingCard');return img?.complete&&img.naturalWidth>0})},{timeout:10000});
+  const tenPull=await page.evaluate(()=>{
+    const cards=[...document.querySelectorAll('#pullResultsGrid .pullCard')],grid=document.getElementById('pullResultsGrid'),rows=new Map(),mismatches=[];
+    cards.forEach(card=>{const top=Math.round(card.getBoundingClientRect().top),img=card.querySelector('.resultTradingCard'),fighter=card.dataset.fighter||'',src=img?.getAttribute('src')||'',expected=window.BlazingProgression?.summonArt?.(fighter)||'';rows.set(top,(rows.get(top)||0)+1);if(!fighter||!expected||!src.endsWith(expected))mismatches.push({fighter,src,expected})});
+    return {count:cards.length,rowCounts:[...rows.values()].sort((a,b)=>b-a),columns:getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length,mismatches,broken:cards.filter(card=>{const img=card.querySelector('.resultTradingCard');return !img||!img.complete||img.naturalWidth<=0}).length};
+  });
+  if(tenPull.count!==10||tenPull.columns!==5||JSON.stringify(tenPull.rowCounts)!==JSON.stringify([5,5])||tenPull.mismatches.length||tenPull.broken)throw new Error('Ten-pull result grid/art integrity failed: '+JSON.stringify(tenPull));
+
   const attackScaleValues=await page.evaluate(names=>{
    const body=globalThis.eval('LEGACY_SHINOBI_BODY_RUNTIME');
    return Object.fromEntries(names.map(name=>[name,body.attackScale(name)]));

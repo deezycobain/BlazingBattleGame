@@ -4,6 +4,27 @@ const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'')
 const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
 const TYPES={chromium,webkit};
 
+const EXPECTED_PRESENTATION={
+ 'Crimson':{element:'Fire',summon:'assets/characters/crimson/art/current_collection_art.jpg',forge:'assets/characters/crimson/art/current_collection_art.jpg'},
+ 'Sub-Zero':{element:'Water',subtype:'Ice',summon:'assets/characters/subzero/art/full_art_absolute_zero_v2.jpeg',forge:'assets/characters/subzero/art/full_art_absolute_zero_v2.jpeg'},
+ 'Lebee':{element:'Light',summon:'assets/characters/lebee/art/full_art_cosmic_wish.jpeg',forge:'assets/characters/lebee/art/full_art_cosmic_wish.jpeg'},
+ 'Senku':{element:'Nature',summon:'assets/characters/senku/cards/senku_card.jpeg',forge:'assets/characters/senku/art/senku_full_art.jpeg'},
+ 'Tyler':{element:'Earth',summon:'assets/characters/tyler/cards/current_collection_card.png',forge:'assets/characters/tyler/art/current_collection_art.png'},
+ 'Itachi':{element:'Fire',summon:'assets/characters/itachi/art/itachi_full_art.png',forge:'assets/characters/itachi/art/itachi_full_art.png'},
+ 'Kakashi':{element:'Lightning',summon:'assets/characters/kakashi/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/kakashi/sprites/runtime/idle/frame_01.png'},
+ 'Obito':{element:'Fire',summon:'assets/characters/obito/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/obito/sprites/runtime/idle/frame_01.png'},
+ 'Jiraiya':{element:'Fire',summon:'assets/characters/jiraiya/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/jiraiya/sprites/runtime/idle/frame_01.png'},
+ 'Sasuke':{element:'Lightning',summon:'assets/characters/sasuke/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/sasuke/sprites/runtime/idle/frame_01.png'},
+ 'Pain':{element:'Dark',summon:'assets/characters/pain/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/pain/sprites/runtime/idle/frame_01.png'},
+ 'Scorpion':{element:'Fire',summon:'assets/characters/scorpion/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/scorpion/sprites/runtime/idle/frame_01.png'},
+ 'Rock Lee':{element:'Wind',summon:'assets/characters/rock_lee/cards/legacy_of_shinobi_card.png',forge:'assets/characters/rock_lee/sprites/runtime/idle/frame_01.png'},
+ 'Mashle':{element:'Earth',summon:'assets/characters/mashle/cards/legacy_of_shinobi_card.png',forge:'assets/characters/mashle/sprites/runtime/idle/frame_01.png'},
+ 'Wong Fei-Hung':{element:'Wind',summon:'assets/characters/jackie_chan/cards/wong_fei_hung_refresh.png',forge:'assets/characters/jackie_chan/sprites/runtime/idle/frame_01.png'},
+ 'Gabimaru':{element:'Fire',summon:'assets/characters/gabimaru/cards/legacy_of_shinobi_card.png',forge:'assets/characters/gabimaru/sprites/runtime/idle/frame_01.png'},
+ 'Killua':{element:'Lightning',summon:'assets/characters/killua/cards/legacy_of_shinobi_card.png',forge:'assets/characters/killua/sprites/runtime/idle/frame_01.png'},
+ 'Zabuza':{element:'Water',summon:'assets/characters/zabuza/cards/legacy_of_shinobi_card.png',forge:'assets/characters/zabuza/sprites/runtime/idle/frame_01.png'}
+};
+
 async function waitHome(page){
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
   const loading=page.locator('#bb-loading-screen');
@@ -29,6 +50,32 @@ async function run(name,type){
   await page.locator('#resonanceScreen.active #bbLevelProgression').waitFor({state:'visible'});
   const forgeRegistry=await page.evaluate(()=>({fighters:window.BlazingProgression.fighters(),progression:window.BlazingUnitProgression.fighters(),buttons:[...document.querySelectorAll('#forgeRoster [data-fighter]')].map(node=>node.dataset.fighter)}));
   if(forgeRegistry.fighters.length<18||forgeRegistry.progression.length<18||!forgeRegistry.fighters.includes('Kakashi')||!forgeRegistry.buttons.includes('Kakashi'))throw new Error(`Forge registry did not expose every current playable unit: ${JSON.stringify(forgeRegistry)}`);
+
+  const presentationIntegrity=await page.evaluate(async expected=>{
+    const registry=Object.values(window.BLAZING_UNIT_DATA||{});
+    const norm=v=>String(v||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');
+    const loadImage=src=>new Promise(resolve=>{const img=new Image();let done=false;const finish=ok=>{if(done)return;done=true;resolve({ok,width:img.naturalWidth||0,height:img.naturalHeight||0})};img.onload=()=>finish(true);img.onerror=()=>finish(false);img.src=src;setTimeout(()=>finish(img.complete&&img.naturalWidth>0),5000)});
+    const waitForge=async(name,expectedSrc)=>{
+      window.BlazingProgression.openForge(name);const start=performance.now();
+      while(performance.now()-start<5000){
+        const card=document.getElementById('forgeCard'),portrait=document.getElementById('forgePortrait'),label=document.getElementById('forgeName')?.textContent?.trim()||'',src=portrait?.getAttribute('src')||'';
+        if(label===name.toUpperCase()&&!card?.hasAttribute('aria-busy')&&src.endsWith(expectedSrc)&&portrait?.complete&&portrait.naturalWidth>0)return {ok:true,label,src,width:portrait.naturalWidth,height:portrait.naturalHeight};
+        await new Promise(resolve=>requestAnimationFrame(resolve));
+      }
+      const portrait=document.getElementById('forgePortrait');return {ok:false,label:document.getElementById('forgeName')?.textContent?.trim()||'',src:portrait?.getAttribute('src')||'',width:portrait?.naturalWidth||0,height:portrait?.naturalHeight||0};
+    };
+    const rows=[];
+    for(const [name,exp] of Object.entries(expected)){
+      const canonical=registry.find(item=>norm(item?.display_name)===norm(name));
+      const summon=window.BlazingProgression.summonArt(name),forge=window.BlazingProgression.forgeArt(name);
+      const [summonLoad,forgeLoad]=await Promise.all([loadImage(summon),loadImage(forge)]);
+      rows.push({name,element:canonical?.element||'',subtype:canonical?.element_subtype||'',summon,forge,summonLoad,forgeLoad,forgeRoute:await waitForge(name,exp.forge)});
+    }
+    return rows;
+  },EXPECTED_PRESENTATION);
+  const badPresentation=presentationIntegrity.filter(row=>{const exp=EXPECTED_PRESENTATION[row.name];return row.element!==exp.element||String(row.subtype||'')!==String(exp.subtype||'')||!row.summon.endsWith(exp.summon)||!row.forge.endsWith(exp.forge)||!row.summonLoad.ok||!row.forgeLoad.ok||!row.forgeRoute.ok;});
+  if(badPresentation.length)throw new Error(`Playable summon/element/Forge presentation integrity failed: ${JSON.stringify(badPresentation)}`);
+  await page.evaluate(()=>window.BlazingProgression.openForge('Lebee'));
   await page.evaluate(()=>window.BlazingProgression.openForge('Kakashi'));
   await page.waitForFunction(()=>document.getElementById('forgeName')?.textContent?.trim()==='KAKASHI');
   const legacyForge=await page.evaluate(()=>({name:document.getElementById('forgeName')?.textContent?.trim()||'',src:document.getElementById('forgePortrait')?.getAttribute('src')||''}));
