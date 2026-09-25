@@ -181,7 +181,11 @@ async function run(name,type){
 
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbItachiStage==='handoff',{timeout:9000});
     await page.waitForFunction(()=>document.getElementById('pullScene')?.dataset.bbRevealStage==='done',{timeout:3000});
-    await page.waitForTimeout(840);
+    await page.waitForFunction(()=>{
+      const screen=document.getElementById('summonPullScreen'),layer=screen?.querySelector(':scope > .bb-itachi-blackout'),header=screen?.querySelector('.summonShopHeader');
+      const blackoutOpacity=layer?Number.parseFloat(getComputedStyle(layer).opacity)||0:0,headerOpacity=header?Number.parseFloat(getComputedStyle(header).opacity)||0:0;
+      return blackoutOpacity<=.05&&!screen?.classList.contains('bb-itachi-blackout-active')&&!screen?.classList.contains('bb-itachi-blackout-exiting')&&headerOpacity>=.9;
+    },{timeout:3000});
     const restored=await page.evaluate(()=>{
       const screen=document.getElementById('summonPullScreen'),layer=screen?.querySelector(':scope > .bb-itachi-blackout'),header=screen?.querySelector('.summonShopHeader');
       return {
