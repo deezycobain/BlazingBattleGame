@@ -55,7 +55,7 @@ async function run(name,type){
       window.__bbItachiRingStartHandler=ringStartController;
       scene?.addEventListener('animationstart',event=>{
         const ring=event.target?.classList?.contains('bb-itachi-ring')?event.target:null;
-        if(!ring||!['bbOrnateRingBuild','bbOuterRingCharge','bbEnergyRingCharge'].includes(event.animationName))return;
+        if(!ring||!['bbItachiOrnateExtended','bbItachiOuterExtended','bbItachiEnergyExtended'].includes(event.animationName))return;
         const rings=[...scene.querySelectorAll('.bb-itachi-ring')];
         window.__bbItachiRingStarts.push({index:rings.indexOf(ring),at:performance.now(),name:event.animationName});
       },{signal:ringStartController.signal});
