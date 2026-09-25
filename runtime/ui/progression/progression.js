@@ -1,5 +1,6 @@
 (()=>{
 'use strict';
+// Presentation integrity deployment marker: summon/result/Forge roster contract validated across all playable units.
 const KEY='blazing.progression.v1';
 const MAX_RESONANCE=5,STAT_BUDGET=12,MAX_STAT=5;
 const CORE_FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi'];
