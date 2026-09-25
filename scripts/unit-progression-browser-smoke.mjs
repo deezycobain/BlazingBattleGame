@@ -11,18 +11,18 @@ const EXPECTED_PRESENTATION={
  'Senku':{element:'Nature',summon:'assets/characters/senku/cards/senku_card.jpeg',forge:'assets/characters/senku/art/senku_full_art.jpeg'},
  'Tyler':{element:'Earth',summon:'assets/characters/tyler/cards/current_collection_card.png',forge:'assets/characters/tyler/art/current_collection_art.png'},
  'Itachi':{element:'Fire',summon:'assets/characters/itachi/art/itachi_full_art.png',forge:'assets/characters/itachi/art/itachi_full_art.png'},
- 'Kakashi':{element:'Lightning',summon:'assets/characters/kakashi/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/kakashi/sprites/runtime/idle/frame_01.png'},
- 'Obito':{element:'Fire',summon:'assets/characters/obito/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/obito/sprites/runtime/idle/frame_01.png'},
- 'Jiraiya':{element:'Fire',summon:'assets/characters/jiraiya/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/jiraiya/sprites/runtime/idle/frame_01.png'},
- 'Sasuke':{element:'Lightning',summon:'assets/characters/sasuke/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/sasuke/sprites/runtime/idle/frame_01.png'},
- 'Pain':{element:'Dark',summon:'assets/characters/pain/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/pain/sprites/runtime/idle/frame_01.png'},
- 'Scorpion':{element:'Fire',summon:'assets/characters/scorpion/cards/legacy_of_shinobi_card.webp',forge:'assets/characters/scorpion/sprites/runtime/idle/frame_01.png'},
- 'Rock Lee':{element:'Wind',summon:'assets/characters/rock_lee/cards/legacy_of_shinobi_card.png',forge:'assets/characters/rock_lee/sprites/runtime/idle/frame_01.png'},
- 'Mashle':{element:'Earth',summon:'assets/characters/mashle/cards/legacy_of_shinobi_card.png',forge:'assets/characters/mashle/sprites/runtime/idle/frame_01.png'},
- 'Wong Fei-Hung':{element:'Wind',summon:'assets/characters/jackie_chan/cards/wong_fei_hung_refresh.png',forge:'assets/characters/jackie_chan/sprites/runtime/idle/frame_01.png'},
- 'Gabimaru':{element:'Fire',summon:'assets/characters/gabimaru/cards/legacy_of_shinobi_card.png',forge:'assets/characters/gabimaru/sprites/runtime/idle/frame_01.png'},
- 'Killua':{element:'Lightning',summon:'assets/characters/killua/cards/legacy_of_shinobi_card.png',forge:'assets/characters/killua/sprites/runtime/idle/frame_01.png'},
- 'Zabuza':{element:'Water',summon:'assets/characters/zabuza/cards/legacy_of_shinobi_card.png',forge:'assets/characters/zabuza/sprites/runtime/idle/frame_01.png'}
+ 'Kakashi':{element:'Lightning',summon:'assets/characters/kakashi/cards/legacy_summon_art.png',forge:'assets/characters/kakashi/sprites/runtime/idle/frame_01.png'},
+ 'Obito':{element:'Fire',summon:'assets/characters/obito/cards/legacy_summon_art.png',forge:'assets/characters/obito/sprites/runtime/idle/frame_01.png'},
+ 'Jiraiya':{element:'Fire',summon:'assets/characters/jiraiya/cards/legacy_summon_art.png',forge:'assets/characters/jiraiya/sprites/runtime/idle/frame_01.png'},
+ 'Sasuke':{element:'Lightning',summon:'assets/characters/sasuke/cards/legacy_summon_art.png',forge:'assets/characters/sasuke/sprites/runtime/idle/frame_01.png'},
+ 'Pain':{element:'Dark',summon:'assets/characters/pain/cards/legacy_summon_art.png',forge:'assets/characters/pain/sprites/runtime/idle/frame_01.png'},
+ 'Scorpion':{element:'Fire',summon:'assets/characters/scorpion/cards/legacy_summon_art.png',forge:'assets/characters/scorpion/sprites/runtime/idle/frame_01.png'},
+ 'Rock Lee':{element:'Wind',summon:'assets/characters/rock_lee/cards/legacy_summon_art.png',forge:'assets/characters/rock_lee/sprites/runtime/idle/frame_01.png'},
+ 'Mashle':{element:'Earth',summon:'assets/characters/mashle/cards/legacy_summon_art.png',forge:'assets/characters/mashle/sprites/runtime/idle/frame_01.png'},
+ 'Wong Fei-Hung':{element:'Wind',summon:'assets/characters/jackie_chan/cards/legacy_summon_art.png',forge:'assets/characters/jackie_chan/sprites/runtime/idle/frame_01.png'},
+ 'Gabimaru':{element:'Fire',summon:'assets/characters/gabimaru/cards/legacy_summon_art.png',forge:'assets/characters/gabimaru/sprites/runtime/idle/frame_01.png'},
+ 'Killua':{element:'Lightning',summon:'assets/characters/killua/cards/legacy_summon_art.png',forge:'assets/characters/killua/sprites/runtime/idle/frame_01.png'},
+ 'Zabuza':{element:'Water',summon:'assets/characters/zabuza/cards/legacy_summon_art.png',forge:'assets/characters/zabuza/sprites/runtime/idle/frame_01.png'}
 };
 
 async function waitHome(page){

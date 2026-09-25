@@ -68,9 +68,9 @@
     }
   },
   "assets": {
-    "art": "cards/legacy_of_shinobi_card.webp",
-    "card": "cards/legacy_of_shinobi_card.webp",
-    "portrait": "cards/legacy_of_shinobi_card.webp",
+    "art": "cards/legacy_summon_art.png",
+    "card": "cards/legacy_summon_art.png",
+    "portrait": "cards/legacy_summon_art.png",
     "icon": null,
     "sprites": {
       "idle": "sprites/runtime/idle/",
@@ -78,8 +78,8 @@
       "jutsu": null
     },
     "vfx": null,
-    "summon_art": "cards/legacy_of_shinobi_card.webp",
-    "team_art": "cards/legacy_of_shinobi_card.webp"
+    "summon_art": "cards/legacy_summon_art.png",
+    "team_art": "cards/legacy_summon_art.png"
   },
   "readiness": {
     "collection": true,

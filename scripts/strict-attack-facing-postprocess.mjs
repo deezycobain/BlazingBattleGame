@@ -65,5 +65,16 @@ const strict=`function bodyFacingRotation(actor,origin,basicFallbackDeg,jutsuFal
 const count=html.split(current).length-1;
 if(count!==1)throw new Error(`Strict attack facing: expected one bodyFacingRotation anchor, found ${count}`);
 html=html.replace(current,strict);
+
+const comboStart="runBasicAttack(au.name,from,basicTarget,()=>{";
+const comboStartCount=html.split(comboStart).length-1;
+if(comboStartCount!==1)throw new Error(`Strict attack facing: expected one combo Basic call, found ${comboStartCount}`);
+html=html.replace(comboStart,`window.BlazingAttackPresentation.lockFacing(S.anim,au.name,from,enemy);
+   runBasicAttack(au.name,from,basicTarget,()=>{`);
+
+const comboDone="},()=>setTimeout(runAttacker,85),effectiveAnimationKind)";
+const comboDoneCount=html.split(comboDone).length-1;
+if(comboDoneCount!==1)throw new Error(`Strict attack facing: expected one combo completion callback, found ${comboDoneCount}`);
+html=html.replace(comboDone,`},()=>{window.BlazingAttackPresentation.clearFacing(S.anim,au.name);setTimeout(runAttacker,85)},effectiveAnimationKind)`);
 await fs.writeFile(file,html);
-console.log('Strict attack facing applied globally: committed attack direction > living-enemy facing > authored fallback; allies cannot steer facing.');
+console.log('Strict attack facing applied globally: committed attack direction > living-enemy facing > authored fallback; combo attackers lock to their actual target through contact and release after the attack.');

@@ -39,7 +39,7 @@
         "sha256": "955ad8e4fd60b109f4b8655909a9045f6126f7a86c56e15c6b3411f30e60240f"
       },
       "presentation_art": {
-        "path": "assets/characters/gabimaru/cards/legacy_of_shinobi_card.png",
+        "path": "assets/characters/gabimaru/cards/legacy_summon_art.png",
         "source_size": [
           1086,
           1448
@@ -48,20 +48,13 @@
           0,
           0,
           1086,
-          1448
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1158
         ],
         "size": [
           1086,
-          1448
+          1158
         ],
-        "sha256": "955ad8e4fd60b109f4b8655909a9045f6126f7a86c56e15c6b3411f30e60240f",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "025237ebc3438c2b5363162c3267f022055c2ad868d99e4e769f1e3af14e4d94"
       },
       "idle": {
         "columns": 6,
@@ -671,7 +664,7 @@
         "sha256": "138167e5ad9578fb2e962b6fff87ad68b32bbe0d458725fc4bdb1b89839b26e4"
       },
       "presentation_art": {
-        "path": "assets/characters/jackie_chan/cards/wong_fei_hung_refresh.png",
+        "path": "assets/characters/jackie_chan/cards/legacy_summon_art.png",
         "source_size": [
           1024,
           1536
@@ -680,20 +673,13 @@
           0,
           0,
           1024,
-          1536
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1229
         ],
         "size": [
           1024,
-          1536
+          1229
         ],
-        "sha256": "138167e5ad9578fb2e962b6fff87ad68b32bbe0d458725fc4bdb1b89839b26e4",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "97b9c2448c3cfe49d12ccbfd61510faf195cda4967d20c68f2f928e4b0680938"
       },
       "idle": {
         "columns": 3,
@@ -1303,7 +1289,7 @@
         "sha256": "12b45fd4e2820ec7c659f1db085aff29507a5c68db2c328cf335803c739a9a67"
       },
       "presentation_art": {
-        "path": "assets/characters/jiraiya/cards/legacy_of_shinobi_card.webp",
+        "path": "assets/characters/jiraiya/cards/legacy_summon_art.png",
         "source_size": [
           1086,
           1448
@@ -1312,20 +1298,13 @@
           0,
           0,
           1086,
-          1448
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1158
         ],
         "size": [
           1086,
-          1448
+          1158
         ],
-        "sha256": "12b45fd4e2820ec7c659f1db085aff29507a5c68db2c328cf335803c739a9a67",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "331f525d04b9ccb424068e7e1df947fe3bc8a4358b82a36e6f5b1b88d9ec8e7e"
       },
       "idle": {
         "columns": 3,
@@ -1935,7 +1914,7 @@
         "sha256": "c6d3eba79513fd8416eff97428599bf4f89e5f55076465e8583d0b6259ededcc"
       },
       "presentation_art": {
-        "path": "assets/characters/kakashi/cards/legacy_of_shinobi_card.webp",
+        "path": "assets/characters/kakashi/cards/legacy_summon_art.png",
         "source_size": [
           1086,
           1448
@@ -1944,20 +1923,13 @@
           0,
           0,
           1086,
-          1448
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1158
         ],
         "size": [
           1086,
-          1448
+          1158
         ],
-        "sha256": "c6d3eba79513fd8416eff97428599bf4f89e5f55076465e8583d0b6259ededcc",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "d0f2954197b59f0ca15f615b00f934699473a2b5af67f187908949ee74dbcae0"
       },
       "idle": {
         "columns": 3,
@@ -2567,7 +2539,7 @@
         "sha256": "94177e7ddbf29eb72fb9dd13a891854e169c10e0288ab0518eb42a8f0bbb4782"
       },
       "presentation_art": {
-        "path": "assets/characters/killua/cards/legacy_of_shinobi_card.png",
+        "path": "assets/characters/killua/cards/legacy_summon_art.png",
         "source_size": [
           1086,
           1448
@@ -2576,20 +2548,13 @@
           0,
           0,
           1086,
-          1448
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1158
         ],
         "size": [
           1086,
-          1448
+          1158
         ],
-        "sha256": "94177e7ddbf29eb72fb9dd13a891854e169c10e0288ab0518eb42a8f0bbb4782",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "4c363f739fa1b830bf5e972546ab1bfb53d891b1a39cda4f413f46c934e34bbf"
       },
       "idle": {
         "columns": 6,
@@ -3199,7 +3164,7 @@
         "sha256": "dd82c6f99728b8ed84c041e1989110dd684eb24342f630c534a2c71a698fc890"
       },
       "presentation_art": {
-        "path": "assets/characters/mashle/cards/legacy_of_shinobi_card.png",
+        "path": "assets/characters/mashle/cards/legacy_summon_art.png",
         "source_size": [
           1055,
           1491
@@ -3208,20 +3173,13 @@
           0,
           0,
           1055,
-          1491
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1193
         ],
         "size": [
           1055,
-          1491
+          1193
         ],
-        "sha256": "dd82c6f99728b8ed84c041e1989110dd684eb24342f630c534a2c71a698fc890",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "c4bd1a80ddf1a29b974ac7a8dbb122adb175b71fb6dc11f79b9887b17cc9356b"
       },
       "idle": {
         "columns": 6,
@@ -3831,7 +3789,7 @@
         "sha256": "db847e8fb3ff37bd883154c5e343134f88d709cc074a2ac8784b4d90f51f754c"
       },
       "presentation_art": {
-        "path": "assets/characters/obito/cards/legacy_of_shinobi_card.webp",
+        "path": "assets/characters/obito/cards/legacy_summon_art.png",
         "source_size": [
           1086,
           1448
@@ -3840,20 +3798,13 @@
           0,
           0,
           1086,
-          1448
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1158
         ],
         "size": [
           1086,
-          1448
+          1158
         ],
-        "sha256": "db847e8fb3ff37bd883154c5e343134f88d709cc074a2ac8784b4d90f51f754c",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "213c2dfd0ce89d5ff411ee34c2a30aa10c1f392fe20020857322a6e6d7036be4"
       },
       "idle": {
         "columns": 3,
@@ -4463,7 +4414,7 @@
         "sha256": "6f80fe3b51d3ce52f556fa6c99f18fbd74d6705f2b9dadd1f43c4502eb771ea4"
       },
       "presentation_art": {
-        "path": "assets/characters/pain/cards/legacy_of_shinobi_card.webp",
+        "path": "assets/characters/pain/cards/legacy_summon_art.png",
         "source_size": [
           1024,
           1536
@@ -4472,20 +4423,13 @@
           0,
           0,
           1024,
-          1536
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1229
         ],
         "size": [
           1024,
-          1536
+          1229
         ],
-        "sha256": "6f80fe3b51d3ce52f556fa6c99f18fbd74d6705f2b9dadd1f43c4502eb771ea4",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "bcf7101b2f087ef1c63999104179eda2dbca26a4ba45a27f5ad1d44ea7a5e682"
       },
       "idle": {
         "columns": 3,
@@ -5095,7 +5039,7 @@
         "sha256": "c71598f3675bc18b6bfeff69e82577a80a108da9627290b9ea6dcb4ffb58267d"
       },
       "presentation_art": {
-        "path": "assets/characters/rock_lee/cards/legacy_of_shinobi_card.png",
+        "path": "assets/characters/rock_lee/cards/legacy_summon_art.png",
         "source_size": [
           1055,
           1491
@@ -5104,20 +5048,13 @@
           0,
           0,
           1055,
-          1491
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1193
         ],
         "size": [
           1055,
-          1491
+          1193
         ],
-        "sha256": "c71598f3675bc18b6bfeff69e82577a80a108da9627290b9ea6dcb4ffb58267d",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "a4180cfe8bf37b2bedb7801e9e7141b6b795bf95be8d97d145efa656904bb3e2"
       },
       "idle": {
         "columns": 6,
@@ -5727,7 +5664,7 @@
         "sha256": "917d940d4a18082f7605946611b53ee807205a492dc702ba742ea5528dbdfff7"
       },
       "presentation_art": {
-        "path": "assets/characters/sasuke/cards/legacy_of_shinobi_card.webp",
+        "path": "assets/characters/sasuke/cards/legacy_summon_art.png",
         "source_size": [
           1024,
           1536
@@ -5736,20 +5673,13 @@
           0,
           0,
           1024,
-          1536
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1229
         ],
         "size": [
           1024,
-          1536
+          1229
         ],
-        "sha256": "917d940d4a18082f7605946611b53ee807205a492dc702ba742ea5528dbdfff7",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "f82fdaef204d5829eef7ccecb159636216e99e2ff97ecb9dd2897b765e1561ef"
       },
       "idle": {
         "columns": 3,
@@ -6359,7 +6289,7 @@
         "sha256": "7e2a79d13eaa2ef6a6937f408642169214898e0613d3c3984970355158f3c61c"
       },
       "presentation_art": {
-        "path": "assets/characters/scorpion/cards/legacy_of_shinobi_card.webp",
+        "path": "assets/characters/scorpion/cards/legacy_summon_art.png",
         "source_size": [
           1024,
           1536
@@ -6368,20 +6298,13 @@
           0,
           0,
           1024,
-          1536
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1229
         ],
         "size": [
           1024,
-          1536
+          1229
         ],
-        "sha256": "7e2a79d13eaa2ef6a6937f408642169214898e0613d3c3984970355158f3c61c",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "86b17fedfb429a443f626a0429ed1afd4299e09f3bd5a6ab444349e86f7895e6"
       },
       "idle": {
         "columns": 3,
@@ -6991,7 +6914,7 @@
         "sha256": "ccb4f1ba26a6a114996c14c845f07675d01d4619b61f0db260e50c0218c60996"
       },
       "presentation_art": {
-        "path": "assets/characters/zabuza/cards/legacy_of_shinobi_card.png",
+        "path": "assets/characters/zabuza/cards/legacy_summon_art.png",
         "source_size": [
           1086,
           1448
@@ -7000,20 +6923,13 @@
           0,
           0,
           1086,
-          1448
-        ],
-        "crop_ratios": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
+          1158
         ],
         "size": [
           1086,
-          1448
+          1158
         ],
-        "sha256": "ccb4f1ba26a6a114996c14c845f07675d01d4619b61f0db260e50c0218c60996",
-        "presentation_mode": "full_card_ui_matted"
+        "sha256": "554c3343263069284c26b16842386e5cd09926621888b472bb023521565d2789"
       },
       "idle": {
         "columns": 6,

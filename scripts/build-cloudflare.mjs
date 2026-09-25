@@ -6,7 +6,7 @@ const ROOT = process.cwd();
 const OUT = path.join(ROOT, 'dist');
 
 const SKIP_TOP = new Set([
-  '.git', '.github', 'node_modules', 'dist', 'scripts', 'dev-tools', '_rollback_v0611'
+  '.git', '.github', 'node_modules', 'dist', 'scripts', 'dev-tools', '_rollback_v0611', '_not_for_runtime'
 ]);
 const SKIP_FILES = new Set([
   'wrangler.jsonc', 'package.json', 'package-lock.json', 'DEV_SENKU_CHECKPOINT.md', 'DEV_WORKFLOW.md',

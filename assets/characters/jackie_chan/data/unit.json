@@ -68,9 +68,9 @@
     }
   },
   "assets": {
-    "art": "cards/wong_fei_hung_refresh.png",
-    "card": "cards/wong_fei_hung_refresh.png",
-    "portrait": "cards/wong_fei_hung_refresh.png",
+    "art": "cards/legacy_summon_art.png",
+    "card": "cards/legacy_summon_art.png",
+    "portrait": "cards/legacy_summon_art.png",
     "icon": null,
     "sprites": {
       "idle": "sprites/runtime/idle/",
@@ -78,8 +78,8 @@
       "jutsu": null
     },
     "vfx": null,
-    "summon_art": "cards/wong_fei_hung_refresh.png",
-    "team_art": "cards/wong_fei_hung_refresh.png"
+    "summon_art": "cards/legacy_summon_art.png",
+    "team_art": "cards/legacy_summon_art.png"
   },
   "readiness": {
     "collection": true,

@@ -40,13 +40,13 @@ for(const id of ids){
  const presentation=unitAudit.presentation_art;
  const summonArt=assetPath(id,unit.assets?.summon_art);
  const teamArt=assetPath(id,unit.assets?.team_art);
- const canonicalCard=assetPath(id,unit.assets?.card);
- if(!presentation||unit.assets?.summon_art!==unit.assets?.card||unit.assets?.team_art!==unit.assets?.card)throw new Error('Legacy Shinobi validator: presentation UI must use the canonical full card '+id);
- if(!await exists(summonArt)||!await exists(teamArt)||!await exists(canonicalCard))throw new Error('Legacy Shinobi validator: canonical full presentation art missing '+id);
- if(await exists(path.join(ROOT,'assets','characters',id,'cards','legacy_summon_art.png')))throw new Error('Legacy Shinobi validator: retired cropped presentation asset survived '+id);
- const sourceW=presentation.source_size?.[0]||0,sourceH=presentation.source_size?.[1]||0;
- if(presentation.path!==canonicalCard||presentation.presentation_mode!=='full_card_ui_matted'||JSON.stringify(presentation.crop_ratios)!==JSON.stringify([0,0,1,1])||JSON.stringify(presentation.size)!==JSON.stringify([sourceW,sourceH]))throw new Error('Legacy Shinobi validator: full-card presentation contract drifted '+id);
- if(JSON.stringify(presentation.crop_box)!==JSON.stringify([0,0,sourceW,sourceH]))throw new Error('Legacy Shinobi validator: presentation art must not be cropped '+id);
+ const presentationKeys=['art','card','portrait','summon_art','team_art'];
+ if(!presentation||presentationKeys.some(key=>unit.assets?.[key]!=='cards/legacy_summon_art.png'))throw new Error('Legacy Shinobi validator: name-free presentation art mapping invalid '+id);
+ if(!await exists(summonArt)||!await exists(teamArt))throw new Error('Legacy Shinobi validator: name-free presentation art missing '+id);
+ const liveCardFiles=await fs.readdir(path.join(ROOT,'assets','characters',id,'cards'));
+ if(liveCardFiles.some(file=>/legacy_of_shinobi_card|wong_fei_hung_refresh/i.test(file)))throw new Error('Legacy Shinobi validator: named card art leaked back into live runtime folder '+id);
+ if(presentation.path!==summonArt||presentation.size?.[0]!==presentation.source_size?.[0]||presentation.size?.[1]!==Math.round((presentation.source_size?.[1]||0)*.80))throw new Error('Legacy Shinobi validator: presentation crop contract drifted '+id);
+ if(presentation.crop_box?.[0]!==0||presentation.crop_box?.[1]!==0||presentation.crop_box?.[2]!==presentation.source_size?.[0]||presentation.crop_box?.[3]!==presentation.size?.[1])throw new Error('Legacy Shinobi validator: presentation crop box invalid '+id);
 
  for(const kind of ['idle','basic_attack']){
   const source=unit.animation_standard?.source_sheets?.[kind];
@@ -103,18 +103,18 @@ for(const id of ids){
 const progression=await fs.readFile(path.join(ROOT,'runtime/ui/progression/progression.js'),'utf8');
 for(const name of names)if(!progression.includes("'"+name+"'"))throw new Error('Legacy Shinobi validator: summon pool missing '+name);
 const canonicalSummonCards={
- Kakashi:'assets/characters/kakashi/cards/legacy_of_shinobi_card.webp',
- Obito:'assets/characters/obito/cards/legacy_of_shinobi_card.webp',
- Jiraiya:'assets/characters/jiraiya/cards/legacy_of_shinobi_card.webp',
- Sasuke:'assets/characters/sasuke/cards/legacy_of_shinobi_card.webp',
- Pain:'assets/characters/pain/cards/legacy_of_shinobi_card.webp',
- Scorpion:'assets/characters/scorpion/cards/legacy_of_shinobi_card.webp',
- 'Rock Lee':'assets/characters/rock_lee/cards/legacy_of_shinobi_card.png',
- Mashle:'assets/characters/mashle/cards/legacy_of_shinobi_card.png',
- 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/wong_fei_hung_refresh.png',
- Gabimaru:'assets/characters/gabimaru/cards/legacy_of_shinobi_card.png',
- Killua:'assets/characters/killua/cards/legacy_of_shinobi_card.png',
- Zabuza:'assets/characters/zabuza/cards/legacy_of_shinobi_card.png'
+ Kakashi:'assets/characters/kakashi/cards/legacy_summon_art.png',
+ Obito:'assets/characters/obito/cards/legacy_summon_art.png',
+ Jiraiya:'assets/characters/jiraiya/cards/legacy_summon_art.png',
+ Sasuke:'assets/characters/sasuke/cards/legacy_summon_art.png',
+ Pain:'assets/characters/pain/cards/legacy_summon_art.png',
+ Scorpion:'assets/characters/scorpion/cards/legacy_summon_art.png',
+ 'Rock Lee':'assets/characters/rock_lee/cards/legacy_summon_art.png',
+ Mashle:'assets/characters/mashle/cards/legacy_summon_art.png',
+ 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/legacy_summon_art.png',
+ Gabimaru:'assets/characters/gabimaru/cards/legacy_summon_art.png',
+ Killua:'assets/characters/killua/cards/legacy_summon_art.png',
+ Zabuza:'assets/characters/zabuza/cards/legacy_summon_art.png'
 };
 for(const [name,card] of Object.entries(canonicalSummonCards)){
  if(!progression.includes("'"+name+"':'"+card+"'"))throw new Error('Legacy Shinobi validator: summon card is not canonical '+name);
@@ -142,4 +142,4 @@ for(const marker of ["unitData?.display_name==='Wong Fei-Hung'","hesitationMs=dr
  if(!combatPresentation.includes(marker))throw new Error('Legacy Shinobi validator: configured Wong Fei-Hung drunken cadence missing '+marker);
 }
 
-console.log('Legacy Shinobi PASS: 12-unit roster audited; canonical full card art is used without crop/zoom and the UI owns the visible fighter name; Wong refresh remains fixed-scale at 250ms/190ms with synchronized contact timing; runtime frames remain 512x768 bottom-center anchored.');
+console.log('Legacy Shinobi PASS: 12-unit roster audited; name-free upper-80% presentation art is enforced for summon/team UI; Wong refresh remains fixed-scale at 250ms/190ms with synchronized contact timing; runtime frames remain 512x768 bottom-center anchored.');

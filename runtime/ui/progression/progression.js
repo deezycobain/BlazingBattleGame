@@ -24,18 +24,18 @@ const CARD_ART={
  'Senku':'assets/characters/senku/cards/senku_card.jpeg',
  'Tyler':'assets/characters/tyler/cards/current_collection_card.png',
  'Itachi':'assets/characters/itachi/art/itachi_full_art.png',
- 'Kakashi':'assets/characters/kakashi/cards/legacy_of_shinobi_card.webp',
- 'Obito':'assets/characters/obito/cards/legacy_of_shinobi_card.webp',
- 'Jiraiya':'assets/characters/jiraiya/cards/legacy_of_shinobi_card.webp',
- 'Sasuke':'assets/characters/sasuke/cards/legacy_of_shinobi_card.webp',
- 'Pain':'assets/characters/pain/cards/legacy_of_shinobi_card.webp',
- 'Scorpion':'assets/characters/scorpion/cards/legacy_of_shinobi_card.webp',
- 'Rock Lee':'assets/characters/rock_lee/cards/legacy_of_shinobi_card.png',
- 'Mashle':'assets/characters/mashle/cards/legacy_of_shinobi_card.png',
- 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/wong_fei_hung_refresh.png',
- 'Gabimaru':'assets/characters/gabimaru/cards/legacy_of_shinobi_card.png',
- 'Killua':'assets/characters/killua/cards/legacy_of_shinobi_card.png',
- 'Zabuza':'assets/characters/zabuza/cards/legacy_of_shinobi_card.png'
+ 'Kakashi':'assets/characters/kakashi/cards/legacy_summon_art.png',
+ 'Obito':'assets/characters/obito/cards/legacy_summon_art.png',
+ 'Jiraiya':'assets/characters/jiraiya/cards/legacy_summon_art.png',
+ 'Sasuke':'assets/characters/sasuke/cards/legacy_summon_art.png',
+ 'Pain':'assets/characters/pain/cards/legacy_summon_art.png',
+ 'Scorpion':'assets/characters/scorpion/cards/legacy_summon_art.png',
+ 'Rock Lee':'assets/characters/rock_lee/cards/legacy_summon_art.png',
+ 'Mashle':'assets/characters/mashle/cards/legacy_summon_art.png',
+ 'Wong Fei-Hung':'assets/characters/jackie_chan/cards/legacy_summon_art.png',
+ 'Gabimaru':'assets/characters/gabimaru/cards/legacy_summon_art.png',
+ 'Killua':'assets/characters/killua/cards/legacy_summon_art.png',
+ 'Zabuza':'assets/characters/zabuza/cards/legacy_summon_art.png'
 };
 const FORGE_ART={
  'Crimson':'assets/characters/crimson/art/current_collection_art.jpg',
@@ -83,8 +83,8 @@ function summonArt(name){
 function syncPresentationState(image,legacy,kind){
  if(!image)return;
  const host=kind==='reveal'?document.getElementById('pullCardWrap'):image.closest('.pullCard');
- if(host){host.classList.toggle('bb-legacy-full-card',legacy);host.classList.toggle('bb-source-art-fallback',legacy);host.dataset.bbArtPresentation=legacy?'source-fallback':'canonical'}
- image.dataset.bbPresentation=legacy?'source-fallback':'canonical';
+ if(host){host.classList.toggle('bb-legacy-full-card',legacy);host.classList.remove('bb-source-art-fallback');host.dataset.bbArtPresentation=legacy?'clean-fill':'canonical'}
+ image.dataset.bbPresentation=legacy?'clean-fill':'canonical';
 }
 function weightedRarity(name){return name==='Tyler'?'super':'legendary'}
 function randomCore(){const name=SUMMON_FIGHTERS[Math.floor(Math.random()*SUMMON_FIGHTERS.length)];return {name,rarity:weightedRarity(name)}}
