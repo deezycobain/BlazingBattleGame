@@ -5,7 +5,8 @@
   "title": "Absolute Zero",
   "role": "playable",
   "archetype": "ranged_controller",
-  "element": "Ice",
+  "element": "Water",
+  "element_subtype": "Ice",
   "rarity": "Legendary",
   "collection": {
     "owned": true,

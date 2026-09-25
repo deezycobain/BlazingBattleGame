@@ -27,6 +27,7 @@ for(const [actionId,definition] of Object.entries(actionRegistry.actions||{})){
   if(!definition?.runtime_handler&&definition?.execution_status!=='declared_not_wired')fail(`action ${actionId} must define runtime_handler or declared_not_wired`);
 }
 
+const PLAYABLE_ELEMENTS=new Set(['Fire','Water','Nature','Earth','Lightning','Wind','Light','Dark']);
 const seen=new Set();
 const units={};
 const unitEntries={};
@@ -40,6 +41,8 @@ for(const entry of unitIndex.units||[]){
   units[entry.id]=unit;
   if(unit.id!==entry.id)fail(`unit id mismatch for ${entry.path}`);
   if(Number(unit.schema_version||0)<3)fail(`${entry.id} must use schema_version 3+`);
+  if(unit.role==='playable'&&!PLAYABLE_ELEMENTS.has(unit.element))fail(`${entry.id}.element must be one of ${[...PLAYABLE_ELEMENTS].join(', ')}; got ${String(unit.element)}`);
+  if(unit.element_subtype!=null&&typeof unit.element_subtype!=='string')fail(`${entry.id}.element_subtype must be a string when present`);
   for(const stat of ['hp','attack','defense','speed'])if(!Number.isFinite(unit.stats?.[stat]))fail(`${entry.id}.stats.${stat} must be numeric`);
   const max=unit.combat?.chakra_max,start=unit.combat?.chakra_start;
   if(!Number.isInteger(max)||max<0)fail(`${entry.id}.combat.chakra_max must be a non-negative integer`);
