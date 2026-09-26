@@ -14,14 +14,14 @@ try{
  await page.goto(BASE+'/',{waitUntil:'domcontentloaded'});
  await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
  const loading=page.locator('#bb-loading-screen');if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(()=>{});
- await page.waitForFunction(()=>typeof window.BlazingRoadRun==='object'&&typeof window.BlazingRoadCamera==='object'&&document.documentElement.dataset.bbRoadCanvasMode==='ios-static-safe',{timeout:10000});
+ await page.waitForFunction(()=>typeof window.BlazingRoadRun==='object'&&typeof window.BlazingRoadCamera==='object'&&document.documentElement.dataset.bbRoadCanvasMode==='ios-static-safe',null,{timeout:10000});
  const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error('commit mismatch');
  await page.evaluate(()=>window.BlazingRoadRun.clearRun());
  const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');if(!await panel.isVisible())await page.locator('#bbHomeApproved [data-nav="battle"]').click();
  await panel.waitFor({state:'visible',timeout:5000});await page.locator('#bbHomeApproved [data-mode="road"]').click();
- await page.waitForFunction(()=>{try{const s=globalThis.eval('S');return document.getElementById('battleScreen')?.classList.contains('active')&&s?.bbRunMode==='road'&&s?.bbRoadStage===1}catch{return false}},{timeout:15000});
- await page.waitForFunction(()=>window.BlazingRoadCamera?.snapshot?.()?.mode==='intro',{timeout:6000});
- await page.waitForFunction(()=>window.BlazingRoadCamera?.snapshot?.()?.mode==='combat'&&!window.BlazingRoadCamera?.isCombatLocked?.(),{timeout:12000});
+ await page.waitForFunction(()=>{try{const s=globalThis.eval('S');return document.getElementById('battleScreen')?.classList.contains('active')&&s?.bbRunMode==='road'&&s?.bbRoadStage===1}catch{return false}},null,{timeout:15000});
+ await page.waitForFunction(()=>window.BlazingRoadCamera?.snapshot?.()?.mode==='intro',null,{timeout:6000});
+ await page.waitForFunction(()=>window.BlazingRoadCamera?.snapshot?.()?.mode==='combat'&&!window.BlazingRoadCamera?.isCombatLocked?.(),null,{timeout:12000});
  await page.waitForTimeout(650);
  const state=await page.evaluate(()=>{
   const snap=window.BlazingRoadCamera.snapshot(),canvas=document.getElementById('game'),overlay=document.getElementById('bbRoadFightIntro'),style=canvas?getComputedStyle(canvas):null,rect=canvas?.getBoundingClientRect(),overlayStyle=overlay?getComputedStyle(overlay):null;
@@ -39,7 +39,7 @@ try{
  if(state.canvas.display==='none'||state.canvas.visibility==='hidden'||Number(state.canvas.opacity)<.9||state.canvas.width<250||state.canvas.height<250)throw new Error('Road canvas is not visible after countdown: '+JSON.stringify(state));
  if(!/none|^1(?:\.0+)?$/i.test(state.canvas.scale)||state.canvas.transform!=='none')throw new Error('iOS Road canvas compositor scaling survived safety mode: '+JSON.stringify(state));
  if(state.road?.stage!==1||!state.road.map||state.road.pairs<1||state.road.enemies<1)throw new Error('Road content missing after countdown: '+JSON.stringify(state));
- if(!state.pixels.error&&state.pixels.sampled&& (state.pixels.lit<4||state.pixels.unique<3))throw new Error('Road backing canvas appears effectively black/blank: '+JSON.stringify(state));
+ if(!state.pixels.error&&state.pixels.sampled&&(state.pixels.lit<4||state.pixels.unique<3))throw new Error('Road backing canvas appears effectively black/blank: '+JSON.stringify(state));
  if(errors.length)throw new Error('pageerror: '+errors.join(' | '));
  console.log('Road mobile visibility PASS (webkit/iPhone): countdown clears, battle canvas remains visible, iOS compositor zoom is bypassed, and Stage 1 map/units remain live.');
  await context.close();
