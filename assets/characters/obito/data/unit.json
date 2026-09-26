@@ -44,17 +44,18 @@
   "abilities": {
     "basic": {
       "id": "basic_attack",
-      "name": "Basic Attack",
+      "name": "Great Fireball Jutsu",
       "damage_multiplier": 1,
       "chakra_gain": 1,
-      "delivery": "melee",
+      "delivery": "short_range_cast",
       "target_mode": "single",
       "single_target_selector": "nearest_in_shape",
       "presentation": {
-        "runtime_driver": "animateLunge",
+        "runtime_driver": "animateObitoFireball",
         "animation_kind": "basic_attack",
         "melee_animation_kind": "basic_attack",
-        "range_visual_scale": 1
+        "range_visual_scale": 1,
+        "projectile_element": "Fire"
       }
     },
     "jutsu": {
@@ -89,7 +90,7 @@
     "basic_attack": true,
     "jutsu": false,
     "recoil": false,
-    "notes": "Legacy of the Shinobi audited sprite pass. Six-frame idle/basic sheets are content-isolated and normalized to a shared bottom-center runtime canvas; dedicated VFX and jutsu remain deferred.",
+    "notes": "Legacy of the Shinobi audited sprite pass. Six-frame idle/basic sheets are content-isolated and normalized to a shared bottom-center runtime canvas; Obito now uses his authored body frames with a dedicated Great Fireball Basic presentation. Dedicated jutsu remains deferred.",
     "animation_map": true,
     "run": true
   },
