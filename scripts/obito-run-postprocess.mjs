@@ -92,8 +92,10 @@ if(freezeAt<0)fail('Obito fireball animation anchor missing');
 if(!html.includes('function animateObitoFireball('))html=html.slice(0,freezeAt)+obitoFireballRuntime+html.slice(freezeAt);
 
 // Procedural fire rendering avoids reusing the green/electric Legacy effect. It uses a hot
-// yellow-white core, orange/red flame shell, ember wake, and a short impact bloom.
-const vfxAnchor="}else if(f.kind==='lebeeStarProjectile'){window.BlazingVfxRenderer.drawLebeeStarProjectile(ctx,f,LEBEE_STAR_PROJECTILE);}";
+// yellow-white core, orange/red flame shell, ember wake, and a short impact bloom. Itachi's
+// postprocess runs first, so insert immediately before the surviving Lebee branch instead of
+// replacing the original pre-Itachi branch text.
+const lebeeVfxMarker="}else if(f.kind==='lebeeStarProjectile')";
 const obitoFireVfx=String.raw`}else if(f.kind==='obitoFireball'){
       const age=performance.now()-f.start,flight=Math.max(1,f.flightDuration||560),impact=Math.max(1,f.impactHold||300);
       const travelT=clamp(age/flight,0,1),impactT=clamp((age-flight)/impact,0,1),ease=1-Math.pow(1-travelT,2.35);
@@ -117,9 +119,12 @@ const obitoFireVfx=String.raw`}else if(f.kind==='obitoFireball'){
        for(let i=0;i<7;i++){const a=(Math.PI*2*i/7)+.35,toss=18+34*t;ctx.fillStyle='rgba(255,132,20,'+(fade*.75)+')';ctx.beginPath();ctx.arc(Math.cos(a)*toss,Math.sin(a)*toss*.62,2.5*(1-t*.55),0,Math.PI*2);ctx.fill()}
        ctx.restore();
       }
-     }else if(f.kind==='lebeeStarProjectile'){window.BlazingVfxRenderer.drawLebeeStarProjectile(ctx,f,LEBEE_STAR_PROJECTILE);}`;
-if(html.includes(vfxAnchor)&&!html.includes("f.kind==='obitoFireball'"))html=html.replace(vfxAnchor,obitoFireVfx);
-else if(!html.includes("f.kind==='obitoFireball'"))fail('Obito fireball renderer anchor missing');
+     `;
+if(!html.includes("f.kind==='obitoFireball'")){
+ const lebeeVfxAt=html.indexOf(lebeeVfxMarker);
+ if(lebeeVfxAt<0)fail('Obito fireball renderer insertion marker missing');
+ html=html.slice(0,lebeeVfxAt)+obitoFireVfx+html.slice(lebeeVfxAt);
+}
 
 // Route Obito through the dedicated cast after Itachi's custom basic and before Senku's
 // specialized bomb/melee branch. This avoids the generic Legacy melee controller entirely.
