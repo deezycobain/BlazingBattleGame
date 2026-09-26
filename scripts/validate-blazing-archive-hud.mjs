@@ -10,7 +10,7 @@ for(const asset of ['hp-gauge-fill.png','chakra-active.png','chakra-empty.png','
   if(!await exists(`assets/ui/battle/blazing-archive/${asset}`))fail(`missing imported source asset ${asset}`);
 }
 const renderer=await read('runtime/rendering/blazing-archive-hud.js');
-for(const marker of ['BlazingArchiveBattleHud','drawUnitResources','drawEnemyHealth','hp-gauge-fill.png','chakra-active.png']){
+for(const marker of ['BlazingArchiveBattleHud','drawUnitResources','drawEnemyHealth','drawStatusMarkers','statusEffects','status-medallion.png','hp-gauge-fill.png','chakra-active.png']){
   if(!renderer.includes(marker))fail(`runtime HUD marker missing: ${marker}`);
 }
 if(renderer.includes('/Volumes/'))fail('runtime must not reference the local archive volume');
@@ -19,6 +19,7 @@ if(!field.includes('BlazingArchiveBattleHud?.drawUnitResources'))fail('shared pl
 const shell=await read('index.html');
 if(!shell.includes('runtime/rendering/blazing-archive-hud.js'))fail('archive HUD runtime is not loaded by the game shell');
 if(!shell.includes('BlazingArchiveBattleHud?.drawEnemyHealth'))fail('enemy HP renderer is not routed through the archive skin');
+if(!shell.includes('BlazingArchiveBattleHud.drawStatusMarkers?.'))fail('enemy status renderer is not routed through the archive skin');
 const dock=await read('runtime/ui/battle/battle-dock.js');
 for(const marker of ['statusMarkup','bb-dock-statuses','statusEffects','bb-status-badge'])if(!dock.includes(marker))fail(`status-dock marker missing: ${marker}`);
 const dockCss=await read('runtime/ui/battle/battle-dock.css');

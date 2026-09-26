@@ -6,7 +6,8 @@
   const sources=Object.freeze({
     gauge:'hp-gauge-fill.png',
     chakraActive:'chakra-active.png',
-    chakraEmpty:'chakra-empty.png'
+    chakraEmpty:'chakra-empty.png',
+    status:'status-medallion.png'
   });
   const images={};
   for(const [key,file] of Object.entries(sources)){
@@ -70,5 +71,30 @@
     return true;
   }
 
-  window.BlazingArchiveBattleHud=Object.freeze({drawUnitResources,drawEnemyHealth});
+  function statusLabel(effect){
+    const labels={stun:'STUN',bind:'BIND',poison:'POISON',immobilize:'LOCK',immobilized:'LOCK',silence:'SEAL'};
+    return labels[String(effect||'').toLowerCase()]||String(effect||'STATUS').slice(0,6).toUpperCase();
+  }
+
+  // Visual-only battlefield summary. CombatRuntime remains the sole owner of
+  // creating/consuming effects; this reads the same statusEffects bag used by
+  // the dock and does not mutate it.
+  function drawStatusMarkers(ctx,{x,y,target}){
+    const bag=target?.statusEffects&&typeof target.statusEffects==='object'?target.statusEffects:{};
+    const statuses=Object.values(bag).filter(status=>Number(status?.turns)>0).slice(0,2);
+    if(!statuses.length)return false;
+    const size=15,gap=2,start=x-((size+gap)*statuses.length-gap)/2;
+    ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+    statuses.forEach((status,index)=>{
+      const px=start+index*(size+gap),py=y+15,label=statusLabel(status.id),turns=Math.max(1,Math.round(Number(status.turns)||1));
+      if(ready(images.status))ctx.drawImage(images.status,px,py,size,size);
+      else{ctx.fillStyle='#8d2729';ctx.beginPath();ctx.arc(px+size/2,py+size/2,size/2,0,Math.PI*2);ctx.fill();}
+      ctx.fillStyle='#fff4c8';ctx.shadowColor='rgba(0,0,0,.95)';ctx.shadowBlur=1.8;ctx.font='700 4px system-ui';
+      ctx.fillText(label.slice(0,4),px+size/2,py+size/2-.5);
+      ctx.shadowBlur=0;ctx.fillStyle='#fff6cd';ctx.font='900 6px system-ui';ctx.fillText(String(turns),px+size-1,py+size-1);
+    });
+    ctx.restore();return true;
+  }
+
+  window.BlazingArchiveBattleHud=Object.freeze({drawUnitResources,drawEnemyHealth,drawStatusMarkers});
 })();

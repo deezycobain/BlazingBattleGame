@@ -4758,6 +4758,7 @@ function render(){
 
    if(window.BlazingArchiveBattleHud?.drawEnemyHealth){
      window.BlazingArchiveBattleHud.drawEnemyHealth(ctx,{x:pos.x,y:pos.y,hp:e.hp,maxHp:e.maxHp});
+     window.BlazingArchiveBattleHud.drawStatusMarkers?.(ctx,{x:pos.x,y:pos.y,target:e});
    }else{
      ctx.save();
      ctx.globalAlpha=S.phase==='player'?.92:1;
