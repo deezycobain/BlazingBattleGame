@@ -43,7 +43,7 @@ jobs:
           node - <<'NODE'
           const fs=require('fs');
           const s=fs.readFileSync('dist/index.html','utf8');
-          for(const needle of ['function animateLunge','function unitAttackFrames','attackPose','function drawUnit','function renderUnit']){
+          for(const needle of ['function animateLunge','function unitAttackFrames','function getRenderableSprite','spritePlacement(name,sprite,idle','attackPose','function drawUnit','function renderUnit']){
             const i=s.indexOf(needle);
             console.log('\n===== '+needle+' @ '+i+' =====');
             if(i>=0) console.log(s.slice(Math.max(0,i-1800),Math.min(s.length,i+7000)));
@@ -63,7 +63,7 @@ jobs:
         env:
           BB_SMOKE_URL: http://127.0.0.1:4173
         run: node scripts/legacy-shinobi-browser-smoke.mjs
-      - name: Audit Itachi basic frame alpha bounds
+      - name: Audit Itachi source, renderable, and placement bounds
         run: |
           node --input-type=module - <<'NODE'
           import { chromium } from 'playwright';
@@ -72,32 +72,48 @@ jobs:
             const page=await browser.newPage({viewport:{width:390,height:844}});
             await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded'});
             const report=await page.evaluate(async()=>{
-              const frames=globalThis.eval("unitAttackFrames('Itachi','basic_attack')");
-              for(let i=0;i<50;i++){
-                if(frames.length===6&&frames.every(img=>img.complete&&img.naturalWidth>0&&img.naturalHeight>0))break;
+              const attack=globalThis.eval("unitAttackFrames('Itachi','basic_attack')");
+              const idle=globalThis.eval("unitIdleFrames('Itachi')");
+              const renderableFor=img=>globalThis.eval('getRenderableSprite')(img,'Itachi');
+              const ready=img=>img&&((img.naturalWidth||img.width||0)>0)&&((img.naturalHeight||img.height||0)>0)&&('complete' in img?img.complete:true);
+              for(let i=0;i<60;i++){
+                if(attack.length===6&&attack.every(ready)&&idle.length&&idle.every(ready))break;
                 await new Promise(r=>setTimeout(r,100));
               }
-              return frames.map((img,index)=>{
-                const w=img.naturalWidth,h=img.naturalHeight,canvas=document.createElement('canvas');
-                canvas.width=w;canvas.height=h;
-                const ctx=canvas.getContext('2d',{willReadFrequently:true});
-                ctx.drawImage(img,0,0);
+              const bounds=source=>{
+                const w=source?.naturalWidth||source?.width||0,h=source?.naturalHeight||source?.height||0;
+                if(!w||!h)return {w,h,error:'zero-size'};
+                const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+                const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(source,0,0,w,h);
                 const data=ctx.getImageData(0,0,w,h).data;
                 let minX=w,minY=h,maxX=-1,maxY=-1,count=0;
                 for(let p=0;p<data.length;p+=4){
                   if(data[p+3]<=8)continue;
-                  count++;
-                  const n=p/4,x=n%w,y=Math.floor(n/w);
+                  count++;const n=p/4,x=n%w,y=Math.floor(n/w);
                   if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;
                 }
                 const empty=maxX<0;
-                return {frame:index+1,w,h,count,bbox:empty?null:{minX,minY,maxX,maxY,width:maxX-minX+1,height:maxY-minY+1},margins:empty?null:{left:minX,right:w-1-maxX,top:minY,bottom:h-1-maxY},cropRisk:!empty&&(minX<4||w-1-maxX<4||minY<4)};
+                return {w,h,count,bbox:empty?null:{minX,minY,maxX,maxY,width:maxX-minX+1,height:maxY-minY+1},margins:empty?null:{left:minX,right:w-1-maxX,top:minY,bottom:h-1-maxY},cropRisk:!empty&&(minX<4||w-1-maxX<4||minY<4)};
+              };
+              const idleBounds=idle.map(bounds);
+              const attackReport=attack.map((img,index)=>{
+                const renderable=renderableFor(img);
+                const placement=window.BlazingCombatPresentation?.spritePlacement?.('Itachi',renderable,idle,{baseHeight:100,footY:12})||null;
+                return {frame:index+1,source:bounds(img),renderable:bounds(renderable),sameObject:renderable===img,placement};
               });
+              return {idle:idleBounds,attack:attackReport};
             });
-            console.log('ITACHI_BASIC_ALPHA_BOUNDS='+JSON.stringify(report));
-            if(report.some(frame=>frame.cropRisk)){
-              console.error('Itachi authored basic frame touches a top/side canvas edge; asset-level clipping is present.');
-              process.exitCode=2;
-            }
+            console.log('ITACHI_RENDER_PATH='+JSON.stringify(report));
+            const badSource=report.attack.some(frame=>frame.source?.cropRisk);
+            const badRenderable=report.attack.some(frame=>frame.renderable?.cropRisk);
+            const heights=report.attack.map(frame=>frame.placement?.height).filter(Number.isFinite);
+            const ys=report.attack.map(frame=>frame.placement?.y).filter(Number.isFinite);
+            const heightSpread=heights.length?Math.max(...heights)-Math.min(...heights):Infinity;
+            const ySpread=ys.length?Math.max(...ys)-Math.min(...ys):Infinity;
+            console.log(`ITACHI_PLACEMENT_SPREAD height=${heightSpread.toFixed(3)} y=${ySpread.toFixed(3)}`);
+            if(badSource)console.error('Itachi authored basic source touches an edge: asset-level clipping.');
+            if(!badSource&&badRenderable)console.error('Itachi source is safe but getRenderableSprite output touches an edge: preprocessing crop.');
+            if(!badSource&&!badRenderable&&heightSpread>3)console.error('Itachi source/renderable frames are safe but spritePlacement changes full-canvas height materially: renderer normalization is causing pose zoom.');
+            if(badSource)process.exitCode=2;
           }finally{await browser.close()}
           NODE
