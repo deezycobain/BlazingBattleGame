@@ -93,9 +93,9 @@ if(!html.includes('function animateObitoFireball('))html=html.slice(0,freezeAt)+
 
 // Procedural fire rendering avoids reusing the green/electric Legacy effect. It uses a hot
 // yellow-white core, orange/red flame shell, ember wake, and a short impact bloom. Itachi's
-// postprocess runs first, so insert immediately before the surviving Lebee branch instead of
-// replacing the original pre-Itachi branch text.
-const lebeeVfxMarker="}else if(f.kind==='lebeeStarProjectile')";
+// postprocess owns this floater chain before Obito runs, so anchor to its guaranteed crow
+// branch rather than to older LeBee branch syntax that later passes may rewrite.
+const itachiVfxMarker="}else if(f.kind==='itachiCrowStrike'){";
 const obitoFireVfx=String.raw`}else if(f.kind==='obitoFireball'){
       const age=performance.now()-f.start,flight=Math.max(1,f.flightDuration||560),impact=Math.max(1,f.impactHold||300);
       const travelT=clamp(age/flight,0,1),impactT=clamp((age-flight)/impact,0,1),ease=1-Math.pow(1-travelT,2.35);
@@ -121,9 +121,9 @@ const obitoFireVfx=String.raw`}else if(f.kind==='obitoFireball'){
       }
      `;
 if(!html.includes("f.kind==='obitoFireball'")){
- const lebeeVfxAt=html.indexOf(lebeeVfxMarker);
- if(lebeeVfxAt<0)fail('Obito fireball renderer insertion marker missing');
- html=html.slice(0,lebeeVfxAt)+obitoFireVfx+html.slice(lebeeVfxAt);
+ const itachiVfxAt=html.indexOf(itachiVfxMarker);
+ if(itachiVfxAt<0)fail('Obito fireball renderer insertion marker missing');
+ html=html.slice(0,itachiVfxAt)+obitoFireVfx+html.slice(itachiVfxAt);
 }
 
 // Route Obito through the dedicated cast after Itachi's custom basic and before Senku's
