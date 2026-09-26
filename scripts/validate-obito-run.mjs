@@ -13,6 +13,7 @@ if(run.frame_ms!==100)fail(`expected 100ms run cadence, got ${run.frame_ms}`);
 if(run.loop!==true)fail('run animation must loop while the unit is held');
 if(unit?.readiness?.run!==true)fail('readiness.run must be true');
 if(unit?.assets?.sprites?.run!=='sprites/runtime/run/')fail('assets.sprites.run must point at sprites/runtime/run/');
+if(unit?.element!=='Fire')fail(`Obito canonical element must remain Fire, got ${unit?.element}`);
 
 const expected=Array.from({length:6},(_,index)=>`sprites/runtime/run/frame_${String(index+1).padStart(2,'0')}.png`);
 for(let i=0;i<expected.length;i++){
@@ -30,16 +31,22 @@ const hookPath=path.join(root,'scripts','obito-run-postprocess.mjs');
 const hook=fs.readFileSync(hookPath,'utf8');
 for(const marker of [
   "run:name=>resolve(name,'run')",
-  "name==='Obito'&&typeof S!=='undefined'&&S?.drag",
-  'S.dragFacing=',
-  'S.dragGrabOffset=null;S.dragFacing=null;'
+  "S?.drag&&S?.dragUnitName===name",
+  'S.dragUnitName=p.name||null;',
+  'S.dragUnitRef=p;',
+  'S.dragGhost={name:p.name||null,x:p.x,y:p.y};',
+  'const held=S.dragUnitRef||p;',
+  '// OBITO PICKUP ORIGIN GHOST',
+  'const returnRadius=28;',
+  "S.log='Movement cancelled'",
+  'S.dragGhost=null;S.dragUnitName=null;S.dragUnitRef=null;'
 ])if(!hook.includes(marker))fail(`movement hook marker missing: ${marker}`);
 
 const facingPath=path.join(root,'scripts','strict-attack-facing-postprocess.mjs');
 const facing=fs.readFileSync(facingPath,'utf8');
 for(const marker of [
-  "actor.name==='Obito'&&S.drag&&S.ready?.ref?.name===actor.name&&Number.isFinite(S.dragFacing)",
+  "actor.name==='Obito'&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)",
   'return S.dragFacing<0?Math.PI:0;'
 ])if(!facing.includes(marker))fail(`drag-facing marker missing: ${marker}`);
 
-console.log('Obito run validation PASS: six 512x768 frames, 100ms looping metadata, drag-state switch, direction mirroring, and idle release contract are present.');
+console.log('Obito run validation PASS: six 512x768 frames, Fire affinity, persistent held-unit run state, direction mirroring, planted origin ghost, and return-to-origin no-turn cancel are enforced.');
