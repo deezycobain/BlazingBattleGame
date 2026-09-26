@@ -15,6 +15,16 @@ if(unit?.readiness?.run!==true)fail('readiness.run must be true');
 if(unit?.assets?.sprites?.run!=='sprites/runtime/run/')fail('assets.sprites.run must point at sprites/runtime/run/');
 if(unit?.element!=='Fire')fail(`Obito canonical element must remain Fire, got ${unit?.element}`);
 
+const basic=unit?.abilities?.basic||{};
+if(basic.name!=='Great Fireball Jutsu')fail(`expected Great Fireball Jutsu basic name, got ${basic.name||'missing'}`);
+if(basic.damage_multiplier!==1)fail(`Great Fireball damage multiplier changed: ${basic.damage_multiplier}`);
+if(basic.chakra_gain!==1)fail(`Great Fireball chakra gain changed: ${basic.chakra_gain}`);
+if(basic.delivery!=='short_range_cast')fail(`Great Fireball must use short_range_cast presentation delivery, got ${basic.delivery}`);
+if(basic.target_mode!=='single'||basic.single_target_selector!=='nearest_in_shape')fail('Great Fireball targeting contract changed');
+if(basic?.presentation?.runtime_driver!=='animateObitoFireball')fail(`Great Fireball runtime driver mismatch: ${basic?.presentation?.runtime_driver}`);
+if(basic?.presentation?.projectile_element!=='Fire')fail('Great Fireball projectile element must be Fire');
+if(unit?.combat?.basic_shape?.type!=='circle'||unit?.combat?.basic_shape?.r!==96)fail('Great Fireball must preserve the existing 96-radius Basic range');
+
 const expected=Array.from({length:6},(_,index)=>`sprites/runtime/run/frame_${String(index+1).padStart(2,'0')}.png`);
 for(let i=0;i<expected.length;i++){
   if(run.frames[i]!==expected[i])fail(`run frame ${i+1} path mismatch: ${run.frames[i]}`);
@@ -39,8 +49,13 @@ for(const marker of [
   '// OBITO PICKUP ORIGIN GHOST',
   'const returnRadius=28;',
   "S.log='Movement cancelled'",
-  'S.dragGhost=null;S.dragUnitName=null;S.dragUnitRef=null;'
-])if(!hook.includes(marker))fail(`movement hook marker missing: ${marker}`);
+  'S.dragGhost=null;S.dragUnitName=null;S.dragUnitRef=null;',
+  'function animateObitoFireball(',
+  "f.kind==='obitoFireball'",
+  "au.name==='Obito'",
+  "rgba(255,91,8,.94)",
+  "rgba(184,18,0,.72)"
+])if(!hook.includes(marker))fail(`movement/fireball hook marker missing: ${marker}`);
 
 const facingPath=path.join(root,'scripts','strict-attack-facing-postprocess.mjs');
 const facing=fs.readFileSync(facingPath,'utf8');
@@ -49,4 +64,4 @@ for(const marker of [
   'return S.dragFacing<0?Math.PI:0;'
 ])if(!facing.includes(marker))fail(`drag-facing marker missing: ${marker}`);
 
-console.log('Obito run validation PASS: six 512x768 frames, Fire affinity, persistent held-unit run state, direction mirroring, planted origin ghost, and return-to-origin no-turn cancel are enforced.');
+console.log('Obito validation PASS: six 512x768 run frames, Fire affinity, persistent held-unit run/ghost/cancel, and dedicated Great Fireball presentation are enforced without changing Basic combat values.');
