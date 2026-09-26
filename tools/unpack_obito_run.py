@@ -78,7 +78,9 @@ def normalize_frame(rgba: Image.Image, filename: str):
         raise SystemExit(f"{filename}: normalized bounds would clip: source={bbox}, shifted={shifted}")
 
     canvas = Image.new("RGBA", CANVAS, (0, 0, 0, 0))
-    canvas.paste(rgba, (dx, dy), rgba)
+    # Copy RGBA pixels directly. Passing the frame alpha as an extra mask would apply
+    # alpha twice and erase very faint edge pixels used to detect the feet baseline.
+    canvas.paste(rgba, (dx, dy))
     normalized_bbox = canvas.getchannel("A").getbbox()
     if not normalized_bbox or normalized_bbox[3] != GROUND_Y:
         raise SystemExit(f"{filename}: baseline normalization failed: {normalized_bbox}")
