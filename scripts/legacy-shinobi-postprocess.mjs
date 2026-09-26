@@ -33,7 +33,7 @@ html=html.replace(activeRx,"const ACTIVE_PLAYABLE_UNITS=Object.freeze(["+activeN
 
 const runtime=String.raw`
 const LEGACY_SHINOBI_BODY_RUNTIME=(()=>{
- const names=new Set(${JSON.stringify(NAMES)}),attackScales=Object.freeze({"Kakashi":1.025,"Obito":1.107,"Jiraiya":1.128,"Sasuke":1,"Pain":1.001,"Scorpion":1.148,"Rock Lee":1.021,"Mashle":1.04,"Wong Fei-Hung":1.09,"Gabimaru":1.144,"Killua":1,"Zabuza":1.18}),cache=new Map();
+ const names=new Set(${JSON.stringify(NAMES)}),attackScales=Object.freeze({"Kakashi":1.025,"Obito":1.107,"Jiraiya":1,"Sasuke":1,"Pain":1.001,"Scorpion":1.148,"Rock Lee":1.021,"Mashle":1.04,"Wong Fei-Hung":1.09,"Gabimaru":1.144,"Killua":1,"Zabuza":1.18}),cache=new Map();
  const resolve=(name,kind)=>{
   if(!names.has(name))return null;
   let unit=null;try{unit=canonicalUnit(name)}catch(_){return null}
@@ -78,7 +78,6 @@ if(!html.includes(attackAnchor))fail('unitAttackFrames anchor missing');
 if(!html.includes("function unitAttackFrames(name,kind){const legacyShinobiBasic=LEGACY_SHINOBI_BODY_RUNTIME.basic(name);"))
  html=html.replace(attackAnchor,"function unitAttackFrames(name,kind){const legacyShinobiBasic=LEGACY_SHINOBI_BODY_RUNTIME.basic(name);if(legacyShinobiBasic?.length)return LEGACY_SHINOBI_BODY_RUNTIME.sequence(name,'basic_attack',legacyShinobiBasic);");
 
-
 /* Legacy attack renderer visual-state bridge.
    The battle renderer passes a non-null visual transform while animateLunge is moving
    the fighter. The legacy attack-frame branch was gated by !visual, so the six loaded
@@ -99,5 +98,5 @@ else if(!html.includes(lungeTimingTarget))fail('Legacy animateLunge timing ancho
 for(const id of IDS)if(!html.includes('"'+id+'":'))fail('final shell missing canonical unit data '+id);
 for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME','LEGACY OF THE SHINOBI',...IDS,...NAMES])if(!html.includes(marker))fail('final shell missing '+marker);
 await fs.writeFile(file,html);
-console.log('Legacy Shinobi integration PASS: 12 playable roster entries use prebuilt six-frame idle/basic runtime assets.');
+console.log('Legacy Shinobi integration PASS: 12 playable roster entries use prebuilt six-frame idle/basic runtime assets; Jiraiya attack body scale stays normalized to idle size.');
 await import('./combat-stabilization-postprocess.mjs');
