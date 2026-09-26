@@ -19,6 +19,13 @@ OUTPUT.mkdir(parents=True, exist_ok=True)
 # dynamic HP amount and therefore never bakes a full-health value into the UI.
 with Image.open(SOURCE / 'BattleAtlas.png').convert('RGBA') as atlas:
     atlas.crop((5, 29, 510, 65)).save(OUTPUT / 'hp-gauge-fill.png', optimize=True)
+    # The lower-right ornamental ring is an isolated portrait/action frame.
+    # Its transparent centre lets the live unit portrait and chakra meter stay
+    # interactive beneath it.
+    atlas.crop((808, 257, 1019, 464)).save(OUTPUT / 'portrait-frame.png', optimize=True)
+    # A source medallion used as the shared visual carrier for status counters.
+    # The text/turn count remains HTML so effects are never baked into an image.
+    atlas.crop((636, 183, 704, 254)).save(OUTPUT / 'status-medallion.png', optimize=True)
 
 for source_name, output_name in [
     ('06_chakra.png', 'chakra-active.png'),
@@ -27,4 +34,4 @@ for source_name, output_name in [
     with Image.open(SOURCE / source_name).convert('RGBA') as image:
         image.save(OUTPUT / output_name, optimize=True)
 
-print('Blazing battle HUD import complete: gauge fill and standalone chakra pips.')
+print('Blazing battle HUD import complete: gauge fill, portrait/status frames, and standalone chakra pips.')

@@ -58,6 +58,16 @@
         "resource_id": "shared.ui.blazing_archive.chakra_empty",
         "path": "assets/ui/battle/blazing-archive/chakra-empty.png",
         "usage": "Official standalone empty chakra pip used by the shared canvas battle HUD."
+      },
+      "blazing_archive_portrait_frame": {
+        "resource_id": "shared.ui.blazing_archive.portrait_frame",
+        "path": "assets/ui/battle/blazing-archive/portrait-frame.png",
+        "usage": "Isolated official ornate battle portrait frame used by the interactive action dock."
+      },
+      "blazing_archive_status_medallion": {
+        "resource_id": "shared.ui.blazing_archive.status_medallion",
+        "path": "assets/ui/battle/blazing-archive/status-medallion.png",
+        "usage": "Isolated official battle medallion used behind live status effect labels and remaining-turn counters."
       }
     }
   },
