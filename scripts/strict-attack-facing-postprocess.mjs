@@ -36,6 +36,12 @@ const strict=`function bodyFacingRotation(actor,origin,basicFallbackDeg,jutsuFal
     const authored=authoredAttackRotation(actor,basicFallbackDeg,jutsuFallbackDeg);
     try{
       if(actor?.name){
+        // Drag movement is a presentation state, not an attack lock. Obito's pilot run
+        // sequence is authored facing right, so while held he follows the live drag side.
+        if(actor.name==='Obito'&&S.drag&&S.ready?.ref?.name===actor.name&&Number.isFinite(S.dragFacing)){
+          return S.dragFacing<0?Math.PI:0;
+        }
+
         // Global priority rule: once an attack has committed a direction, that lock is
         // authoritative until the attack runtime clears it. Never let proximity steering
         // or a different enemy flip the visible attacker during the animation.
@@ -77,4 +83,4 @@ const comboDoneCount=html.split(comboDone).length-1;
 if(comboDoneCount!==1)throw new Error(`Strict attack facing: expected one combo completion callback, found ${comboDoneCount}`);
 html=html.replace(comboDone,`},()=>{window.BlazingAttackPresentation.clearFacing(S.anim,au.name);setTimeout(runAttacker,85)},effectiveAnimationKind)`);
 await fs.writeFile(file,html);
-console.log('Strict attack facing applied globally: committed attack direction > living-enemy facing > authored fallback; combo attackers lock to their actual target through contact and release after the attack.');
+console.log('Strict attack facing applied globally: dragged Obito follows movement direction; committed attacks then override with target-facing through contact.');
