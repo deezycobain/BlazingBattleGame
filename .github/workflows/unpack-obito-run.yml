@@ -1,0 +1,49 @@
+name: Unpack Obito Run
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - ".github/workflows/unpack-obito-run.yml"
+      - "tools/unpack_obito_run.py"
+      - "Blazing_Battle_Obito_Run_6Frame.zip"
+      - "assets/characters/obito/source/Blazing_Battle_Obito_Run_6Frame.zip"
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out dev
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Install asset-prep dependency
+        run: python3 -m pip install --disable-pip-version-check pillow
+
+      - name: Extract and validate Obito run frames
+        run: python3 tools/unpack_obito_run.py
+
+      - name: Commit canonical Obito run assets
+        run: |
+          PATHS=(
+            Blazing_Battle_Obito_Run_6Frame.zip
+            assets/characters/obito/source/Blazing_Battle_Obito_Run_6Frame.zip
+            assets/characters/obito/sprites/runtime/run
+            assets/characters/obito/data/unit.json
+          )
+          if git diff --quiet -- "${PATHS[@]}" && [ -z "$(git status --porcelain -- "${PATHS[@]}")" ]; then
+            echo "No Obito run asset changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- "${PATHS[@]}"
+          git commit -m "Prepare Obito run runtime assets"
+          git pull --rebase origin dev
+          git push origin HEAD:dev
