@@ -218,6 +218,9 @@
 
   function drawPlayerResources(ctx,{x,y,hp,maxHp,chakra,maxChakra,linked=false,linkStrength=0,spriteTop=null,now=performance.now(),showHealth=true}){
     if(linked&&Number.isFinite(spriteTop))drawOverheadLinkIcon(ctx,{x,y:spriteTop-10,strength:linkStrength,now});
+    if(showHealth&&window.BlazingArchiveBattleHud?.drawUnitResources){
+      return window.BlazingArchiveBattleHud.drawUnitResources(ctx,{x,y,hp,maxHp,chakra,maxChakra});
+    }
     const hpY=y+19,hpW=52,hpH=4;
     const hpRatio=clamp(hp/maxHp,0,1);
     ctx.save();

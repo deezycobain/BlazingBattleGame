@@ -42,6 +42,23 @@
         "renderer": "setMeteorFullscreenFlash",
         "usage": "Full-screen flash transition used by Lebee Meteor Jutsu"
       }
+    },
+    "ui": {
+      "blazing_archive_hp_gauge": {
+        "resource_id": "shared.ui.blazing_archive.hp_gauge",
+        "path": "assets/ui/battle/blazing-archive/hp-gauge-fill.png",
+        "usage": "Isolated official gold-trimmed battle-gauge fill, dynamically clipped by the shared canvas HP renderer."
+      },
+      "blazing_archive_chakra_active": {
+        "resource_id": "shared.ui.blazing_archive.chakra_active",
+        "path": "assets/ui/battle/blazing-archive/chakra-active.png",
+        "usage": "Official standalone active chakra pip used by the shared canvas battle HUD."
+      },
+      "blazing_archive_chakra_empty": {
+        "resource_id": "shared.ui.blazing_archive.chakra_empty",
+        "path": "assets/ui/battle/blazing-archive/chakra-empty.png",
+        "usage": "Official standalone empty chakra pip used by the shared canvas battle HUD."
+      }
     }
   },
   "units": {

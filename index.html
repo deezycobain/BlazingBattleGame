@@ -3259,6 +3259,7 @@ button{
 <script src="runtime/animation/attack-presentation.js"></script>
 <script src="runtime/movement/retreat-runtime.js"></script>
 <script src="runtime/rendering/vfx-renderer.js"></script>
+<script src="runtime/rendering/blazing-archive-hud.js"></script>
 <script src="runtime/rendering/battlefield-renderer.js"></script>
 <script src="runtime/rendering/battle-ui-renderer.js"></script>
 </head>
@@ -4755,13 +4756,17 @@ function render(){
    if(renderWhileKO(e.name))return;
    const pos=(S.anim&&S.anim.positions&&S.anim.positions[e.name])||e;
 
-   ctx.save();
-   ctx.globalAlpha=S.phase==='player'?.92:1;
-   ctx.fillStyle='#222';
-   ctx.fillRect(pos.x-27,pos.y+29,54,6);
-   ctx.fillStyle='#ffbd4a';
-   ctx.fillRect(pos.x-27,pos.y+29,54*(e.hp/e.maxHp),6);
-   ctx.restore();
+   if(window.BlazingArchiveBattleHud?.drawEnemyHealth){
+     window.BlazingArchiveBattleHud.drawEnemyHealth(ctx,{x:pos.x,y:pos.y,hp:e.hp,maxHp:e.maxHp});
+   }else{
+     ctx.save();
+     ctx.globalAlpha=S.phase==='player'?.92:1;
+     ctx.fillStyle='#222';
+     ctx.fillRect(pos.x-27,pos.y+29,54,6);
+     ctx.fillStyle='#ffbd4a';
+     ctx.fillRect(pos.x-27,pos.y+29,54*(e.hp/e.maxHp),6);
+     ctx.restore();
+   }
  });
 
  S.floaters.forEach(f=>{
