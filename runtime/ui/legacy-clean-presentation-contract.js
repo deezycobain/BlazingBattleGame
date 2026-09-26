@@ -39,7 +39,9 @@ function repairTeamArt(){
   const id=legacyIdFromImage(img);if(!id)continue;
   const unit=data[id],asset=cleanAsset(unit);if(!unit||!asset)continue;
   const src=assetPath(unit,asset);if(src&&img.getAttribute('src')!==src)img.setAttribute('src',src);
-  img.dataset.bbTeamUnit=id;img.dataset.bbTeamLegacy='true';img.dataset.bbTeamArt='full';
+  if(img.dataset.bbTeamUnit!==id)img.dataset.bbTeamUnit=id;
+  if(img.dataset.bbTeamLegacy!=='true')img.dataset.bbTeamLegacy='true';
+  if(img.dataset.bbTeamArt!=='full')img.dataset.bbTeamArt='full';
  }
 }
 function repairForgeArt(){
@@ -47,13 +49,21 @@ function repairForgeArt(){
  const name=(document.getElementById('forgeName')?.textContent||forge.querySelector('.forgeRoster .active,.forgeRoster [aria-selected="true"]')?.textContent||'').trim();
  const unit=unitForName(name),asset=cleanAsset(unit);if(!unit||!asset)return;
  const src=assetPath(unit,asset);if(src&&portrait.getAttribute('src')!==src)portrait.setAttribute('src',src);
- portrait.dataset.bbLegacyClean='true';portrait.dataset.bbPresentation='clean-fill';
+ if(portrait.dataset.bbLegacyClean!=='true')portrait.dataset.bbLegacyClean='true';
+ if(portrait.dataset.bbPresentation!=='clean-fill')portrait.dataset.bbPresentation='clean-fill';
 }
-let applying=false;
-function apply(){if(applying)return false;applying=true;try{installStyle();const complete=syncUnitContracts();repairProgressionApi();repairTeamArt();repairForgeArt();return complete}finally{applying=false}}
-let tries=0;const boot=()=>{tries++;const done=apply();if((done&&window.BlazingProgression)||tries>=240)return;setTimeout(boot,25)};boot();
-const observer=new MutationObserver(()=>{if(!applying)queueMicrotask(apply)});
-const startObserver=()=>{if(document.body)observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['src','class','data-bb-team-art','data-bb-team-unit']});apply()};
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startObserver,{once:true});else startObserver();
-window.addEventListener('pageshow',apply,{passive:true});
+let applying=false,queued=false,teamObserver=null,forgeObserver=null;
+function apply(){if(applying)return false;applying=true;try{installStyle();const complete=syncUnitContracts();repairProgressionApi();repairTeamArt();repairForgeArt();bindObservers();return complete}finally{applying=false}}
+function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;apply()})}
+function bindObservers(){
+ const team=document.getElementById('teamScreen');
+ if(team&&!teamObserver){teamObserver=new MutationObserver(schedule);teamObserver.observe(team,{subtree:true,childList:true,attributes:true,attributeFilter:['src','data-bb-team-unit']});}
+ const forge=document.getElementById('forgeScreen');
+ if(forge&&!forgeObserver){forgeObserver=new MutationObserver(schedule);forgeObserver.observe(forge,{subtree:true,childList:true});}
+}
+let tries=0;const boot=()=>{tries++;const done=apply();if((done&&window.BlazingProgression&&teamObserver)||tries>=240)return;setTimeout(boot,25)};boot();
+const start=()=>{apply();bindObservers()};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+document.addEventListener('click',event=>{const text=String(event.target?.closest?.('button,[role="button"]')?.textContent||'');if(/EDIT TEAM|FORGE|AWAKEN/i.test(text))setTimeout(schedule,0)},true);
+window.addEventListener('pageshow',schedule,{passive:true});
 })();
