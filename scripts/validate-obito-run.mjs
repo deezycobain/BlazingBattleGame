@@ -32,8 +32,14 @@ for(const marker of [
   "run:name=>resolve(name,'run')",
   "name==='Obito'&&typeof S!=='undefined'&&S?.drag",
   'S.dragFacing=',
-  'const draggedObitoFacing=',
   'S.dragGrabOffset=null;S.dragFacing=null;'
 ])if(!hook.includes(marker))fail(`movement hook marker missing: ${marker}`);
+
+const facingPath=path.join(root,'scripts','strict-attack-facing-postprocess.mjs');
+const facing=fs.readFileSync(facingPath,'utf8');
+for(const marker of [
+  "actor.name==='Obito'&&S.drag&&S.ready?.ref?.name===actor.name&&Number.isFinite(S.dragFacing)",
+  'return S.dragFacing<0?Math.PI:0;'
+])if(!facing.includes(marker))fail(`drag-facing marker missing: ${marker}`);
 
 console.log('Obito run validation PASS: six 512x768 frames, 100ms looping metadata, drag-state switch, direction mirroring, and idle release contract are present.');
