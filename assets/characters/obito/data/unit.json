@@ -75,7 +75,8 @@
     "sprites": {
       "idle": "sprites/runtime/idle/",
       "attack_basic": "sprites/runtime/attack/basic/",
-      "jutsu": null
+      "jutsu": null,
+      "run": "sprites/runtime/run/"
     },
     "vfx": null,
     "summon_art": "cards/legacy_summon_art.png",
@@ -89,7 +90,8 @@
     "jutsu": false,
     "recoil": false,
     "notes": "Legacy of the Shinobi audited sprite pass. Six-frame idle/basic sheets are content-isolated and normalized to a shared bottom-center runtime canvas; dedicated VFX and jutsu remain deferred.",
-    "animation_map": true
+    "animation_map": true,
+    "run": true
   },
   "balance": {
     "status": "provisional",
@@ -129,6 +131,19 @@
             "event": "apply_melee"
           }
         ]
+      },
+      "run": {
+        "frames": [
+          "sprites/runtime/run/frame_01.png",
+          "sprites/runtime/run/frame_02.png",
+          "sprites/runtime/run/frame_03.png",
+          "sprites/runtime/run/frame_04.png",
+          "sprites/runtime/run/frame_05.png",
+          "sprites/runtime/run/frame_06.png"
+        ],
+        "frame_ms": 100,
+        "loop": true,
+        "events": []
       }
     },
     "vfx": {},
