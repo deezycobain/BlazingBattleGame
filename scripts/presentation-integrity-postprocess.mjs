@@ -29,6 +29,14 @@ const crowFallbackTarget='ctx.save();ctx.translate(x,y);ctx.scale(dir*.54,.54);'
 if(html.includes(crowFallbackSource))html=html.replace(crowFallbackSource,crowFallbackTarget);
 else if(!html.includes(crowFallbackTarget))throw new Error('Presentation integrity: Itachi crow fallback-scale anchor missing');
 
+// Keep Itachi's approved idle/Jutsu presence, but shrink only the basic-attack body while the
+// six authored lunge frames are active. This adds side breathing room for mirrored/right-facing
+// frames without changing his normal battlefield scale or the crow effect itself.
+const itachiBodyScaleSource="name==='Itachi'?1.28:1";
+const itachiBodyScaleTarget="name==='Itachi'?(ensureAnimState()?.attackPose?.[name]?.kind==='basic_attack'?1.12:1.28):1";
+if(html.includes(itachiBodyScaleSource))html=html.split(itachiBodyScaleSource).join(itachiBodyScaleTarget);
+else if(!html.includes(itachiBodyScaleTarget))throw new Error('Presentation integrity: Itachi body-scale anchor missing');
+
 const specs=[
  ['bb-legacy-clean-presentation-contract','runtime/ui/legacy-clean-presentation-contract.js'],
  ['bb-road-ios-canvas-safety','runtime/modes/blazing-road-ios-canvas-safety.js'],
@@ -43,6 +51,6 @@ if(at<0)throw new Error('Presentation integrity: closing body missing');
 const tags=specs.map(([id,src])=>`<script id="${id}" src="${src}"></script>`).join('');
 html=html.slice(0,at)+tags+html.slice(at);
 for(const [id] of specs)if((html.match(new RegExp(`id=["']${id}["']`,'g'))||[]).length!==1)throw new Error(`Presentation integrity: ${id} injection not unique`);
-for(const marker of [crowTravelTarget,crowImpactTarget,crowFallbackTarget])if(!html.includes(marker))throw new Error(`Presentation integrity: missing ${marker}`);
+for(const marker of [crowTravelTarget,crowImpactTarget,crowFallbackTarget,itachiBodyScaleTarget])if(!html.includes(marker))throw new Error(`Presentation integrity: missing ${marker}`);
 await fs.writeFile(file,html);
-console.log('Presentation integrity PASS: Team/Forge clean art, compact Itachi crow VFX, iOS Road safety, and Blazing-style summon polish injected.');
+console.log('Presentation integrity PASS: Team/Forge clean art, compact Itachi crow VFX, basic-body clipping guard, iOS Road safety, and Blazing-style summon polish injected.');
