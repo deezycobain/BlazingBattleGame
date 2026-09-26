@@ -68,6 +68,16 @@
         "resource_id": "shared.ui.blazing_archive.status_medallion",
         "path": "assets/ui/battle/blazing-archive/status-medallion.png",
         "usage": "Isolated official battle medallion used behind live status effect labels and remaining-turn counters."
+      },
+      "blazing_archive_matisse_font": {
+        "resource_id": "shared.ui.blazing_archive.font.matisse",
+        "path": "assets/ui/fonts/blazing-archive/matisse-pro-n-eb-en.otf",
+        "usage": "Original English Matisse font, externally loaded and scoped to battle HUD labels."
+      },
+      "blazing_archive_reggae_font": {
+        "resource_id": "shared.ui.blazing_archive.font.reggae",
+        "path": "assets/ui/fonts/blazing-archive/reggae-std-b-en.otf",
+        "usage": "Original English Reggae font, externally loaded and scoped to battle turn labels."
       }
     }
   },
