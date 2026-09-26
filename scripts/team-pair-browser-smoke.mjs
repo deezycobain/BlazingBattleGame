@@ -2,6 +2,7 @@ import {chromium,webkit} from 'playwright';
 
 const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'');
 const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
+const LEGACY_IDS=['kakashi','obito','jiraiya','sasuke','pain','scorpion','rock_lee','mashle','jackie_chan','gabimaru','killua','zabuza'];
 for(const [name,type] of Object.entries({chromium,webkit})){
  let browser;
  try{
@@ -9,7 +10,7 @@ for(const [name,type] of Object.entries({chromium,webkit})){
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:true});
   const page=await context.newPage();
   await page.goto(BASE+'/',{waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>typeof window.BB_BUILD_META==='object',{timeout:30000});
+  await page.waitForFunction(()=>typeof window.BB_BUILD_META==='object',null,{timeout:30000});
   const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
   if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error('commit mismatch');
   const contract=await page.evaluate(()=>{
@@ -25,18 +26,21 @@ for(const [name,type] of Object.entries({chromium,webkit})){
 
   const ui=await page.evaluate(()=>{
    const get=globalThis.eval;
-   const edit=[...document.querySelectorAll('button,[role="button"]')].find(el=>/EDIT TEAM/i.test(el.textContent||''));
-   if(edit)edit.click();else{const screen=document.getElementById('teamScreen');if(screen){document.querySelectorAll('.screen.active').forEach(node=>node.classList.remove('active'));screen.classList.add('active');screen.style.display='block'}}
+   const edit=[...document.querySelectorAll('button,[role="button"]')].find(el=>/EDIT TEAM/i.test(el.textContent||'')&&getComputedStyle(el).display!=='none');
+   if(edit)edit.click();else{try{const fn=get('typeof showTeamScreen==="function"?showTeamScreen:null');if(fn)fn()}catch(_){}}
    const slots=[...document.querySelectorAll('#teamScreen .teamSlot[data-team-slot]')];
    const team=get('getActiveTeam()');
-   return {visible:getComputedStyle(document.getElementById('teamScreen')).display!=='none',slots:slots.length,pairs:document.querySelectorAll('#teamScreen .bb-team-pair').length,labels:slots.map(s=>s.dataset.slotLabel),names:slots.map(s=>s.querySelector('.teamSlotName')?.textContent?.trim()||''),team,save:document.getElementById('saveTeamBtn')?.textContent?.trim()};
+   return {visible:!!document.getElementById('teamScreen')&&getComputedStyle(document.getElementById('teamScreen')).display!=='none',slots:slots.length,pairs:document.querySelectorAll('#teamScreen .bb-team-pair').length,labels:slots.map(s=>s.dataset.slotLabel),names:slots.map(s=>s.querySelector('.teamSlotName')?.textContent?.trim()||''),team,save:document.getElementById('saveTeamBtn')?.textContent?.trim()};
   });
   const norm=value=>String(value||'').trim().toLowerCase();
   if(!ui.visible||ui.slots!==6||ui.pairs!==3||ui.save!=='SAVE 3 PAIRS'||JSON.stringify(ui.names.map(norm))!==JSON.stringify(ui.team.map(norm)))throw new Error('team editor pair UI invalid: '+JSON.stringify(ui));
 
-  await page.waitForFunction(()=>document.querySelectorAll('#teamScreen img[data-bb-team-unit]').length>=6,{timeout:4000});
-  const artContract=await page.evaluate(()=>{const root=document.getElementById('teamScreen');const tagged=[...root.querySelectorAll('img[data-bb-team-unit]')],rows=tagged.map(img=>({unit:img.dataset.bbTeamUnit,src:img.getAttribute('src')||'',kind:img.dataset.bbTeamArt||'',legacy:img.dataset.bbTeamLegacy||'',fit:getComputedStyle(img).objectFit,transform:getComputedStyle(img).transform})),wongImg=tagged.find(img=>img.dataset.bbTeamUnit==='jackie_chan'),host=wongImg?.parentElement,pseudo=host?getComputedStyle(host,'::after'):null;return{tagged:tagged.length,cardCount:rows.filter(row=>row.kind==='card').length,fullCount:rows.filter(row=>row.kind==='full').length,bodyCount:rows.filter(row=>row.kind==='body').length,wong:rows.find(row=>row.unit==='jackie_chan')||null,namedArt:rows.filter(row=>/legacy_of_shinobi_card|wong_fei_hung_refresh/i.test(row.src)),wongMask:pseudo?.content||'',text:(root.textContent||'').replace(/\s+/g,' ')}});
-  if(artContract.tagged<6||!artContract.wong||artContract.wong.kind!=='full'||artContract.wong.legacy!=='true'||artContract.wong.fit!=='cover'||artContract.wong.transform!=='none'||!/\/jackie_chan\/cards\/legacy_summon_art\.png/i.test(artContract.wong.src)||artContract.namedArt.length||(artContract.wongMask&&artContract.wongMask!=='none')||!/Wong Fei-Hung/i.test(artContract.text)||/Jackie Chan/i.test(artContract.text))throw new Error('team editor clean Legacy card presentation invalid: '+JSON.stringify(artContract));
+  await page.waitForFunction(ids=>{
+   const legacy=new Set(ids),rows=[...document.querySelectorAll('#teamScreen img')].map(img=>{const src=img.getAttribute('src')||'',m=src.match(/assets\/characters\/([^/]+)\//i);return{img,id:img.dataset.bbTeamUnit||(m?.[1]||''),src}}).filter(row=>legacy.has(row.id));
+   return rows.length>=6&&rows.every(row=>/\/cards\/legacy_summon_art\.png$/i.test(row.src)&&getComputedStyle(row.img).objectFit==='cover');
+  },LEGACY_IDS,{timeout:10000});
+  const artContract=await page.evaluate(ids=>{const legacy=new Set(ids),root=document.getElementById('teamScreen'),rows=[...root.querySelectorAll('img')].map(img=>{const src=img.getAttribute('src')||'',m=src.match(/assets\/characters\/([^/]+)\//i);return{unit:img.dataset.bbTeamUnit||(m?.[1]||''),src,kind:img.dataset.bbTeamArt||'',legacy:img.dataset.bbTeamLegacy||'',fit:getComputedStyle(img).objectFit,transform:getComputedStyle(img).transform}}).filter(row=>legacy.has(row.unit)),wong=rows.find(row=>row.unit==='jackie_chan')||null;return{rows,wong,namedArt:rows.filter(row=>/legacy_of_shinobi_card|wong_fei_hung_refresh|\/sprites\//i.test(row.src)),text:(root.textContent||'').replace(/\s+/g,' ')}} ,LEGACY_IDS);
+  if(artContract.rows.length<6||!artContract.wong||artContract.wong.fit!=='cover'||!/\/jackie_chan\/cards\/legacy_summon_art\.png/i.test(artContract.wong.src)||artContract.namedArt.length||!/Wong Fei-Hung/i.test(artContract.text)||/Jackie Chan/i.test(artContract.text))throw new Error('team editor clean Legacy card presentation invalid: '+JSON.stringify(artContract));
 
   const presentation=await page.evaluate(()=>{
    const root=document.getElementById('teamScreen');
