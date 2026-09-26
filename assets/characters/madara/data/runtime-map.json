@@ -1,0 +1,47 @@
+{
+  "schema_version": 3,
+  "unit_id": "madara",
+  "source_unit_data": "assets/characters/madara/data/unit.json",
+  "abilities": {
+    "truth_seeking_staff": {
+      "slot": "basic",
+      "animation_id": "madara.animation.basic_attack",
+      "runtime_handler": "animateLunge",
+      "gameplay_actions": [
+        {
+          "event": "on_impact",
+          "action_id": "damage_target",
+          "parameters": {
+            "multiplier_source": "abilities.basic.damage_multiplier"
+          }
+        }
+      ],
+      "vfx": {
+        "impact": "shared.vfx.impact.default"
+      }
+    },
+    "truth_seeking_orb": {
+      "slot": "jutsu",
+      "animation_id": "madara.animation.basic_attack",
+      "runtime_handler": "animateMadaraTruthSeekingOrb",
+      "cost_source": "abilities.jutsu.cost",
+      "gameplay_actions": [
+        {
+          "event": "on_impact",
+          "action_id": "damage_target",
+          "parameters": {
+            "multiplier_source": "abilities.jutsu.damage_multiplier"
+          },
+          "target_selector": "primary_target"
+        }
+      ],
+      "vfx": {
+        "projectile": "madara.vfx.jutsu.truth_seeking_orb"
+      }
+    }
+  },
+  "states": {
+    "idle": "madara.animation.idle",
+    "run": "madara.animation.run"
+  }
+}

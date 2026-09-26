@@ -526,6 +526,40 @@
         }
       },
       "vfx": {}
+    },
+    "madara": {
+      "animations": {
+        "idle": {
+          "resource_id": "madara.animation.idle",
+          "path": "assets/characters/madara/sprites/runtime/idle/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six Paths Madara archival-pose idle loop, normalized to the shared feet-anchored canvas."
+        },
+        "run": {
+          "resource_id": "madara.animation.run",
+          "path": "assets/characters/madara/sprites/runtime/run/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six Paths Madara archival-pose movement loop for the pilot integration."
+        },
+        "basic_attack": {
+          "resource_id": "madara.animation.basic_attack",
+          "path": "assets/characters/madara/sprites/runtime/attack/basic/",
+          "required_runtime_frames": 6,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Six Paths Madara staff-cast body sequence; replace with a dedicated attack sheet after the pilot review."
+        }
+      },
+      "vfx": {
+        "truth_seeking_orb": {
+          "resource_id": "madara.vfx.jutsu.truth_seeking_orb",
+          "path": "assets/characters/madara/vfx/jutsu/truth_seeking_orb/",
+          "required_runtime_frames": 1,
+          "renderer": "animateMadaraTruthSeekingOrb",
+          "usage": "Cropped source orb from the supplied Uchiha effect sheet; projectile motion and impact are runtime-driven."
+        }
+      }
     }
   }
 }

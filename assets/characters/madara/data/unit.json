@@ -1,0 +1,173 @@
+{
+  "schema_version": 3,
+  "id": "madara",
+  "display_name": "Madara",
+  "title": "Six Paths Ascendant",
+  "role": "playable",
+  "archetype": "orb_controller",
+  "element": "Dark",
+  "rarity": "Legendary",
+  "collection": {
+    "owned": true,
+    "inventory_visible": true,
+    "battle_ready": true
+  },
+  "stats": {
+    "level": 1,
+    "hp": 98,
+    "attack": 84,
+    "defense": 82,
+    "speed": 70
+  },
+  "combat": {
+    "mark": "M",
+    "movement_range": 90,
+    "basic_shape": {
+      "type": "circle",
+      "r": 98
+    },
+    "jutsu_shape": {
+      "type": "circle",
+      "r": 150
+    },
+    "chakra_max": 8,
+    "chakra_start": 2
+  },
+  "render": {
+    "scale": 1,
+    "sprite_anchor": "bottom_center",
+    "sprite_canvas": {
+      "width": 512,
+      "height": 768
+    }
+  },
+  "abilities": {
+    "basic": {
+      "id": "truth_seeking_staff",
+      "name": "Truth-Seeking Staff",
+      "damage_multiplier": 1,
+      "chakra_gain": 1,
+      "delivery": "melee",
+      "target_mode": "single",
+      "single_target_selector": "nearest_in_shape",
+      "presentation": {
+        "runtime_driver": "animateLunge",
+        "animation_kind": "basic_attack",
+        "melee_animation_kind": "basic_attack",
+        "range_visual_scale": 1
+      }
+    },
+    "jutsu": {
+      "id": "truth_seeking_orb",
+      "name": "Truth-Seeking Orb",
+      "cost": 4,
+      "damage_multiplier": 1.65,
+      "delivery": "projectile",
+      "category": "jutsu",
+      "ultimate": false,
+      "target_mode": "single",
+      "presentation": {
+        "runtime_driver": "animateMadaraTruthSeekingOrb",
+        "cast_duration_ms": 420,
+        "flight_duration_ms": 520,
+        "impact_duration_ms": 360,
+        "projectile_origin_mode": "forward_facing",
+        "body_facing_mode": "target_locked"
+      }
+    }
+  },
+  "assets": {
+    "art": "art/madara_six_paths_source.png",
+    "card": "art/madara_six_paths_source.png",
+    "portrait": "art/madara_six_paths_source.png",
+    "icon": null,
+    "sprites": {
+      "idle": "sprites/runtime/idle/",
+      "run": "sprites/runtime/run/",
+      "attack_basic": "sprites/runtime/attack/basic/",
+      "jutsu": "sprites/runtime/attack/basic/"
+    },
+    "vfx": "vfx/jutsu/truth_seeking_orb/"
+  },
+  "readiness": {
+    "collection": true,
+    "battle": true,
+    "idle": true,
+    "run": true,
+    "basic_attack": true,
+    "jutsu": true,
+    "recoil": false,
+    "notes": "Archive-import pilot. Six Paths body poses are normalized from supplied Blazing PNGs; the archive did not include a native six-frame run or attack sheet, so this first pass reuses adjacent archival poses. Replace with reconstructed/authored motion after visual review.",
+    "animation_map": true
+  },
+  "balance": {
+    "status": "provisional",
+    "pass": "blazing-archive-madara-pilot-v1",
+    "notes": "Pilot balance values are deliberately conservative. Tune after the animation and Jutsu presentation are accepted."
+  },
+  "animation_standard": {
+    "version": "blazing-archive-pilot-v1",
+    "animations": {
+      "idle": {
+        "frames": [
+          "sprites/runtime/idle/frame_01.png",
+          "sprites/runtime/idle/frame_02.png",
+          "sprites/runtime/idle/frame_03.png",
+          "sprites/runtime/idle/frame_04.png",
+          "sprites/runtime/idle/frame_05.png",
+          "sprites/runtime/idle/frame_06.png"
+        ],
+        "frame_ms": 145,
+        "loop": true,
+        "events": []
+      },
+      "run": {
+        "frames": [
+          "sprites/runtime/run/frame_01.png",
+          "sprites/runtime/run/frame_02.png",
+          "sprites/runtime/run/frame_03.png",
+          "sprites/runtime/run/frame_04.png",
+          "sprites/runtime/run/frame_05.png",
+          "sprites/runtime/run/frame_06.png"
+        ],
+        "frame_ms": 100,
+        "loop": true,
+        "events": []
+      },
+      "basic_attack": {
+        "frames": [
+          "sprites/runtime/attack/basic/frame_01.png",
+          "sprites/runtime/attack/basic/frame_02.png",
+          "sprites/runtime/attack/basic/frame_03.png",
+          "sprites/runtime/attack/basic/frame_04.png",
+          "sprites/runtime/attack/basic/frame_05.png",
+          "sprites/runtime/attack/basic/frame_06.png"
+        ],
+        "frame_ms": 130,
+        "loop": false,
+        "events": [
+          {
+            "frame": 4,
+            "event": "apply_melee"
+          }
+        ]
+      }
+    },
+    "vfx": {
+      "jutsu/truth_seeking_orb": {
+        "frames": [
+          "vfx/jutsu/truth_seeking_orb/orb.png"
+        ],
+        "frame_ms": 520,
+        "loop": false,
+        "body_asset": false
+      }
+    },
+    "source_assets": {
+      "body_pose_folder": "Naruto Blazing Assets/Complete Sprites",
+      "body_pose_names": ["Madara.png", "Madara3.png", "Madara4.png", "Madara5.png", "Madara7.png"],
+      "vfx_sheet": "Naruto Blazing Assets/Spritesheets/spl_21434_uchihano_presentjustu.png",
+      "source_form": "Six Paths Madara"
+    }
+  }
+}
