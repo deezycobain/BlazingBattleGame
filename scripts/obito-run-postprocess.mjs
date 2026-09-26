@@ -58,6 +58,82 @@ html=html.replaceAll('S.dragVisual=null;S.dragOrigin=null;','S.dragVisual=null;S
 html=html.replaceAll('S.dragGrabOffset=null;S.dragFacing=null;','S.dragGrabOffset=null;S.dragFacing=null;S.dragGhost=null;S.dragUnitName=null;S.dragUnitRef=null;');
 if(!html.includes('S.dragGhost=null;S.dragUnitName=null;S.dragUnitRef=null;'))fail('drag release cleanup anchor missing');
 
+// Obito's basic is a compact Uchiha fireball cast. Mechanics remain owned by the normal
+// Basic callback; this driver changes only body timing, projectile travel, and impact VFX.
+const obitoFireballRuntime=String.raw`
+function animateObitoFireball(unitName,from,enemy,onImpact,onDone,attackKind='basic_attack'){
+ const token=ACTIVE_ACTION_TOKEN;
+ const state=ensureAnimState();if(!state.attackPose)state.attackPose={};
+ const releaseDelay=360,flightDuration=560,impactHold=300,totalDuration=releaseDelay+flightDuration+impactHold;
+ state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:720};
+ window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);
+ setTimeout(()=>{
+  if(!actionTokenAlive(token))return;
+  const dir=enemy.x>=from.x?1:-1;
+  const fx={kind:'obitoFireball',from:{x:from.x+dir*18,y:from.y-27},to:{x:enemy.x,y:enemy.y-18},start:performance.now(),duration:flightDuration+impactHold,flightDuration,impactHold,life:1};
+  S.floaters.push(fx);
+  const castState=ensureAnimState();if(castState.attackPose)delete castState.attackPose[unitName];
+  setTimeout(()=>{
+   if(!actionTokenAlive(token))return;
+   try{onImpact&&onImpact()}catch(err){console.error('Obito Great Fireball impact failed:',err);return recoverAction('Obito basic impact')}
+   setTimeout(()=>{
+    S.floaters=S.floaters.filter(x=>x!==fx);
+    const st=ensureAnimState();if(st.attackPose)delete st.attackPose[unitName];
+    window.BlazingAttackPresentation.clearFacing(st,unitName);
+    if(actionTokenAlive(token)){try{onDone&&onDone()}catch(err){recoverAction('Obito basic completion')}}
+   },impactHold);
+  },flightDuration);
+ },releaseDelay);
+}
+`;
+const freezeAnchor='function animateFreezeBlast(unitName,from,enemy,onImpact,onDone){';
+const freezeAt=html.indexOf(freezeAnchor);
+if(freezeAt<0)fail('Obito fireball animation anchor missing');
+if(!html.includes('function animateObitoFireball('))html=html.slice(0,freezeAt)+obitoFireballRuntime+html.slice(freezeAt);
+
+// Procedural fire rendering avoids reusing the green/electric Legacy effect. It uses a hot
+// yellow-white core, orange/red flame shell, ember wake, and a short impact bloom.
+const vfxAnchor="}else if(f.kind==='lebeeStarProjectile'){window.BlazingVfxRenderer.drawLebeeStarProjectile(ctx,f,LEBEE_STAR_PROJECTILE);}";
+const obitoFireVfx=String.raw`}else if(f.kind==='obitoFireball'){
+      const age=performance.now()-f.start,flight=Math.max(1,f.flightDuration||560),impact=Math.max(1,f.impactHold||300);
+      const travelT=clamp(age/flight,0,1),impactT=clamp((age-flight)/impact,0,1),ease=1-Math.pow(1-travelT,2.35);
+      const x=f.from.x+(f.to.x-f.from.x)*ease,y=f.from.y+(f.to.y-f.from.y)*ease-7*Math.sin(Math.PI*travelT);
+      const angle=Math.atan2(f.to.y-f.from.y,f.to.x-f.from.x),dir=f.to.x>=f.from.x?1:-1;
+      if(age<=flight){
+       ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.globalCompositeOperation='screen';
+       const tail=24+8*Math.sin(age/55),tailGrad=ctx.createLinearGradient(-dir*tail,0,dir*10,0);
+       tailGrad.addColorStop(0,'rgba(180,24,0,0)');tailGrad.addColorStop(.42,'rgba(255,54,0,.38)');tailGrad.addColorStop(1,'rgba(255,206,52,.72)');
+       ctx.fillStyle=tailGrad;ctx.beginPath();ctx.moveTo(-dir*tail,-7);ctx.quadraticCurveTo(-dir*8,-14,dir*8,0);ctx.quadraticCurveTo(-dir*8,14,-dir*tail,7);ctx.closePath();ctx.fill();
+       const outer=ctx.createRadialGradient(0,0,3,0,0,23);outer.addColorStop(0,'rgba(255,252,212,.98)');outer.addColorStop(.23,'rgba(255,216,78,.98)');outer.addColorStop(.58,'rgba(255,91,8,.94)');outer.addColorStop(.84,'rgba(184,18,0,.72)');outer.addColorStop(1,'rgba(88,0,0,0)');
+       ctx.fillStyle=outer;ctx.beginPath();ctx.arc(0,0,23,0,Math.PI*2);ctx.fill();
+       ctx.globalCompositeOperation='source-over';ctx.strokeStyle='rgba(255,126,20,.7)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,14+2*Math.sin(age/45),0,Math.PI*2);ctx.stroke();
+       for(let i=0;i<4;i++){const phase=age/95+i*1.7,ex=-dir*(19+i*7),ey=Math.sin(phase)*7;ctx.fillStyle='rgba(255,108,18,'+(0.55-i*.09)+')';ctx.beginPath();ctx.arc(ex,ey,2.4-i*.25,0,Math.PI*2);ctx.fill()}
+       ctx.restore();
+      }else{
+       const t=Math.min(1,impactT),fade=1-t,radius=24+42*(1-Math.pow(1-t,2));
+       ctx.save();ctx.translate(f.to.x,f.to.y);ctx.globalCompositeOperation='screen';
+       const burst=ctx.createRadialGradient(0,0,0,0,0,radius);burst.addColorStop(0,'rgba(255,255,224,'+(fade*.96)+')');burst.addColorStop(.2,'rgba(255,212,66,'+(fade*.92)+')');burst.addColorStop(.5,'rgba(255,76,4,'+(fade*.72)+')');burst.addColorStop(1,'rgba(112,0,0,0)');ctx.fillStyle=burst;ctx.beginPath();ctx.arc(0,0,radius,0,Math.PI*2);ctx.fill();
+       ctx.globalCompositeOperation='source-over';ctx.strokeStyle='rgba(255,104,12,'+(fade*.72)+')';ctx.lineWidth=Math.max(1,4*(1-t));ctx.beginPath();ctx.arc(0,0,18+32*t,0,Math.PI*2);ctx.stroke();
+       for(let i=0;i<7;i++){const a=(Math.PI*2*i/7)+.35,toss=18+34*t;ctx.fillStyle='rgba(255,132,20,'+(fade*.75)+')';ctx.beginPath();ctx.arc(Math.cos(a)*toss,Math.sin(a)*toss*.62,2.5*(1-t*.55),0,Math.PI*2);ctx.fill()}
+       ctx.restore();
+      }
+     }else if(f.kind==='lebeeStarProjectile'){window.BlazingVfxRenderer.drawLebeeStarProjectile(ctx,f,LEBEE_STAR_PROJECTILE);}`;
+if(html.includes(vfxAnchor)&&!html.includes("f.kind==='obitoFireball'"))html=html.replace(vfxAnchor,obitoFireVfx);
+else if(!html.includes("f.kind==='obitoFireball'"))fail('Obito fireball renderer anchor missing');
+
+// Route Obito through the dedicated cast after Itachi's custom basic and before Senku's
+// specialized bomb/melee branch. This avoids the generic Legacy melee controller entirely.
+const dispatchSource=`    }else if(au.name==='Itachi'){
+      runBasicAttack=animateItachiCrowStrike;basicTarget=enemy;
+    }else if(au.name==='Senku'){`;
+const dispatchTarget=`    }else if(au.name==='Itachi'){
+      runBasicAttack=animateItachiCrowStrike;basicTarget=enemy;
+    }else if(au.name==='Obito'){
+      runBasicAttack=animateObitoFireball;basicTarget=enemy;
+    }else if(au.name==='Senku'){`;
+if(html.includes(dispatchSource))html=html.replace(dispatchSource,dispatchTarget);
+else if(!html.includes("au.name==='Obito'"))fail('Obito basic dispatcher anchor missing');
+
 for(const marker of [
   "run:name=>resolve(name,'run')",
   "S?.drag&&S?.dragUnitName===name",
@@ -66,8 +142,11 @@ for(const marker of [
   'const held=S.dragUnitRef||p;',
   '// OBITO PICKUP ORIGIN GHOST',
   'const returnRadius=28;',
-  "actor.name==='Obito'&&S.drag&&S.dragUnitName===actor.name"
+  "actor.name==='Obito'&&S.drag&&S.dragUnitName===actor.name",
+  'function animateObitoFireball(',
+  "f.kind==='obitoFireball'",
+  "au.name==='Obito'"
 ])if(!html.includes(marker))fail('missing final marker '+marker);
 
 await fs.writeFile(file,html);
-console.log('Obito run integration PASS: held-unit state owns the run loop, live drag direction mirrors it, origin ghost stays planted, and return-to-origin cancels without spending the turn.');
+console.log('Obito integration PASS: held run/ghost/cancel plus dedicated red-orange Great Fireball presentation are wired without changing Basic combat values.');
