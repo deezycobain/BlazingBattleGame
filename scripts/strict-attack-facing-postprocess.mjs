@@ -36,9 +36,10 @@ const strict=`function bodyFacingRotation(actor,origin,basicFallbackDeg,jutsuFal
     const authored=authoredAttackRotation(actor,basicFallbackDeg,jutsuFallbackDeg);
     try{
       if(actor?.name){
-        // Drag movement is a presentation state, not an attack lock. Obito's pilot run
-        // sequence is authored facing right, so while held he follows the live drag side.
-        if(actor.name==='Obito'&&S.drag&&S.ready?.ref?.name===actor.name&&Number.isFinite(S.dragFacing)){
+        // Drag movement is a presentation state, not an attack lock. The held-unit identity
+        // is persistent for the entire gesture, so Obito's right-authored run loop mirrors
+        // from the live drag side without depending on the transient input-ready object.
+        if(actor.name==='Obito'&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)){
           return S.dragFacing<0?Math.PI:0;
         }
 
@@ -83,4 +84,4 @@ const comboDoneCount=html.split(comboDone).length-1;
 if(comboDoneCount!==1)throw new Error(`Strict attack facing: expected one combo completion callback, found ${comboDoneCount}`);
 html=html.replace(comboDone,`},()=>{window.BlazingAttackPresentation.clearFacing(S.anim,au.name);setTimeout(runAttacker,85)},effectiveAnimationKind)`);
 await fs.writeFile(file,html);
-console.log('Strict attack facing applied globally: dragged Obito follows movement direction; committed attacks then override with target-facing through contact.');
+console.log('Strict attack facing applied globally: held Obito follows live movement direction; committed attacks then override with target-facing through contact.');
