@@ -12,14 +12,27 @@ if(!document.getElementById(STYLE_ID)){
  document.head.appendChild(style);
 }
 document.documentElement.dataset.bbRoadCanvasMode='ios-static-safe';
+let reinforcing=false;
 function reinforce(){
- const battle=document.getElementById('battleScreen'),canvas=document.getElementById('game');
- if(!battle?.classList.contains('active')||!(canvas instanceof HTMLCanvasElement))return;
- canvas.style.removeProperty('filter');
- canvas.dataset.bbRoadCanvasSafe='true';
+ if(reinforcing)return;reinforcing=true;
+ try{
+  const battle=document.getElementById('battleScreen'),canvas=document.getElementById('game');
+  if(!battle?.classList.contains('active')||!(canvas instanceof HTMLCanvasElement))return;
+  const camera=window.BlazingRoadCamera?.snapshot?.(),roadActive=!!camera?.active;
+  if(!roadActive)return;
+  canvas.style.removeProperty('filter');
+  canvas.dataset.bbRoadCanvasSafe='true';
+  battle.style.removeProperty('filter');battle.style.removeProperty('opacity');battle.style.removeProperty('visibility');
+  if(camera?.mode==='combat'&&!window.BlazingRoadCamera?.isCombatLocked?.()){
+   const overlay=document.getElementById('bbRoadFightIntro');
+   if(overlay?.classList.contains('active'))overlay.classList.remove('active');
+   if(overlay){overlay.removeAttribute('data-word');overlay.setAttribute('aria-hidden','true')}
+   document.documentElement.dataset.bbRoadPostCountdown='visible';
+  }
+ }finally{reinforcing=false}
 }
-const observer=new MutationObserver(reinforce);
-const start=()=>{reinforce();observer.observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','style']})};
+const observer=new MutationObserver(()=>queueMicrotask(reinforce));
+const start=()=>{reinforce();observer.observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','style','data-word']});setInterval(reinforce,120)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 window.addEventListener('pageshow',reinforce,{passive:true});
 })();
