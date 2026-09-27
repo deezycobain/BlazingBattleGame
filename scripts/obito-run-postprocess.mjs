@@ -21,7 +21,7 @@ else if(!html.includes('S.dragUnitName=p.name||null;'))fail('pointerdown persist
 // While Obito is actively held, the ordinary body renderer consumes his authored run loop.
 // Everyone else keeps the existing idle path until their own movement assets are authored.
 const idleSource="function unitIdleFrames(name){const legacyShinobiIdle=LEGACY_SHINOBI_BODY_RUNTIME.idle(name);if(legacyShinobiIdle?.length)return LEGACY_SHINOBI_BODY_RUNTIME.sequence(name,'idle',legacyShinobiIdle);";
-const idleTarget="function unitIdleFrames(name){const legacyShinobiRun=(name==='Obito'&&typeof S!=='undefined'&&S?.drag&&S?.dragUnitName==='Obito')?LEGACY_SHINOBI_BODY_RUNTIME.run(name):null;if(legacyShinobiRun?.length){const paced=[0,0,1,1,2,2,3,3,4,4,3,3,2,2,1,1].map(index=>legacyShinobiRun[index]).filter(Boolean);return paced.length?paced:legacyShinobiRun;}const legacyShinobiIdle=LEGACY_SHINOBI_BODY_RUNTIME.idle(name);if(legacyShinobiIdle?.length)return LEGACY_SHINOBI_BODY_RUNTIME.sequence(name,'idle',legacyShinobiIdle);";
+const idleTarget="function unitIdleFrames(name){const legacyShinobiRun=(name==='Obito'&&typeof S!=='undefined'&&S?.drag&&S?.dragUnitName==='Obito')?LEGACY_SHINOBI_BODY_RUNTIME.run(name):null;if(legacyShinobiRun?.length)return legacyShinobiRun;const legacyShinobiIdle=LEGACY_SHINOBI_BODY_RUNTIME.idle(name);if(legacyShinobiIdle?.length)return LEGACY_SHINOBI_BODY_RUNTIME.sequence(name,'idle',legacyShinobiIdle);";
 if(html.includes(idleSource))html=html.replace(idleSource,idleTarget);
 else if(!html.includes("S?.drag&&S?.dragUnitName==='Obito'"))fail('unitIdleFrames held-run anchor missing');
 
@@ -29,12 +29,12 @@ else if(!html.includes("S?.drag&&S?.dragUnitName==='Obito'"))fail('unitIdleFrame
 // cadence and a small feet-anchored stride so the held-unit state unmistakably reads
 // as a run instead of a subtly changing idle.
 const bodyMotionSource=" let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;";
-const bodyMotionTarget=" let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;\n const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragUnitName==='Obito');\n if(obitoRunning){const stride=performance.now()/560;lift-=Math.abs(Math.sin(stride*Math.PI))*1.35;scale*=1+.006*Math.sin(stride*Math.PI*2);}";
+const bodyMotionTarget=" let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;\n const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragUnitName==='Obito');\n if(obitoRunning){const stride=performance.now()/660;lift-=Math.abs(Math.sin(stride*Math.PI))*1.1;scale*=1+.004*Math.sin(stride*Math.PI*2);}";
 if(html.includes(bodyMotionSource))html=html.replace(bodyMotionSource,bodyMotionTarget);
 else if(!html.includes("const obitoRunning=Boolean(name==='Obito'"))fail('held-run body motion anchor missing');
 
 const cadenceSource=" const idleMs=name==='Lebee'?520:(name==='Tyler'?230:185);";
-const cadenceTarget=" const idleMs=obitoRunning?72:(name==='Lebee'?520:(name==='Tyler'?230:185));";
+const cadenceTarget=" const idleMs=obitoRunning?110:(name==='Lebee'?520:(name==='Tyler'?230:185));";
 if(html.includes(cadenceSource))html=html.replace(cadenceSource,cadenceTarget);
 else if(!html.includes('const idleMs=obitoRunning?72:'))fail('held-run cadence anchor missing');
 
@@ -167,11 +167,11 @@ else if(!html.includes("au.name==='Obito'"))fail('Obito basic dispatcher anchor 
 for(const marker of [
   "run:name=>resolve(name,'run')",
   "S?.drag&&S?.dragUnitName==='Obito'",
-  'const paced=[0,0,1,1,2,2,3,3,4,4,3,3,2,2,1,1]',
+  'if(legacyShinobiRun?.length)return legacyShinobiRun;',
   "const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragUnitName==='Obito');",
-  'const stride=performance.now()/560',
+  'const stride=performance.now()/660',
   'targetScale:1.08,targetLift:6',
-  'const idleMs=obitoRunning?72:',
+  'const idleMs=obitoRunning?110:',
   'const heldUnit=front(p);',
   'S.dragUnitName=heldUnit?.name||null;',
   'S.dragGhost={name:heldUnit?.name||null,x:p.x,y:p.y};',

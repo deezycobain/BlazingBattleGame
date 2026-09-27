@@ -42,10 +42,10 @@ const hook=fs.readFileSync(hookPath,'utf8');
 for(const marker of [
   "run:name=>resolve(name,'run')",
   "S?.drag&&S?.dragUnitName==='Obito'",
-  'const paced=[0,0,1,1,2,2,3,3,4,4,3,3,2,2,1,1]',
+  'if(legacyShinobiRun?.length)return legacyShinobiRun;',
   "const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragUnitName==='Obito');",
-  'const stride=performance.now()/560',
-  'const idleMs=obitoRunning?72:',
+  'const stride=performance.now()/660',
+  'const idleMs=obitoRunning?110:',
   'targetScale:1.08,targetLift:6',
   'S.dragVisual={scale:1.08-(.08*t)+bounce',
   'const heldUnit=front(p);',
