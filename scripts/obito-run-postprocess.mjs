@@ -25,6 +25,19 @@ const idleTarget="function unitIdleFrames(name){const legacyShinobiRun=(name==='
 if(html.includes(idleSource))html=html.replace(idleSource,idleTarget);
 else if(!html.includes("S?.drag&&S?.dragUnitName===name"))fail('unitIdleFrames held-run anchor missing');
 
+// The authored running poses are deliberately close together. Give them a dedicated
+// cadence and a small feet-anchored stride so the held-unit state unmistakably reads
+// as a run instead of a subtly changing idle.
+const bodyMotionSource=" let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;";
+const bodyMotionTarget=" let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;\n const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragUnitName===name);\n if(obitoRunning){const stride=performance.now()/92;lift-=Math.abs(Math.sin(stride*Math.PI))*2.8;scale*=1+.018*Math.sin(stride*Math.PI*2);}";
+if(html.includes(bodyMotionSource))html=html.replace(bodyMotionSource,bodyMotionTarget);
+else if(!html.includes("const obitoRunning=Boolean(name==='Obito'"))fail('held-run body motion anchor missing');
+
+const cadenceSource=" const idleMs=name==='Lebee'?520:(name==='Tyler'?230:185);";
+const cadenceTarget=" const idleMs=obitoRunning?92:(name==='Lebee'?520:(name==='Tyler'?230:185));";
+if(html.includes(cadenceSource))html=html.replace(cadenceSource,cadenceTarget);
+else if(!html.includes('const idleMs=obitoRunning?92:'))fail('held-run cadence anchor missing');
+
 // Track horizontal drag direction from the real pointer stream. The run art is authored
 // facing right and the authoritative body-facing resolver mirrors it when moving left.
 const moveSource=" let p=S.ready.ref,pt=inputPoint(latest),v=S.dragVisual;";
@@ -142,6 +155,8 @@ else if(!html.includes("au.name==='Obito'"))fail('Obito basic dispatcher anchor 
 for(const marker of [
   "run:name=>resolve(name,'run')",
   "S?.drag&&S?.dragUnitName===name",
+  "const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragUnitName===name);",
+  'const idleMs=obitoRunning?92:',
   'S.dragUnitName=p.name||null;',
   'S.dragGhost={name:p.name||null,x:p.x,y:p.y};',
   'const held=S.dragUnitRef||p;',

@@ -42,6 +42,8 @@ const hook=fs.readFileSync(hookPath,'utf8');
 for(const marker of [
   "run:name=>resolve(name,'run')",
   "S?.drag&&S?.dragUnitName===name",
+  "const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragUnitName===name);",
+  'const idleMs=obitoRunning?92:',
   'S.dragUnitName=p.name||null;',
   'S.dragUnitRef=p;',
   'S.dragGhost={name:p.name||null,x:p.x,y:p.y};',
