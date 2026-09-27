@@ -19,22 +19,22 @@
       "vfx": {
         "release": "itachi.vfx.basic.crow_chakra_burst",
         "swarm": "itachi.vfx.basic.crow_swarm",
-        "flock_sheet": "itachi.vfx.basic.crow_flock_lightning_sheet"
+        "flock": "itachi.vfx.basic.crow_attack_12frame"
       },
       "projectile_presentation": {
         "trajectory": "direct",
-        "cast_duration_ms": 360,
-        "flight_duration_ms": 560,
-        "impact_duration_ms": 280,
-        "presentation_style": "authored_side_angle_crow_flock_red_smoke_lightning",
+        "cast_duration_ms": 340,
+        "flight_duration_ms": 680,
+        "impact_duration_ms": 340,
+        "presentation_style": "authored_12frame_crow_flock_red_smoke_lightning",
         "direction_safe_orientation": true,
-        "authored_sprite_sheet": true,
-        "sprite_sheet_frames": 8,
-        "sprite_sheet_layout": "4x2",
+        "authored_frame_sequence": true,
+        "sprite_sheet_frames": 12,
+        "sprite_sheet_layout": "4x3",
         "wing_flap_frames": true,
         "violent_feather_smoke_impact": true,
-        "asset_path": "assets/characters/itachi/vfx/basic/crows/crow_flock_lightning_sheet.png",
-        "metadata_path": "assets/characters/itachi/vfx/basic/crows/crow_flock_lightning_sheet.json"
+        "asset_path": "assets/characters/itachi/vfx/basic/crows/crow_attack_12frame_sheet.png",
+        "runtime_path": "assets/characters/itachi/vfx/basic/crows/runtime/"
       }
     },
     "tsukuyomi": {
@@ -94,6 +94,7 @@
     }
   },
   "states": {
-    "idle": "itachi.animation.idle"
+    "idle": "itachi.animation.idle",
+    "run": "itachi.animation.run"
   }
 }

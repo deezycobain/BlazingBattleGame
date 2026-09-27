@@ -270,16 +270,23 @@
         "idle": {
           "resource_id": "itachi.animation.idle",
           "path": "assets/characters/itachi/sprites/runtime/idle/",
-          "required_runtime_frames": 6,
+          "required_runtime_frames": 12,
           "renderer": "BlazingFrameRuntime",
-          "usage": "Six-frame authored Itachi idle with fixed 420x420 runtime anchor."
+          "usage": "Twelve-frame authored Itachi idle with fixed 420x420 runtime anchor."
+        },
+        "run": {
+          "resource_id": "itachi.animation.run",
+          "path": "assets/characters/itachi/sprites/runtime/run/",
+          "required_runtime_frames": 12,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Twelve-frame authored Itachi run, used only while Itachi is the held unit."
         },
         "basic_attack": {
           "resource_id": "itachi.animation.basic_attack",
           "path": "assets/characters/itachi/sprites/runtime/attack/basic/",
-          "required_runtime_frames": 6,
+          "required_runtime_frames": 12,
           "renderer": "BlazingFrameRuntime",
-          "usage": "Six-frame Crow Chakra Strike body animation."
+          "usage": "Twelve-frame Crow Chakra Strike body animation."
         },
         "tsukuyomi_cast": {
           "resource_id": "itachi.animation.jutsu.tsukuyomi.cast",
@@ -324,11 +331,12 @@
           "required_runtime_frames": 5,
           "renderer": "BlazingFrameRuntime"
         },
-        "crow_flock_lightning_sheet": {
-          "resource_id": "itachi.vfx.basic.crow_flock_lightning_sheet",
-          "path": "assets/characters/itachi/vfx/basic/crows/crow_flock_lightning_sheet.png",
+        "crow_attack_12frame": {
+          "resource_id": "itachi.vfx.basic.crow_attack_12frame",
+          "path": "assets/characters/itachi/vfx/basic/crows/runtime/",
+          "required_runtime_frames": 12,
           "renderer": "BlazingFrameRuntime",
-          "usage": "Eight-frame 4x2 authored side-angle crow flock with flapping wings, red smoke, red lightning, and violent feather impact."
+          "usage": "Twelve-frame authored side-angle crow flock with flapping wings, red smoke, red lightning, and target impact."
         }
       }
     },

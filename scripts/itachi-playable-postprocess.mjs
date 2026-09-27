@@ -103,7 +103,10 @@ html=html.replace(/<\/head>/i,pairStyle+'</head>');
 
 const frameRuntime=String.raw`
 const ITACHI_IDLE_FRAMES=makeImageFrames([
- 'assets/characters/itachi/sprites/runtime/idle/frame_01.png','assets/characters/itachi/sprites/runtime/idle/frame_02.png','assets/characters/itachi/sprites/runtime/idle/frame_03.png','assets/characters/itachi/sprites/runtime/idle/frame_04.png','assets/characters/itachi/sprites/runtime/idle/frame_05.png','assets/characters/itachi/sprites/runtime/idle/frame_06.png'
+ 'assets/characters/itachi/sprites/runtime/idle/frame_01.png','assets/characters/itachi/sprites/runtime/idle/frame_02.png','assets/characters/itachi/sprites/runtime/idle/frame_03.png','assets/characters/itachi/sprites/runtime/idle/frame_04.png','assets/characters/itachi/sprites/runtime/idle/frame_05.png','assets/characters/itachi/sprites/runtime/idle/frame_06.png','assets/characters/itachi/sprites/runtime/idle/frame_07.png','assets/characters/itachi/sprites/runtime/idle/frame_08.png','assets/characters/itachi/sprites/runtime/idle/frame_09.png','assets/characters/itachi/sprites/runtime/idle/frame_10.png','assets/characters/itachi/sprites/runtime/idle/frame_11.png','assets/characters/itachi/sprites/runtime/idle/frame_12.png'
+]);
+const ITACHI_RUN_FRAMES=makeImageFrames([
+ 'assets/characters/itachi/sprites/runtime/run/frame_01.png','assets/characters/itachi/sprites/runtime/run/frame_02.png','assets/characters/itachi/sprites/runtime/run/frame_03.png','assets/characters/itachi/sprites/runtime/run/frame_04.png','assets/characters/itachi/sprites/runtime/run/frame_05.png','assets/characters/itachi/sprites/runtime/run/frame_06.png','assets/characters/itachi/sprites/runtime/run/frame_07.png','assets/characters/itachi/sprites/runtime/run/frame_08.png','assets/characters/itachi/sprites/runtime/run/frame_09.png','assets/characters/itachi/sprites/runtime/run/frame_10.png','assets/characters/itachi/sprites/runtime/run/frame_11.png','assets/characters/itachi/sprites/runtime/run/frame_12.png'
 ]);
 const ITACHI_BASIC_FRAMES=makeImageFrames([
  'assets/characters/itachi/sprites/runtime/attack/basic/frame_01.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_02.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_03.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_04.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_05.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_06.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_07.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_08.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_09.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_10.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_11.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_12.png'
@@ -352,7 +355,7 @@ replaceOne(
 for(const marker of [
   "['crimson','subzero','lebee','senku','tyler','itachi','anubis']",
   "const ACTIVE_PLAYABLE_UNITS=Object.freeze(['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi']);",
-  'ITACHI_IDLE_FRAMES','ITACHI_BASIC_FRAMES','ITACHI_CROW_ATTACK_VFX_FRAMES','ITACHI_TSUKUYOMI_FRAMES','ITACHI_TSUKUYOMI_OVERLAY_FRAMES','ITACHI_TSUKUYOMI_MANDALA_FRAMES','ITACHI_TSUKUYOMI_TARGET_FRAMES',
+  'ITACHI_IDLE_FRAMES','ITACHI_RUN_FRAMES','ITACHI_BASIC_FRAMES','ITACHI_CROW_ATTACK_VFX_FRAMES','ITACHI_TSUKUYOMI_FRAMES','ITACHI_TSUKUYOMI_OVERLAY_FRAMES','ITACHI_TSUKUYOMI_MANDALA_FRAMES','ITACHI_TSUKUYOMI_TARGET_FRAMES',
   'crow_chakra_burst.png','crow_swarm.png','crow_vortex_ring.png','crow_featherstorm.png','vfx/basic/crows/runtime/frame_12.png','drawItachiCrowFrame',
   "if(name==='Itachi')return ITACHI_IDLE_FRAMES",
   "if(name==='Itachi'){if(kind==='tsukuyomi'",
