@@ -41,10 +41,11 @@ const hookPath=path.join(root,'scripts','obito-run-postprocess.mjs');
 const hook=fs.readFileSync(hookPath,'utf8');
 for(const marker of [
   "run:name=>resolve(name,'run')",
-  "S?.drag&&S?.dragOrigin",
-  "const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragOrigin);",
-  'const stride=performance.now()/145',
-  'const idleMs=obitoRunning?145:',
+  "S?.drag&&S?.dragUnitName==='Obito'",
+  'const paced=[0,0,1,1,2,2,3,3,4,4,3,3,2,2,1,1]',
+  "const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragUnitName==='Obito');",
+  'const stride=performance.now()/560',
+  'const idleMs=obitoRunning?72:',
   'targetScale:1.08,targetLift:6',
   'S.dragVisual={scale:1.08-(.08*t)+bounce',
   'const heldUnit=front(p);',
