@@ -21,15 +21,15 @@ else if(!html.includes('S.dragUnitName=p.name||null;'))fail('pointerdown persist
 // While Obito is actively held, the ordinary body renderer consumes his authored run loop.
 // Everyone else keeps the existing idle path until their own movement assets are authored.
 const idleSource="function unitIdleFrames(name){const legacyShinobiIdle=LEGACY_SHINOBI_BODY_RUNTIME.idle(name);if(legacyShinobiIdle?.length)return LEGACY_SHINOBI_BODY_RUNTIME.sequence(name,'idle',legacyShinobiIdle);";
-const idleTarget="function unitIdleFrames(name){const legacyShinobiRun=(name==='Obito'&&typeof S!=='undefined'&&S?.drag&&S?.dragUnitName===name)?LEGACY_SHINOBI_BODY_RUNTIME.run(name):null;if(legacyShinobiRun?.length)return LEGACY_SHINOBI_BODY_RUNTIME.sequence(name,'run',legacyShinobiRun);const legacyShinobiIdle=LEGACY_SHINOBI_BODY_RUNTIME.idle(name);if(legacyShinobiIdle?.length)return LEGACY_SHINOBI_BODY_RUNTIME.sequence(name,'idle',legacyShinobiIdle);";
+const idleTarget="function unitIdleFrames(name){const legacyShinobiRun=(name==='Obito'&&typeof S!=='undefined'&&S?.drag&&S?.dragOrigin)?LEGACY_SHINOBI_BODY_RUNTIME.run(name):null;if(legacyShinobiRun?.length)return LEGACY_SHINOBI_BODY_RUNTIME.sequence(name,'run',legacyShinobiRun);const legacyShinobiIdle=LEGACY_SHINOBI_BODY_RUNTIME.idle(name);if(legacyShinobiIdle?.length)return LEGACY_SHINOBI_BODY_RUNTIME.sequence(name,'idle',legacyShinobiIdle);";
 if(html.includes(idleSource))html=html.replace(idleSource,idleTarget);
-else if(!html.includes("S?.drag&&S?.dragUnitName===name"))fail('unitIdleFrames held-run anchor missing');
+else if(!html.includes('S?.drag&&S?.dragOrigin'))fail('unitIdleFrames held-run anchor missing');
 
 // The authored running poses are deliberately close together. Give them a dedicated
 // cadence and a small feet-anchored stride so the held-unit state unmistakably reads
 // as a run instead of a subtly changing idle.
 const bodyMotionSource=" let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;";
-const bodyMotionTarget=" let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;\n const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragUnitName===name);\n if(obitoRunning){const stride=performance.now()/92;lift-=Math.abs(Math.sin(stride*Math.PI))*2.8;scale*=1+.018*Math.sin(stride*Math.PI*2);}";
+const bodyMotionTarget=" let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;\n const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragOrigin);\n if(obitoRunning){const stride=performance.now()/92;lift-=Math.abs(Math.sin(stride*Math.PI))*3.6;scale*=1+.024*Math.sin(stride*Math.PI*2);}";
 if(html.includes(bodyMotionSource))html=html.replace(bodyMotionSource,bodyMotionTarget);
 else if(!html.includes("const obitoRunning=Boolean(name==='Obito'"))fail('held-run body motion anchor missing');
 
@@ -37,6 +37,18 @@ const cadenceSource=" const idleMs=name==='Lebee'?520:(name==='Tyler'?230:185);"
 const cadenceTarget=" const idleMs=obitoRunning?92:(name==='Lebee'?520:(name==='Tyler'?230:185));";
 if(html.includes(cadenceSource))html=html.replace(cadenceSource,cadenceTarget);
 else if(!html.includes('const idleMs=obitoRunning?92:'))fail('held-run cadence anchor missing');
+
+// The original shell turns every held fighter into a 134% tall hover sprite. That reads
+// as a teleport on touch screens; keep a compact, ground-attached pickup like Blazing.
+const pickupSource=" S.dragVisual={scale:1.0,rot:0,lift:0,lastX:pt.x,lastY:pt.y,targetScale:1.34,targetLift:17};";
+const pickupTarget=" S.dragVisual={scale:1.0,rot:0,lift:0,lastX:pt.x,lastY:pt.y,targetScale:1.08,targetLift:6};";
+if(html.includes(pickupSource))html=html.replace(pickupSource,pickupTarget);
+else if(!html.includes('targetScale:1.08,targetLift:6'))fail('compact pickup anchor missing');
+
+const settleSource="     S.dragVisual={scale:1.34-(.34*t)+bounce,rot:(1-t)*v.rot,lift:17*(1-t)};";
+const settleTarget="     S.dragVisual={scale:1.08-(.08*t)+bounce,rot:(1-t)*v.rot,lift:6*(1-t)};";
+if(html.includes(settleSource))html=html.replace(settleSource,settleTarget);
+else if(!html.includes('S.dragVisual={scale:1.08-(.08*t)+bounce'))fail('compact pickup settle anchor missing');
 
 // Track horizontal drag direction from the real pointer stream. The run art is authored
 // facing right and the authoritative body-facing resolver mirrors it when moving left.
@@ -48,7 +60,7 @@ else if(!html.includes('const held=S.dragUnitRef||p;'))fail('pointermove directi
 // Naruto-Blazing-style origin ghost. It is rendered in world space from the original feet
 // anchor so it remains attached to the map while the live Obito runs under the pointer.
 const shadowMarker='  // VISIBLE WORLD-SPACE CONTACT SHADOW';
-const ghostBlock=`  // OBITO PICKUP ORIGIN GHOST\n  if(!isEnemy&&name==='Obito'&&S.drag&&S.dragGhost?.name==='Obito'){\n    const ghostFrames=LEGACY_SHINOBI_BODY_RUNTIME.idle('Obito');\n    const ghostFrame=ghostFrames?.[Math.floor(performance.now()/145)%Math.max(1,ghostFrames?.length||1)];\n    if(ghostFrame?.complete&&ghostFrame.naturalWidth>0&&ghostFrame.naturalHeight>0){\n      const gx=S.dragGhost.x,gy=S.dragGhost.y;\n      const ghostDepth=(S.bbRunMode==='road'&&window.BlazingRoadContent?.visualScaleForY)\n        ? Math.max(.82,Math.min(1.08,Number(window.BlazingRoadContent.visualScaleForY(S.bbRoadContent?.map,gy))||1))\n        : 1;\n      // Match the live unit body footprint and feet anchor so this clearly marks Obito's original slot.\n      const ghostBodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*ghostDepth;\n      const ghostH=68*ghostBodyScale,ghostW=ghostH*(ghostFrame.naturalWidth/ghostFrame.naturalHeight);\n      ctx.save();\n      ctx.globalAlpha=.56;\n      ctx.filter='grayscale(.20) brightness(1.24) saturate(.72)';\n      ctx.translate(gx,gy);\n      ctx.drawImage(ghostFrame,-ghostW/2,12-ghostH,ghostW,ghostH);\n      ctx.filter='none';ctx.globalAlpha=.72;ctx.strokeStyle='rgba(126,205,235,.78)';ctx.shadowColor='rgba(63,176,232,.74)';ctx.shadowBlur=5;ctx.lineWidth=1.15;\n      ctx.beginPath();ctx.ellipse(0,12,Math.max(11,ghostW*.38),3.1,0,0,Math.PI*2);ctx.stroke();\n      ctx.restore();\n    }\n  }\n\n`;
+const ghostBlock=`  // OBITO PICKUP ORIGIN GHOST\n  if(!isEnemy&&name==='Obito'&&S.drag&&S.dragOrigin){\n    const ghostFrames=LEGACY_SHINOBI_BODY_RUNTIME.idle('Obito');\n    const ghostFrame=ghostFrames?.[Math.floor(performance.now()/145)%Math.max(1,ghostFrames?.length||1)]||SPRITES?.Obito;\n    if(ghostFrame?.complete&&ghostFrame.naturalWidth>0&&ghostFrame.naturalHeight>0){\n      const ghostOrigin=S.dragOrigin||S.dragGhost;const gx=ghostOrigin.x,gy=ghostOrigin.y;\n      const ghostDepth=(S.bbRunMode==='road'&&window.BlazingRoadContent?.visualScaleForY)\n        ? Math.max(.82,Math.min(1.08,Number(window.BlazingRoadContent.visualScaleForY(S.bbRoadContent?.map,gy))||1))\n        : 1;\n      // Match the live unit body footprint and feet anchor so this clearly marks Obito's original slot.\n      const ghostBodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*ghostDepth;\n      const ghostH=68*ghostBodyScale,ghostW=ghostH*(ghostFrame.naturalWidth/ghostFrame.naturalHeight);\n      ctx.save();\n      ctx.globalAlpha=.56;\n      ctx.filter='grayscale(.20) brightness(1.24) saturate(.72)';\n      ctx.translate(gx,gy);\n      ctx.drawImage(ghostFrame,-ghostW/2,12-ghostH,ghostW,ghostH);\n      ctx.filter='none';ctx.globalAlpha=.72;ctx.strokeStyle='rgba(126,205,235,.78)';ctx.shadowColor='rgba(63,176,232,.74)';ctx.shadowBlur=5;ctx.lineWidth=1.15;\n      ctx.beginPath();ctx.ellipse(0,12,Math.max(11,ghostW*.38),3.1,0,0,Math.PI*2);ctx.stroke();\n      ctx.restore();\n    }\n  }\n\n`;
 if(html.includes(shadowMarker)&&!html.includes('// OBITO PICKUP ORIGIN GHOST'))html=html.replace(shadowMarker,ghostBlock+shadowMarker);
 else if(!html.includes('// OBITO PICKUP ORIGIN GHOST'))fail('world-space ghost renderer anchor missing');
 
@@ -154,8 +166,9 @@ else if(!html.includes("au.name==='Obito'"))fail('Obito basic dispatcher anchor 
 
 for(const marker of [
   "run:name=>resolve(name,'run')",
-  "S?.drag&&S?.dragUnitName===name",
-  "const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragUnitName===name);",
+  'S?.drag&&S?.dragOrigin',
+  "const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragOrigin);",
+  'targetScale:1.08,targetLift:6',
   'const idleMs=obitoRunning?92:',
   'S.dragUnitName=p.name||null;',
   'S.dragGhost={name:p.name||null,x:p.x,y:p.y};',

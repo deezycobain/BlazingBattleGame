@@ -35,13 +35,19 @@ const MADARA_ARCHIVE_BODY_RUNTIME=(()=>{
   if(!cache.has(kind))cache.set(kind,makeImageFrames(rels.map(rel=>'assets/characters/'+unit.id+'/'+rel+'?madaraArchivePilot=v1')));
   return cache.get(kind);
  };
- // The archive cells are preserved as source material, but they are pose sheets rather
- // than contiguous animation strips. Holding one clean pose prevents visible frame jumps.
+ // The archive cells are pose sheets rather than a contiguous six-frame loop. Use only
+ // the two compatible guard poses, with holds at each end, so Madara breathes without
+ // returning to the chopped full-sheet cycle.
  const stable=(kind,index=0)=>{
   const frames=resolve(kind),frame=frames?.[index]||frames?.find(image=>image);
   return frame?[frame]:null;
  };
- return Object.freeze({idle:()=>stable('idle',0),run:()=>stable('idle',0),basic:()=>stable('basic_attack',3)});
+ const guardLoop=()=>{
+  const frames=resolve('idle');if(!frames?.length)return null;
+  const first=frames[3]||frames[0],second=frames[4]||first;
+  return [first,second,second,first,first].filter(Boolean);
+ };
+ return Object.freeze({idle:()=>guardLoop(),run:()=>guardLoop(),basic:()=>stable('basic_attack',3)});
 })();
 const MADARA_TRUTH_SEEKING_ORB=new Image();
 MADARA_TRUTH_SEEKING_ORB.src='assets/characters/madara/vfx/jutsu/truth_seeking_orb/orb.png';
