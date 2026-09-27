@@ -11,6 +11,9 @@ SHEET_SIZE = (1774, 887)
 GRID = (6, 2)
 CANVAS = (420, 420)
 BASELINE = 402
+# The supplied poses overlap their neighboring grid cells. A small gutter keeps
+# wide stride feet and coat edges intact before the largest body is isolated.
+CELL_GUTTER = 56
 SOURCES = {
     'idle': ROOT / 'assets/characters/itachi/sprites/source/idle_12frame_sheet.png',
     'run': ROOT / 'assets/characters/itachi/sprites/source/run_12frame_sheet.png',
@@ -71,7 +74,11 @@ def import_motion(kind):
     poses = []
     for row in range(rows):
         for column in range(columns):
-            cell = sheet.crop((xs[column], ys[row], xs[column + 1], ys[row + 1]))
+            left = max(0, xs[column] - CELL_GUTTER)
+            top = max(0, ys[row] - CELL_GUTTER)
+            right = min(sheet.width, xs[column + 1] + CELL_GUTTER)
+            bottom = min(sheet.height, ys[row + 1] + CELL_GUTTER)
+            cell = sheet.crop((left, top, right, bottom))
             cell = keep_largest_silhouette(cell)
             content = cell.getbbox()
             if not content:

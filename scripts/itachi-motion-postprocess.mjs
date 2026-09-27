@@ -50,3 +50,4 @@ for(const marker of [
 
 await fs.writeFile(file,html);
 console.log('Itachi motion integration PASS: 12-frame idle, held-only 12-frame run, idle origin ghost, and drag-facing are wired.');
+await import('./battle-presentation-consistency-postprocess.mjs');

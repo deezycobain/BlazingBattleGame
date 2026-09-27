@@ -34,7 +34,7 @@ for(const marker of ['GRID = (4, 3)','RUNTIME_SIZE = (420, 420)','keep_largest_s
 const postprocess=await read('scripts/itachi-playable-postprocess.mjs','utf8');
 for(const marker of ['ITACHI_IDLE_FRAMES','ITACHI_RUN_FRAMES','ITACHI_CROW_ATTACK_VFX_FRAMES','releaseDelay=340,bodyDuration=1020,flightDuration=680,impactHold=340','drawItachiCrowFrame','vfx/basic/crows/runtime/frame_12.png'])if(!postprocess.includes(marker))throw new Error(`Itachi crow validator: postprocess missing ${marker}`);
 const motionImporter=await read('scripts/import-itachi-idle-run-12frame.py','utf8');
-for(const marker of ['SHEET_SIZE = (1774, 887)','GRID = (6, 2)','keep_largest_silhouette','12-frame runtime sequences'])if(!motionImporter.includes(marker))throw new Error(`Itachi motion validator: importer missing ${marker}`);
+for(const marker of ['SHEET_SIZE = (1774, 887)','GRID = (6, 2)','CELL_GUTTER = 56','keep_largest_silhouette','12-frame runtime sequences'])if(!motionImporter.includes(marker))throw new Error(`Itachi motion validator: importer missing ${marker}`);
 for(const rel of ['assets/characters/itachi/sprites/source/idle_12frame_sheet.png','assets/characters/itachi/sprites/source/run_12frame_sheet.png']){
  const [width,height]=await pngSize(rel);
  if(width!==1774||height!==887)throw new Error(`Itachi motion validator: source sheet ${rel} is not the canonical 1774x887 6x2 layout`);
