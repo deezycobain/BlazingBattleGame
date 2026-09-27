@@ -99,8 +99,8 @@ const attackTarget="function unitAttackFrames(name,kind){const madaraArchiveBasi
 if(html.includes(attackSource))html=html.replace(attackSource,attackTarget);
 else if(!html.includes("const madaraArchiveBasic=name==='Madara'"))fail('basic-frame resolver anchor missing');
 
-const dragFacingSource="if(held?.name==='Obito'&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
-const dragFacingTarget="if((held?.name==='Obito'||held?.name==='Madara')&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
+const dragFacingSource="if(heldName==='Obito'&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
+const dragFacingTarget="if((heldName==='Obito'||heldName==='Madara')&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
 if(html.includes(dragFacingSource))html=html.replace(dragFacingSource,dragFacingTarget);
 else if(!html.includes("held?.name==='Madara'"))fail('drag-facing update anchor missing');
 

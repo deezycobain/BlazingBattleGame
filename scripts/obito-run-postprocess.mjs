@@ -14,7 +14,7 @@ else if(!html.includes(runExport))fail('Legacy run resolver export anchor missin
 // Own the held-unit identity explicitly for the whole drag. S.ready.ref is an input helper and
 // can change during the gesture; the animation renderer needs a persistent movement state.
 const downSource=" S.dragOrigin={x:p.x,y:p.y};\n S.dragGrabOffset={x:p.x-pt.x,y:p.y-pt.y};";
-const downTarget=" S.dragOrigin={x:p.x,y:p.y};\n S.dragUnitName=p.name||null;\n S.dragUnitRef=p;\n S.dragGhost={name:p.name||null,x:p.x,y:p.y};\n S.dragGrabOffset={x:p.x-pt.x,y:p.y-pt.y};";
+const downTarget=" S.dragOrigin={x:p.x,y:p.y};\n const heldUnit=front(p);\n S.dragUnitName=heldUnit?.name||null;\n S.dragUnitRef=p;\n S.dragGhost={name:heldUnit?.name||null,x:p.x,y:p.y};\n S.dragGrabOffset={x:p.x-pt.x,y:p.y-pt.y};";
 if(html.includes(downSource))html=html.replace(downSource,downTarget);
 else if(!html.includes('S.dragUnitName=p.name||null;'))fail('pointerdown persistent held-unit anchor missing');
 
@@ -29,14 +29,14 @@ else if(!html.includes('S?.drag&&S?.dragOrigin'))fail('unitIdleFrames held-run a
 // cadence and a small feet-anchored stride so the held-unit state unmistakably reads
 // as a run instead of a subtly changing idle.
 const bodyMotionSource=" let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;";
-const bodyMotionTarget=" let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;\n const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragOrigin);\n if(obitoRunning){const stride=performance.now()/92;lift-=Math.abs(Math.sin(stride*Math.PI))*3.6;scale*=1+.024*Math.sin(stride*Math.PI*2);}";
+const bodyMotionTarget=" let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;\n const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragOrigin);\n if(obitoRunning){const stride=performance.now()/145;lift-=Math.abs(Math.sin(stride*Math.PI))*2.1;scale*=1+.012*Math.sin(stride*Math.PI*2);}";
 if(html.includes(bodyMotionSource))html=html.replace(bodyMotionSource,bodyMotionTarget);
 else if(!html.includes("const obitoRunning=Boolean(name==='Obito'"))fail('held-run body motion anchor missing');
 
 const cadenceSource=" const idleMs=name==='Lebee'?520:(name==='Tyler'?230:185);";
-const cadenceTarget=" const idleMs=obitoRunning?92:(name==='Lebee'?520:(name==='Tyler'?230:185));";
+const cadenceTarget=" const idleMs=obitoRunning?145:(name==='Lebee'?520:(name==='Tyler'?230:185));";
 if(html.includes(cadenceSource))html=html.replace(cadenceSource,cadenceTarget);
-else if(!html.includes('const idleMs=obitoRunning?92:'))fail('held-run cadence anchor missing');
+else if(!html.includes('const idleMs=obitoRunning?145:'))fail('held-run cadence anchor missing');
 
 // The original shell turns every held fighter into a 134% tall hover sprite. That reads
 // as a teleport on touch screens; keep a compact, ground-attached pickup like Blazing.
@@ -53,14 +53,14 @@ else if(!html.includes('S.dragVisual={scale:1.08-(.08*t)+bounce'))fail('compact 
 // Track horizontal drag direction from the real pointer stream. The run art is authored
 // facing right and the authoritative body-facing resolver mirrors it when moving left.
 const moveSource=" let p=S.ready.ref,pt=inputPoint(latest),v=S.dragVisual;";
-const moveTarget=" let p=S.ready.ref,pt=inputPoint(latest),v=S.dragVisual;\n const held=S.dragUnitRef||p;\n const previousDragX=v?.lastX??pt.x;\n if(held?.name==='Obito'&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
+const moveTarget=" let p=S.ready.ref,pt=inputPoint(latest),v=S.dragVisual;\n const held=S.dragUnitRef||p,heldName=S.dragUnitName||front(held)?.name;\n const previousDragX=v?.lastX??pt.x;\n if(heldName==='Obito'&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
 if(html.includes(moveSource))html=html.replace(moveSource,moveTarget);
 else if(!html.includes('const held=S.dragUnitRef||p;'))fail('pointermove direction anchor missing');
 
-// Naruto-Blazing-style origin ghost. It is rendered in world space from the original feet
-// anchor so it remains attached to the map while the live Obito runs under the pointer.
+// Naruto-Blazing-style origin ghost. Every held unit keeps an exact world-space copy at
+// its original feet anchor while the live selected body follows the pointer.
 const shadowMarker='  // VISIBLE WORLD-SPACE CONTACT SHADOW';
-const ghostBlock=`  // OBITO PICKUP ORIGIN GHOST\n  if(!isEnemy&&name==='Obito'&&S.drag&&S.dragOrigin){\n    const ghostFrames=LEGACY_SHINOBI_BODY_RUNTIME.idle('Obito');\n    const ghostFrame=ghostFrames?.[Math.floor(performance.now()/145)%Math.max(1,ghostFrames?.length||1)]||SPRITES?.Obito;\n    if(ghostFrame?.complete&&ghostFrame.naturalWidth>0&&ghostFrame.naturalHeight>0){\n      const ghostOrigin=S.dragOrigin||S.dragGhost;const gx=ghostOrigin.x,gy=ghostOrigin.y;\n      const ghostDepth=(S.bbRunMode==='road'&&window.BlazingRoadContent?.visualScaleForY)\n        ? Math.max(.82,Math.min(1.08,Number(window.BlazingRoadContent.visualScaleForY(S.bbRoadContent?.map,gy))||1))\n        : 1;\n      // Match the live unit body footprint and feet anchor so this clearly marks Obito's original slot.\n      const ghostBodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*ghostDepth;\n      const ghostH=68*ghostBodyScale,ghostW=ghostH*(ghostFrame.naturalWidth/ghostFrame.naturalHeight);\n      ctx.save();\n      ctx.globalAlpha=.56;\n      ctx.filter='grayscale(.20) brightness(1.24) saturate(.72)';\n      ctx.translate(gx,gy);\n      ctx.drawImage(ghostFrame,-ghostW/2,12-ghostH,ghostW,ghostH);\n      ctx.filter='none';ctx.globalAlpha=.72;ctx.strokeStyle='rgba(126,205,235,.78)';ctx.shadowColor='rgba(63,176,232,.74)';ctx.shadowBlur=5;ctx.lineWidth=1.15;\n      ctx.beginPath();ctx.ellipse(0,12,Math.max(11,ghostW*.38),3.1,0,0,Math.PI*2);ctx.stroke();\n      ctx.restore();\n    }\n  }\n\n`;
+const ghostBlock=`  // BLAZING PICKUP ORIGIN GHOST\n  if(!isEnemy&&S.drag&&S.dragOrigin&&S.dragUnitName===name){\n    const ghostFrames=unitIdleFrames(name);\n    const ghostFrame=ghostFrames?.[Math.floor(performance.now()/210)%Math.max(1,ghostFrames?.length||1)]||SPRITES?.[name];\n    if(ghostFrame?.complete&&ghostFrame.naturalWidth>0&&ghostFrame.naturalHeight>0){\n      const gx=S.dragOrigin.x,gy=S.dragOrigin.y;\n      const ghostDepth=(S.bbRunMode==='road'&&window.BlazingRoadContent?.visualScaleForY)\n        ? Math.max(.82,Math.min(1.08,Number(window.BlazingRoadContent.visualScaleForY(S.bbRoadContent?.map,gy))||1))\n        : 1;\n      const ghostBodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*(name==='Crimson'?CRIMSON_RENDER_BONUS:1)*ghostDepth;\n      const ghostH=68*ghostBodyScale,ghostW=ghostH*(ghostFrame.naturalWidth/ghostFrame.naturalHeight);\n      ctx.save();\n      ctx.globalAlpha=.50;ctx.filter='grayscale(.22) brightness(1.22) saturate(.72)';\n      ctx.translate(gx,gy);ctx.drawImage(ghostFrame,-ghostW/2,12-ghostH,ghostW,ghostH);\n      ctx.filter='none';ctx.globalAlpha=.78;ctx.strokeStyle='rgba(126,205,235,.82)';ctx.shadowColor='rgba(63,176,232,.78)';ctx.shadowBlur=5;ctx.lineWidth=1.15;\n      ctx.beginPath();ctx.ellipse(0,12,Math.max(11,ghostW*.38),3.1,0,0,Math.PI*2);ctx.stroke();\n      ctx.restore();\n    }\n  }\n\n`;
 if(html.includes(shadowMarker)&&!html.includes('// OBITO PICKUP ORIGIN GHOST'))html=html.replace(shadowMarker,ghostBlock+shadowMarker);
 else if(!html.includes('// OBITO PICKUP ORIGIN GHOST'))fail('world-space ghost renderer anchor missing');
 
@@ -168,12 +168,14 @@ for(const marker of [
   "run:name=>resolve(name,'run')",
   'S?.drag&&S?.dragOrigin',
   "const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragOrigin);",
+  'const stride=performance.now()/145',
   'targetScale:1.08,targetLift:6',
-  'const idleMs=obitoRunning?92:',
-  'S.dragUnitName=p.name||null;',
-  'S.dragGhost={name:p.name||null,x:p.x,y:p.y};',
-  'const held=S.dragUnitRef||p;',
-  '// OBITO PICKUP ORIGIN GHOST',
+  'const idleMs=obitoRunning?145:',
+  'const heldUnit=front(p);',
+  'S.dragUnitName=heldUnit?.name||null;',
+  'S.dragGhost={name:heldUnit?.name||null,x:p.x,y:p.y};',
+  'const held=S.dragUnitRef||p,heldName=S.dragUnitName||front(held)?.name;',
+  '// BLAZING PICKUP ORIGIN GHOST',
   'const returnRadius=28;',
   "actor.name==='Obito'&&S.drag&&S.dragUnitName===actor.name",
   'function animateObitoFireball(',
