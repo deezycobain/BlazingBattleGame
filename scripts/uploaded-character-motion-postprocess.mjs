@@ -10,6 +10,7 @@ const UPLOADED_CHARACTER_MOTION=(()=>{
  const names=Object.freeze(['Sub-Zero','Scorpion','Mashle','Obito']);
  const ids=Object.freeze({'Sub-Zero':'subzero',Scorpion:'scorpion',Mashle:'mashle',Obito:'obito'});
  const cache=new Map();
+ const mobileRendererGuard=()=>window.matchMedia?.('(max-width:700px)').matches===true&&/AppleWebKit/i.test(String(navigator.userAgent||''));
  const paths=(name,kind)=>{
   const id=ids[name];if(!id)return [];
   return Array.from({length:12},(_,index)=>'assets/characters/'+id+'/sprites/runtime/v2/'+kind+'/frame_'+String(index+1).padStart(2,'0')+'.png?uploadedMotion=v2');
@@ -20,7 +21,9 @@ const UPLOADED_CHARACTER_MOTION=(()=>{
   if(!cache.has(key))cache.set(key,makeImageFrames(paths(name,kind)));
   return cache.get(key);
  };
- return Object.freeze({has:name=>names.includes(name),idle:name=>frames(name,'idle'),run:name=>frames(name,'run'),basic:name=>frames(name,'attack'),recoil:name=>frames(name,'recoil')});
+ // The phone keeps the already-proven compact runtime sheets. It avoids decoding
+ // four new 12-frame body packs in the same GPU frame as the Road canvas.
+ return Object.freeze({has:name=>names.includes(name)&&!mobileRendererGuard(),idle:name=>frames(name,'idle'),run:name=>frames(name,'run'),basic:name=>frames(name,'attack'),recoil:name=>frames(name,'recoil')});
 })();
 const BLAZING_UPLOADED_VFX=Object.freeze({
  scorpionSpear:'assets/vfx/uploaded-v2/scorpion_chain_spear_vfx_atlas',
@@ -31,7 +34,10 @@ const BLAZING_UPLOADED_VFX=Object.freeze({
  waterStyle:'assets/vfx/uploaded-v2/water_style_attack_12_frame_atlas'
 });
 window.BlazingUploadedVfx=BLAZING_UPLOADED_VFX;
-const UPLOADED_VFX_FRAMES=Object.freeze(Object.fromEntries(Object.entries(BLAZING_UPLOADED_VFX).map(([key,root])=>[key,makeImageFrames(Array.from({length:12},(_,index)=>root+'/frame_'+String(index+1).padStart(2,'0')+'.png?uploadedVfx=v2'))])));
+const UPLOADED_VFX_MOBILE_GUARD=window.matchMedia?.('(max-width:700px)').matches===true&&/AppleWebKit/i.test(String(navigator.userAgent||''));
+// Do not instantiate 144 high-resolution VFX frames on iPhone during boot.
+// Empty sequences preserve the established renderer fallbacks (rather than a black field).
+const UPLOADED_VFX_FRAMES=Object.freeze(Object.fromEntries(Object.entries(BLAZING_UPLOADED_VFX).map(([key,root])=>[key,UPLOADED_VFX_MOBILE_GUARD?[]:makeImageFrames(Array.from({length:12},(_,index)=>root+'/frame_'+String(index+1).padStart(2,'0')+'.png?uploadedVfx=v2'))])));
 `;
 
 const idleAnchor="function unitIdleFrames(name){const itachiMotionFrames=name==='Itachi'?";
