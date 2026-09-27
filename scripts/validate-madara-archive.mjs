@@ -19,9 +19,12 @@ for(const kind of ['idle','run','basic_attack']){
   if(png.readUInt32BE(16)!==512||png.readUInt32BE(20)!==768)fail(`${rel} must be 512x768`);
  }
 }
-if(!fs.existsSync(path.join(root,'assets/characters/madara/vfx/jutsu/truth_seeking_orb/orb.png')))fail('source orb VFX missing');
+const orb=path.join(root,'assets/characters/madara/vfx/jutsu/truth_seeking_orb/orb.png');
+if(!fs.existsSync(orb))fail('source orb VFX missing');
+const orbPng=fs.readFileSync(orb);
+if(orbPng.readUInt32BE(16)!==96||orbPng.readUInt32BE(20)!==96)fail('source orb must include the complete 96x96 atlas element');
 if(!manifest.units?.madara?.animations?.run||!manifest.units?.madara?.vfx?.truth_seeking_orb)fail('Madara resources missing from asset manifest');
 if(map.abilities?.truth_seeking_orb?.gameplay_actions?.[0]?.action_id!=='damage_target')fail('Madara Jutsu damage action missing');
 const post=fs.readFileSync(path.join(root,'scripts/madara-archive-postprocess.mjs'),'utf8');
-for(const marker of ['MADARA_ARCHIVE_BODY_RUNTIME','animateMadaraTruthSeekingOrb','madaraTruthSeekingOrb',"actor.name==='Madara'", "'madara','anubis'"])if(!post.includes(marker))fail(`postprocess marker missing: ${marker}`);
-console.log('Madara archive validation PASS: Six Paths pilot has 18 normalized body frames, a source orb VFX, and full Basic/Jutsu routing.');
+for(const marker of ['MADARA_ARCHIVE_BODY_RUNTIME','animateMadaraTruthSeekingOrb','animateMadaraTruthSeekingStaff','madaraTruthSeekingOrb','madaraTruthSeekingStaff',"actor.name==='Madara'", "'madara','anubis'"])if(!post.includes(marker))fail(`postprocess marker missing: ${marker}`);
+console.log('Madara archive validation PASS: Six Paths pilot has a persistent idle loop, a visible source orb, and full Basic/Jutsu routing.');

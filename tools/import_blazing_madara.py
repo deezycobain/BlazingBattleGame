@@ -48,11 +48,11 @@ with Image.open(SPRITES / 'Madara.png').convert('RGBA') as source:
     source.save(art / 'madara_six_paths_source.png', optimize=True)
 
 # The full Uchiha effect sheet cannot be rendered as a single sprite because it
-# is an atlas.  The black orb is an isolated, useful source element for the
-# pilot's Truth-Seeking Orb projectile.
+# is an atlas.  This is the complete black orb, not the lower-right quarter of
+# it, so the projectile remains readable against a bright battlefield.
 vfx = UNIT / 'vfx' / 'jutsu' / 'truth_seeking_orb'
 vfx.mkdir(parents=True, exist_ok=True)
 with Image.open(SHEETS / 'spl_21434_uchihano_presentjustu.png').convert('RGBA') as sheet:
-    sheet.crop((448, 191, 512, 255)).save(vfx / 'orb.png', optimize=True)
+    sheet.crop((416, 176, 512, 272)).save(vfx / 'orb.png', optimize=True)
 
 print('Madara archive import complete: 18 normalized body frames, source art, and one isolated orb VFX.')

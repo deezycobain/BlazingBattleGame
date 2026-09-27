@@ -59,6 +59,18 @@ function animateMadaraTruthSeekingOrb(unitName,from,enemy,onImpact,onDone){
   },flight);
  },cast);
 }
+function animateMadaraTruthSeekingStaff(unitName,from,to,onImpact,onDone,attackKind='basic_attack'){
+ const token=ACTIVE_ACTION_TOKEN;
+ const arc={kind:'madaraTruthSeekingStaff',from:{x:from.x,y:from.y-22},to:{x:to.x,y:to.y-18},start:performance.now(),duration:385,life:1};
+ S.floaters.push(arc);
+ return animateLunge(unitName,from,to,()=>{
+  arc.impact=true;arc.impactStart=performance.now();
+  try{onImpact&&onImpact()}catch(error){console.error('Madara Truth-Seeking Staff impact failed:',error);recoverAction('Madara basic impact')}
+ },()=>{
+  S.floaters=S.floaters.filter(item=>item!==arc);
+  if(actionTokenAlive(token)){try{onDone&&onDone()}catch(_){recoverAction('Madara basic completion')}}
+ },attackKind);
+}
 `;
 const idleAnchor='function unitIdleFrames(name){';
 const idleAt=html.indexOf(idleAnchor);
@@ -66,9 +78,9 @@ if(idleAt<0)fail('idle-frame resolver missing');
 if(!html.includes('const MADARA_ARCHIVE_BODY_RUNTIME=(()=>{'))html=html.slice(0,idleAt)+runtime+'\n'+html.slice(idleAt);
 
 const idleSource="function unitIdleFrames(name){const legacyShinobiRun=";
-const idleTarget="function unitIdleFrames(name){const madaraArchiveRun=(name==='Madara'&&S?.drag&&S?.dragUnitName===name)?MADARA_ARCHIVE_BODY_RUNTIME.run():null;if(madaraArchiveRun?.length)return madaraArchiveRun;const legacyShinobiRun=";
+const idleTarget="function unitIdleFrames(name){const madaraArchiveFrames=name==='Madara'?((S?.drag&&S?.dragUnitName===name)?MADARA_ARCHIVE_BODY_RUNTIME.run():MADARA_ARCHIVE_BODY_RUNTIME.idle()):null;if(madaraArchiveFrames?.length)return madaraArchiveFrames;const legacyShinobiRun=";
 if(html.includes(idleSource))html=html.replace(idleSource,idleTarget);
-else if(!html.includes("const madaraArchiveRun=(name==='Madara'"))fail('held-run resolver anchor missing');
+else if(!html.includes("const madaraArchiveFrames=name==='Madara'"))fail('idle-frame resolver anchor missing');
 
 const attackSource="function unitAttackFrames(name,kind){const legacyShinobiBasic=";
 const attackTarget="function unitAttackFrames(name,kind){const madaraArchiveBasic=name==='Madara'?MADARA_ARCHIVE_BODY_RUNTIME.basic():null;if(madaraArchiveBasic?.length)return madaraArchiveBasic;const legacyShinobiBasic=";
@@ -90,15 +102,37 @@ const jutsuTarget="const runActiveJutsu=u.name==='Sub-Zero'?animateFreezeBlast:u
 if(html.includes(jutsuSource))html=html.replace(jutsuSource,jutsuTarget);
 else if(!html.includes("u.name==='Madara'?animateMadaraTruthSeekingOrb"))fail('Jutsu dispatcher anchor missing');
 
+const basicSource=`    }else if(au.name==='Obito'){
+      runBasicAttack=animateObitoFireball;basicTarget=enemy;
+    }else if(au.name==='Senku'){`;
+const basicTarget=`    }else if(au.name==='Obito'){
+      runBasicAttack=animateObitoFireball;basicTarget=enemy;
+    }else if(au.name==='Madara'){
+      runBasicAttack=animateMadaraTruthSeekingStaff;basicTarget=to;
+    }else if(au.name==='Senku'){`;
+if(html.includes(basicSource))html=html.replace(basicSource,basicTarget);
+else if(!html.includes("runBasicAttack=animateMadaraTruthSeekingStaff"))fail('Basic dispatcher anchor missing');
+
 const vfxMarker="}else if(f.kind==='obitoFireball'){";
-const vfxBlock=String.raw`}else if(f.kind==='madaraTruthSeekingOrb'){
+const vfxBlock=String.raw`}else if(f.kind==='madaraTruthSeekingStaff'){
+      const age=performance.now()-f.start,duration=Math.max(1,f.duration||385),t=Math.min(1,age/duration),ease=1-Math.pow(1-t,3);
+      const x=f.from.x+(f.to.x-f.from.x)*Math.min(.94,ease),y=f.from.y+(f.to.y-f.from.y)*Math.min(.94,ease),angle=Math.atan2(f.to.y-f.from.y,f.to.x-f.from.x),pulse=.65+.35*Math.sin(age/40);
+      ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.globalAlpha=Math.max(.12,1-t*.72);
+      ctx.globalCompositeOperation='screen';ctx.strokeStyle='rgba(217,224,255,.78)';ctx.shadowColor='rgba(113,126,195,.9)';ctx.shadowBlur=5+4*pulse;ctx.lineWidth=1.7;
+      ctx.beginPath();ctx.arc(-3,0,17+4*pulse,-2.35,.45);ctx.stroke();
+      ctx.globalCompositeOperation='source-over';ctx.shadowColor='rgba(0,0,0,.85)';ctx.shadowBlur=4;
+      if(MADARA_TRUTH_SEEKING_ORB.complete&&MADARA_TRUTH_SEEKING_ORB.naturalWidth>0)ctx.drawImage(MADARA_TRUTH_SEEKING_ORB,7,-11,22,22);
+      ctx.restore();
+     }else if(f.kind==='madaraTruthSeekingOrb'){
       const age=performance.now()-f.start,flight=Math.max(1,f.flightDuration||520),impact=Math.max(1,f.impactDuration||360),travel=Math.min(1,age/flight),ease=1-Math.pow(1-travel,2.25);
       const x=f.from.x+(f.to.x-f.from.x)*ease,y=f.from.y+(f.to.y-f.from.y)*ease-8*Math.sin(Math.PI*travel);
       if(age<=flight){
-       ctx.save();ctx.translate(x,y);ctx.rotate(age/165);ctx.globalCompositeOperation='screen';
-       const pulse=1+.12*Math.sin(age/72),size=30*pulse;
+       ctx.save();ctx.translate(x,y);ctx.rotate(age/165);
+       const pulse=1+.12*Math.sin(age/72),size=42*pulse;
+       ctx.globalCompositeOperation='source-over';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=5;
        if(MADARA_TRUTH_SEEKING_ORB.complete&&MADARA_TRUTH_SEEKING_ORB.naturalWidth>0)ctx.drawImage(MADARA_TRUTH_SEEKING_ORB,-size/2,-size/2,size,size);
        else{ctx.fillStyle='rgba(18,20,26,.94)';ctx.beginPath();ctx.arc(0,0,size*.46,0,Math.PI*2);ctx.fill()}
+       ctx.globalCompositeOperation='screen';
        ctx.strokeStyle='rgba(223,230,255,.48)';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(0,0,size*.62,0,Math.PI*2);ctx.stroke();ctx.restore();
       }else{
        const t=Math.min(1,(age-flight)/impact),r=16+55*t;ctx.save();ctx.translate(f.to.x,f.to.y);ctx.globalCompositeOperation='screen';ctx.globalAlpha=1-t;
@@ -109,6 +143,6 @@ if(!html.includes("f.kind==='madaraTruthSeekingOrb'")){
  const at=html.indexOf(vfxMarker);if(at<0)fail('floater-renderer anchor missing');html=html.slice(0,at)+vfxBlock+html.slice(at);
 }
 
-for(const marker of ['MADARA_ARCHIVE_BODY_RUNTIME','madaraArchivePilot=v1','animateMadaraTruthSeekingOrb','madaraTruthSeekingOrb',"'madara','anubis'", "actor.name==='Madara'"])if(!html.includes(marker))fail('final shell missing '+marker);
+for(const marker of ['MADARA_ARCHIVE_BODY_RUNTIME','madaraArchivePilot=v1','animateMadaraTruthSeekingOrb','animateMadaraTruthSeekingStaff','madaraTruthSeekingOrb','madaraTruthSeekingStaff',"'madara','anubis'", "actor.name==='Madara'"])if(!html.includes(marker))fail('final shell missing '+marker);
 await fs.writeFile(file,html);
-console.log('Madara archive pilot PASS: playable Six Paths Madara has normalized body frames, drag-facing/run support, and a source-orb Jutsu.');
+console.log('Madara archive pilot PASS: Six Paths Madara now has an idle loop, staff arc, and a visible source-orb Jutsu.');

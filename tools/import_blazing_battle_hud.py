@@ -26,6 +26,9 @@ with Image.open(SOURCE / 'BattleAtlas.png').convert('RGBA') as atlas:
     # A source medallion used as the shared visual carrier for status counters.
     # The text/turn count remains HTML so effects are never baked into an image.
     atlas.crop((636, 183, 704, 254)).save(OUTPUT / 'status-medallion.png', optimize=True)
+    # The large gold brush-stroke command frame makes the dock visibly read as
+    # a Blazing battle panel rather than a generic dark toolbar.
+    atlas.crop((0, 95, 516, 215)).save(OUTPUT / 'battle-command-frame.png', optimize=True)
 
 for source_name, output_name in [
     ('06_chakra.png', 'chakra-active.png'),
@@ -34,4 +37,4 @@ for source_name, output_name in [
     with Image.open(SOURCE / source_name).convert('RGBA') as image:
         image.save(OUTPUT / output_name, optimize=True)
 
-print('Blazing battle HUD import complete: gauge fill, portrait/status frames, and standalone chakra pips.')
+print('Blazing battle HUD import complete: gauge fill, command/portrait/status frames, and standalone chakra pips.')

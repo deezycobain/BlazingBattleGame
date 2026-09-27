@@ -6,7 +6,7 @@ const fail=message=>{throw new Error(`Blazing archive HUD validation failed: ${m
 const read=relative=>fs.readFile(path.join(root,relative),'utf8');
 const exists=async relative=>{try{await fs.access(path.join(root,relative));return true}catch{return false}};
 
-for(const asset of ['hp-gauge-fill.png','chakra-active.png','chakra-empty.png','portrait-frame.png','status-medallion.png']){
+for(const asset of ['hp-gauge-fill.png','chakra-active.png','chakra-empty.png','portrait-frame.png','status-medallion.png','battle-command-frame.png']){
   if(!await exists(`assets/ui/battle/blazing-archive/${asset}`))fail(`missing imported source asset ${asset}`);
 }
 const renderer=await read('runtime/rendering/blazing-archive-hud.js');
@@ -23,5 +23,5 @@ if(!shell.includes('BlazingArchiveBattleHud.drawStatusMarkers?.'))fail('enemy st
 const dock=await read('runtime/ui/battle/battle-dock.js');
 for(const marker of ['statusMarkup','bb-dock-statuses','statusEffects','bb-status-badge'])if(!dock.includes(marker))fail(`status-dock marker missing: ${marker}`);
 const dockCss=await read('runtime/ui/battle/battle-dock.css');
-for(const marker of ['portrait-frame.png','status-medallion.png','hp-gauge-fill.png'])if(!dockCss.includes(marker))fail(`archive dock CSS marker missing: ${marker}`);
+for(const marker of ['portrait-frame.png','status-medallion.png','hp-gauge-fill.png','battle-command-frame.png'])if(!dockCss.includes(marker))fail(`archive dock CSS marker missing: ${marker}`);
 console.log('Blazing archive HUD validation PASS: official gauge/chakra art is isolated, source-traceable, and wired to player and enemy battle resources.');
