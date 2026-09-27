@@ -117,8 +117,12 @@ function applyCamera(canvas,scale,position,transitionMs){
   if(currentCanvas&&currentCanvas!==canvas)restore(currentCanvas);
   currentCanvas=canvas;
   remember(canvas);
-  const value=Math.max(1,Number(scale)||1);
-  canvas.style.transformOrigin=position||DEFAULT_POSITION;
+  // The portrait battle field is already cropped and centered by the mobile dock.
+  // Applying the desktop camera zoom there can move the actual map entirely outside
+  // the visible viewport, leaving only the canvas' black backing visible.
+  const compactViewport=window.matchMedia?.('(max-width:700px)').matches===true;
+  const value=compactViewport?1:Math.max(1,Number(scale)||1);
+  canvas.style.transformOrigin=compactViewport?'center center':(position||DEFAULT_POSITION);
   canvas.style.willChange='scale';
   const easing='cubic-bezier(.16,.82,.18,1)';
   if('scale' in canvas.style){
