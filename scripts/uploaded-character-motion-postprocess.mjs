@@ -10,6 +10,7 @@ const UPLOADED_CHARACTER_MOTION=(()=>{
  const names=Object.freeze(['Sub-Zero','Scorpion','Mashle','Obito']);
  const ids=Object.freeze({'Sub-Zero':'subzero',Scorpion:'scorpion',Mashle:'mashle',Obito:'obito'});
  const cache=new Map();
+ const mobileRendererGuard=()=>window.matchMedia?.('(max-width:700px)').matches===true&&/AppleWebKit/i.test(String(navigator.userAgent||''));
  const paths=(name,kind)=>{
   const id=ids[name];if(!id)return [];
   return Array.from({length:12},(_,index)=>'assets/characters/'+id+'/sprites/runtime/v2/'+kind+'/frame_'+String(index+1).padStart(2,'0')+'.png?uploadedMotion=v2');
@@ -20,11 +21,11 @@ const UPLOADED_CHARACTER_MOTION=(()=>{
   if(!cache.has(key))cache.set(key,makeImageFrames(paths(name,kind)));
   return cache.get(key);
  };
- // Body frames are loaded only for the current unit/action and are cached per
- // sequence, so the authored 12-frame test packs are now safe on iPhone too.
- // The separate VFX mobile guard below remains in place because it protects
- // large, nonessential particle sequences during battle boot.
- return Object.freeze({has:name=>names.includes(name),idle:name=>frames(name,'idle'),run:name=>frames(name,'run'),basic:name=>frames(name,'attack'),recoil:name=>frames(name,'recoil')});
+ // A phone battle draws every visible fighter's idle sequence, so these 12-frame
+ // 512×768 test sheets can exceed iOS's decoded-image budget before combat
+ // starts. Keep the compact proven sheets on iPhone until mobile-specific
+ // optimized derivatives are authored; desktop continues to use V2.
+ return Object.freeze({has:name=>names.includes(name)&&!mobileRendererGuard(),idle:name=>frames(name,'idle'),run:name=>frames(name,'run'),basic:name=>frames(name,'attack'),recoil:name=>frames(name,'recoil')});
 })();
 const BLAZING_UPLOADED_VFX=Object.freeze({
  scorpionSpear:'assets/vfx/uploaded-v2/scorpion_chain_spear_vfx_atlas',

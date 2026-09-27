@@ -136,6 +136,10 @@ for(const marker of ['LEGACY_SHINOBI_BODY_RUNTIME','legacySpriteAudit=v4',...ids
 for(const marker of ["drunkenPatterns","basic_attack:Object.freeze([0,1,2,3,4,5])","LEGACY_SHINOBI_BODY_RUNTIME.sequence","drunkenVariance=drunkenMasterAttack?(.96+Math.random()*.10):1","Math.round(245*drunkenVariance)","Math.round(380*drunkenHoldVariance)"]){
  if(!adapter.includes(marker))throw new Error('Legacy Shinobi validator: Wong Fei-Hung fallback drunken cadence missing '+marker);
 }
+const uploadedMotion=await fs.readFile(path.join(ROOT,'scripts/uploaded-character-motion-postprocess.mjs'),'utf8');
+for(const marker of ["const mobileRendererGuard=()=>window.matchMedia?.('(max-width:700px)').matches===true&&/AppleWebKit/i.test(String(navigator.userAgent||''));","has:name=>names.includes(name)&&!mobileRendererGuard()",'UPLOADED_VFX_MOBILE_GUARD']){
+ if(!uploadedMotion.includes(marker))throw new Error('Legacy Shinobi validator: iPhone-safe uploaded-motion guard missing '+marker);
+}
 const combatPresentation=await fs.readFile(path.join(ROOT,'runtime/combat/combat-presentation-controller.js'),'utf8');
 for(const marker of ["unitData?.display_name==='Wong Fei-Hung'","hesitationMs=drunkenMaster?Math.round(180+Math.random()*150):0","approachMs=drunkenMaster?Math.round(180+Math.random()*60):normalApproach","returnMs=drunkenMaster?Math.round(360+Math.random()*120):normalApproach","drunkenEase=t=>","Math.sin(t*Math.PI*2.15)*3.2*(1-t)"]){
  if(!combatPresentation.includes(marker))throw new Error('Legacy Shinobi validator: configured Wong Fei-Hung drunken cadence missing '+marker);
