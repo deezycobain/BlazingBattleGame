@@ -27,8 +27,8 @@
       "r": 112
     },
     "jutsu_shape": {
-      "type": "screen_rect",
-      "padding": 18
+      "type": "circle",
+      "r": 158
     },
     "chakra_max": 8,
     "chakra_start": 2
@@ -55,32 +55,23 @@
       }
     },
     "jutsu": {
-      "id": "tsukuyomi",
-      "name": "Tsukuyomi",
+      "id": "amaterasu",
+      "name": "Amaterasu",
       "cost": 4,
-      "damage_multiplier": 1.75,
-      "delivery": "single_target_cinematic",
+      "damage_multiplier": 1.82,
+      "delivery": "projectile",
       "category": "jutsu",
       "ultimate": false,
+      "target_mode": "single",
       "presentation": {
-        "runtime_driver": "animateItachiTsukuyomi",
-        "cast_duration_ms": 2650,
-        "overlay_duration_ms": 2250,
-        "battlefield_reveal_ms": 2150,
-        "impact_duration_ms": 900,
-        "target_duration_ms": 780,
-        "screen_dim_alpha": 0.36,
+        "runtime_driver": "animateItachiAmaterasu",
+        "cast_duration_ms": 340,
+        "flight_duration_ms": 520,
+        "impact_duration_ms": 520,
+        "screen_dim_alpha": 0.14,
         "body_facing_mode": "target_locked",
-        "freeze_caster_position": true,
-        "playback_fps": 60,
-        "crossfade_authored_frames": true
-      },
-      "area": "battlefield_rectangle",
-      "aoe": false,
-      "target_mode": "single_primary_plus_status_others",
-      "status_effect": "stun",
-      "status_turns": 1,
-      "status_target_mode": "other_living_enemies"
+        "projectile_origin_mode": "forward_facing"
+      }
     }
   },
   "assets": {
@@ -93,7 +84,7 @@
       "idle": "sprites/runtime/idle/",
       "run": "sprites/runtime/run/",
       "attack_basic": "sprites/runtime/attack/basic/",
-      "jutsu": "sprites/runtime/jutsu/tsukuyomi/cast/"
+      "jutsu": "sprites/runtime/attack/basic/"
     },
     "vfx": "vfx/"
   },
@@ -104,13 +95,13 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": false,
-    "notes": "Legendary Itachi presentation v4: Tsukuyomi takes over the viewport, crossfades authored VFX on a requestAnimationFrame loop, fades back to the battlefield before a target-side impact, deals one authoritative primary hit, and applies the reusable one-turn stun status to every other living enemy.",
+    "notes": "September 27 test presentation: Chakra/Jutsu is Amaterasu, using the uploaded fire sequence tinted black-violet at runtime. The earlier Tsukuyomi files remain archived and are not deleted.",
     "animation_map": true
   },
   "balance": {
     "status": "provisional",
-    "pass": "itachi-legendary-tsukuyomi-stun-v4",
-    "notes": "Tsukuyomi keeps its 4 chakra cost and 1.75x primary damage. It no longer deals AoE damage or gauge suppression; secondary living enemies receive stun for one turn through the shared combat-status runtime."
+    "pass": "september27-amaterasu-test",
+    "notes": "Amaterasu is a single-target, 4-chakra test Jutsu with provisional 1.82x damage. Tune after seeing its timing and target readability in battle."
   },
   "animation_standard": {
     "version": "v0.7-itachi-initial",

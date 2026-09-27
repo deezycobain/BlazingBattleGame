@@ -1,0 +1,81 @@
+{
+  "schema_version": 3,
+  "id": "naruto_solar",
+  "display_name": "Solar Pharaoh Naruto",
+  "title": "Sun Rasengan",
+  "role": "playable",
+  "archetype": "solar_striker",
+  "element": "Light",
+  "rarity": "Legendary",
+  "collection": { "owned": true, "inventory_visible": true, "battle_ready": true },
+  "stats": { "level": 1, "hp": 82, "attack": 64, "defense": 42, "speed": 76 },
+  "combat": {
+    "mark": "N",
+    "movement_range": 96,
+    "basic_shape": { "type": "circle", "r": 88 },
+    "jutsu_shape": { "type": "circle", "r": 154 },
+    "chakra_max": 8,
+    "chakra_start": 2
+  },
+  "render": { "scale": 1.04, "sprite_anchor": "bottom_center", "sprite_canvas": { "width": 512, "height": 768 } },
+  "abilities": {
+    "basic": {
+      "id": "pharaoh_combo",
+      "name": "Pharaoh Combo",
+      "damage_multiplier": 1,
+      "chakra_gain": 1,
+      "delivery": "melee",
+      "target_mode": "single",
+      "presentation": { "runtime_driver": "animateLunge", "animation_kind": "basic_attack", "melee_animation_kind": "basic_attack" }
+    },
+    "jutsu": {
+      "id": "sun_rasengan",
+      "name": "Sun Rasengan",
+      "cost": 4,
+      "damage_multiplier": 1.8,
+      "delivery": "projectile",
+      "category": "jutsu",
+      "ultimate": false,
+      "target_mode": "single",
+      "presentation": {
+        "runtime_driver": "animateSolarNarutoRasengan",
+        "cast_duration_ms": 350,
+        "flight_duration_ms": 520,
+        "impact_duration_ms": 440,
+        "projectile_origin_mode": "forward_facing",
+        "body_facing_mode": "target_locked"
+      }
+    }
+  },
+  "assets": {
+    "art": "cards/naruto_solar_approved_card_art.png",
+    "card": "cards/naruto_solar_approved_card_art.png",
+    "portrait": "cards/naruto_solar_approved_card_art.png",
+    "icon": null,
+    "sprites": { "idle": "sprites/runtime/v1/idle/", "run": "sprites/runtime/v1/run/", "attack_basic": "sprites/runtime/v1/attack/basic/", "recoil": "sprites/runtime/v1/recoil/", "jutsu": "sprites/runtime/v1/attack/basic/" },
+    "vfx": "../../vfx/uploaded-v3/rasengan/"
+  },
+  "readiness": {
+    "collection": true,
+    "battle": true,
+    "idle": true,
+    "run": true,
+    "basic_attack": true,
+    "jutsu": true,
+    "recoil": true,
+    "notes": "September 27 approved Solar Pharaoh pack. The supplied blue Rasengan frames are presentation-tinted gold at runtime without modifying the source PNGs.",
+    "animation_map": true
+  },
+  "balance": { "status": "provisional", "pass": "september27-egyptian-test", "notes": "Testing values; tune after battlefield-scale and Jutsu review." },
+  "animation_standard": {
+    "version": "september27-egyptian-v1",
+    "canvas": { "width": 512, "height": 768, "anchor_x": 256, "anchor_y": 742 },
+    "animations": {
+      "idle": { "frames": ["sprites/runtime/v1/idle/frame_01.png", "sprites/runtime/v1/idle/frame_02.png", "sprites/runtime/v1/idle/frame_03.png", "sprites/runtime/v1/idle/frame_04.png", "sprites/runtime/v1/idle/frame_05.png", "sprites/runtime/v1/idle/frame_06.png"], "frame_ms": 155, "loop": true, "events": [] },
+      "run": { "frames": ["sprites/runtime/v1/run/frame_01.png", "sprites/runtime/v1/run/frame_02.png", "sprites/runtime/v1/run/frame_03.png", "sprites/runtime/v1/run/frame_04.png", "sprites/runtime/v1/run/frame_05.png", "sprites/runtime/v1/run/frame_06.png"], "frame_ms": 95, "loop": true, "events": [] },
+      "basic_attack": { "frames": ["sprites/runtime/v1/attack/basic/frame_01.png", "sprites/runtime/v1/attack/basic/frame_02.png", "sprites/runtime/v1/attack/basic/frame_03.png", "sprites/runtime/v1/attack/basic/frame_04.png", "sprites/runtime/v1/attack/basic/frame_05.png", "sprites/runtime/v1/attack/basic/frame_06.png"], "frame_ms": 115, "loop": false, "events": [{ "frame": 4, "event": "apply_melee" }] },
+      "recoil": { "frames": ["sprites/runtime/v1/recoil/frame_01.png", "sprites/runtime/v1/recoil/frame_02.png", "sprites/runtime/v1/recoil/frame_03.png", "sprites/runtime/v1/recoil/frame_04.png", "sprites/runtime/v1/recoil/frame_05.png", "sprites/runtime/v1/recoil/frame_06.png"], "frame_ms": 95, "loop": false, "events": [] }
+    },
+    "vfx": { "jutsu/sun_rasengan": { "frames": ["../../vfx/uploaded-v3/rasengan/projectile/frame_01.png"], "frame_ms": 86, "loop": false, "body_asset": false } }
+  }
+}

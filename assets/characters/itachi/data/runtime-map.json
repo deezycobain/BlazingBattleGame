@@ -37,60 +37,32 @@
         "runtime_path": "assets/characters/itachi/vfx/basic/crows/runtime/"
       }
     },
-    "tsukuyomi": {
+    "amaterasu": {
       "slot": "jutsu",
-      "animation_id": "itachi.animation.jutsu.tsukuyomi.cast",
-      "runtime_handler": "animateItachiTsukuyomi",
+      "animation_id": "itachi.animation.basic_attack",
+      "runtime_handler": "animateItachiAmaterasu",
       "cost_source": "abilities.jutsu.cost",
       "gameplay_actions": [
         {
-          "event": "on_target_impact",
+          "event": "on_impact",
           "action_id": "damage_target",
           "parameters": {
             "multiplier_source": "abilities.jutsu.damage_multiplier"
           },
           "target_selector": "primary_target"
-        },
-        {
-          "event": "on_target_impact",
-          "action_id": "apply_status_targets",
-          "parameters": {
-            "effect_source": "abilities.jutsu.status_effect",
-            "turns_source": "abilities.jutsu.status_turns"
-          },
-          "target_selector": "other_living_enemies"
         }
       ],
       "vfx": {
-        "overlay": "itachi.vfx.jutsu.tsukuyomi.overlay",
-        "mandala": "itachi.vfx.jutsu.tsukuyomi.mandala",
-        "target": "itachi.vfx.jutsu.tsukuyomi.target"
+        "projectile": "uploaded-v3.fireball.projectile",
+        "impact": "uploaded-v3.fireball.impact"
       },
       "projectile_presentation": {
-        "trajectory": "none",
-        "cast_duration_ms": 2650,
-        "overlay_duration_ms": 2250,
-        "battlefield_reveal_ms": 2150,
-        "impact_duration_ms": 900,
-        "target_duration_ms": 780,
-        "screen_dim_alpha": 0.36,
-        "centered_screen_takeover": true,
-        "cinematic_takeover": true,
-        "ritual_to_nightmare": true,
-        "battlefield_impact_reveal": true,
-        "target_png_rendered": true,
-        "full_viewport_dom_layer": true,
-        "authored_overlay_frames": true,
-        "authored_mandala_frames": true,
-        "authored_target_frames": true,
-        "playback_fps": 60,
-        "crossfade_authored_frames": true
-      },
-      "area": "battlefield_rectangle",
-      "aoe": false,
-      "status_effect": "stun",
-      "status_turns": 1,
-      "status_target_mode": "other_living_enemies"
+        "trajectory": "direct",
+        "cast_duration_ms": 340,
+        "flight_duration_ms": 520,
+        "impact_duration_ms": 520,
+        "tint": "black_violet_flame"
+      }
     }
   },
   "states": {
