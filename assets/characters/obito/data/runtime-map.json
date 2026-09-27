@@ -6,7 +6,7 @@
     "basic_attack": {
       "slot": "basic",
       "animation_id": "obito.animation.basic_attack",
-      "runtime_handler": "animateLunge",
+      "runtime_handler": "animateObitoFireball",
       "gameplay_actions": [
         {
           "event": "on_impact",

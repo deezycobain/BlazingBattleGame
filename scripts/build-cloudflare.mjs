@@ -10,7 +10,9 @@ const SKIP_TOP = new Set([
 ]);
 const SKIP_FILES = new Set([
   'wrangler.jsonc', 'package.json', 'package-lock.json', 'DEV_SENKU_CHECKPOINT.md', 'DEV_WORKFLOW.md',
-  'legacy_of_the_shinobi_banner_pack_v1_under25.zip', 'legacy_of_the_shinobi_banner_pack_v2.zip', 'legacy_of_the_shinobi_banner_pack_v3_clean_cards.zip'
+  'legacy_of_the_shinobi_banner_pack_v1_under25.zip', 'legacy_of_the_shinobi_banner_pack_v2.zip', 'legacy_of_the_shinobi_banner_pack_v3_clean_cards.zip',
+  'Blazing_Battle_SubZero_Test_Assets.zip', 'Blazing_Battle_Scorpion_Test_Assets.zip', 'Blazing_Battle_Mashle_Test_Assets.zip',
+  'blazing_battle_particle_vfx_upload_ready.zip', 'blazing_battle_vfx_pack.zip', 'blazing_battle_summon_reveal_vfx_pack.zip'
 ]);
 const SKIP_DIR_PREFIXES = ['_rollback', 'rollback', 'checkpoint'];
 const MIME_EXT = new Map([

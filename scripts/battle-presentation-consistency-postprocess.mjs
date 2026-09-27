@@ -30,3 +30,4 @@ for(const marker of ['bbRosterFootprintNormalization',"name==='Itachi'?.835:1.11
 
 await fs.writeFile(file,html);
 console.log('Battle presentation consistency PASS: unified unit footprints and high-contrast feet contact shadows applied.');
+await import('./uploaded-character-motion-postprocess.mjs');
