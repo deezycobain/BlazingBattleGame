@@ -34,7 +34,7 @@ const SEPTEMBER27_BODY_RUNTIME=(()=>{
   const id=ids[name];if(!id)return null;
   let data=null;try{data=canonicalUnit(id)}catch(_){return null}
   const animation=data?.animation_standard?.animations?.[kind];
-  const rels=animation?.frames;if(!Array.isArray(rels)||rels.length!==6)return null;
+  const rels=animation?.frames;if(!Array.isArray(rels)||![6,8,10,12].includes(rels.length))return null;
   const key=name+':'+kind;
   if(!cache.has(key))cache.set(key,makeImageFrames(rels.map(rel=>'assets/characters/'+id+'/'+rel+'?september27=v1')));
   return cache.get(key);

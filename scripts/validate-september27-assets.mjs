@@ -19,10 +19,11 @@ for(const [id,name,jutsu] of [['gaara','Egyptian Gaara','sand_blast'],['naruto_s
  const unit=await readJson(`assets/characters/${id}/data/unit.json`),map=await readJson(`assets/characters/${id}/data/runtime-map.json`);
  if(unit.display_name!==name||unit.abilities?.jutsu?.id!==jutsu||unit.collection?.battle_ready!==true)fail(id+' canonical unit data is incomplete');
  if(!map.abilities?.[jutsu]||map.abilities?.[jutsu]?.gameplay_actions?.[0]?.action_id!=='damage_target')fail(id+' Jutsu runtime map is incomplete');
- for(const kind of ['idle','run','attack/basic','recoil']){
+ const frameCounts=id==='gaara'?{idle:6,run:10,'attack/basic':12,recoil:8}:{idle:8,run:10,'attack/basic':12,recoil:8};
+ for(const [kind,expectedFrames] of Object.entries(frameCounts)){
   const directory=`assets/characters/${id}/sprites/runtime/v1/${kind}`;
-  if(await countFrames(directory)!==6)fail(id+' '+kind+' must contain six runtime frames');
-  for(let frame=1;frame<=6;frame++){
+  if(await countFrames(directory)!==expectedFrames)fail(id+' '+kind+' must contain '+expectedFrames+' runtime frames');
+  for(let frame=1;frame<=expectedFrames;frame++){
    const rel=`${directory}/frame_${String(frame).padStart(2,'0')}.png`;
    const [width,height]=await pngSize(rel);
    if(width!==512||height!==768)fail(rel+' must be 512x768');

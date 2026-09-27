@@ -627,9 +627,9 @@
     "gaara": {
       "animations": {
         "idle": { "resource_id": "gaara.animation.idle", "path": "assets/characters/gaara/sprites/runtime/v1/idle/", "required_runtime_frames": 6, "renderer": "BlazingFrameRuntime" },
-        "run": { "resource_id": "gaara.animation.run", "path": "assets/characters/gaara/sprites/runtime/v1/run/", "required_runtime_frames": 6, "renderer": "BlazingFrameRuntime" },
-        "basic_attack": { "resource_id": "gaara.animation.basic_attack", "path": "assets/characters/gaara/sprites/runtime/v1/attack/basic/", "required_runtime_frames": 6, "renderer": "BlazingFrameRuntime" },
-        "recoil": { "resource_id": "gaara.animation.recoil", "path": "assets/characters/gaara/sprites/runtime/v1/recoil/", "required_runtime_frames": 6, "renderer": "BlazingFrameRuntime" }
+        "run": { "resource_id": "gaara.animation.run", "path": "assets/characters/gaara/sprites/runtime/v1/run/", "required_runtime_frames": 10, "renderer": "BlazingFrameRuntime" },
+        "basic_attack": { "resource_id": "gaara.animation.basic_attack", "path": "assets/characters/gaara/sprites/runtime/v1/attack/basic/", "required_runtime_frames": 12, "renderer": "BlazingFrameRuntime" },
+        "recoil": { "resource_id": "gaara.animation.recoil", "path": "assets/characters/gaara/sprites/runtime/v1/recoil/", "required_runtime_frames": 8, "renderer": "BlazingFrameRuntime" }
       },
       "vfx": {
         "sand_blast": { "resource_id": "uploaded-v3.sand.blast", "path": "assets/vfx/uploaded-v3/sand/blast/", "required_runtime_frames": 12, "renderer": "animateGaaraSandBlast" },
@@ -638,10 +638,10 @@
     },
     "naruto_solar": {
       "animations": {
-        "idle": { "resource_id": "naruto_solar.animation.idle", "path": "assets/characters/naruto_solar/sprites/runtime/v1/idle/", "required_runtime_frames": 6, "renderer": "BlazingFrameRuntime" },
-        "run": { "resource_id": "naruto_solar.animation.run", "path": "assets/characters/naruto_solar/sprites/runtime/v1/run/", "required_runtime_frames": 6, "renderer": "BlazingFrameRuntime" },
-        "basic_attack": { "resource_id": "naruto_solar.animation.basic_attack", "path": "assets/characters/naruto_solar/sprites/runtime/v1/attack/basic/", "required_runtime_frames": 6, "renderer": "BlazingFrameRuntime" },
-        "recoil": { "resource_id": "naruto_solar.animation.recoil", "path": "assets/characters/naruto_solar/sprites/runtime/v1/recoil/", "required_runtime_frames": 6, "renderer": "BlazingFrameRuntime" }
+        "idle": { "resource_id": "naruto_solar.animation.idle", "path": "assets/characters/naruto_solar/sprites/runtime/v1/idle/", "required_runtime_frames": 8, "renderer": "BlazingFrameRuntime" },
+        "run": { "resource_id": "naruto_solar.animation.run", "path": "assets/characters/naruto_solar/sprites/runtime/v1/run/", "required_runtime_frames": 10, "renderer": "BlazingFrameRuntime" },
+        "basic_attack": { "resource_id": "naruto_solar.animation.basic_attack", "path": "assets/characters/naruto_solar/sprites/runtime/v1/attack/basic/", "required_runtime_frames": 12, "renderer": "BlazingFrameRuntime" },
+        "recoil": { "resource_id": "naruto_solar.animation.recoil", "path": "assets/characters/naruto_solar/sprites/runtime/v1/recoil/", "required_runtime_frames": 8, "renderer": "BlazingFrameRuntime" }
       },
       "vfx": {
         "sun_rasengan_projectile": { "resource_id": "uploaded-v3.rasengan.projectile", "path": "assets/vfx/uploaded-v3/rasengan/projectile/", "required_runtime_frames": 6, "renderer": "animateSolarNarutoRasengan" },
