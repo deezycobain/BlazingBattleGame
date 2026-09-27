@@ -38,8 +38,7 @@ const LEGACY_SHINOBI_BODY_RUNTIME=(()=>{
   if(!names.has(name))return null;
   let unit=null;try{unit=canonicalUnit(name)}catch(_){return null}
   const rels=unit?.animation_standard?.animations?.[kind]?.frames;
-  const expectedFrames=kind==='run'&&name==='Obito'?12:6;
-  if(!Array.isArray(rels)||rels.length!==expectedFrames)return null;
+  if(!Array.isArray(rels)||rels.length<1)return null;
   const key=name+':'+kind;
   if(!cache.has(key)){
    const cacheTag='?legacySpriteAudit=v4';

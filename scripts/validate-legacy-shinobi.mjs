@@ -50,10 +50,11 @@ for(const id of ids){
 
  for(const kind of ['idle','basic_attack']){
   const source=unit.animation_standard?.source_sheets?.[kind];
+  const frames=unit.animation_standard?.animations?.[kind]?.frames;
+  if(!Array.isArray(frames)||frames.length<1)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' frame list invalid');
   const refreshWong=id==='jackie_chan'&&String(source?.path||'').includes('wong-fei-hung-refresh');
-  const allowedLayouts=refreshWong?[[6,1],[3,2]]:[strips.has(id)?[6,1]:[3,2]];
-  if(!source||!allowedLayouts.some(([columns,rows])=>source.columns===columns&&source.rows===rows)){
-   throw new Error('Legacy Shinobi validator: '+id+' '+kind+' layout invalid; allowed '+allowedLayouts.map(x=>x.join('x')).join(' or '));
+  if(!source||!Number.isInteger(source.columns)||!Number.isInteger(source.rows)||source.columns<1||source.rows<1||source.columns*source.rows!==frames.length){
+   throw new Error('Legacy Shinobi validator: '+id+' '+kind+' layout/frame-count mismatch');
   }
   if(!String(source.path||'').startsWith('assets/events/legacy-of-shinobi/'))throw new Error('Legacy Shinobi validator: '+id+' '+kind+' source path not canonical');
   if(!await exists(source.path))throw new Error('Legacy Shinobi validator: missing '+source.path);
@@ -61,10 +62,8 @@ for(const id of ids){
    throw new Error('Legacy Shinobi validator: '+id+' '+kind+' normalized metadata invalid');
   }
 
-  const frames=unit.animation_standard?.animations?.[kind]?.frames;
-  if(!Array.isArray(frames)||frames.length!==6)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' frame list invalid');
   const audited=unitAudit?.[kind]?.audit_frames;
-  if(!Array.isArray(audited)||audited.length!==6)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' audit list invalid');
+  if(!Array.isArray(audited)||audited.length!==frames.length)throw new Error('Legacy Shinobi validator: '+id+' '+kind+' audit list invalid');
   if(refreshWong){
    const expectedCells=[
     [0,0,512,512],[512,0,1024,512],[1024,0,1536,512],

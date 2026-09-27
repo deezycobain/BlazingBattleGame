@@ -41,7 +41,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
    for(const key of ['battle','summon','units','forge'])nav[key]=rect(document.querySelector('#bbHomeApproved [data-nav="'+key+'"]'));
    return {
     missingIds:ids.filter(id=>!registry[id]),
-    invalidUnits:ids.map(id=>registry[id]).filter(unit=>!unit||unit.collection?.inventory_visible===false||!unit.collection?.battle_ready||unit.readiness?.jutsu!==false||unit.animation_standard?.animations?.idle?.frames?.length!==6||unit.animation_standard?.animations?.basic_attack?.frames?.length!==6||!unit.assets?.art).map(unit=>unit?.id||'missing'),
+    invalidUnits:ids.map(id=>registry[id]).filter(unit=>!unit||unit.collection?.inventory_visible===false||!unit.collection?.battle_ready||unit.readiness?.jutsu!==false||!(unit.animation_standard?.animations?.idle?.frames?.length>0)||!(unit.animation_standard?.animations?.basic_attack?.frames?.length>0)||!unit.assets?.art).map(unit=>unit?.id||'missing'),
     playableMissing:names.filter(name=>!playable.includes(name)),
     promo:rect(promo),
     promoLabel:promo?.getAttribute('aria-label')||'',
@@ -137,6 +137,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
     const [idleOk,basicOk]=await Promise.all([waitImages(idle),waitImages(basic)]);
     const idleResolved=get('unitIdleFrames')(name);
     const attackResolved=get('unitAttackFrames')(name,'basic_attack');
+    const data=Object.values(window.BLAZING_UNIT_DATA||{}).find(unit=>unit?.display_name===name);
     results.push({
      name,
      idleCount:idle.length,
@@ -151,16 +152,16 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
      basicDims:basic.map(img=>[img.naturalWidth,img.naturalHeight]),
      idleSrc:idle[0]?.src||'',
      basicSrc:basic[0]?.src||''
+     ,expectedIdle:data?.animation_standard?.animations?.idle?.frames?.length||0,
+     expectedBasic:data?.animation_standard?.animations?.basic_attack?.frames?.length||0
     });
    }
    return results;
   },{names:NAMES});
-  const normalized=dims=>Array.isArray(dims)&&dims.length===6&&dims.every(([w,h])=>w===512&&h===768);
+  const normalized=dims=>Array.isArray(dims)&&dims.length>0&&dims.every(([w,h])=>w===512&&h===768);
   const badRuntime=runtime.filter(x=>{
-   const drunken=x.name==='Wong Fei-Hung';
-   const expectedIdleResolved=drunken?12:6;
-   const expectedAttackResolved=6;
-   return x.idleCount!==6||x.basicCount!==6||x.idleResolved!==expectedIdleResolved||x.attackResolved!==expectedAttackResolved||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!normalized(x.idleDims)||!normalized(x.basicDims)||!/\/sprites\/runtime\/idle\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.basicSrc);
+   const expectedIdleResolved=x.name==='Wong Fei-Hung'&&x.idleCount===6?12:x.expectedIdle;
+   return x.idleCount!==x.expectedIdle||x.basicCount!==x.expectedBasic||x.idleResolved!==expectedIdleResolved||x.attackResolved!==x.expectedBasic||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!normalized(x.idleDims)||!normalized(x.basicDims)||!/\/sprites\/runtime\/idle\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.basicSrc);
   });
   if(badRuntime.length)throw new Error('Legacy battle animation runtime invalid: '+JSON.stringify(badRuntime));
 

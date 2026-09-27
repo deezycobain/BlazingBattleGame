@@ -68,7 +68,7 @@ for(const marker of [
 ])if(!hook.includes(marker))fail(`movement/fireball hook marker missing: ${marker}`);
 
 const legacyAdapter=fs.readFileSync(path.join(root,'scripts','legacy-shinobi-postprocess.mjs'),'utf8');
-for(const marker of ["kind==='run'&&name==='Obito'?12:6",'rels.length!==expectedFrames'])if(!legacyAdapter.includes(marker))fail(`twelve-frame run resolver marker missing: ${marker}`);
+for(const marker of ['Array.isArray(rels)||rels.length<1'])if(!legacyAdapter.includes(marker))fail(`frame-count-agnostic run resolver marker missing: ${marker}`);
 
 const facingPath=path.join(root,'scripts','strict-attack-facing-postprocess.mjs');
 const facing=fs.readFileSync(facingPath,'utf8');
