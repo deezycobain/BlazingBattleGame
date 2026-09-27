@@ -135,14 +135,20 @@
       },
       "run": {
         "frames": [
-          "sprites/runtime/run/frame_01.png",
-          "sprites/runtime/run/frame_02.png",
-          "sprites/runtime/run/frame_03.png",
-          "sprites/runtime/run/frame_04.png",
-          "sprites/runtime/run/frame_05.png",
-          "sprites/runtime/run/frame_06.png"
-        ],
-        "frame_ms": 100,
+        "sprites/runtime/run/frame_01.png",
+        "sprites/runtime/run/frame_02.png",
+        "sprites/runtime/run/frame_03.png",
+        "sprites/runtime/run/frame_04.png",
+        "sprites/runtime/run/frame_05.png",
+        "sprites/runtime/run/frame_06.png",
+        "sprites/runtime/run/frame_07.png",
+        "sprites/runtime/run/frame_08.png",
+        "sprites/runtime/run/frame_09.png",
+        "sprites/runtime/run/frame_10.png",
+        "sprites/runtime/run/frame_11.png",
+        "sprites/runtime/run/frame_12.png"
+      ],
+      "frame_ms": 85,
         "loop": true,
         "events": []
       }

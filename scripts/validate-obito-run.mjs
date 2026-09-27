@@ -8,8 +8,8 @@ const fail=message=>{throw new Error(`Obito run validation FAIL: ${message}`)};
 
 const run=unit?.animation_standard?.animations?.run;
 if(!run)fail('animation_standard.animations.run missing');
-if(!Array.isArray(run.frames)||run.frames.length!==6)fail(`expected six run frames, got ${run?.frames?.length??0}`);
-if(run.frame_ms!==100)fail(`expected 100ms run cadence, got ${run.frame_ms}`);
+if(!Array.isArray(run.frames)||run.frames.length!==12)fail(`expected twelve run frames, got ${run?.frames?.length??0}`);
+if(run.frame_ms!==85)fail(`expected 85ms run cadence, got ${run.frame_ms}`);
 if(run.loop!==true)fail('run animation must loop while the unit is held');
 if(unit?.readiness?.run!==true)fail('readiness.run must be true');
 if(unit?.assets?.sprites?.run!=='sprites/runtime/run/')fail('assets.sprites.run must point at sprites/runtime/run/');
@@ -25,7 +25,7 @@ if(basic?.presentation?.runtime_driver!=='animateObitoFireball')fail(`Great Fire
 if(basic?.presentation?.projectile_element!=='Fire')fail('Great Fireball projectile element must be Fire');
 if(unit?.combat?.basic_shape?.type!=='circle'||unit?.combat?.basic_shape?.r!==96)fail('Great Fireball must preserve the existing 96-radius Basic range');
 
-const expected=Array.from({length:6},(_,index)=>`sprites/runtime/run/frame_${String(index+1).padStart(2,'0')}.png`);
+const expected=Array.from({length:12},(_,index)=>`sprites/runtime/run/frame_${String(index+1).padStart(2,'0')}.png`);
 for(let i=0;i<expected.length;i++){
   if(run.frames[i]!==expected[i])fail(`run frame ${i+1} path mismatch: ${run.frames[i]}`);
   const full=path.join(root,'assets','characters','obito',expected[i]);
@@ -44,8 +44,8 @@ for(const marker of [
   "S?.drag&&S?.dragUnitName==='Obito'",
   'if(legacyShinobiRun?.length)return legacyShinobiRun;',
   "const obitoRunning=Boolean(name==='Obito'&&!isEnemy&&S?.drag&&S?.dragUnitName==='Obito');",
-  'const stride=performance.now()/660',
-  'const idleMs=obitoRunning?110:',
+  'const stride=performance.now()/1020',
+  'const idleMs=obitoRunning?85:',
   'targetScale:1.08,targetLift:6',
   'S.dragVisual={scale:1.08-(.08*t)+bounce',
   'const heldUnit=front(p);',
@@ -74,4 +74,4 @@ for(const marker of [
   'return S.dragFacing<0?Math.PI:0;'
 ])if(!facing.includes(marker))fail(`drag-facing marker missing: ${marker}`);
 
-console.log('Obito validation PASS: six 512x768 run frames, Fire affinity, persistent held-unit run/ghost/cancel, and dedicated Great Fireball presentation are enforced without changing Basic combat values.');
+console.log('Obito validation PASS: twelve 512x768 run frames, Fire affinity, persistent held-unit run/ghost/cancel, and dedicated Great Fireball presentation are enforced without changing Basic combat values.');
