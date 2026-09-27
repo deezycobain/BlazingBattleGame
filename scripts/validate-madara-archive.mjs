@@ -26,5 +26,5 @@ if(orbPng.readUInt32BE(16)!==96||orbPng.readUInt32BE(20)!==96)fail('source orb m
 if(!manifest.units?.madara?.animations?.run||!manifest.units?.madara?.vfx?.truth_seeking_orb)fail('Madara resources missing from asset manifest');
 if(map.abilities?.truth_seeking_orb?.gameplay_actions?.[0]?.action_id!=='damage_target')fail('Madara Jutsu damage action missing');
 const post=fs.readFileSync(path.join(root,'scripts/madara-archive-postprocess.mjs'),'utf8');
-for(const marker of ['MADARA_ARCHIVE_BODY_RUNTIME','animateMadaraTruthSeekingOrb','animateMadaraTruthSeekingStaff','madaraTruthSeekingOrb','madaraTruthSeekingStaff',"actor.name==='Madara'", "'madara','anubis'"])if(!post.includes(marker))fail(`postprocess marker missing: ${marker}`);
-console.log('Madara archive validation PASS: Six Paths pilot has a persistent idle loop, a visible source orb, and full Basic/Jutsu routing.');
+for(const marker of ['MADARA_ARCHIVE_BODY_RUNTIME',"const stable=(kind,index=0)=>","idle:()=>stable('idle',0)","basic:()=>stable('basic_attack',3)",'animateMadaraTruthSeekingOrb','animateMadaraTruthSeekingStaff','madaraTruthSeekingOrb','madaraTruthSeekingStaff',"actor.name==='Madara'", "'madara','anubis'"])if(!post.includes(marker))fail(`postprocess marker missing: ${marker}`);
+console.log('Madara archive validation PASS: Six Paths pilot uses clean stable archive poses, a visible source orb, and full Basic/Jutsu routing.');

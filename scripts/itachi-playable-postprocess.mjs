@@ -196,12 +196,15 @@ function animateItachiCrowStrike(unitName,from,enemy,onImpact,onDone,attackKind=
  const token=ACTIVE_ACTION_TOKEN;
  const state=ensureAnimState();if(!state.attackPose)state.attackPose={};
  const releaseDelay=360,flightDuration=560,impactHold=280,totalDuration=releaseDelay+flightDuration+impactHold;
- state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:totalDuration};
+ // Use only the clean cast pose. The later archive cells include a crow outside its
+ // sprite bounds; the dedicated crow VFX takes over at release instead.
+ state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay};
  window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);
  setTimeout(()=>{
   if(!actionTokenAlive(token))return;
   const fx={kind:'itachiCrowStrike',from:{x:from.x,y:from.y-26},to:{x:enemy.x,y:enemy.y-18},start:performance.now(),duration:flightDuration+impactHold,flightDuration,impactHold,life:1};
   S.floaters.push(fx);
+  const castState=ensureAnimState();if(castState.attackPose)delete castState.attackPose[unitName];
   setTimeout(()=>{
    if(!actionTokenAlive(token))return;
    try{onImpact&&onImpact()}catch(err){console.error('Itachi Crow Chakra Strike impact failed:',err);return recoverAction('Itachi basic impact')}

@@ -47,6 +47,8 @@ for(const marker of [
   'S.dragGhost={name:p.name||null,x:p.x,y:p.y};',
   'const held=S.dragUnitRef||p;',
   '// OBITO PICKUP ORIGIN GHOST',
+  'const ghostBodyScale=(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS*ghostDepth;',
+  'ctx.ellipse(0,12,Math.max(11,ghostW*.38),3.1,0,0,Math.PI*2);',
   'const returnRadius=28;',
   "S.log='Movement cancelled'",
   'S.dragGhost=null;S.dragUnitName=null;S.dragUnitRef=null;',

@@ -35,7 +35,13 @@ const MADARA_ARCHIVE_BODY_RUNTIME=(()=>{
   if(!cache.has(kind))cache.set(kind,makeImageFrames(rels.map(rel=>'assets/characters/'+unit.id+'/'+rel+'?madaraArchivePilot=v1')));
   return cache.get(kind);
  };
- return Object.freeze({idle:()=>resolve('idle'),run:()=>resolve('run'),basic:()=>resolve('basic_attack')});
+ // The archive cells are preserved as source material, but they are pose sheets rather
+ // than contiguous animation strips. Holding one clean pose prevents visible frame jumps.
+ const stable=(kind,index=0)=>{
+  const frames=resolve(kind),frame=frames?.[index]||frames?.find(image=>image);
+  return frame?[frame]:null;
+ };
+ return Object.freeze({idle:()=>stable('idle',0),run:()=>stable('idle',0),basic:()=>stable('basic_attack',3)});
 })();
 const MADARA_TRUTH_SEEKING_ORB=new Image();
 MADARA_TRUTH_SEEKING_ORB.src='assets/characters/madara/vfx/jutsu/truth_seeking_orb/orb.png';
