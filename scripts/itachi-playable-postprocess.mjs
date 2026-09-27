@@ -106,7 +106,10 @@ const ITACHI_IDLE_FRAMES=makeImageFrames([
  'assets/characters/itachi/sprites/runtime/idle/frame_01.png','assets/characters/itachi/sprites/runtime/idle/frame_02.png','assets/characters/itachi/sprites/runtime/idle/frame_03.png','assets/characters/itachi/sprites/runtime/idle/frame_04.png','assets/characters/itachi/sprites/runtime/idle/frame_05.png','assets/characters/itachi/sprites/runtime/idle/frame_06.png'
 ]);
 const ITACHI_BASIC_FRAMES=makeImageFrames([
- 'assets/characters/itachi/sprites/runtime/attack/basic/frame_01.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_02.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_03.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_04.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_05.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_06.png'
+ 'assets/characters/itachi/sprites/runtime/attack/basic/frame_01.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_02.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_03.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_04.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_05.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_06.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_07.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_08.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_09.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_10.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_11.png','assets/characters/itachi/sprites/runtime/attack/basic/frame_12.png'
+]);
+const ITACHI_CROW_ATTACK_VFX_FRAMES=makeImageFrames([
+ 'assets/characters/itachi/vfx/basic/crows/runtime/frame_01.png','assets/characters/itachi/vfx/basic/crows/runtime/frame_02.png','assets/characters/itachi/vfx/basic/crows/runtime/frame_03.png','assets/characters/itachi/vfx/basic/crows/runtime/frame_04.png','assets/characters/itachi/vfx/basic/crows/runtime/frame_05.png','assets/characters/itachi/vfx/basic/crows/runtime/frame_06.png','assets/characters/itachi/vfx/basic/crows/runtime/frame_07.png','assets/characters/itachi/vfx/basic/crows/runtime/frame_08.png','assets/characters/itachi/vfx/basic/crows/runtime/frame_09.png','assets/characters/itachi/vfx/basic/crows/runtime/frame_10.png','assets/characters/itachi/vfx/basic/crows/runtime/frame_11.png','assets/characters/itachi/vfx/basic/crows/runtime/frame_12.png'
 ]);
 const ITACHI_TSUKUYOMI_FRAMES=makeImageFrames([
  'assets/characters/itachi/sprites/runtime/jutsu/tsukuyomi/cast/frame_01.png','assets/characters/itachi/sprites/runtime/jutsu/tsukuyomi/cast/frame_02.png','assets/characters/itachi/sprites/runtime/jutsu/tsukuyomi/cast/frame_03.png','assets/characters/itachi/sprites/runtime/jutsu/tsukuyomi/cast/frame_04.png','assets/characters/itachi/sprites/runtime/jutsu/tsukuyomi/cast/frame_05.png','assets/characters/itachi/sprites/runtime/jutsu/tsukuyomi/cast/frame_06.png'
@@ -179,7 +182,6 @@ const ITACHI_CROW_BURST=new Image();ITACHI_CROW_BURST.src='assets/characters/ita
 const ITACHI_CROW_SWARM=new Image();ITACHI_CROW_SWARM.src='assets/characters/itachi/vfx/basic/crows/crow_swarm.png';
 const ITACHI_CROW_VORTEX=new Image();ITACHI_CROW_VORTEX.src='assets/characters/itachi/vfx/basic/crows/crow_vortex_ring.png';
 const ITACHI_CROW_FEATHERSTORM=new Image();ITACHI_CROW_FEATHERSTORM.src='assets/characters/itachi/vfx/basic/crows/crow_featherstorm.png';
-const ITACHI_CROW_FLOCK_SHEET=new Image();ITACHI_CROW_FLOCK_SHEET.src='assets/characters/itachi/vfx/basic/crows/crow_flock_lightning_sheet.png';
 `;
 const idleAnchor='function unitIdleFrames(name){';
 const idleAt=html.indexOf(idleAnchor);
@@ -195,16 +197,15 @@ const itachiAnimations=String.raw`
 function animateItachiCrowStrike(unitName,from,enemy,onImpact,onDone,attackKind='basic_attack'){
  const token=ACTIVE_ACTION_TOKEN;
  const state=ensureAnimState();if(!state.attackPose)state.attackPose={};
- const releaseDelay=360,flightDuration=560,impactHold=280,totalDuration=releaseDelay+flightDuration+impactHold;
- // Use only the clean cast pose. The later archive cells include a crow outside its
- // sprite bounds; the dedicated crow VFX takes over at release instead.
- state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay};
+ const releaseDelay=340,bodyDuration=1020,flightDuration=680,impactHold=340,totalDuration=releaseDelay+flightDuration+impactHold;
+ // The authored body sheet plays all twelve poses, including its crow release and recovery.
+ // A separate authored 12-frame VFX sheet continues from that release toward the target.
+ state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:bodyDuration,frameMs:85};
  window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);
  setTimeout(()=>{
   if(!actionTokenAlive(token))return;
   const fx={kind:'itachiCrowStrike',from:{x:from.x,y:from.y-26},to:{x:enemy.x,y:enemy.y-18},start:performance.now(),duration:flightDuration+impactHold,flightDuration,impactHold,life:1};
   S.floaters.push(fx);
-  const castState=ensureAnimState();if(castState.attackPose)delete castState.attackPose[unitName];
   setTimeout(()=>{
    if(!actionTokenAlive(token))return;
    try{onImpact&&onImpact()}catch(err){console.error('Itachi Crow Chakra Strike impact failed:',err);return recoverAction('Itachi basic impact')}
@@ -278,16 +279,17 @@ const itachiVfx=String.raw`}else if(f.kind==='itachiCrowStrike'){
       const travelT=clamp(age/flight,0,1),impactT=clamp((age-flight)/impact,0,1),ease=1-Math.pow(1-travelT,2.12);
       const x=f.from.x+(f.to.x-f.from.x)*ease,y=f.from.y+(f.to.y-f.from.y)*ease-8*Math.sin(Math.PI*travelT);
       const dir=f.to.x>=f.from.x?1:-1,tilt=clamp(Math.atan2(f.to.y-f.from.y,Math.max(1,Math.abs(f.to.x-f.from.x))),-.16,.16);
-      const drawItachiCrowSheetFrame=(frame,cx,cy,width,alpha=1)=>{
-       const img=ITACHI_CROW_FLOCK_SHEET;
+      const frames=ITACHI_CROW_ATTACK_VFX_FRAMES,frameT=clamp(age/Math.max(1,f.duration||flight+impact),0,1);
+      const drawItachiCrowFrame=(frame,cx,cy,width,alpha=1)=>{
+       const img=frames[Math.max(0,Math.min(frames.length-1,frame|0))];
        if(!img?.complete||!img.naturalWidth||!img.naturalHeight)return false;
-       const cols=4,rows=2,sw=img.naturalWidth/cols,sh=img.naturalHeight/rows,index=Math.max(0,Math.min(7,frame|0));
-       const sx=(index%cols)*sw,sy=Math.floor(index/cols)*sh,height=width*(sh/sw);
+       const height=width*(img.naturalHeight/img.naturalWidth);
        ctx.save();ctx.translate(cx,cy);ctx.rotate(tilt);ctx.scale(dir,1);ctx.globalAlpha*=alpha;
        ctx.shadowColor='rgba(176,8,38,.26)';ctx.shadowBlur=5;
-       ctx.drawImage(img,sx,sy,sw,sh,-width*.5,-height*.5,width,height);
+       ctx.drawImage(img,-width*.5,-height*.5,width,height);
        ctx.restore();return true;
       };
+      const frame=Math.min(frames.length-1,Math.floor(frameT*frames.length)),width=64+16*frameT;
       if(age<=flight){
        ctx.save();ctx.globalCompositeOperation='source-over';
        for(let i=0;i<6;i++){
@@ -295,15 +297,14 @@ const itachiVfx=String.raw`}else if(f.kind==='itachiCrowStrike'){
         const smoke=ctx.createRadialGradient(sx,sy,0,sx,sy,r);smoke.addColorStop(0,'rgba(150,8,32,'+alpha+')');smoke.addColorStop(.52,'rgba(88,0,20,'+(alpha*.66)+')');smoke.addColorStop(1,'rgba(35,0,8,0)');ctx.fillStyle=smoke;ctx.beginPath();ctx.arc(sx,sy,r,0,Math.PI*2);ctx.fill();
        }
        ctx.restore();
-       const frame=Math.min(5,Math.floor(travelT*6)),width=74+13*travelT;
-       if(!drawItachiCrowSheetFrame(frame,x,y,width,.98)){
-        ctx.save();ctx.translate(x,y);ctx.scale(dir*.68,.68);ctx.fillStyle='rgba(5,5,9,.94)';ctx.shadowColor='rgba(190,8,38,.55)';ctx.shadowBlur=5;
+       if(!drawItachiCrowFrame(frame,x,y,width,.98)){
+        ctx.save();ctx.translate(x,y);ctx.scale(dir*.54,.54);ctx.fillStyle='rgba(5,5,9,.94)';ctx.shadowColor='rgba(190,8,38,.55)';ctx.shadowBlur=5;
         for(let i=0;i<4;i++){ctx.save();ctx.translate(-i*17,(i%2?8:-7));ctx.beginPath();ctx.moveTo(-10,1);ctx.quadraticCurveTo(-2,-10,9,-5);ctx.lineTo(15,-1);ctx.lineTo(9,2);ctx.quadraticCurveTo(-2,9,-10,3);ctx.closePath();ctx.fill();ctx.restore();}
         ctx.restore();
        }
       }else{
-       const frame=6+Math.min(1,Math.floor(impactT*2)),fade=Math.max(.18,1-impactT*.62),width=90+15*impactT;
-       drawItachiCrowSheetFrame(frame,f.to.x,f.to.y,width,fade);
+       const fade=Math.max(.18,1-impactT*.62);
+       drawItachiCrowFrame(frame,f.to.x,f.to.y,width,fade);
        ctx.save();ctx.translate(f.to.x,f.to.y);ctx.globalCompositeOperation='screen';
        const flash=ctx.createRadialGradient(0,0,0,0,0,18+18*impactT);flash.addColorStop(0,'rgba(235,36,63,'+(.20*(1-impactT))+')');flash.addColorStop(.45,'rgba(148,5,36,'+(.12*(1-impactT))+')');flash.addColorStop(1,'rgba(40,0,8,0)');ctx.fillStyle=flash;ctx.beginPath();ctx.arc(0,0,40,0,Math.PI*2);ctx.fill();ctx.restore();
       }}else if(f.kind==='itachiTsukuyomiImpact'){
@@ -351,8 +352,8 @@ replaceOne(
 for(const marker of [
   "['crimson','subzero','lebee','senku','tyler','itachi','anubis']",
   "const ACTIVE_PLAYABLE_UNITS=Object.freeze(['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi']);",
-  'ITACHI_IDLE_FRAMES','ITACHI_BASIC_FRAMES','ITACHI_TSUKUYOMI_FRAMES','ITACHI_TSUKUYOMI_OVERLAY_FRAMES','ITACHI_TSUKUYOMI_MANDALA_FRAMES','ITACHI_TSUKUYOMI_TARGET_FRAMES',
-  'crow_chakra_burst.png','crow_swarm.png','crow_vortex_ring.png','crow_featherstorm.png','crow_flock_lightning_sheet.png','ITACHI_CROW_FLOCK_SHEET','drawItachiCrowSheetFrame',
+  'ITACHI_IDLE_FRAMES','ITACHI_BASIC_FRAMES','ITACHI_CROW_ATTACK_VFX_FRAMES','ITACHI_TSUKUYOMI_FRAMES','ITACHI_TSUKUYOMI_OVERLAY_FRAMES','ITACHI_TSUKUYOMI_MANDALA_FRAMES','ITACHI_TSUKUYOMI_TARGET_FRAMES',
+  'crow_chakra_burst.png','crow_swarm.png','crow_vortex_ring.png','crow_featherstorm.png','vfx/basic/crows/runtime/frame_12.png','drawItachiCrowFrame',
   "if(name==='Itachi')return ITACHI_IDLE_FRAMES",
   "if(name==='Itachi'){if(kind==='tsukuyomi'",
   'function animateItachiCrowStrike(','function animateItachiTsukuyomi(','function ensureItachiTsukuyomiCinematic(','function startItachiTsukuyomiCinematic(',

@@ -49,8 +49,8 @@
         "runtime_driver": "animateItachiCrowStrike",
         "animation_kind": "basic_attack",
         "melee_animation_kind": "basic_attack",
-        "cast_duration_ms": 360,
-        "impact_duration_ms": 840,
+        "cast_duration_ms": 1020,
+        "impact_duration_ms": 1020,
         "screen_dim_alpha": 0
       }
     },
@@ -140,13 +140,19 @@
           "sprites/runtime/attack/basic/frame_03.png",
           "sprites/runtime/attack/basic/frame_04.png",
           "sprites/runtime/attack/basic/frame_05.png",
-          "sprites/runtime/attack/basic/frame_06.png"
+          "sprites/runtime/attack/basic/frame_06.png",
+          "sprites/runtime/attack/basic/frame_07.png",
+          "sprites/runtime/attack/basic/frame_08.png",
+          "sprites/runtime/attack/basic/frame_09.png",
+          "sprites/runtime/attack/basic/frame_10.png",
+          "sprites/runtime/attack/basic/frame_11.png",
+          "sprites/runtime/attack/basic/frame_12.png"
         ],
-        "frame_ms": 132,
+        "frame_ms": 85,
         "loop": false,
         "events": [
           {
-            "frame": 4,
+            "frame": 5,
             "event": "release_crow_chakra"
           },
           {
@@ -185,6 +191,25 @@
       }
     },
     "vfx": {
+      "basic/crow_attack": {
+        "frames": [
+          "vfx/basic/crows/runtime/frame_01.png",
+          "vfx/basic/crows/runtime/frame_02.png",
+          "vfx/basic/crows/runtime/frame_03.png",
+          "vfx/basic/crows/runtime/frame_04.png",
+          "vfx/basic/crows/runtime/frame_05.png",
+          "vfx/basic/crows/runtime/frame_06.png",
+          "vfx/basic/crows/runtime/frame_07.png",
+          "vfx/basic/crows/runtime/frame_08.png",
+          "vfx/basic/crows/runtime/frame_09.png",
+          "vfx/basic/crows/runtime/frame_10.png",
+          "vfx/basic/crows/runtime/frame_11.png",
+          "vfx/basic/crows/runtime/frame_12.png"
+        ],
+        "frame_ms": 85,
+        "loop": false,
+        "body_asset": false
+      },
       "basic/crow_burst": {
         "frames": [
           "vfx/basic/crows/crow_chakra_burst.png"

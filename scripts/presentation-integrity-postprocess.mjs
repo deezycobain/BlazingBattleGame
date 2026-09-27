@@ -14,16 +14,12 @@ if(progression.includes(forgeSource))progression=progression.replace(forgeSource
 else if(!progression.includes(forgeTarget))throw new Error('Presentation integrity: Forge clean-art resolver anchor missing');
 await fs.writeFile(progressionFile,progression);
 
-// The approved Itachi basic remains dramatic, but the authored flock is intentionally compact
-// so it reads as a target-lane strike instead of swallowing adjacent units or clipping the scene.
-const crowTravelSource='const frame=Math.min(5,Math.floor(travelT*6)),width=74+13*travelT;';
-const crowTravelTarget='const frame=Math.min(5,Math.floor(travelT*6)),width=58+10*travelT;';
-if(html.includes(crowTravelSource))html=html.replace(crowTravelSource,crowTravelTarget);
-else if(!html.includes(crowTravelTarget))throw new Error('Presentation integrity: Itachi crow travel-size anchor missing');
-const crowImpactSource='const frame=6+Math.min(1,Math.floor(impactT*2)),fade=Math.max(.18,1-impactT*.62),width=90+15*impactT;';
-const crowImpactTarget='const frame=6+Math.min(1,Math.floor(impactT*2)),fade=Math.max(.18,1-impactT*.62),width=68+10*impactT;';
-if(html.includes(crowImpactSource))html=html.replace(crowImpactSource,crowImpactTarget);
-else if(!html.includes(crowImpactTarget))throw new Error('Presentation integrity: Itachi crow impact-size anchor missing');
+// The updated 12-frame Itachi flock stays compact so it reads as a target-lane strike
+// instead of swallowing adjacent units or clipping the scene.
+const crowFrameRuntime='ITACHI_CROW_ATTACK_VFX_FRAMES';
+const crowFrameDraw='drawItachiCrowFrame';
+const crowCompactWidth='const frame=Math.min(frames.length-1,Math.floor(frameT*frames.length)),width=64+16*frameT;';
+if(!html.includes(crowFrameRuntime)||!html.includes(crowFrameDraw)||!html.includes(crowCompactWidth))throw new Error('Presentation integrity: Itachi 12-frame crow VFX anchor missing');
 const crowFallbackSource='ctx.save();ctx.translate(x,y);ctx.scale(dir*.68,.68);';
 const crowFallbackTarget='ctx.save();ctx.translate(x,y);ctx.scale(dir*.54,.54);';
 if(html.includes(crowFallbackSource))html=html.replace(crowFallbackSource,crowFallbackTarget);
@@ -51,6 +47,6 @@ if(at<0)throw new Error('Presentation integrity: closing body missing');
 const tags=specs.map(([id,src])=>`<script id="${id}" src="${src}"></script>`).join('');
 html=html.slice(0,at)+tags+html.slice(at);
 for(const [id] of specs)if((html.match(new RegExp(`id=["']${id}["']`,'g'))||[]).length!==1)throw new Error(`Presentation integrity: ${id} injection not unique`);
-for(const marker of [crowTravelTarget,crowImpactTarget,crowFallbackTarget,itachiBodyScaleStable])if(!html.includes(marker))throw new Error(`Presentation integrity: missing ${marker}`);
+for(const marker of [crowFrameRuntime,crowFrameDraw,crowCompactWidth,crowFallbackTarget,itachiBodyScaleStable])if(!html.includes(marker))throw new Error(`Presentation integrity: missing ${marker}`);
 await fs.writeFile(file,html);
 console.log('Presentation integrity PASS: Team/Forge clean art, compact Itachi crow VFX, stable Itachi body scale, iOS Road safety, and Blazing-style summon polish injected.');
