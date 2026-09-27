@@ -85,60 +85,18 @@
     {"file":"sprites/runtime/run/frame_12.png","runtime_bbox":[53,17,366,402]}
   ],
   "basic_attack": [
-    {
-      "file": "sprites/runtime/attack/basic/frame_01.png",
-      "runtime_bbox": [
-        118,
-        123,
-        312,
-        392
-      ]
-    },
-    {
-      "file": "sprites/runtime/attack/basic/frame_02.png",
-      "runtime_bbox": [
-        109,
-        133,
-        312,
-        392
-      ]
-    },
-    {
-      "file": "sprites/runtime/attack/basic/frame_03.png",
-      "runtime_bbox": [
-        109,
-        139,
-        312,
-        392
-      ]
-    },
-    {
-      "file": "sprites/runtime/attack/basic/frame_04.png",
-      "runtime_bbox": [
-        109,
-        112,
-        312,
-        392
-      ]
-    },
-    {
-      "file": "sprites/runtime/attack/basic/frame_05.png",
-      "runtime_bbox": [
-        109,
-        140,
-        312,
-        392
-      ]
-    },
-    {
-      "file": "sprites/runtime/attack/basic/frame_06.png",
-      "runtime_bbox": [
-        109,
-        126,
-        304,
-        392
-      ]
-    }
+    {"file":"sprites/runtime/attack/basic/frame_01.png","runtime_bbox":[112,32,307,402]},
+    {"file":"sprites/runtime/attack/basic/frame_02.png","runtime_bbox":[74,98,345,402]},
+    {"file":"sprites/runtime/attack/basic/frame_03.png","runtime_bbox":[73,77,347,402]},
+    {"file":"sprites/runtime/attack/basic/frame_04.png","runtime_bbox":[24,90,395,402]},
+    {"file":"sprites/runtime/attack/basic/frame_05.png","runtime_bbox":[16,97,404,402]},
+    {"file":"sprites/runtime/attack/basic/frame_06.png","runtime_bbox":[60,47,359,402]},
+    {"file":"sprites/runtime/attack/basic/frame_07.png","runtime_bbox":[75,110,344,402]},
+    {"file":"sprites/runtime/attack/basic/frame_08.png","runtime_bbox":[66,116,354,402]},
+    {"file":"sprites/runtime/attack/basic/frame_09.png","runtime_bbox":[76,97,343,402]},
+    {"file":"sprites/runtime/attack/basic/frame_10.png","runtime_bbox":[89,55,330,402]},
+    {"file":"sprites/runtime/attack/basic/frame_11.png","runtime_bbox":[109,45,311,402]},
+    {"file":"sprites/runtime/attack/basic/frame_12.png","runtime_bbox":[119,50,301,402]}
   ],
   "tsukuyomi_cast": [
     {
