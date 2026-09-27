@@ -65,8 +65,19 @@ const BattleUi=await loadBrowserModule('runtime/rendering/battle-ui-renderer.js'
 }
 {
   const ctx=fakeCtx();
-  Battlefield.drawMoveReturnCue(ctx,{origin:{x:50,y:60},distance:0,hintRadius:50,cancelRadius:15});
+  Battlefield.drawMoveReturnCue(ctx,{origin:{x:50,y:60},current:{x:124,y:108},distance:88,hintRadius:50,cancelRadius:15,now:1000});
+  assert(ctx.calls.some(c=>c[0]==='lineTo'),'move preview no longer draws a path to its destination');
+  assert(ctx.calls.some(c=>c[0]==='ellipse'),'move preview no longer renders its destination reticle');
+}
+{
+  const ctx=fakeCtx();
+  Battlefield.drawMoveReturnCue(ctx,{origin:{x:50,y:60},current:{x:50,y:60},distance:0,hintRadius:50,cancelRadius:15});
   assert(ctx.calls.some(c=>c[0]==='arc'),'cancel-ready move cue no longer renders return glyph');
+}
+{
+  const ctx=fakeCtx();
+  Battlefield.drawTargetLock(ctx,{x:120,y:180,radius:19,color:'#fff',label:'LOCK',now:1000});
+  assert(ctx.calls.some(c=>c[0]==='arc')&&ctx.calls.some(c=>c[0]==='fillText'&&c[1]==='LOCK'),'target lock bracket treatment missing');
 }
 {
   const ctx=fakeCtx();

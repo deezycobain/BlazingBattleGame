@@ -4529,7 +4529,7 @@ function drawPlayerResources(p,u,linkState={linked:false,count:0},active=false,p
 function drawMoveReturnCue(){
  if(!S.drag||!S.dragOrigin||S.ready?.kind!=='pair')return;
  const p=S.ready.ref;
- return window.BlazingBattlefieldRenderer.drawMoveReturnCue(ctx,{origin:S.dragOrigin,distance:d(p,S.dragOrigin),hintRadius:MOVE_RETURN_HINT_RADIUS,cancelRadius:MOVE_CANCEL_RADIUS});
+ return window.BlazingBattlefieldRenderer.drawMoveReturnCue(ctx,{origin:S.dragOrigin,current:p,distance:d(p,S.dragOrigin),hintRadius:MOVE_RETURN_HINT_RADIUS,cancelRadius:MOVE_CANCEL_RADIUS});
 }
 
 
@@ -4666,6 +4666,7 @@ function render(){
    const proxy=activePlayer?attackProxy(activePlayer):null;
    const supportJutsu=activePlayer&&S.action==='jutsu'&&isAllySupportJutsu(activePlayer);
    const liveHit=showPlayer&&activePair&&!supportJutsu&&hits(activePair,proxy,e);
+   let targetLock=null;
 
    // Target feedback is part of the enemy's world layer.
    if(liveHit){
@@ -4676,6 +4677,8 @@ function render(){
      const targetColor=!jutsu
        ? (comboLinked?'#39ff88':'#ffffff')
        : (isUltimateAction(activePlayer)?'#ff3548':'#45d7ff');
+
+     targetLock={color:targetColor,label:comboLinked?'LINK':'LOCK'};
 
      // Bubble feedback is isolated so it can never mask the enemy sprite.
      ctx.save();
@@ -4708,6 +4711,7 @@ function render(){
      null,(e.spriteKey||e.name),true,facingFlip(bodyFacingRotation(e,pos,true),(e.spriteKey||e.name)),(e.sizeScale||1)
    );
    ctx.restore();
+   if(targetLock)window.BlazingBattlefieldRenderer.drawTargetLock?.(ctx,{x:pos.x,y:pos.y,radius:e.r||19,...targetLock});
  });
 
  // HUD PASS — stays readable above the depth-sorted bodies.

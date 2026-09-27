@@ -242,10 +242,32 @@
     ctx.restore();
   }
 
-  function drawMoveReturnCue(ctx,{origin,distance,hintRadius,cancelRadius}){
+  function drawMoveReturnCue(ctx,{origin,current=null,distance,hintRadius,cancelRadius,now=performance.now()}){
     const hint=distance<=hintRadius;
     const cancelReady=distance<=cancelRadius;
     const proximity=1-clamp(distance/hintRadius,0,1);
+    const hasCurrent=Number.isFinite(current?.x)&&Number.isFinite(current?.y);
+    if(hasCurrent&&distance>2){
+      const dx=current.x-origin.x,dy=current.y-origin.y;
+      const steps=Math.max(2,Math.min(12,Math.floor(distance/13)));
+      ctx.save();
+      ctx.lineCap='round';ctx.lineWidth=1.45;
+      ctx.strokeStyle='rgba(197,238,255,.72)';ctx.shadowColor='rgba(61,196,238,.62)';ctx.shadowBlur=5;
+      ctx.setLineDash?.([2.5,5]);ctx.lineDashOffset=-(now/55)%7;
+      ctx.beginPath();ctx.moveTo(origin.x,origin.y+14);ctx.lineTo(current.x,current.y+14);ctx.stroke();
+      ctx.setLineDash?.([]);
+      for(let i=1;i<=steps;i++){
+        const t=i/(steps+1),x=origin.x+dx*t,y=origin.y+dy*t+14;
+        ctx.globalAlpha=.26+.45*t;ctx.beginPath();ctx.arc(x,y,1.05,0,Math.PI*2);ctx.fillStyle='#d8f7ff';ctx.fill();
+      }
+      ctx.restore();
+      ctx.save();ctx.translate(current.x,current.y+16);
+      const pulse=1+.08*Math.sin(now/130);
+      ctx.scale(pulse,pulse);ctx.strokeStyle='rgba(133,230,255,.96)';ctx.shadowColor='rgba(47,197,242,.72)';ctx.shadowBlur=8;ctx.lineWidth=1.15;
+      ctx.beginPath();ctx.ellipse(0,0,12,4.3,0,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-15,0);ctx.lineTo(-8,0);ctx.moveTo(8,0);ctx.lineTo(15,0);ctx.stroke();
+      ctx.restore();
+    }
     ctx.save();ctx.translate(origin.x,origin.y+18);
     const alpha=.045+proximity*.11+(cancelReady?.10:0);
     ctx.fillStyle=`rgba(255,255,255,${alpha})`;
@@ -287,12 +309,29 @@
     ctx.restore();
   }
 
+  function drawTargetLock(ctx,{x,y,radius=19,color='#ffe59a',now=performance.now(),label='LOCK'}){
+    const r=Math.max(22,radius+13),spin=now/780;
+    ctx.save();ctx.translate(x,y-2);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=8;ctx.lineWidth=1.55;
+    ctx.globalAlpha=.9;
+    ctx.beginPath();ctx.arc(0,0,r,-spin,-spin+Math.PI*.72);ctx.stroke();
+    ctx.beginPath();ctx.arc(0,0,r,Math.PI-spin,Math.PI-spin+Math.PI*.72);ctx.stroke();
+    const corner=6.5,offset=r*.73;
+    for(const [sx,sy] of [[-1,-1],[1,-1],[-1,1],[1,1]]){
+      const cx=sx*offset,cy=sy*offset;
+      ctx.beginPath();ctx.moveTo(cx,cy+sy*corner);ctx.lineTo(cx,cy);ctx.lineTo(cx+sx*corner,cy);ctx.stroke();
+    }
+    ctx.globalAlpha=.84;ctx.shadowBlur=3;ctx.font='700 6px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(label,0,-r-7);
+    ctx.restore();
+  }
+
   window.BlazingBattlefieldRenderer=Object.freeze({
     drawField,
     drawShape,
     drawOverheadLinkIcon,
     drawPlayerResources,
     drawMoveReturnCue,
+    drawTargetLock,
     drawVictoryOverlay
   });
 })();
