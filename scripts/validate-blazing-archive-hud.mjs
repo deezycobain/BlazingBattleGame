@@ -13,6 +13,9 @@ const renderer=await read('runtime/rendering/blazing-archive-hud.js');
 for(const marker of ['BlazingArchiveBattleHud','drawUnitResources','drawEnemyHealth','drawStatusMarkers','statusEffects','status-medallion.png','hp-gauge-fill.png','chakra-active.png']){
   if(!renderer.includes(marker))fail(`runtime HUD marker missing: ${marker}`);
 }
+for(const marker of ['y:args.y+20,ratio:hpRatio,width:34','drawGauge(ctx,{x,y:y+20,ratio,width:34})']){
+  if(!renderer.includes(marker))fail(`compact feet-level HUD marker missing: ${marker}`);
+}
 if(renderer.includes('/Volumes/'))fail('runtime must not reference the local archive volume');
 const field=await read('runtime/rendering/battlefield-renderer.js');
 if(!field.includes('BlazingArchiveBattleHud?.drawUnitResources'))fail('shared player HUD renderer is not routed through the archive skin');

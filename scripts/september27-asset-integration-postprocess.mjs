@@ -110,7 +110,7 @@ if(html.includes(cadenceSource))html=html.replace(cadenceSource,cadenceTarget);
 else if(!html.includes('const septemberRunning=SEPTEMBER27_BODY_RUNTIME'))fail('run cadence anchor missing');
 
 const scaleSource="const bbUnitPresentationScale=name==='Itachi'?1.28:1;const bbRosterFootprintNormalization=name==='Itachi'?.835:1.113;ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation*bbUnitPresentationScale*bbRosterFootprintNormalization,scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation*bbUnitPresentationScale*bbRosterFootprintNormalization);ctx.translate(0,5);";
-const scaleTarget="const bbUnitPresentationScale=name==='Itachi'?1.28:name==='Scorpion'?1.42:1;const bbSeptember27Scale=name==='Egyptian Gaara'?1.10:1;const bbRosterFootprintNormalization=name==='Itachi'?.835:1.113;ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation*bbUnitPresentationScale*bbSeptember27Scale*bbRosterFootprintNormalization,scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation*bbUnitPresentationScale*bbSeptember27Scale*bbRosterFootprintNormalization);ctx.translate(0,5);";
+const scaleTarget="const bbUnitPresentationScale=name==='Itachi'?1.28:name==='Scorpion'?1.58:name==='Mashle'?1.46:1;const bbSeptember27Scale=name==='Egyptian Gaara'?1.25:1;const bbRosterFootprintNormalization=name==='Itachi'?.835:1.113;ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation*bbUnitPresentationScale*bbSeptember27Scale*bbRosterFootprintNormalization,scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation*bbUnitPresentationScale*bbSeptember27Scale*bbRosterFootprintNormalization);ctx.translate(0,5);";
 if(html.includes(scaleSource))html=html.replace(scaleSource,scaleTarget);
 else if(!html.includes('const bbSeptember27Scale='))fail('Egyptian Gaara scale anchor missing');
 
@@ -124,23 +124,41 @@ const idleSwayTarget="if(name!=='Lebee'&&name!=='Egyptian Gaara'&&name!=='Solar 
 if(html.includes(idleSwaySource))html=html.replace(idleSwaySource,idleSwayTarget);
 else if(!html.includes("name!=='Egyptian Gaara'&&name!=='Solar Pharaoh Naruto'"))fail('Egyptian idle sway anchor missing');
 
+// The supplied Scorpion run atlas contains a narrow fragment of the following
+// frame on its far-right edge. Mask only the held/run draw, in local sprite
+// coordinates, so the correction stays valid when the fighter is mirrored.
+const scorpionGuardSource='   ctx.imageSmoothingEnabled=true;\n\n   // Deezy does not yet have a dedicated action-art pack.';
+const scorpionGuardTarget="   ctx.imageSmoothingEnabled=true;\n   const bbScorpionRunGuard=name==='Scorpion'&&S?.drag&&S?.dragUnitName===name;\n   if(bbScorpionRunGuard){ctx.save();ctx.beginPath();ctx.rect(-w/2,spriteY,w*.92,h);ctx.clip();}\n\n   // Deezy does not yet have a dedicated action-art pack.";
+if(html.includes(scorpionGuardSource))html=html.replace(scorpionGuardSource,scorpionGuardTarget);
+else if(!html.includes("const bbScorpionRunGuard=name==='Scorpion'"))fail('Scorpion run guard anchor missing');
+
+const scorpionGuardRestoreSource='   ctx.globalAlpha=1;\n   ctx.drawImage(spriteRef,-w/2,spriteY,w,h);\n\n } else if(window.BlazingCombatPresentation.allowFallbackToken()) {';
+const scorpionGuardRestoreTarget="   ctx.globalAlpha=1;\n   ctx.drawImage(spriteRef,-w/2,spriteY,w,h);\n   if(bbScorpionRunGuard)ctx.restore();\n\n } else if(window.BlazingCombatPresentation.allowFallbackToken()) {";
+if(html.includes(scorpionGuardRestoreSource))html=html.replace(scorpionGuardRestoreSource,scorpionGuardRestoreTarget);
+else if(!html.includes('if(bbScorpionRunGuard)ctx.restore()'))fail('Scorpion run guard restore anchor missing');
+
 const recoilSource="if(!visual&&fx?.kind==='hit'&&UPLOADED_CHARACTER_MOTION.has(name)){\n   const recoilFrames=UPLOADED_CHARACTER_MOTION.recoil(name);";
 const recoilTarget="if(!visual&&fx?.kind==='hit'&&(UPLOADED_CHARACTER_MOTION.has(name)||SEPTEMBER27_BODY_RUNTIME.has(name))){\n   const recoilFrames=UPLOADED_CHARACTER_MOTION.has(name)?UPLOADED_CHARACTER_MOTION.recoil(name):SEPTEMBER27_BODY_RUNTIME.recoil(name);";
 if(html.includes(recoilSource))html=html.replace(recoilSource,recoilTarget);
 else if(!html.includes('SEPTEMBER27_BODY_RUNTIME.recoil(name)'))fail('recoil runtime anchor missing');
 
 const ghostSource="const ghostFrames=name==='Itachi'?ITACHI_IDLE_FRAMES:unitIdleFrames(name);";
-const ghostTarget="const ghostFrames=name==='Itachi'?ITACHI_IDLE_FRAMES:(SEPTEMBER27_BODY_RUNTIME.has(name)?SEPTEMBER27_BODY_RUNTIME.idle(name):unitIdleFrames(name));";
+const ghostTarget="const ghostFrames=name==='Itachi'?ITACHI_IDLE_FRAMES:(UPLOADED_CHARACTER_MOTION.has(name)?UPLOADED_CHARACTER_MOTION.idle(name):(SEPTEMBER27_BODY_RUNTIME.has(name)?SEPTEMBER27_BODY_RUNTIME.idle(name):unitIdleFrames(name)));";
 if(html.includes(ghostSource))html=html.replace(ghostSource,ghostTarget);
-else if(!html.includes('SEPTEMBER27_BODY_RUNTIME.has(name)?SEPTEMBER27_BODY_RUNTIME.idle(name)'))fail('origin ghost anchor missing');
+else if(!html.includes('UPLOADED_CHARACTER_MOTION.has(name)?UPLOADED_CHARACTER_MOTION.idle(name)'))fail('origin ghost frame anchor missing');
+
+const ghostDrawSource='ctx.translate(gx,gy);ctx.drawImage(ghostFrame,-ghostW/2,12-ghostH,ghostW,ghostH);';
+const ghostDrawTarget="const ghostDir=Number.isFinite(S.dragFacing)?S.dragFacing:0;const ghostFlip=facingFlip(ghostDir<0?Math.PI:0,name);\n      ctx.translate(gx,gy);ctx.scale(ghostFlip,1);ctx.drawImage(ghostFrame,-ghostW/2,12-ghostH,ghostW,ghostH);";
+if(html.includes(ghostDrawSource))html=html.replace(ghostDrawSource,ghostDrawTarget);
+else if(!html.includes('const ghostFlip=facingFlip(ghostDir<0?Math.PI:0,name)'))fail('origin ghost facing anchor missing');
 
 const dragSource="if((heldName==='Obito'||heldName==='Madara'||heldName==='Itachi')&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
-const dragTarget="if((heldName==='Obito'||heldName==='Madara'||heldName==='Itachi'||heldName==='Egyptian Gaara'||heldName==='Solar Pharaoh Naruto')&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
+const dragTarget="if((heldName==='Obito'||heldName==='Madara'||heldName==='Itachi'||heldName==='Scorpion'||heldName==='Mashle'||heldName==='Egyptian Gaara'||heldName==='Solar Pharaoh Naruto')&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
 if(html.includes(dragSource))html=html.replace(dragSource,dragTarget);
 else if(!html.includes("heldName==='Egyptian Gaara'"))fail('drag-facing anchor missing');
 
 const facingSource="if((actor.name==='Obito'||actor.name==='Madara'||actor.name==='Itachi')&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)){";
-const facingTarget="if((actor.name==='Obito'||actor.name==='Madara'||actor.name==='Itachi'||actor.name==='Egyptian Gaara'||actor.name==='Solar Pharaoh Naruto')&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)){";
+const facingTarget="if((actor.name==='Obito'||actor.name==='Madara'||actor.name==='Itachi'||actor.name==='Scorpion'||actor.name==='Mashle'||actor.name==='Egyptian Gaara'||actor.name==='Solar Pharaoh Naruto')&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)){";
 if(html.includes(facingSource))html=html.replace(facingSource,facingTarget);
 else if(!html.includes("actor.name==='Egyptian Gaara'"))fail('body facing anchor missing');
 
@@ -187,7 +205,7 @@ const recoilJutsuTarget="if(enemy.hp<=0)handleEnemyKO(enemy,jDir); else if(u.nam
 if(html.includes(recoilJutsuSource))html=html.replace(recoilJutsuSource,recoilJutsuTarget);
 else if(!html.includes(recoilJutsuTarget))fail('Jutsu recoil anchor missing');
 
-for(const marker of ['SEPTEMBER27_BODY_RUNTIME','frames.slice(1,-1).reverse()','projectilePoseSequence','frameSequence:projectilePoseSequence','bbSeptember27Scale',"name==='Scorpion'?1.42:1",'Math.floor(elapsed/attackState.frameMs)','const attackSequence=',"name!=='Egyptian Gaara'&&name!=='Solar Pharaoh Naruto'",'SEPTEMBER27_VFX','animateItachiAmaterasu','animateGaaraSandBlast','animateSolarNarutoRasengan',"kind:'uploadedFireball'","f.kind==='uploadedFireball'","f.kind==='itachiAmaterasu'","f.kind==='gaaraSandBlast'","f.kind==='solarNarutoRasengan",'Egyptian Gaara','Solar Pharaoh Naruto',"au.name==='Egyptian Gaara'",'ctx.shadowColor=\'#ffb420\'']){if(!html.includes(marker))fail('missing final marker '+marker)}
+for(const marker of ['SEPTEMBER27_BODY_RUNTIME','frames.slice(1,-1).reverse()','projectilePoseSequence','frameSequence:projectilePoseSequence','bbSeptember27Scale',"name==='Scorpion'?1.58:name==='Mashle'?1.46:1","name==='Egyptian Gaara'?1.25:1",'Math.floor(elapsed/attackState.frameMs)','const attackSequence=',"name!=='Egyptian Gaara'&&name!=='Solar Pharaoh Naruto'","const bbScorpionRunGuard=name==='Scorpion'",'if(bbScorpionRunGuard)ctx.restore()','UPLOADED_CHARACTER_MOTION.has(name)?UPLOADED_CHARACTER_MOTION.idle(name)','const ghostFlip=facingFlip(ghostDir<0?Math.PI:0,name)',"heldName==='Scorpion'","actor.name==='Scorpion'",'SEPTEMBER27_VFX','animateItachiAmaterasu','animateGaaraSandBlast','animateSolarNarutoRasengan',"kind:'uploadedFireball'","f.kind==='uploadedFireball'","f.kind==='itachiAmaterasu'","f.kind==='gaaraSandBlast'","f.kind==='solarNarutoRasengan",'Egyptian Gaara','Solar Pharaoh Naruto',"au.name==='Egyptian Gaara'",'ctx.shadowColor=\'#ffb420\'']){if(!html.includes(marker))fail('missing final marker '+marker)}
 for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(code=>code.trim()).entries()){
  try{new vm.Script(script,{filename:`generated-inline-${index}.js`})}
  catch(error){fail(`generated inline script ${index} has invalid syntax: ${error.message}`)}

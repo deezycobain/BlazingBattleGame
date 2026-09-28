@@ -60,16 +60,16 @@
 
   function drawUnitResources(ctx,args={}){
     const hpRatio=(Number(args.maxHp)||0)>0?(Number(args.hp)||0)/Number(args.maxHp):0;
-    // Keep unit resources above the character silhouette.  The old feet-level
-    // placement collided with nearby fighters and with tall imported sprites.
-    drawGauge(ctx,{x:args.x,y:args.y-42,ratio:hpRatio});
-    drawChakra(ctx,{x:args.x,y:args.y-34,chakra:args.chakra,maxChakra:args.maxChakra});
+    // Compact resources belong at the feet so neighbouring sprites remain
+    // readable on the dense Road battlefield.
+    drawGauge(ctx,{x:args.x,y:args.y+20,ratio:hpRatio,width:34});
+    drawChakra(ctx,{x:args.x,y:args.y+25,chakra:args.chakra,maxChakra:args.maxChakra});
     return true;
   }
 
   function drawEnemyHealth(ctx,{x,y,hp,maxHp}){
     const ratio=(Number(maxHp)||0)>0?(Number(hp)||0)/Number(maxHp):0;
-    drawGauge(ctx,{x,y:y-38,ratio,width:58});
+    drawGauge(ctx,{x,y:y+20,ratio,width:34});
     return true;
   }
 
