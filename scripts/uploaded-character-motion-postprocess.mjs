@@ -16,8 +16,31 @@ const UPLOADED_CHARACTER_MOTION=(()=>{
   const id=ids[name];if(!id)return [];
   return Array.from({length:12},(_,index)=>'assets/characters/'+id+'/sprites/runtime/v2/'+kind+'/frame_'+String(index+1).padStart(2,'0')+'.png?uploadedMotion=v2');
  };
+ // The supplied Scorpion V2 frames are transparent 512x768 canvases, but the
+ // figure is offset differently in a few running poses. Re-anchor every frame
+ // to one centre/foot point before the battle renderer sees it. This preserves
+ // the artist's pixels while removing the side-to-side "clipped" jump.
+ const normalizedScorpionFrames=kind=>{
+  const key='normalized:Scorpion:'+kind;if(cache.has(key))return cache.get(key);
+  const frames=paths('Scorpion',kind).map(src=>{
+   const output=new Image(),source=new Image();source.decoding='async';
+   const fallback=()=>{if(!output.src)output.src=src;};
+   source.addEventListener('load',()=>{try{
+    const width=source.naturalWidth||512,height=source.naturalHeight||768,probe=document.createElement('canvas');probe.width=width;probe.height=height;
+    const probeCtx=probe.getContext('2d',{willReadFrequently:true});probeCtx.drawImage(source,0,0,width,height);
+    const pixels=probeCtx.getImageData(0,0,width,height).data;let minX=width,minY=height,maxX=-1,maxY=-1;
+    for(let p=0;p<pixels.length;p+=4){if(pixels[p+3]<=12)continue;const px=(p/4)%width,py=Math.floor((p/4)/width);if(px<minX)minX=px;if(px>maxX)maxX=px;if(py<minY)minY=py;if(py>maxY)maxY=py;}
+    if(maxX<minX){fallback();return;}
+    const normalized=document.createElement('canvas');normalized.width=512;normalized.height=768;const ctx=normalized.getContext('2d');
+    // 256 / 742 match the shared bottom-centre runtime anchor used by Obito.
+    ctx.drawImage(source,Math.round(256-(minX+maxX+1)/2),Math.round(742-(maxY+1)));
+    output.src=normalized.toDataURL('image/png');
+   }catch(_){fallback();}});source.addEventListener('error',fallback);source.src=src;return output;
+  });cache.set(key,frames);return frames;
+ };
  const frames=(name,kind)=>{
   if(!names.includes(name))return null;
+  if(name==='Scorpion')return normalizedScorpionFrames(kind);
   const key=name+':'+kind;
   if(!cache.has(key))cache.set(key,makeImageFrames(paths(name,kind)));
   return cache.get(key);
@@ -84,7 +107,7 @@ html=html.replace(spearRendererAnchor,`}else if(f.kind==='uploadedScorpionSpear'
      const x=from.x+(to.x-from.x)*ease,y=from.y+(to.y-from.y)*ease,dir=to.x<from.x?-1:1;
      const frames=uploadedVfxFrames('scorpionSpear'),index=Math.min(frames.length-1,Math.floor(t*frames.length)),img=frames[index];
      ctx.translate(x,y-17);ctx.scale(dir,1);ctx.globalAlpha=.98;ctx.imageSmoothingEnabled=true;
-     if(img?.complete&&img.naturalWidth>0){ctx.shadowColor='rgba(255,182,42,.76)';ctx.shadowBlur=7;ctx.drawImage(img,-77,-42,154,84);}else{ctx.save();ctx.strokeStyle='rgba(255,192,68,.96)';ctx.shadowColor='rgba(255,120,16,.92)';ctx.shadowBlur=8;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-72,0);ctx.lineTo(20,0);ctx.stroke();for(let n=0;n<7;n++){ctx.beginPath();ctx.arc(-62+n*12,0,2.7,0,Math.PI*2);ctx.fillStyle=n%2?'#ffd37a':'#71351d';ctx.fill()}ctx.fillStyle='#f2b133';ctx.beginPath();ctx.moveTo(32,0);ctx.lineTo(13,-8);ctx.lineTo(13,8);ctx.closePath();ctx.fill();ctx.restore();}
+     if(img?.complete&&img.naturalWidth>0){ctx.shadowColor='rgba(255,182,42,.76)';ctx.shadowBlur=5;ctx.drawImage(img,-56,-31,112,62);}else{ctx.save();ctx.strokeStyle='rgba(255,192,68,.96)';ctx.shadowColor='rgba(255,120,16,.92)';ctx.shadowBlur=6;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-52,0);ctx.lineTo(14,0);ctx.stroke();for(let n=0;n<6;n++){ctx.beginPath();ctx.arc(-45+n*10,0,2.3,0,Math.PI*2);ctx.fillStyle=n%2?'#ffd37a':'#71351d';ctx.fill()}ctx.fillStyle='#f2b133';ctx.beginPath();ctx.moveTo(25,0);ctx.lineTo(10,-7);ctx.lineTo(10,7);ctx.closePath();ctx.fill();ctx.restore();}
     ${spearRendererAnchor}`);
 
 const scorpionDriverAnchor='function animateObitoFireball(unitName,from,enemy,onImpact,onDone,attackKind=\'basic_attack\'){';
@@ -101,6 +124,6 @@ const basicDriverAnchor="}else if(au.name==='Obito'){\n      runBasicAttack=anim
 if(!html.includes(basicDriverAnchor))fail('basic attack routing anchor missing');
 html=html.replace(basicDriverAnchor,"}else if(au.name==='Scorpion'){\n      runBasicAttack=animateScorpionSpearStrike;basicTarget=enemy;\n    }else if(au.name==='Obito'){\n      runBasicAttack=animateObitoFireball;basicTarget=enemy;");
 
-for(const marker of ['UPLOADED_CHARACTER_MOTION','mobileSafeName','BLAZING_UPLOADED_VFX','UPLOADED_VFX_FRAMES','uploadedVfxFrames','uploadedScorpionSpear','animateScorpionSpearStrike','releaseDelay=420','scorpionSpear','subZeroIceBall','uploadedRunning','uploadedBasic','recoilFrames'])if(!html.includes(marker))fail('missing '+marker);
+for(const marker of ['UPLOADED_CHARACTER_MOTION','mobileSafeName','normalizedScorpionFrames','256 / 742','BLAZING_UPLOADED_VFX','UPLOADED_VFX_FRAMES','uploadedVfxFrames','uploadedScorpionSpear','animateScorpionSpearStrike','releaseDelay=420','scorpionSpear','subZeroIceBall','uploadedRunning','uploadedBasic','recoilFrames'])if(!html.includes(marker))fail('missing '+marker);
 await fs.writeFile(file,html);
 console.log('Uploaded character motion PASS: twelve-frame idle/run/basic/recoil packs are isolated and active; Scorpion spear and Sub-Zero ice ball use supplied VFX; elemental sequences are reusable.');
