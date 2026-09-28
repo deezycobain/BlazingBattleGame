@@ -104,6 +104,15 @@ const attackTarget="function unitAttackFrames(name,kind){const septemberBasic=SE
 if(html.includes(attackSource))html=html.replace(attackSource,attackTarget);
 else if(!html.includes('const septemberBasic=SEPTEMBER27_BODY_RUNTIME'))fail('attack runtime anchor missing');
 
+// The uploaded Scorpion V2 attack cells are cropped on their right edge. Use
+// the clean, authored spear sequence already present in the standard runtime
+// for his Basic; all other uploaded attack packs remain available once every
+// frame is decoded. This prevents a first-use half-loaded attack, too.
+const uploadedBasicSource="const uploadedBasic=UPLOADED_CHARACTER_MOTION.has(name)&&kind!=='jutsu'&&kind!=='special'?UPLOADED_CHARACTER_MOTION.basic(name):null;";
+const uploadedBasicTarget="const uploadedBasicFrames=UPLOADED_CHARACTER_MOTION.has(name)&&kind!=='jutsu'&&kind!=='special'?UPLOADED_CHARACTER_MOTION.basic(name):null;const uploadedBasic=name!=='Scorpion'&&uploadedBasicFrames?.every(frame=>frame?.complete&&frame.naturalWidth>0)?uploadedBasicFrames:null;";
+if(html.includes(uploadedBasicSource))html=html.replace(uploadedBasicSource,uploadedBasicTarget);
+else if(!html.includes('const uploadedBasicFrames=UPLOADED_CHARACTER_MOTION.has(name)'))fail('safe uploaded Basic anchor missing');
+
 const cadenceSource=' const uploadedRunning=UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name;\n const idleMs=(obitoRunning||itachiRunning||uploadedRunning)?85:';
 const cadenceTarget=' const uploadedRunning=UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name;\n const septemberRunning=SEPTEMBER27_BODY_RUNTIME.has(name)&&S?.drag&&S?.dragUnitName===name;\n const idleMs=(obitoRunning||itachiRunning||uploadedRunning||septemberRunning)?85:SEPTEMBER27_BODY_RUNTIME.has(name)?270:';
 if(html.includes(cadenceSource))html=html.replace(cadenceSource,cadenceTarget);
@@ -151,6 +160,13 @@ const ghostDrawSource='ctx.translate(gx,gy);ctx.drawImage(ghostFrame,-ghostW/2,1
 const ghostDrawTarget="const ghostDir=Number.isFinite(S.dragFacing)?S.dragFacing:0;const ghostFlip=facingFlip(ghostDir<0?Math.PI:0,name);\n      ctx.translate(gx,gy);ctx.scale(ghostFlip,1);ctx.drawImage(ghostFrame,-ghostW/2,12-ghostH,ghostW,ghostH);";
 if(html.includes(ghostDrawSource))html=html.replace(ghostDrawSource,ghostDrawTarget);
 else if(!html.includes('const ghostFlip=facingFlip(ghostDir<0?Math.PI:0,name)'))fail('origin ghost facing anchor missing');
+
+// This is the renderer used by drawUnit().  It must be the source of truth for
+// every held player sprite; updateFacing() alone only changes attack geometry.
+const visibleFacingSource="function bodyFacingRotation(actor,pos,isEnemy=false){\n  const locked=window.BlazingAttackPresentation.lockedFacing(S.anim,actor?.name);";
+const visibleFacingTarget="function bodyFacingRotation(actor,pos,isEnemy=false){\n  if(!isEnemy&&actor?.name&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing))return S.dragFacing<0?Math.PI:0;\n  const locked=window.BlazingAttackPresentation.lockedFacing(S.anim,actor?.name);";
+if(html.includes(visibleFacingSource))html=html.replace(visibleFacingSource,visibleFacingTarget);
+else if(!html.includes('if(!isEnemy&&actor?.name&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing))'))fail('visible drag-facing anchor missing');
 
 // Drag direction is a battlefield contract: every held unit turns toward the
 // current horizontal travel direction. Individual art packs may still apply a
@@ -208,7 +224,7 @@ const recoilJutsuTarget="if(enemy.hp<=0)handleEnemyKO(enemy,jDir); else if(u.nam
 if(html.includes(recoilJutsuSource))html=html.replace(recoilJutsuSource,recoilJutsuTarget);
 else if(!html.includes(recoilJutsuTarget))fail('Jutsu recoil anchor missing');
 
-for(const marker of ['SEPTEMBER27_BODY_RUNTIME','frames.slice(1,-1).reverse()','projectilePoseSequence','frameSequence:projectilePoseSequence','bbSeptember27Scale',"name==='Scorpion'?1.58:name==='Mashle'?1.46:1","name==='Egyptian Gaara'?1.25:1",'Math.floor(elapsed/attackState.frameMs)','const attackSequence=',"name!=='Egyptian Gaara'&&name!=='Solar Pharaoh Naruto'","const bbScorpionRunGuard=name==='Scorpion'",'if(bbScorpionRunGuard)ctx.restore()','UPLOADED_CHARACTER_MOTION.has(name)?UPLOADED_CHARACTER_MOTION.idle(name)','const ghostFlip=facingFlip(ghostDir<0?Math.PI:0,name)','if(heldName&&Math.abs(pt.x-previousDragX)>=1.25)','if(actor?.name&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)){','SEPTEMBER27_VFX','animateItachiAmaterasu','animateGaaraSandBlast','animateSolarNarutoRasengan',"kind:'uploadedFireball'","f.kind==='uploadedFireball'","f.kind==='itachiAmaterasu'","f.kind==='gaaraSandBlast'","f.kind==='solarNarutoRasengan",'Egyptian Gaara','Solar Pharaoh Naruto',"au.name==='Egyptian Gaara'",'ctx.shadowColor=\'#ffb420\'']){if(!html.includes(marker))fail('missing final marker '+marker)}
+for(const marker of ['SEPTEMBER27_BODY_RUNTIME','frames.slice(1,-1).reverse()','projectilePoseSequence','frameSequence:projectilePoseSequence','bbSeptember27Scale',"name==='Scorpion'?1.58:name==='Mashle'?1.46:1","name==='Egyptian Gaara'?1.25:1",'Math.floor(elapsed/attackState.frameMs)','const attackSequence=','const uploadedBasicFrames=UPLOADED_CHARACTER_MOTION.has(name)',"name!=='Egyptian Gaara'&&name!=='Solar Pharaoh Naruto'","const bbScorpionRunGuard=name==='Scorpion'",'if(bbScorpionRunGuard)ctx.restore()','UPLOADED_CHARACTER_MOTION.has(name)?UPLOADED_CHARACTER_MOTION.idle(name)','const ghostFlip=facingFlip(ghostDir<0?Math.PI:0,name)','if(!isEnemy&&actor?.name&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing))','if(heldName&&Math.abs(pt.x-previousDragX)>=1.25)','if(actor?.name&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)){','SEPTEMBER27_VFX','animateItachiAmaterasu','animateGaaraSandBlast','animateSolarNarutoRasengan',"kind:'uploadedFireball'","f.kind==='uploadedFireball'","f.kind==='itachiAmaterasu'","f.kind==='gaaraSandBlast'","f.kind==='solarNarutoRasengan",'Egyptian Gaara','Solar Pharaoh Naruto',"au.name==='Egyptian Gaara'",'ctx.shadowColor=\'#ffb420\'']){if(!html.includes(marker))fail('missing final marker '+marker)}
 for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(code=>code.trim()).entries()){
  try{new vm.Script(script,{filename:`generated-inline-${index}.js`})}
  catch(error){fail(`generated inline script ${index} has invalid syntax: ${error.message}`)}
