@@ -79,15 +79,17 @@ function assertLayout(result,label){
 async function toggleJutsuViaPortrait(page){
  return page.evaluate(async()=>{
   // Setup is paused so initiative cannot advance while the test shapes a player turn.
-  // A real portrait tap happens while battle flow is resumed, and the underlying
-  // action controls intentionally ignore gameplay input while the pause overlay owns it.
+  // Resume and refresh the canonical controls before exercising the same portrait tap a player uses.
   if(window.BlazingBattlePause?.isPaused?.())window.BlazingBattlePause.resume();
-  await new Promise(resolve=>requestAnimationFrame(resolve));
+  try{globalThis.eval('updateUI')?.()}catch(_){}
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   window.BlazingBattleDock.sync();
   const active=document.querySelector('#bbBattleDock .bb-dock-unit.active');if(!active)return {error:'active portrait missing'};
-  const before={pressed:active.getAttribute('aria-pressed'),armed:active.classList.contains('armed')};
+  const jutsu=document.getElementById('jutsu');
+  const state=()=>{let s=null;try{s=globalThis.eval('S')}catch(_){}return {pressed:active.getAttribute('aria-pressed'),armed:active.classList.contains('armed'),jutsuDisabled:!!jutsu?.disabled,jutsuSelected:!!jutsu?.classList.contains('selected'),jutsuPressed:jutsu?.getAttribute('aria-pressed')||'',phase:s?.phase||'',readyKind:s?.ready?.kind||'',samePair:s?.ready?.ref===active._bbPair,cameraLocked:!!window.BlazingRoadCamera?.isCombatLocked?.()}};
+  const before=state();
   active.click();await new Promise(resolve=>setTimeout(resolve,80));window.BlazingBattleDock.sync();
-  const after={pressed:active.getAttribute('aria-pressed'),armed:active.classList.contains('armed')};
+  const after=state();
   return {before,after,paused:window.BlazingBattlePause?.isPaused?.()||false};
  });
 }
