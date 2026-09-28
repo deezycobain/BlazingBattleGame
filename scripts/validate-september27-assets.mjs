@@ -19,6 +19,9 @@ for(const [id,name,jutsu] of [['gaara','Egyptian Gaara','sand_blast'],['naruto_s
  const unit=await readJson(`assets/characters/${id}/data/unit.json`),map=await readJson(`assets/characters/${id}/data/runtime-map.json`);
  if(unit.display_name!==name||unit.abilities?.jutsu?.id!==jutsu||unit.collection?.battle_ready!==true)fail(id+' canonical unit data is incomplete');
  if(!map.abilities?.[jutsu]||map.abilities?.[jutsu]?.gameplay_actions?.[0]?.action_id!=='damage_target')fail(id+' Jutsu runtime map is incomplete');
+ const basicDriver=id==='gaara'?'animateGaaraSandBlast':'animateSolarNarutoRasengan';
+ if(unit.abilities?.basic?.presentation?.runtime_driver!==basicDriver||unit.abilities?.basic?.delivery!=='projectile')fail(id+' Basic must own its supplied elemental VFX');
+ if(unit.abilities?.jutsu?.presentation?.runtime_driver!=='animateLunge')fail(id+' Jutsu must remain neutral until its dedicated design is supplied');
  const frameCounts=id==='gaara'?{idle:6,run:10,'attack/basic':12,recoil:8}:{idle:8,run:10,'attack/basic':12,recoil:8};
  for(const [kind,expectedFrames] of Object.entries(frameCounts)){
   const directory=`assets/characters/${id}/sprites/runtime/v1/${kind}`;
@@ -43,5 +46,5 @@ for(const [rel,count] of [
 const itachi=await readJson('assets/characters/itachi/data/unit.json');
 if(itachi.abilities?.jutsu?.id!=='amaterasu'||itachi.abilities?.jutsu?.presentation?.runtime_driver!=='animateItachiAmaterasu')fail('Itachi must route Chakra/Jutsu to Amaterasu');
 const post=await fs.readFile(path.join(root,'scripts/september27-asset-integration-postprocess.mjs'),'utf8');
-for(const marker of ['SEPTEMBER27_BODY_RUNTIME','SEPTEMBER27_VFX','animateItachiAmaterasu','animateGaaraSandBlast','animateSolarNarutoRasengan',"kind:'uploadedFireball'","f.kind==='gaaraSandBlast'","f.kind==='solarNarutoRasengan",'lazy VFX decoding'])if(!post.includes(marker))fail('postprocess marker missing: '+marker);
-console.log('September 27 asset validation PASS: approved Egyptian unit frames, lazy V3 VFX, Obito fireball, Amaterasu, Sand Blast, and Sun Rasengan contracts are intact.');
+for(const marker of ['SEPTEMBER27_BODY_RUNTIME','frames.slice(1,-1).reverse()','bbSeptember27Scale','SEPTEMBER27_VFX','animateItachiAmaterasu','animateGaaraSandBlast','animateSolarNarutoRasengan',"au.name==='Egyptian Gaara'","au.name==='Solar Pharaoh Naruto'","kind:'uploadedFireball'","f.kind==='gaaraSandBlast'","f.kind==='solarNarutoRasengan",'lazy VFX decoding'])if(!post.includes(marker))fail('postprocess marker missing: '+marker);
+console.log('September 27 asset validation PASS: smooth Egyptian idle sequences, balanced Gaara scale, Basic-owned Sand Blast/Sun Rasengan VFX, and neutral placeholder Jutsu contracts are intact.');

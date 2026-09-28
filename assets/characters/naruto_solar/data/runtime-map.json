@@ -3,8 +3,8 @@
   "unit_id": "naruto_solar",
   "source_unit_data": "assets/characters/naruto_solar/data/unit.json",
   "abilities": {
-    "pharaoh_combo": { "slot": "basic", "animation_id": "naruto_solar.animation.basic_attack", "runtime_handler": "animateLunge", "gameplay_actions": [{ "event": "on_impact", "action_id": "damage_target", "parameters": { "multiplier_source": "abilities.basic.damage_multiplier" } }] },
-    "sun_rasengan": { "slot": "jutsu", "animation_id": "naruto_solar.animation.basic_attack", "runtime_handler": "animateSolarNarutoRasengan", "cost_source": "abilities.jutsu.cost", "gameplay_actions": [{ "event": "on_impact", "action_id": "damage_target", "parameters": { "multiplier_source": "abilities.jutsu.damage_multiplier" }, "target_selector": "primary_target" }], "vfx": { "projectile": "uploaded-v3.rasengan.projectile", "impact": "uploaded-v3.rasengan.impact" } }
+    "sun_rasengan_basic": { "slot": "basic", "animation_id": "naruto_solar.animation.basic_attack", "runtime_handler": "animateSolarNarutoRasengan", "gameplay_actions": [{ "event": "on_impact", "action_id": "damage_target", "parameters": { "multiplier_source": "abilities.basic.damage_multiplier" } }], "vfx": { "projectile": "uploaded-v3.rasengan.projectile", "impact": "uploaded-v3.rasengan.impact" } },
+    "sun_rasengan": { "slot": "jutsu", "animation_id": "naruto_solar.animation.basic_attack", "runtime_handler": "animateLunge", "cost_source": "abilities.jutsu.cost", "gameplay_actions": [{ "event": "on_impact", "action_id": "damage_target", "parameters": { "multiplier_source": "abilities.jutsu.damage_multiplier" }, "target_selector": "primary_target" }] }
   },
   "states": { "idle": "naruto_solar.animation.idle", "run": "naruto_solar.animation.run", "recoil": "naruto_solar.animation.recoil" }
 }

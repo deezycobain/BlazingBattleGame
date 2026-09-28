@@ -17,16 +17,16 @@
     "chakra_max": 8,
     "chakra_start": 2
   },
-  "render": { "scale": 0.98, "sprite_anchor": "bottom_center", "sprite_canvas": { "width": 512, "height": 768 } },
+  "render": { "scale": 1.10, "sprite_anchor": "bottom_center", "sprite_canvas": { "width": 512, "height": 768 } },
   "abilities": {
     "basic": {
-      "id": "desert_staff_strike",
-      "name": "Desert Staff Strike",
+      "id": "sand_blast_basic",
+      "name": "Sand Blast",
       "damage_multiplier": 1,
       "chakra_gain": 1,
-      "delivery": "melee",
+      "delivery": "projectile",
       "target_mode": "single",
-      "presentation": { "runtime_driver": "animateLunge", "animation_kind": "basic_attack", "melee_animation_kind": "basic_attack" }
+      "presentation": { "runtime_driver": "animateGaaraSandBlast", "animation_kind": "basic_attack", "projectile_origin_mode": "forward_facing", "body_facing_mode": "target_locked" }
     },
     "jutsu": {
       "id": "sand_blast",
@@ -38,7 +38,7 @@
       "ultimate": false,
       "target_mode": "single",
       "presentation": {
-        "runtime_driver": "animateGaaraSandBlast",
+        "runtime_driver": "animateLunge",
         "cast_duration_ms": 360,
         "flight_duration_ms": 560,
         "impact_duration_ms": 420,

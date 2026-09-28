@@ -3,8 +3,8 @@
   "unit_id": "gaara",
   "source_unit_data": "assets/characters/gaara/data/unit.json",
   "abilities": {
-    "desert_staff_strike": { "slot": "basic", "animation_id": "gaara.animation.basic_attack", "runtime_handler": "animateLunge", "gameplay_actions": [{ "event": "on_impact", "action_id": "damage_target", "parameters": { "multiplier_source": "abilities.basic.damage_multiplier" } }] },
-    "sand_blast": { "slot": "jutsu", "animation_id": "gaara.animation.basic_attack", "runtime_handler": "animateGaaraSandBlast", "cost_source": "abilities.jutsu.cost", "gameplay_actions": [{ "event": "on_impact", "action_id": "damage_target", "parameters": { "multiplier_source": "abilities.jutsu.damage_multiplier" }, "target_selector": "primary_target" }], "vfx": { "projectile": "uploaded-v3.sand.blast", "impact": "uploaded-v3.common.ground_dust_slash" } }
+    "sand_blast_basic": { "slot": "basic", "animation_id": "gaara.animation.basic_attack", "runtime_handler": "animateGaaraSandBlast", "gameplay_actions": [{ "event": "on_impact", "action_id": "damage_target", "parameters": { "multiplier_source": "abilities.basic.damage_multiplier" } }], "vfx": { "projectile": "uploaded-v3.sand.blast", "impact": "uploaded-v3.common.ground_dust_slash" } },
+    "sand_blast": { "slot": "jutsu", "animation_id": "gaara.animation.basic_attack", "runtime_handler": "animateLunge", "cost_source": "abilities.jutsu.cost", "gameplay_actions": [{ "event": "on_impact", "action_id": "damage_target", "parameters": { "multiplier_source": "abilities.jutsu.damage_multiplier" }, "target_selector": "primary_target" }] }
   },
   "states": { "idle": "gaara.animation.idle", "run": "gaara.animation.run", "recoil": "gaara.animation.recoil" }
 }

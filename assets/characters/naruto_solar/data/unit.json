@@ -20,13 +20,13 @@
   "render": { "scale": 0.98, "sprite_anchor": "bottom_center", "sprite_canvas": { "width": 512, "height": 768 } },
   "abilities": {
     "basic": {
-      "id": "pharaoh_combo",
-      "name": "Pharaoh Combo",
+      "id": "sun_rasengan_basic",
+      "name": "Sun Rasengan",
       "damage_multiplier": 1,
       "chakra_gain": 1,
-      "delivery": "melee",
+      "delivery": "projectile",
       "target_mode": "single",
-      "presentation": { "runtime_driver": "animateLunge", "animation_kind": "basic_attack", "melee_animation_kind": "basic_attack" }
+      "presentation": { "runtime_driver": "animateSolarNarutoRasengan", "animation_kind": "basic_attack", "projectile_origin_mode": "forward_facing", "body_facing_mode": "target_locked" }
     },
     "jutsu": {
       "id": "sun_rasengan",
@@ -38,7 +38,7 @@
       "ultimate": false,
       "target_mode": "single",
       "presentation": {
-        "runtime_driver": "animateSolarNarutoRasengan",
+        "runtime_driver": "animateLunge",
         "cast_duration_ms": 350,
         "flight_duration_ms": 520,
         "impact_duration_ms": 440,
