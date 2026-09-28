@@ -6,19 +6,27 @@ let html=await fs.readFile(file,'utf8');
 const SCRIPT_ID='bb-realm-exploration-runtime';
 const CONFIG_ID='bb-realm-exploration-config';
 
-const battleAnchor=`S=boss?freshBoss():fresh();
-   S.bbRunMode=boss?'castle':'road';
-   if(!boss)beginRoadBattle();
-   S._chargeSince=performance.now();`;
+// Keep this compatible with Road's persisted-save recovery wrapper.  This pass
+// runs after the Road pass and needs to own the same startup block.
+const battleAnchor=/S=boss\?freshBoss\(\):fresh\(\);\n   S\.bbRunMode=boss\?'castle':'road';\n   if\(!boss\)\{[\s\S]*?\n   \}\n   S\._chargeSince=performance\.now\(\);/g;
 
 const battleReplacement=`S=boss?freshBoss():fresh();
    const bbRealmEncounter=!boss?window.BlazingRealmExplorer?.consumePendingEncounter?.():null;
    S.bbRunMode=boss?'castle':bbRealmEncounter?'exploration':'road';
    if(bbRealmEncounter)window.BlazingRealmExplorer?.applyEncounterToBattle?.(S,bbRealmEncounter);
-   else if(!boss)beginRoadBattle();
+   else if(!boss){
+    try{beginRoadBattle()}catch(error){
+     console.warn('[Blazing Battle] Road entry recovery: rebuilding saved run.',error);
+     try{window.BlazingRoadRun?.clearRun?.()}catch(_){ }
+     try{beginRoadBattle()}catch(recoveryError){
+      console.error('[Blazing Battle] Road entry recovery failed; continuing with a fresh Stage 1 battle.',recoveryError);
+      S.bbRoadRun=null;S.bbRoadStage=1;S.log='BLAZING ROAD — Stage 1. Saved run was reset for compatibility.';
+     }
+    }
+   }
    S._chargeSince=performance.now();`;
 
-const battleHits=html.split(battleAnchor).length-1;
+const battleHits=[...html.matchAll(battleAnchor)].length;
 if(battleHits!==1)throw new Error(`Realm exploration integration: expected one battle entry anchor, found ${battleHits}`);
 html=html.replace(battleAnchor,battleReplacement);
 
