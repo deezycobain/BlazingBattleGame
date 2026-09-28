@@ -12,6 +12,7 @@ function modeLabel(){const mode=state()?.bbRunMode;return mode==='road'?'BLAZING
 function runtimeFn(name){try{const value=globalThis.eval(name);return typeof value==='function'?value:null}catch{return null}}
 function resetButton(){return [...(battle()?.querySelectorAll('button')||[])].find(button=>/^\s*reset\s*$/i.test(button.textContent||''))||null}
 function syncHome(){setTimeout(()=>{try{window.BlazingHomeV9Lifecycle?.schedule?.(0)}catch(_){}},0)}
+function syncPauseState(){const s=state();if(s)s.bbPaused=paused;return s}
 
 function positionButton(button){
  const root=battle();if(!root||!button)return;
@@ -58,18 +59,18 @@ function devResetEnabled(){return window.BB_DEV_CONFIG?.enabled===true&&window.B
 
 function setPaused(next){
  const ui=ensure();next=!!next;
- if(next===paused)return paused;
+ if(next===paused){syncPauseState();return paused}
  if(next){
   if(!active()||resultsOpen())return false;
   paused=true;pausedAt=performance.now();
-  const s=state();if(s)s.bbPaused=true;
+  syncPauseState();
   ui.root.classList.add('active');document.body.classList.add('bb-battle-paused');
   document.getElementById('bbPauseKicker').textContent=modeLabel();
   ui.root.querySelector('[data-pause-action="resume"]')?.focus({preventScroll:true});
  }else{
   const elapsed=pausedAt?performance.now()-pausedAt:0;
   paused=false;pausedAt=0;
-  const s=state();if(s){s.bbPaused=false;if(Number.isFinite(s._chargeSince))s._chargeSince+=elapsed}
+  const s=syncPauseState();if(s&&Number.isFinite(s._chargeSince))s._chargeSince+=elapsed;
   ui.root.classList.remove('active');document.body.classList.remove('bb-battle-paused');
  }
  sync();return paused;
@@ -105,6 +106,7 @@ function restoreRoadReset(snapshot){
   if(setMap)s.bbRoadMapSource=setMap('road',s.bbRoadStage||snapshot.stage);
  }catch(error){console.warn('Road reset restore map failed',error)}
  s._chargeSince=performance.now();
+ syncPauseState();
  try{runtimeFn('updateUI')?.();runtimeFn('draw')?.()}catch(_){}
  window.dispatchEvent(new CustomEvent('bb:road-reset-restored',{detail:{stage:s.bbRoadStage||snapshot.stage}}));
  window.BlazingTerrainDebug?.redraw?.();
@@ -122,6 +124,7 @@ function exitBattle(){
 
 function sync(){
  const {button,root}=ensure(),show=active()&&!resultsOpen();
+ syncPauseState();
  positionButton(button);
  button.classList.toggle('visible',show&&!paused);
  button.disabled=!show||paused;
