@@ -29,8 +29,8 @@ for(const file of ['treasury_seal_charge_atlas.png','treasury_reveal_fx_experime
 const progression=await source('runtime/ui/progression/progression.js');
 const cinematic=await source('runtime/ui/progression/summon-cinematic.js');
 const css=await source('runtime/ui/progression/treasury-collection-summon.css');
-for(const marker of ['TREASURY_FIGHTERS','randomTreasury','treasurySummonOne','treasurySummonTen','collection:\'treasury\''])if(!progression.includes(marker))throw new Error(`Treasury validation: progression marker missing ${marker}`);
+for(const marker of ['TREASURY_FIGHTERS','STATE_FIGHTERS','FORGE_FIGHTERS=FIGHTERS','randomTreasury','treasurySummonOne','treasurySummonTen','collection:\'treasury\''])if(!progression.includes(marker))throw new Error(`Treasury validation: progression marker missing ${marker}`);
 for(const marker of ['TREASURY_VFX','prepareTreasuryVfx','buildTreasuryFx','isTreasuryPull','bb-treasury-card'])if(!cinematic.includes(marker))throw new Error(`Treasury validation: cinematic marker missing ${marker}`);
-for(const marker of ['.bb-treasury-banner','bbTreasuryAtlas12','data-bb-special-reveal="treasury"','.bb-treasury-card'])if(!css.includes(marker))throw new Error(`Treasury validation: style marker missing ${marker}`);
+for(const marker of ['.bb-treasury-banner','bbTreasuryAtlas12','data-bb-special-reveal="treasury"','aspect-ratio:3/2!important','.bb-treasury-card'])if(!css.includes(marker))throw new Error(`Treasury validation: style marker missing ${marker}`);
 
 console.log('Treasury Collection PASS: master card art, summon banner, runtime-injected card reveal, and reusable 12-frame FX atlases are present.');

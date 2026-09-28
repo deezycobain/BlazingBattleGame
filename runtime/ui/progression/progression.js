@@ -6,9 +6,10 @@ const MAX_RESONANCE=5,STAT_BUDGET=12,MAX_STAT=5;
 const CORE_FIGHTERS=['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi'];
 const LEGACY_FIGHTERS=['Kakashi','Obito','Jiraiya','Sasuke','Pain','Scorpion','Rock Lee','Mashle','Wong Fei-Hung','Gabimaru','Killua','Zabuza'];
 // Treasury cards are summon/collection-ready now. They deliberately do not
-// enter a battle roster until each fighter receives a separate unit pass.
+// enter a battle roster, team editor, or Forge until each fighter receives a
+// separate playable-unit pass.
 const TREASURY_FIGHTERS=['Madara Uchiha','Hashirama Senju','Tsunade','Minato Namikaze'];
-const FIGHTERS=[...CORE_FIGHTERS,...LEGACY_FIGHTERS,...TREASURY_FIGHTERS],FORGE_FIGHTERS=FIGHTERS,SUMMON_FIGHTERS=LEGACY_FIGHTERS;
+const FIGHTERS=[...CORE_FIGHTERS,...LEGACY_FIGHTERS],STATE_FIGHTERS=[...FIGHTERS,...TREASURY_FIGHTERS],FORGE_FIGHTERS=FIGHTERS,SUMMON_FIGHTERS=LEGACY_FIGHTERS;
 const IDS={
  'Crimson':'crimson','Sub-Zero':'subzero','Lebee':'lebee','Senku':'senku','Tyler':'tyler','Itachi':'itachi',
  'Kakashi':'kakashi','Obito':'obito','Jiraiya':'jiraiya','Sasuke':'sasuke','Pain':'pain','Scorpion':'scorpion',
@@ -18,8 +19,8 @@ const IDS={
 function registryUnits(){return Object.values(window.BLAZING_UNIT_DATA||{}).filter(unit=>unit?.role==='playable'&&unit?.display_name)}
 function unitData(name){const norm=v=>String(v||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');return registryUnits().find(unit=>norm(unit.display_name)===norm(name)||norm(unit.id)===norm(name))||window.BLAZING_UNIT_DATA?.[IDS[name]]||null}
 function unitId(name){return unitData(name)?.id||IDS[name]||String(name||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'_')}
-function fighterNames(){return [...new Set([...FIGHTERS,...registryUnits().map(unit=>unit.display_name).filter(Boolean)])]}
-function forgeFighters(){return fighterNames()}
+function fighterNames(){return [...new Set([...STATE_FIGHTERS,...registryUnits().map(unit=>unit.display_name).filter(Boolean)])]}
+function forgeFighters(){return [...FORGE_FIGHTERS]}
 function canForge(name){return forgeFighters().includes(name)}
 const CARD_ART={
  'Crimson':'assets/characters/crimson/art/current_collection_art.jpg',
