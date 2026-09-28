@@ -81,6 +81,44 @@ function assertLayout(result,label){
  if(!sameRect(result.dock,result.dockAfter)||!sameRect(result.portrait,result.portraitAfter))throw new Error(`${label}: HUD moved/scaled with battlefield camera :: ${JSON.stringify({dock:[result.dock,result.dockAfter],portrait:[result.portrait,result.portraitAfter]})}`);
  if(!/safe-area-inset-top/.test(result.style)||!/safe-area-inset-bottom/.test(result.style))throw new Error(`${label}: mobile safe-area contract missing`);
 }
+async function prepareCanonicalJutsuPortrait(page){
+ return page.evaluate(async()=>{
+  const norm=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const dataFor=unit=>Object.values(window.BLAZING_UNIT_DATA||{}).find(data=>norm(data?.display_name)===norm(unit?.name))||null;
+  const describe=unit=>{
+   const data=dataFor(unit),ability=data?.abilities?.jutsu,rawCost=Number(unit?.jutsuCost??ability?.cost),cost=Number.isFinite(rawCost)?Math.max(0,rawCost):Infinity,maxChakra=Math.max(0,Number(unit?.maxChakra)||0);
+   const authored=data?.readiness?.jutsu!==false&&!!ability&&String(ability?.delivery||'').toLowerCase()!=='disabled'&&cost<=maxChakra;
+   return {name:unit?.name||'',authored,readiness:data?.readiness?.jutsu??null,ability:ability?.id||'',delivery:ability?.delivery||'',cost:Number.isFinite(cost)?cost:null,maxChakra};
+  };
+  const s=globalThis.eval('S'),front=globalThis.eval('front'),back=globalThis.eval('back'),pair=s?.ready?.kind==='pair'?s.ready.ref:null;
+  if(!pair)return {error:'ready player pair missing'};
+  if(window.BlazingBattlePause?.isPaused?.())window.BlazingBattlePause.resume();
+  try{globalThis.eval('updateUI')?.()}catch(_){}
+  window.BlazingBattleDock.sync();
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  const jutsu=document.getElementById('jutsu');
+  let unit=front(pair),natural=describe(unit),swapped=false;
+  const naturalDisabled=!!jutsu?.disabled;
+  if(!natural.authored){
+   if(!naturalDisabled)return {error:'canonical deferred Jutsu was enabled',natural,naturalDisabled};
+   const reserveUnit=back(pair),reserve=describe(reserveUnit);
+   if(!reserve.authored)return {error:'natural fighter has deferred Jutsu and reserve has no authored Jutsu',natural,reserve,naturalDisabled};
+   const reserveButton=document.querySelector('#bbBattleDock .bb-dock-unit.active .bb-reserve-portrait');
+   if(!reserveButton||reserveButton.hidden||getComputedStyle(reserveButton).display==='none')return {error:'authored-Jutsu reserve portrait unavailable',natural,reserve,naturalDisabled};
+   reserveButton.click();
+   await new Promise(resolve=>setTimeout(resolve,100));
+   window.BlazingBattleDock.sync();
+   unit=front(pair);swapped=true;
+   if(norm(unit?.name)!==norm(reserveUnit?.name))return {error:'reserve swap did not activate authored-Jutsu fighter',natural,reserve,active:unit?.name||'',naturalDisabled};
+  }
+  unit=front(pair);if(unit)unit.chakra=unit.maxChakra;
+  try{globalThis.eval('updateUI')?.()}catch(_){}
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  window.BlazingBattleDock.sync();
+  const selected=describe(unit);
+  return {ok:true,natural,naturalDisabled,swapped,selected,jutsuDisabled:!!jutsu?.disabled,phase:s?.phase||'',samePair:s?.ready?.ref===pair};
+ });
+}
 async function toggleJutsuViaPortrait(page){
  return page.evaluate(async()=>{
   if(window.BlazingBattlePause?.isPaused?.())window.BlazingBattlePause.resume();
@@ -89,7 +127,7 @@ async function toggleJutsuViaPortrait(page){
   window.BlazingBattleDock.sync();
   const active=document.querySelector('#bbBattleDock .bb-dock-unit.active');if(!active)return {error:'active portrait missing'};
   const jutsu=document.getElementById('jutsu');
-  const state=()=>{let s=null,front=null,unit=null;try{s=globalThis.eval('S');front=globalThis.eval('front');unit=s?.ready?.ref?front(s.ready.ref):null}catch(_){}return {pressed:active.getAttribute('aria-pressed'),armed:active.classList.contains('armed'),jutsuDisabled:!!jutsu?.disabled,jutsuSelected:!!jutsu?.classList.contains('selected'),jutsuPressed:jutsu?.getAttribute('aria-pressed')||'',phase:s?.phase||'',readyKind:s?.ready?.kind||'',samePair:s?.ready?.ref===active._bbPair,cameraLocked:!!window.BlazingRoadCamera?.isCombatLocked?.(),chakra:Number(unit?.chakra)||0,maxChakra:Number(unit?.maxChakra)||0}};
+  const state=()=>{let s=null,front=null,unit=null;try{s=globalThis.eval('S');front=globalThis.eval('front');unit=s?.ready?.ref?front(s.ready.ref):null}catch(_){}return {name:unit?.name||'',pressed:active.getAttribute('aria-pressed'),armed:active.classList.contains('armed'),jutsuDisabled:!!jutsu?.disabled,jutsuSelected:!!jutsu?.classList.contains('selected'),jutsuPressed:jutsu?.getAttribute('aria-pressed')||'',phase:s?.phase||'',readyKind:s?.ready?.kind||'',samePair:s?.ready?.ref===active._bbPair,cameraLocked:!!window.BlazingRoadCamera?.isCombatLocked?.(),chakra:Number(unit?.chakra)||0,maxChakra:Number(unit?.maxChakra)||0}};
   const before=state();
   active.click();await new Promise(resolve=>setTimeout(resolve,80));window.BlazingBattleDock.sync();
   const after=state();
@@ -108,13 +146,14 @@ async function run(name,type){
   const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
   await enterRoad(page);const natural=await waitForNaturalPlayerTurn(page);if(natural.error)throw new Error(`could not observe natural player initiative turn: ${JSON.stringify(natural)}`);
   const phone=await inspect(page);assertLayout(phone,`${name}/phone`);
-  const jutsu=await toggleJutsuViaPortrait(page);if(jutsu.error||jutsu.paused||(!jutsu.after.armed&&jutsu.after.pressed!=='true'))throw new Error(`portrait Jutsu toggle failed: ${JSON.stringify(jutsu)}`);
+  const prepared=await prepareCanonicalJutsuPortrait(page);if(prepared.error||!prepared.selected?.authored||prepared.jutsuDisabled||!prepared.samePair)throw new Error(`canonical Jutsu preparation failed: ${JSON.stringify(prepared)}`);
+  const jutsu=await toggleJutsuViaPortrait(page);if(jutsu.error||jutsu.paused||jutsu.before.jutsuDisabled||(!jutsu.after.armed&&jutsu.after.pressed!=='true'))throw new Error(`portrait Jutsu toggle failed: ${JSON.stringify({prepared,jutsu})}`);
   await fs.mkdir('test-artifacts',{recursive:true});await page.screenshot({path:`test-artifacts/road-dock-${name}.png`});
   await page.setViewportSize({width:1366,height:900});await page.waitForTimeout(180);
   const desktop=await inspect(page);assertLayout(desktop,`${name}/desktop`);
   await page.evaluate(()=>window.BlazingBattlePause?.resume?.());
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Battle dock smoke PASS (${name}): natural Road initiative + portrait-driven Jutsu, segmented chakra, shared HP, round initiative, and camera-independent HUD verified.`);
+  console.log(`Battle dock smoke PASS (${name}): natural Road initiative + canonical deferred-Jutsu guard + authored reserve portrait Jutsu, segmented chakra, shared HP, round initiative, and camera-independent HUD verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
