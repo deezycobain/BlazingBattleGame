@@ -78,11 +78,17 @@ function assertLayout(result,label){
 }
 async function toggleJutsuViaPortrait(page){
  return page.evaluate(async()=>{
+  // Setup is paused so initiative cannot advance while the test shapes a player turn.
+  // A real portrait tap happens while battle flow is resumed, and the underlying
+  // action controls intentionally ignore gameplay input while the pause overlay owns it.
+  if(window.BlazingBattlePause?.isPaused?.())window.BlazingBattlePause.resume();
+  await new Promise(resolve=>requestAnimationFrame(resolve));
+  window.BlazingBattleDock.sync();
   const active=document.querySelector('#bbBattleDock .bb-dock-unit.active');if(!active)return {error:'active portrait missing'};
   const before={pressed:active.getAttribute('aria-pressed'),armed:active.classList.contains('armed')};
   active.click();await new Promise(resolve=>setTimeout(resolve,80));window.BlazingBattleDock.sync();
   const after={pressed:active.getAttribute('aria-pressed'),armed:active.classList.contains('armed')};
-  return {before,after};
+  return {before,after,paused:window.BlazingBattlePause?.isPaused?.()||false};
  });
 }
 async function run(name,type){
@@ -97,7 +103,7 @@ async function run(name,type){
   const meta=await page.evaluate(()=>window.BB_BUILD_META||null);if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
   await enterRoad(page);const forced=await forceCurrentPlayer(page);if(forced.error)throw new Error(`could not prepare player initiative turn: ${JSON.stringify(forced)}`);
   const phone=await inspect(page);assertLayout(phone,`${name}/phone`);
-  const jutsu=await toggleJutsuViaPortrait(page);if(jutsu.error||(!jutsu.after.armed&&jutsu.after.pressed!=='true'))throw new Error(`portrait Jutsu toggle failed: ${JSON.stringify(jutsu)}`);
+  const jutsu=await toggleJutsuViaPortrait(page);if(jutsu.error||jutsu.paused||(!jutsu.after.armed&&jutsu.after.pressed!=='true'))throw new Error(`portrait Jutsu toggle failed: ${JSON.stringify(jutsu)}`);
   await fs.mkdir('test-artifacts',{recursive:true});await page.screenshot({path:`test-artifacts/road-dock-${name}.png`});
   await page.setViewportSize({width:1366,height:900});await page.waitForTimeout(180);
   const desktop=await inspect(page);assertLayout(desktop,`${name}/desktop`);
