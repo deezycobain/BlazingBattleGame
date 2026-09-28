@@ -21,7 +21,7 @@ for(const [name,type] of Object.entries({chromium,webkit})){
   });
   if(!contract.valid||contract.team.length!==6||new Set(contract.team).size!==6)throw new Error('six-unit team contract invalid: '+JSON.stringify(contract));
   if(contract.pairCount!==3||contract.pairs.some(p=>p.names.length!==2||p.names.some(n=>!n||n==='—')))throw new Error('three paired battle slots invalid: '+JSON.stringify(contract));
-  if(contract.key!=='blazingBattle.activeTeam.v5')throw new Error('team storage version wrong: '+contract.key);
+  if(contract.key!=='blazingBattle.activeTeam.v6')throw new Error('team storage version wrong: '+contract.key);
   if(!contract.playable.includes('Itachi')||!contract.playable.includes('Tyler'))throw new Error('paired roster missing current units: '+JSON.stringify(contract.playable));
 
   const ui=await page.evaluate(()=>{
