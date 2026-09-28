@@ -30,6 +30,7 @@ async function run(name,type){
 
     await page.locator('#bbHomeApproved [data-nav="summon"]').click();
     await page.locator('#summonScreen.active #singleSummonBtn').waitFor({state:'visible'});
+    await page.locator('#summonScreen .bb-banner-tab[data-banner="itachi"]').click();
     await page.locator('#bbTestLegendaryItachi').waitFor({state:'visible',timeout:8000});
 
     const contract=await page.evaluate(()=>({
@@ -40,7 +41,7 @@ async function run(name,type){
       hasTestHook:typeof window.BlazingSummonCinematic?.testItachi==='function',
       styleHref:document.querySelector('link[data-bb-itachi-summon]')?.getAttribute('href')||''
     }));
-    if(contract.version!=='6.17.0-itachi-long-rings')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
+    if(contract.version!=='6.18.0-treasury-collection')throw new Error(`wrong runtime version: ${JSON.stringify(contract)}`);
     if(JSON.stringify(contract.timeline)!==JSON.stringify(EXPECTED_TIMES))throw new Error(`Itachi timeline contract changed: ${JSON.stringify(contract.timeline)}`);
     if(Object.keys(contract.itachiVfx||{}).length!==11||contract.itachiVfx?.orbit||!String(contract.itachiVfx?.middle||'').endsWith('itachi_ring_middle_enamel.webp'))throw new Error(`expected 11 Itachi VFX mappings with the floating Sharingan orbit removed: ${JSON.stringify(contract.itachiVfx)}`);
     if(!contract.hasTestHook||!contract.styleHref.includes('legendary-itachi-summon.css')||!String(contract.itachiCardArt||'').endsWith('assets/characters/itachi/art/itachi_full_art.png'))throw new Error(`Itachi test/style hook missing: ${JSON.stringify(contract)}`);
