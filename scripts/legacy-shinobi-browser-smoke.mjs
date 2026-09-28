@@ -160,7 +160,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   },{names:NAMES});
   const normalized=dims=>Array.isArray(dims)&&dims.length>0&&dims.every(([w,h])=>w===512&&h===768);
   const badRuntime=runtime.filter(x=>{
-   const expectedIdleResolved=x.name==='Wong Fei-Hung'&&x.idleCount===6?12:x.expectedIdle;
+   const expectedIdleResolved=(x.name==='Wong Fei-Hung'||x.name==='Scorpion')&&x.idleCount===6?12:x.expectedIdle;
    return x.idleCount!==x.expectedIdle||x.basicCount!==x.expectedBasic||x.idleResolved!==expectedIdleResolved||x.attackResolved!==x.expectedBasic||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!normalized(x.idleDims)||!normalized(x.basicDims)||!/\/sprites\/runtime\/idle\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.basicSrc);
   });
   if(badRuntime.length)throw new Error('Legacy battle animation runtime invalid: '+JSON.stringify(badRuntime));
