@@ -474,7 +474,15 @@
           "usage": "Six-frame Scorpion Legacy of the Shinobi Basic Attack animation."
         }
       },
-      "vfx": {}
+      "vfx": {
+        "chain_spear": {
+          "resource_id": "uploaded-v2.scorpion_chain_spear",
+          "path": "assets/vfx/uploaded-v2/scorpion_chain_spear_vfx_atlas/",
+          "required_runtime_frames": 12,
+          "renderer": "animateScorpionSpearStrike",
+          "usage": "Scorpion's supplied twelve-frame chain spear projectile, decoded lazily on mobile."
+        }
+      }
     },
     "rock_lee": {
       "animations": {

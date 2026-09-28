@@ -6,7 +6,7 @@
     "basic_attack": {
       "slot": "basic",
       "animation_id": "scorpion.animation.basic_attack",
-      "runtime_handler": "animateLunge",
+      "runtime_handler": "animateScorpionSpearStrike",
       "gameplay_actions": [
         {
           "event": "on_impact",
@@ -17,6 +17,7 @@
         }
       ],
       "vfx": {
+        "projectile": "uploaded-v2.scorpion_chain_spear",
         "impact": "shared.vfx.impact.default"
       }
     },

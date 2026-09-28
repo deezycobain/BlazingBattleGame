@@ -64,13 +64,15 @@ function drawSeptember27VfxFrame(ctx,key,progress,x,y,height,{filter='',alpha=1,
 }
 function animateSeptember27Projectile(unitName,from,enemy,onImpact,onDone,{kind,cast=340,flight=520,impact=420,dim=0}={}){
  const token=ACTIVE_ACTION_TOKEN,state=ensureAnimState();if(!state.attackPose)state.attackPose={};
- state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:cast};
+ // Keep the body active through release, travel, and recovery. Ending it at
+ // the cast beat made the projectile detach visually from the fighter.
+ state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:cast+flight+impact,frameMs:100};
  const facing=window.BlazingAttackPresentation.lockFacing(state,unitName,from,enemy);
  if(dim)S.jutsuDim={start:performance.now(),alpha:dim,end:null};
  setTimeout(()=>{
   if(!actionTokenAlive(token))return;
   const fx={kind,from:{x:from.x+Math.cos(facing)*18,y:from.y-29+Math.sin(facing)*5},to:{x:enemy.x,y:enemy.y-18},start:performance.now(),flightDuration:flight,impactDuration:impact,life:1};
-  S.floaters.push(fx);if(state.attackPose)delete state.attackPose[unitName];
+  S.floaters.push(fx);
   setTimeout(()=>{
    if(!actionTokenAlive(token))return;
    try{onImpact&&onImpact()}catch(error){console.error(kind+' impact failed:',error);return recoverAction(kind+' impact')}
@@ -102,7 +104,7 @@ if(html.includes(attackSource))html=html.replace(attackSource,attackTarget);
 else if(!html.includes('const septemberBasic=SEPTEMBER27_BODY_RUNTIME'))fail('attack runtime anchor missing');
 
 const cadenceSource=' const uploadedRunning=UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name;\n const idleMs=(obitoRunning||itachiRunning||uploadedRunning)?85:';
-const cadenceTarget=' const uploadedRunning=UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name;\n const septemberRunning=SEPTEMBER27_BODY_RUNTIME.has(name)&&S?.drag&&S?.dragUnitName===name;\n const idleMs=(obitoRunning||itachiRunning||uploadedRunning||septemberRunning)?85:SEPTEMBER27_BODY_RUNTIME.has(name)?115:';
+const cadenceTarget=' const uploadedRunning=UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name;\n const septemberRunning=SEPTEMBER27_BODY_RUNTIME.has(name)&&S?.drag&&S?.dragUnitName===name;\n const idleMs=(obitoRunning||itachiRunning||uploadedRunning||septemberRunning)?85:SEPTEMBER27_BODY_RUNTIME.has(name)?185:';
 if(html.includes(cadenceSource))html=html.replace(cadenceSource,cadenceTarget);
 else if(!html.includes('const septemberRunning=SEPTEMBER27_BODY_RUNTIME'))fail('run cadence anchor missing');
 
@@ -110,6 +112,11 @@ const scaleSource="const bbUnitPresentationScale=name==='Itachi'?1.28:1;const bb
 const scaleTarget="const bbUnitPresentationScale=name==='Itachi'?1.28:1;const bbSeptember27Scale=name==='Egyptian Gaara'?1.10:1;const bbRosterFootprintNormalization=name==='Itachi'?.835:1.113;ctx.scale(directionalFlip*scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation*bbUnitPresentationScale*bbSeptember27Scale*bbRosterFootprintNormalization,scale*activePulse*bbRoadDepthScale*1.15*bbRoadCameraCompensation*bbUnitPresentationScale*bbSeptember27Scale*bbRosterFootprintNormalization);ctx.translate(0,5);";
 if(html.includes(scaleSource))html=html.replace(scaleSource,scaleTarget);
 else if(!html.includes('const bbSeptember27Scale='))fail('Egyptian Gaara scale anchor missing');
+
+const attackTimelineSource='let frameIndex=Math.min(attackFrames.length-1,Math.floor(attackProgress*attackFrames.length));\n     let candidate=attackFrames[frameIndex];';
+const attackTimelineTarget="let frameIndex=Number.isFinite(attackState.frameMs)&&attackState.frameMs>0?Math.min(attackFrames.length-1,Math.floor(elapsed/attackState.frameMs)):Math.min(attackFrames.length-1,Math.floor(attackProgress*attackFrames.length));\n     let candidate=attackFrames[frameIndex];";
+if(html.includes(attackTimelineSource))html=html.replace(attackTimelineSource,attackTimelineTarget);
+else if(!html.includes('Math.floor(elapsed/attackState.frameMs)'))fail('attack timeline anchor missing');
 
 const recoilSource="if(!visual&&fx?.kind==='hit'&&UPLOADED_CHARACTER_MOTION.has(name)){\n   const recoilFrames=UPLOADED_CHARACTER_MOTION.recoil(name);";
 const recoilTarget="if(!visual&&fx?.kind==='hit'&&(UPLOADED_CHARACTER_MOTION.has(name)||SEPTEMBER27_BODY_RUNTIME.has(name))){\n   const recoilFrames=UPLOADED_CHARACTER_MOTION.has(name)?UPLOADED_CHARACTER_MOTION.recoil(name):SEPTEMBER27_BODY_RUNTIME.recoil(name);";
@@ -174,7 +181,7 @@ const recoilJutsuTarget="if(enemy.hp<=0)handleEnemyKO(enemy,jDir); else if(u.nam
 if(html.includes(recoilJutsuSource))html=html.replace(recoilJutsuSource,recoilJutsuTarget);
 else if(!html.includes(recoilJutsuTarget))fail('Jutsu recoil anchor missing');
 
-for(const marker of ['SEPTEMBER27_BODY_RUNTIME','frames.slice(1,-1).reverse()','SEPTEMBER27_VFX','animateItachiAmaterasu','animateGaaraSandBlast','animateSolarNarutoRasengan','bbSeptember27Scale',"kind:'uploadedFireball'","f.kind==='uploadedFireball'","f.kind==='itachiAmaterasu'","f.kind==='gaaraSandBlast'","f.kind==='solarNarutoRasengan",'Egyptian Gaara','Solar Pharaoh Naruto',"au.name==='Egyptian Gaara'",'ctx.shadowColor=\'#ffb420\'']){if(!html.includes(marker))fail('missing final marker '+marker)}
+for(const marker of ['SEPTEMBER27_BODY_RUNTIME','frames.slice(1,-1).reverse()','SEPTEMBER27_VFX','animateItachiAmaterasu','animateGaaraSandBlast','animateSolarNarutoRasengan','bbSeptember27Scale','Math.floor(elapsed/attackState.frameMs)',"kind:'uploadedFireball'","f.kind==='uploadedFireball'","f.kind==='itachiAmaterasu'","f.kind==='gaaraSandBlast'","f.kind==='solarNarutoRasengan",'Egyptian Gaara','Solar Pharaoh Naruto',"au.name==='Egyptian Gaara'",'ctx.shadowColor=\'#ffb420\'']){if(!html.includes(marker))fail('missing final marker '+marker)}
 for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(code=>code.trim()).entries()){
  try{new vm.Script(script,{filename:`generated-inline-${index}.js`})}
  catch(error){fail(`generated inline script ${index} has invalid syntax: ${error.message}`)}

@@ -23,7 +23,7 @@ if(html.includes(motionSource))html=html.replace(motionSource,motionTarget);
 else if(!html.includes("const itachiRunning=Boolean(name==='Itachi'"))fail('Itachi held-run motion anchor missing');
 
 const cadenceSource=" const idleMs=obitoRunning?85:(name==='Lebee'?520:(name==='Tyler'?230:185));";
-const cadenceTarget=" const idleMs=(obitoRunning||itachiRunning)?85:(name==='Lebee'?520:(name==='Tyler'?230:(name==='Itachi'?100:185)));";
+const cadenceTarget=" const idleMs=(obitoRunning||itachiRunning)?85:(name==='Lebee'?520:(name==='Tyler'?230:(name==='Itachi'?165:205)));";
 if(html.includes(cadenceSource))html=html.replace(cadenceSource,cadenceTarget);
 else if(!html.includes('const idleMs=(obitoRunning||itachiRunning)?85:'))fail('Itachi cadence anchor missing');
 

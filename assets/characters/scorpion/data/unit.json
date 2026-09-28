@@ -47,13 +47,15 @@
       "name": "Basic Attack",
       "damage_multiplier": 1,
       "chakra_gain": 1,
-      "delivery": "melee",
+      "delivery": "projectile",
       "target_mode": "single",
       "single_target_selector": "nearest_in_shape",
       "presentation": {
-        "runtime_driver": "animateLunge",
+        "runtime_driver": "animateScorpionSpearStrike",
         "animation_kind": "basic_attack",
         "melee_animation_kind": "basic_attack",
+        "projectile_origin_mode": "forward_facing",
+        "body_facing_mode": "target_locked",
         "range_visual_scale": 1
       }
     },
@@ -77,7 +79,7 @@
       "attack_basic": "sprites/runtime/attack/basic/",
       "jutsu": null
     },
-    "vfx": null,
+    "vfx": "../../vfx/uploaded-v2/scorpion_chain_spear_vfx_atlas/",
     "summon_art": "cards/legacy_summon_art.png",
     "team_art": "cards/legacy_summon_art.png"
   },
@@ -88,7 +90,7 @@
     "basic_attack": true,
     "jutsu": false,
     "recoil": false,
-    "notes": "Legacy of the Shinobi audited sprite pass. Six-frame idle/basic sheets are content-isolated and normalized to a shared bottom-center runtime canvas; dedicated VFX and jutsu remain deferred.",
+    "notes": "Scorpion uses a lazily decoded twelve-frame mobile-safe motion set and the supplied spear atlas for Basic attacks. Jutsu remains deferred.",
     "animation_map": true
   },
   "balance": {

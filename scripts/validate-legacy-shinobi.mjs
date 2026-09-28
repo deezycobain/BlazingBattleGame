@@ -29,7 +29,8 @@ for(const id of ids){
  if(id==='jackie_chan'&&unit.display_name!=='Wong Fei-Hung')throw new Error('Legacy Shinobi validator: Drunken Master fighter must display as Wong Fei-Hung');
  if(id==='jackie_chan'&&(unit.animation_standard?.animations?.idle?.frame_ms!==250||unit.animation_standard?.animations?.basic_attack?.frame_ms!==190))throw new Error('Legacy Shinobi validator: Wong Fei-Hung Drunken Master cadence must remain 250ms idle / 190ms basic');
  if(!unit.collection?.inventory_visible||!unit.collection?.battle_ready)throw new Error('Legacy Shinobi validator: collection flags invalid '+id);
- if(unit.readiness?.jutsu!==false||unit.assets?.vfx!==null)throw new Error('Legacy Shinobi validator: jutsu/VFX must remain pending '+id);
+ const scorpionBasicVfx=id==='scorpion'&&unit.assets?.vfx==='../../vfx/uploaded-v2/scorpion_chain_spear_vfx_atlas/';
+ if(unit.readiness?.jutsu!==false||(!scorpionBasicVfx&&unit.assets?.vfx!==null))throw new Error('Legacy Shinobi validator: Jutsu and non-Scorpion VFX must remain pending '+id);
  if(unit.animation_standard?.version!=='legacy-shinobi-v2-audited')throw new Error('Legacy Shinobi validator: old animation standard '+id);
  if(unit.render?.sprite_anchor!=='bottom_center'||unit.render?.sprite_canvas?.width!==512||unit.render?.sprite_canvas?.height!==768){
   throw new Error('Legacy Shinobi validator: render canvas invalid '+id);
@@ -137,7 +138,7 @@ for(const marker of ["drunkenPatterns","basic_attack:Object.freeze([0,1,2,3,4,5]
  if(!adapter.includes(marker))throw new Error('Legacy Shinobi validator: Wong Fei-Hung fallback drunken cadence missing '+marker);
 }
 const uploadedMotion=await fs.readFile(path.join(ROOT,'scripts/uploaded-character-motion-postprocess.mjs'),'utf8');
-for(const marker of ["const mobileRendererGuard=()=>window.matchMedia?.('(max-width:700px)').matches===true&&/AppleWebKit/i.test(String(navigator.userAgent||''));","has:name=>names.includes(name)&&!mobileRendererGuard()",'UPLOADED_VFX_MOBILE_GUARD']){
+for(const marker of ["const mobileRendererGuard=()=>window.matchMedia?.('(max-width:700px)').matches===true&&/AppleWebKit/i.test(String(navigator.userAgent||''));",'mobileSafeName',"has:name=>names.includes(name)&&(!mobileRendererGuard()||mobileSafeName(name))",'UPLOADED_VFX_MOBILE_GUARD']){
  if(!uploadedMotion.includes(marker))throw new Error('Legacy Shinobi validator: iPhone-safe uploaded-motion guard missing '+marker);
 }
 const combatPresentation=await fs.readFile(path.join(ROOT,'runtime/combat/combat-presentation-controller.js'),'utf8');
