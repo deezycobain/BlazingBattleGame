@@ -152,15 +152,18 @@ const ghostDrawTarget="const ghostDir=Number.isFinite(S.dragFacing)?S.dragFacing
 if(html.includes(ghostDrawSource))html=html.replace(ghostDrawSource,ghostDrawTarget);
 else if(!html.includes('const ghostFlip=facingFlip(ghostDir<0?Math.PI:0,name)'))fail('origin ghost facing anchor missing');
 
+// Drag direction is a battlefield contract: every held unit turns toward the
+// current horizontal travel direction. Individual art packs may still apply a
+// source-orientation correction inside facingFlip(), but never opt out of it.
 const dragSource="if((heldName==='Obito'||heldName==='Madara'||heldName==='Itachi')&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
-const dragTarget="if((heldName==='Obito'||heldName==='Madara'||heldName==='Itachi'||heldName==='Scorpion'||heldName==='Mashle'||heldName==='Egyptian Gaara'||heldName==='Solar Pharaoh Naruto')&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
+const dragTarget="if(heldName&&Math.abs(pt.x-previousDragX)>=1.25)S.dragFacing=pt.x<previousDragX?-1:1;";
 if(html.includes(dragSource))html=html.replace(dragSource,dragTarget);
-else if(!html.includes("heldName==='Egyptian Gaara'"))fail('drag-facing anchor missing');
+else if(!html.includes('if(heldName&&Math.abs(pt.x-previousDragX)>=1.25)'))fail('drag-facing anchor missing');
 
 const facingSource="if((actor.name==='Obito'||actor.name==='Madara'||actor.name==='Itachi')&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)){";
-const facingTarget="if((actor.name==='Obito'||actor.name==='Madara'||actor.name==='Itachi'||actor.name==='Scorpion'||actor.name==='Mashle'||actor.name==='Egyptian Gaara'||actor.name==='Solar Pharaoh Naruto')&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)){";
+const facingTarget="if(actor?.name&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)){";
 if(html.includes(facingSource))html=html.replace(facingSource,facingTarget);
-else if(!html.includes("actor.name==='Egyptian Gaara'"))fail('body facing anchor missing');
+else if(!html.includes('if(actor?.name&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)){'))fail('body facing anchor missing');
 
 const obitoSource="const fx={kind:'obitoFireball',from:{x:from.x+dir*18,y:from.y-27},to:{x:enemy.x,y:enemy.y-18},start:performance.now(),duration:flightDuration+impactHold,flightDuration,impactHold,life:1};";
 const obitoTarget="const fx={kind:'uploadedFireball',from:{x:from.x+dir*18,y:from.y-27},to:{x:enemy.x,y:enemy.y-18},start:performance.now(),duration:flightDuration+impactHold,flightDuration,impactHold,life:1};";
@@ -205,7 +208,7 @@ const recoilJutsuTarget="if(enemy.hp<=0)handleEnemyKO(enemy,jDir); else if(u.nam
 if(html.includes(recoilJutsuSource))html=html.replace(recoilJutsuSource,recoilJutsuTarget);
 else if(!html.includes(recoilJutsuTarget))fail('Jutsu recoil anchor missing');
 
-for(const marker of ['SEPTEMBER27_BODY_RUNTIME','frames.slice(1,-1).reverse()','projectilePoseSequence','frameSequence:projectilePoseSequence','bbSeptember27Scale',"name==='Scorpion'?1.58:name==='Mashle'?1.46:1","name==='Egyptian Gaara'?1.25:1",'Math.floor(elapsed/attackState.frameMs)','const attackSequence=',"name!=='Egyptian Gaara'&&name!=='Solar Pharaoh Naruto'","const bbScorpionRunGuard=name==='Scorpion'",'if(bbScorpionRunGuard)ctx.restore()','UPLOADED_CHARACTER_MOTION.has(name)?UPLOADED_CHARACTER_MOTION.idle(name)','const ghostFlip=facingFlip(ghostDir<0?Math.PI:0,name)',"heldName==='Scorpion'","actor.name==='Scorpion'",'SEPTEMBER27_VFX','animateItachiAmaterasu','animateGaaraSandBlast','animateSolarNarutoRasengan',"kind:'uploadedFireball'","f.kind==='uploadedFireball'","f.kind==='itachiAmaterasu'","f.kind==='gaaraSandBlast'","f.kind==='solarNarutoRasengan",'Egyptian Gaara','Solar Pharaoh Naruto',"au.name==='Egyptian Gaara'",'ctx.shadowColor=\'#ffb420\'']){if(!html.includes(marker))fail('missing final marker '+marker)}
+for(const marker of ['SEPTEMBER27_BODY_RUNTIME','frames.slice(1,-1).reverse()','projectilePoseSequence','frameSequence:projectilePoseSequence','bbSeptember27Scale',"name==='Scorpion'?1.58:name==='Mashle'?1.46:1","name==='Egyptian Gaara'?1.25:1",'Math.floor(elapsed/attackState.frameMs)','const attackSequence=',"name!=='Egyptian Gaara'&&name!=='Solar Pharaoh Naruto'","const bbScorpionRunGuard=name==='Scorpion'",'if(bbScorpionRunGuard)ctx.restore()','UPLOADED_CHARACTER_MOTION.has(name)?UPLOADED_CHARACTER_MOTION.idle(name)','const ghostFlip=facingFlip(ghostDir<0?Math.PI:0,name)','if(heldName&&Math.abs(pt.x-previousDragX)>=1.25)','if(actor?.name&&S.drag&&S.dragUnitName===actor.name&&Number.isFinite(S.dragFacing)){','SEPTEMBER27_VFX','animateItachiAmaterasu','animateGaaraSandBlast','animateSolarNarutoRasengan',"kind:'uploadedFireball'","f.kind==='uploadedFireball'","f.kind==='itachiAmaterasu'","f.kind==='gaaraSandBlast'","f.kind==='solarNarutoRasengan",'Egyptian Gaara','Solar Pharaoh Naruto',"au.name==='Egyptian Gaara'",'ctx.shadowColor=\'#ffb420\'']){if(!html.includes(marker))fail('missing final marker '+marker)}
 for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(code=>code.trim()).entries()){
  try{new vm.Script(script,{filename:`generated-inline-${index}.js`})}
  catch(error){fail(`generated inline script ${index} has invalid syntax: ${error.message}`)}
