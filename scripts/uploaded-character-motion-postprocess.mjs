@@ -11,7 +11,9 @@ const UPLOADED_CHARACTER_MOTION=(()=>{
  const ids=Object.freeze({'Sub-Zero':'subzero',Scorpion:'scorpion',Mashle:'mashle',Obito:'obito'});
  const cache=new Map();
  const mobileRendererGuard=()=>window.matchMedia?.('(max-width:700px)').matches===true&&/AppleWebKit/i.test(String(navigator.userAgent||''));
- const mobileSafeName=name=>name==='Scorpion';
+ // Only V2 units placed in the active team allocate their frames.  Mashle was
+ // previously excluded here, which made iPhone always show his retired art.
+ const mobileSafeNames=new Set(['Scorpion','Mashle']);
  const paths=(name,kind)=>{
   const id=ids[name];if(!id)return [];
   return Array.from({length:12},(_,index)=>'assets/characters/'+id+'/sprites/runtime/v2/'+kind+'/frame_'+String(index+1).padStart(2,'0')+'.png?uploadedMotion=v2');
@@ -40,14 +42,18 @@ const UPLOADED_CHARACTER_MOTION=(()=>{
  };
  const frames=(name,kind)=>{
   if(!names.includes(name))return null;
-  if(name==='Scorpion')return normalizedScorpionFrames(kind);
+  // Normalising all twelve frames in a live canvas doubles Scorpion's decoded
+  // image memory on iPhone (source + canvas output) and can black-screen a Road
+  // entry. His V2 source frames are already transparent 512x768 canvases, so
+  // use them directly on mobile and retain normalisation only on desktop.
+  if(name==='Scorpion'&&!mobileRendererGuard())return normalizedScorpionFrames(kind);
   const key=name+':'+kind;
   if(!cache.has(key))cache.set(key,makeImageFrames(paths(name,kind)));
   return cache.get(key);
  };
  // Enabling every V2 set at once exceeded iOS's decoded-image budget. Scorpion
  // is enabled alone, and each sequence remains lazy until that state is used.
- return Object.freeze({has:name=>names.includes(name)&&(!mobileRendererGuard()||mobileSafeName(name)),idle:name=>frames(name,'idle'),run:name=>frames(name,'run'),basic:name=>frames(name,'attack'),recoil:name=>frames(name,'recoil')});
+ return Object.freeze({has:name=>names.includes(name)&&(!mobileRendererGuard()||mobileSafeNames.has(name)),idle:name=>frames(name,'idle'),run:name=>frames(name,'run'),basic:name=>frames(name,'attack'),recoil:name=>frames(name,'recoil')});
 })();
 const BLAZING_UPLOADED_VFX=Object.freeze({
  scorpionSpear:'assets/vfx/uploaded-v2/scorpion_chain_spear_vfx_atlas',
@@ -73,7 +79,7 @@ function uploadedVfxFrames(key){
 
 const idleAnchor="function unitIdleFrames(name){const itachiMotionFrames=name==='Itachi'?";
 if(!html.includes(idleAnchor))fail('final idle resolver anchor missing');
-html=html.replace(idleAnchor,"function unitIdleFrames(name){const uploadedRun=UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name?UPLOADED_CHARACTER_MOTION.run(name):null;const uploadedIdle=UPLOADED_CHARACTER_MOTION.has(name)?UPLOADED_CHARACTER_MOTION.idle(name):null;if(uploadedRun?.length)return uploadedRun;if(uploadedIdle?.length)return uploadedIdle;const itachiMotionFrames=name==='Itachi'?");
+html=html.replace(idleAnchor,"function unitIdleFrames(name){const uploadedRun=UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name?UPLOADED_CHARACTER_MOTION.run(name):null;const uploadedIdle=UPLOADED_CHARACTER_MOTION.has(name)?UPLOADED_CHARACTER_MOTION.idle(name):null;const uploadedRunReady=uploadedRun?.every(frame=>frame?.complete&&frame.naturalWidth>0);if(uploadedRunReady)return uploadedRun;if(uploadedIdle?.length)return uploadedIdle;if(uploadedRun?.length)return uploadedRun;const itachiMotionFrames=name==='Itachi'?");
 const insertionAt=html.indexOf('function unitIdleFrames(name){');
 html=html.slice(0,insertionAt)+runtime+'\n'+html.slice(insertionAt);
 
@@ -124,6 +130,6 @@ const basicDriverAnchor="}else if(au.name==='Obito'){\n      runBasicAttack=anim
 if(!html.includes(basicDriverAnchor))fail('basic attack routing anchor missing');
 html=html.replace(basicDriverAnchor,"}else if(au.name==='Scorpion'){\n      runBasicAttack=animateScorpionSpearStrike;basicTarget=enemy;\n    }else if(au.name==='Obito'){\n      runBasicAttack=animateObitoFireball;basicTarget=enemy;");
 
-for(const marker of ['UPLOADED_CHARACTER_MOTION','mobileSafeName','normalizedScorpionFrames','256 / 742','BLAZING_UPLOADED_VFX','UPLOADED_VFX_FRAMES','uploadedVfxFrames','uploadedScorpionSpear','animateScorpionSpearStrike','releaseDelay=420','scorpionSpear','subZeroIceBall','uploadedRunning','uploadedBasic','recoilFrames'])if(!html.includes(marker))fail('missing '+marker);
+for(const marker of ['UPLOADED_CHARACTER_MOTION','mobileSafeNames','Scorpion','Mashle','normalizedScorpionFrames',"name==='Scorpion'&&!mobileRendererGuard()",'uploadedRunReady','BLAZING_UPLOADED_VFX','UPLOADED_VFX_FRAMES','uploadedVfxFrames','uploadedScorpionSpear','animateScorpionSpearStrike','releaseDelay=420','scorpionSpear','subZeroIceBall','uploadedRunning','uploadedBasic','recoilFrames'])if(!html.includes(marker))fail('missing '+marker);
 await fs.writeFile(file,html);
 console.log('Uploaded character motion PASS: twelve-frame idle/run/basic/recoil packs are isolated and active; Scorpion spear and Sub-Zero ice ball use supplied VFX; elemental sequences are reusable.');

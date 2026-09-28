@@ -138,7 +138,7 @@ for(const marker of ["drunkenPatterns","basic_attack:Object.freeze([0,1,2,3,4,5]
  if(!adapter.includes(marker))throw new Error('Legacy Shinobi validator: Wong Fei-Hung fallback drunken cadence missing '+marker);
 }
 const uploadedMotion=await fs.readFile(path.join(ROOT,'scripts/uploaded-character-motion-postprocess.mjs'),'utf8');
-for(const marker of ["const mobileRendererGuard=()=>window.matchMedia?.('(max-width:700px)').matches===true&&/AppleWebKit/i.test(String(navigator.userAgent||''));",'mobileSafeName',"has:name=>names.includes(name)&&(!mobileRendererGuard()||mobileSafeName(name))",'UPLOADED_VFX_MOBILE_GUARD']){
+for(const marker of ["const mobileRendererGuard=()=>window.matchMedia?.('(max-width:700px)').matches===true&&/AppleWebKit/i.test(String(navigator.userAgent||''));",'mobileSafeNames',"new Set(['Scorpion','Mashle'])","name==='Scorpion'&&!mobileRendererGuard()",'uploadedRunReady',"has:name=>names.includes(name)&&(!mobileRendererGuard()||mobileSafeNames.has(name))",'UPLOADED_VFX_MOBILE_GUARD']){
  if(!uploadedMotion.includes(marker))throw new Error('Legacy Shinobi validator: iPhone-safe uploaded-motion guard missing '+marker);
 }
 const combatPresentation=await fs.readFile(path.join(ROOT,'runtime/combat/combat-presentation-controller.js'),'utf8');
