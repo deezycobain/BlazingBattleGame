@@ -113,7 +113,8 @@ async function exerciseNonBattleRoutes(page,label){
  await page.locator('#bbHomeApproved [data-nav="summon"]').click();
  await page.locator('#summonScreen.active #singleSummonBtn').waitFor({state:'visible',timeout:7000});
  await assertBattleCanvasShield(page,`${label}/summon`);
- const singleBox=await page.locator('#summonScreen.active #singleSummonBtn').boundingBox();if(!singleBox)throw new Error(`${label}: single summon target missing`);
+ const single=page.locator('#summonScreen.active #singleSummonBtn');await single.scrollIntoViewIfNeeded();
+ const singleBox=await single.boundingBox();if(!singleBox)throw new Error(`${label}: single summon target missing`);
  const singleTop=await page.evaluate(({x,y})=>{const node=document.elementFromPoint(x,y);return {id:node?.id||'',button:node?.closest?.('button')?.id||'',battle:!!node?.closest?.('#battleScreen')};},{x:singleBox.x+singleBox.width/2,y:singleBox.y+singleBox.height/2});
  if(singleTop.button!=='singleSummonBtn'||singleTop.battle)throw new Error(`${label}: single summon is still intercepted :: ${JSON.stringify(singleTop)}`);
  await resetHome(page);
