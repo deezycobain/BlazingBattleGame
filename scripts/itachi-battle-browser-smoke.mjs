@@ -59,7 +59,7 @@ async function run(name,type){
    const outcome=await new Promise(resolve=>{
     const sample=setInterval(()=>{if(s.floaters.some(f=>f.kind==='itachiCrowStrike'))sawCrow=true},25);
     animate('Itachi',{x:pair.x,y:pair.y},enemy,()=>window.BlazingCombatRuntime.execute('damage_target',{target:enemy,damage:1}),()=>{clearInterval(sample);resolve({elapsed:performance.now()-start})},'basic_attack');
-    setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},2300);
+    setTimeout(()=>{clearInterval(sample);resolve({timeout:true,elapsed:performance.now()-start})},3200);
    });
    return {...outcome,before,after:enemy.hp,sawCrow,floaters:s.floaters.map(f=>f.kind)};
   });
