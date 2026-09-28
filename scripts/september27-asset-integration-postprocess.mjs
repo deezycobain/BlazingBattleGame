@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const root=process.cwd();
 const file=path.join(root,'dist','index.html');
@@ -101,7 +102,7 @@ if(html.includes(attackSource))html=html.replace(attackSource,attackTarget);
 else if(!html.includes('const septemberBasic=SEPTEMBER27_BODY_RUNTIME'))fail('attack runtime anchor missing');
 
 const cadenceSource=' const uploadedRunning=UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name;\n const idleMs=(obitoRunning||itachiRunning||uploadedRunning)?85:';
-const cadenceTarget=' const uploadedRunning=UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name;\n const septemberRunning=SEPTEMBER27_BODY_RUNTIME.has(name)&&S?.drag&&S?.dragUnitName===name;\n const idleMs=(obitoRunning||itachiRunning||uploadedRunning||septemberRunning)?85:(SEPTEMBER27_BODY_RUNTIME.has(name)?115:';
+const cadenceTarget=' const uploadedRunning=UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name;\n const septemberRunning=SEPTEMBER27_BODY_RUNTIME.has(name)&&S?.drag&&S?.dragUnitName===name;\n const idleMs=(obitoRunning||itachiRunning||uploadedRunning||septemberRunning)?85:SEPTEMBER27_BODY_RUNTIME.has(name)?115:';
 if(html.includes(cadenceSource))html=html.replace(cadenceSource,cadenceTarget);
 else if(!html.includes('const septemberRunning=SEPTEMBER27_BODY_RUNTIME'))fail('run cadence anchor missing');
 
@@ -174,5 +175,9 @@ if(html.includes(recoilJutsuSource))html=html.replace(recoilJutsuSource,recoilJu
 else if(!html.includes(recoilJutsuTarget))fail('Jutsu recoil anchor missing');
 
 for(const marker of ['SEPTEMBER27_BODY_RUNTIME','frames.slice(1,-1).reverse()','SEPTEMBER27_VFX','animateItachiAmaterasu','animateGaaraSandBlast','animateSolarNarutoRasengan','bbSeptember27Scale',"kind:'uploadedFireball'","f.kind==='uploadedFireball'","f.kind==='itachiAmaterasu'","f.kind==='gaaraSandBlast'","f.kind==='solarNarutoRasengan",'Egyptian Gaara','Solar Pharaoh Naruto',"au.name==='Egyptian Gaara'",'ctx.shadowColor=\'#ffb420\'']){if(!html.includes(marker))fail('missing final marker '+marker)}
+for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(code=>code.trim()).entries()){
+ try{new vm.Script(script,{filename:`generated-inline-${index}.js`})}
+ catch(error){fail(`generated inline script ${index} has invalid syntax: ${error.message}`)}
+}
 await fs.writeFile(file,html);
 console.log('September 27 asset integration PASS: Egyptian Gaara, Solar Pharaoh Naruto, new fireball, Amaterasu, Sand Blast, and Sun Rasengan are test-ready with lazy VFX decoding.');
