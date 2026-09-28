@@ -11,7 +11,7 @@ let progression=await fs.readFile(progressionFile,'utf8');
 const forgeSource="const data=unitData(name),id=unitId(name),assets=data?.assets||{},clean=assets.forge_art_clean||assets.presentation_art;\n const rel=clean||(LEGACY_FIGHTERS.includes(name)?data?.animation_standard?.animations?.idle?.frames?.[0]:(assets.art||assets.card||assets.portrait));";
 const forgeTarget="const data=unitData(name),id=unitId(name),assets=data?.assets||{},clean=assets.forge_art_clean||assets.presentation_art||(LEGACY_FIGHTERS.includes(name)?CARD_ART[name]:'');\n const rel=clean||(LEGACY_FIGHTERS.includes(name)?CARD_ART[name]||data?.animation_standard?.animations?.idle?.frames?.[0]:(assets.art||assets.card||assets.portrait));";
 if(progression.includes(forgeSource))progression=progression.replace(forgeSource,forgeTarget);
-else if(!progression.includes(forgeTarget))throw new Error('Presentation integrity: Forge clean-art resolver anchor missing');
+else if(!progression.includes(forgeTarget)&&!progression.includes('if(FORGE_ART[name])return FORGE_ART[name];'))throw new Error('Presentation integrity: Forge clean-art resolver anchor missing');
 await fs.writeFile(progressionFile,progression);
 
 // The updated 12-frame Itachi flock stays compact so it reads as a target-lane strike

@@ -15,7 +15,8 @@ const SKIP_FILES = new Set([
   'blazing_battle_particle_vfx_upload_ready.zip', 'blazing_battle_vfx_pack.zip', 'blazing_battle_summon_reveal_vfx_pack.zip',
   'Blazing_Battle_Lightning_QC_Pack_v2.zip', 'blazing_battle_vfx_batch_02.zip', 'blazing_battle_vfx_fireball_pack_03.zip',
   'blazing_battle_vfx_upload_pack_01.zip', 'blazing_battle_vfx_upload_pack_02.zip', 'egyptian_gaara_approved_assets.zip',
-  'solar_pharaoh_naruto_approved_assets.zip'
+  'solar_pharaoh_naruto_approved_assets.zip',
+  'BlazingBattle_TreasuryCollection_Pack01_Cards_Banner.zip', 'BlazingBattle_TreasuryCollection_Pack02_SummonFX.zip'
 ]);
 const SKIP_DIR_PREFIXES = ['_rollback', 'rollback', 'checkpoint'];
 const MIME_EXT = new Map([
