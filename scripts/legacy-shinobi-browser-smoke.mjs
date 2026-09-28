@@ -187,9 +187,9 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
    }));
    try{
     for(const name of names){
-     const unit=get('canonicalUnit')(name);
+     const expectedFrames=get('unitAttackFrames')(name,'basic_attack')||[];
      const frames=body.basic(name)||[];
-     await waitLoaded(frames);
+     await waitLoaded([...frames,...expectedFrames]);
      const seen=[];
      proto.drawImage=function(image,...args){
       const src=String(image?.src||'');
@@ -199,8 +199,8 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
      state.action='normal';
      state.anim={positions:{},attackPose:{[name]:{kind:'basic_attack',start:performance.now()-160,duration:630}}};
      drawUnit(180,300,'','',false,{scale:1,rot:0,lift:0},name,false,1,1);
-     const expected=String(frames[0]?.src||'').replace(/frame_\d+\.png.*$/,'');
-     results.push({name,expected,seen,usedAttack:seen.some(src=>src.includes(expected))});
+     const expected=expectedFrames.map(frame=>String(frame?.src||'')).filter(Boolean);
+     results.push({name,expected,seen,usedAttack:seen.some(src=>expected.includes(src))});
     }
    }finally{
     proto.drawImage=originalDrawImage;
