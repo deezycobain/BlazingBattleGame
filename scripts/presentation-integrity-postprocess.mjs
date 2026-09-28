@@ -36,6 +36,7 @@ else if(!html.includes(itachiBodyScaleStable))throw new Error('Presentation inte
 const specs=[
  ['bb-legacy-clean-presentation-contract','runtime/ui/legacy-clean-presentation-contract.js'],
  ['bb-road-ios-canvas-safety','runtime/modes/blazing-road-ios-canvas-safety.js'],
+ ['bb-battle-asset-warmup','runtime/modes/battle-asset-warmup.js'],
  ['bb-summon-blazing-polish','runtime/ui/progression/summon-blazing-polish.js']
 ];
 for(const [id] of specs){

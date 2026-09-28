@@ -31,6 +31,9 @@ function roadBattleFighters(state=S){
  const pairs=Array.isArray(state?.pairs)?state.pairs:[];
  return pairs.flatMap(pair=>Array.isArray(pair?.units)?pair.units:[]).filter(unit=>unit&&unit.name&&unit.name!=='—'&&Number(unit.maxHp)>0);
 }
+function roadWarmBattleAssets(state=S){
+ try{return window.BlazingBattleAssetWarmup?.warm?.(roadBattleFighters(state))||null;}catch(error){console.warn('[Blazing Battle] Asset warmup skipped.',error);return null;}
+}
 function roadSameTeam(run,fighters){
  const R=window.BlazingRoadRun;if(!R||!run)return false;
  const current=fighters.map(unit=>R.stateUnitId(unit)).filter(Boolean).sort();
@@ -142,7 +145,7 @@ replaceUniqueWithin(
   'function startBattle(kind){',
   "level1Btn.addEventListener('click',()=>startBattle('level'));",
   /setBattleMap\(boss\?'boss':'level'\);/g,
-  `S.bbRoadMapSource=setBattleMap(boss?'boss':'road',S.bbRoadStage||1);`,
+  `roadWarmBattleAssets(S);\n   S.bbRoadMapSource=setBattleMap(boss?'boss':'road',S.bbRoadStage||1);`,
   'Road stage map selection'
 );
 
