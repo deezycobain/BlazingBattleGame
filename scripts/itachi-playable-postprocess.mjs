@@ -30,12 +30,12 @@ const replaceRegexOne=(rx,to,label)=>{
 
 replaceRegexOne(
   /const DEFAULT_ACTIVE_TEAM=Object\.freeze\(\[[^\]]+\]\);/,
-  "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Tyler','Itachi','Lebee','Senku','Sub-Zero','Crimson']);",
-  'six-unit paired default team'
+  "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Scorpion','Itachi','Egyptian Gaara','Solar Pharaoh Naruto','Obito','Madara']);",
+  'six-unit paired animation test team'
 );
 replaceRegexOne(
   /const TEAM_STORAGE_KEY='blazingBattle\.activeTeam\.v\d+';/,
-  "const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v5';",
+  "const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v6';",
   'six-unit paired team storage version'
 );
 replaceRegexOne(
@@ -355,6 +355,8 @@ replaceOne(
 for(const marker of [
   "['crimson','subzero','lebee','senku','tyler','itachi','anubis']",
   "const ACTIVE_PLAYABLE_UNITS=Object.freeze(['Crimson','Sub-Zero','Lebee','Senku','Tyler','Itachi']);",
+  "const DEFAULT_ACTIVE_TEAM=Object.freeze(['Scorpion','Itachi','Egyptian Gaara','Solar Pharaoh Naruto','Obito','Madara']);",
+  "const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v6';",
   'ITACHI_IDLE_FRAMES','ITACHI_RUN_FRAMES','ITACHI_BASIC_FRAMES','ITACHI_CROW_ATTACK_VFX_FRAMES','ITACHI_TSUKUYOMI_FRAMES','ITACHI_TSUKUYOMI_OVERLAY_FRAMES','ITACHI_TSUKUYOMI_MANDALA_FRAMES','ITACHI_TSUKUYOMI_TARGET_FRAMES',
   'crow_chakra_burst.png','crow_swarm.png','crow_vortex_ring.png','crow_featherstorm.png','vfx/basic/crows/runtime/frame_12.png','drawItachiCrowFrame',
   "if(name==='Itachi')return ITACHI_IDLE_FRAMES",
