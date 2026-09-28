@@ -132,7 +132,9 @@ replaceUniqueWithin(
   'function startBattle(kind){',
   "level1Btn.addEventListener('click',()=>startBattle('level'));",
   /S=boss\?freshBoss\(\):fresh\(\);\s*S\._chargeSince=performance\.now\(\);/g,
-  `S=boss?freshBoss():fresh();\n   S.bbRunMode=boss?'castle':'road';\n   if(!boss)beginRoadBattle();\n   S._chargeSince=performance.now();`,
+  `S=boss?freshBoss():fresh();\n   S.bbRunMode=boss?'castle':'road';\n   if(!boss){\n    // A prior build can leave a schema-valid but incompatible saved run. Never let
+    // that persistence error strand the player on the battle screen.
+    try{beginRoadBattle()}catch(error){\n     console.warn('[Blazing Battle] Road entry recovery: rebuilding saved run.',error);\n     try{window.BlazingRoadRun?.clearRun?.()}catch(_){ }\n     try{beginRoadBattle()}catch(recoveryError){\n      console.error('[Blazing Battle] Road entry recovery failed; continuing with a fresh Stage 1 battle.',recoveryError);\n      S.bbRoadRun=null;S.bbRoadStage=1;S.log='BLAZING ROAD — Stage 1. Saved run was reset for compatibility.';\n     }\n    }\n   }\n   S._chargeSince=performance.now();`,
   'fresh battle state'
 );
 
@@ -209,6 +211,8 @@ for(const marker of [
   "setBattleMap(boss?'boss':'road',S.bbRoadStage||1)",
   'function recordRoadVictory()',
   'R.applyRunToBattle(run,fighters)',
+  'Road entry recovery: rebuilding saved run.',
+  'Saved run was reset for compatibility.',
   'R.recordBattleResult(run,fighters)',
   'R.completeRun(run)',
   'spec.stats||{}',
