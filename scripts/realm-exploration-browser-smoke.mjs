@@ -48,7 +48,7 @@ async function run(name,type){
   await page.waitForTimeout(180);
   s=await sample(page);if(!(s.run.distance>450)||s.layerShift===initialShift)throw new Error('runner/parallax did not advance: '+JSON.stringify(s));
   await page.evaluate(()=>{window.BlazingRealmExplorer.laneShift(-1);window.BlazingRealmExplorer.jump();window.BlazingRealmExplorer.dash();});
-  await page.waitForTimeout(120);
+  await page.waitForTimeout(700);
   s=await sample(page);if(s.run.lane!==0)throw new Error('upper trail switch failed: '+JSON.stringify(s.run));
   await page.evaluate(()=>window.BlazingRealmExplorer.setAutoRun(false));
   const beforeBack=Number.parseInt(await page.locator('#bbRealmExplorer [data-run-distance]').innerText(),10);
