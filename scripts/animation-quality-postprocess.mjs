@@ -25,9 +25,10 @@ const BB_ANIMATION_QUALITY_RUNTIME=(()=>{
  const cache=new Map();
  const paths=(name,kind)=>{
    const spec=specs[name]?.[kind];if(!spec)return [];
-   return Array.from({length:spec.count},(_,index)=>spec.root+'/frame_'+String(index+1).padStart(2,'0')+'.png?motionQuality=v3');
+   return Array.from({length:spec.count},(_,index)=>spec.root+'/frame_'+String(index+1).padStart(2,'0')+'.png?motionQuality=v4');
  };
  const ready=frame=>frame?.complete&&frame.naturalWidth>0&&frame.naturalHeight>0;
+ const median=values=>{const list=[...values].sort((a,b)=>a-b);if(!list.length)return 0;const mid=Math.floor(list.length/2);return list.length%2?list[mid]:(list[mid-1]+list[mid])/2;};
  const loadImage=src=>new Promise(resolve=>{const image=new Image();image.decoding='async';image.addEventListener('load',()=>resolve(image),{once:true});image.addEventListener('error',()=>resolve(null),{once:true});image.src=src;});
  const measure=(source,name,kind,index)=>{
    const width=source.naturalWidth||512,height=source.naturalHeight||768;
@@ -43,7 +44,7 @@ const BB_ANIMATION_QUALITY_RUNTIME=(()=>{
    for(let p=0;p<pixels.length;p+=4){if(pixels[p+3]<=12)continue;const px=(p/4)%width,py=Math.floor((p/4)/width);if(px<minX)minX=px;if(px>maxX)maxX=px;if(py<minY)minY=py;if(py>maxY)maxY=py;}
    if(maxX<minX||maxY<minY)return null;
    if(minX<=1||maxX>=width-2||minY<=1||maxY>=height-2)console.warn('[BlazingBattle] source frame reaches canvas edge',name,kind,index+1);
-   return {width,height,minX,minY,maxX,maxY,bodyW:maxX-minX+1,bodyH:maxY-minY+1,junk};
+   return {width,height,minX,minY,maxX,maxY,bodyW:maxX-minX+1,bodyH:maxY-minY+1,centerX:(minX+maxX+1)/2,bottomY:maxY+1,junk};
  };
  const normalizedSequence=(name,kind)=>{
    const key=name+':'+kind;if(cache.has(key))return cache.get(key);
@@ -57,10 +58,13 @@ const BB_ANIMATION_QUALITY_RUNTIME=(()=>{
      }
      const valid=metrics.filter(Boolean);if(!valid.length){sources.forEach((src,index)=>outputs[index].src=src);return;}
      const maxBodyH=Math.max(...valid.map(frame=>frame.bodyH)),maxBodyW=Math.max(...valid.map(frame=>frame.bodyW));
+     const sequenceCenterX=median(valid.map(frame=>frame.centerX)),sequenceBottomY=median(valid.map(frame=>frame.bottomY));
      const targetHeight=600,maxWidth=kind==='attack'?448:kind==='run'?440:420;
      const sequenceFit=Math.min(1.60,targetHeight/maxBodyH,maxWidth/maxBodyW);
-     // Second pass renders one frame at a time. This avoids keeping twelve full
-     // decoded source canvases alive together on iPhone/WebKit.
+     const sequenceDx=Math.round(256-sequenceCenterX*sequenceFit),sequenceDy=Math.round(700-sequenceBottomY*sequenceFit);
+     // Second pass renders one frame at a time with ONE transform for the whole
+     // animation. Never recenter or rescale individual poses. This preserves
+     // authored body motion while removing the scale pumping / anchor wobble.
      for(let index=0;index<metrics.length;index++){
        const frame=metrics[index],output=outputs[index];if(!frame){output.src=sources[index];continue;}
        const source=await loadImage(sources[index]);if(!source){output.src=sources[index];continue;}
@@ -68,12 +72,10 @@ const BB_ANIMATION_QUALITY_RUNTIME=(()=>{
        const pctx=probe.getContext('2d');pctx.drawImage(source,0,0,frame.width,frame.height);
        for(const run of frame.junk||[])pctx.clearRect(run.start,0,run.end-run.start+1,frame.height);
        const canvas=document.createElement('canvas');canvas.width=512;canvas.height=768;const ctx=canvas.getContext('2d');
-       const centerX=(frame.minX+frame.maxX+1)/2,bottomY=frame.maxY+1;
-       const dx=Math.round(256-centerX*sequenceFit),dy=Math.round(700-bottomY*sequenceFit);
-       ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(probe,0,0,frame.width,frame.height,dx,dy,frame.width*sequenceFit,frame.height*sequenceFit);
+       ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(probe,0,0,frame.width,frame.height,sequenceDx,sequenceDy,frame.width*sequenceFit,frame.height*sequenceFit);
        await new Promise(resolve=>canvas.toBlob(blob=>{if(!blob){output.src=sources[index];resolve();return;}const url=URL.createObjectURL(blob);output.addEventListener('load',()=>{URL.revokeObjectURL(url);resolve();},{once:true});output.addEventListener('error',()=>resolve(),{once:true});output.src=url;},'image/png'));
      }
-     console.info('[BlazingBattle] sequence-normalized motion',name,kind,{sequenceFit,maxBodyH,maxBodyW,frames:valid.length});
+     console.info('[BlazingBattle] sequence-normalized motion',name,kind,{sequenceFit,sequenceCenterX,sequenceBottomY,maxBodyH,maxBodyW,frames:valid.length});
    })();
    return outputs;
  };
@@ -91,7 +93,7 @@ if(idleAt<0)fail('unitIdleFrames anchor missing');
 if(!html.includes('const BB_ANIMATION_QUALITY_RUNTIME=(()=>{'))html=html.slice(0,idleAt)+runtime+'\n'+html.slice(idleAt);
 
 const idlePrefix='function unitIdleFrames(name){';
-const qualityIdlePrefix="function unitIdleFrames(name){const bbQualityRun=BB_ANIMATION_QUALITY_RUNTIME.has(name)&&S?.drag&&S?.dragUnitName===name?BB_ANIMATION_QUALITY_RUNTIME.run(name):null;const bbQualityIdle=BB_ANIMATION_QUALITY_RUNTIME.has(name)?BB_ANIMATION_QUALITY_RUNTIME.idle(name):null;const bbQualityRunReady=bbQualityRun?.every(BB_ANIMATION_QUALITY_RUNTIME.ready);const bbQualityIdleReady=bbQualityIdle?.filter(BB_ANIMATION_QUALITY_RUNTIME.ready)||[];if(bbQualityRunReady)return bbQualityRun;if(bbQualityIdleReady.length)return bbQualityIdleReady;";
+const qualityIdlePrefix="function unitIdleFrames(name){const bbQualityRun=BB_ANIMATION_QUALITY_RUNTIME.has(name)&&S?.drag&&S?.dragUnitName===name?BB_ANIMATION_QUALITY_RUNTIME.run(name):null;const bbQualityIdle=BB_ANIMATION_QUALITY_RUNTIME.has(name)?BB_ANIMATION_QUALITY_RUNTIME.idle(name):null;const bbQualityRunReady=bbQualityRun?.every(BB_ANIMATION_QUALITY_RUNTIME.ready);const bbQualityIdleReady=bbQualityIdle?.every(BB_ANIMATION_QUALITY_RUNTIME.ready);if(bbQualityRunReady)return bbQualityRun;if(bbQualityIdleReady)return bbQualityIdle;";
 if(!html.includes('const bbQualityRun=BB_ANIMATION_QUALITY_RUNTIME.has(name)'))html=html.replace(idlePrefix,qualityIdlePrefix);
 
 html=html.replace('const uploadedRun=UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name?UPLOADED_CHARACTER_MOTION.run(name):null;','const uploadedRun=!BB_ANIMATION_QUALITY_RUNTIME.has(name)&&UPLOADED_CHARACTER_MOTION.has(name)&&S?.drag&&S?.dragUnitName===name?UPLOADED_CHARACTER_MOTION.run(name):null;');
@@ -127,10 +129,10 @@ html=html.replace('releaseDelay=330,flightDuration=360,impactHold=250','releaseD
 html=html.replace("state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:95};","state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:80,frameSequence:[0,1,2,3,4,4,5,5,5,5]};");
 html=html.replace("state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:72,frameSequence:[0,1,2,3,4,4,4,4,5,5]};","state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:80,frameSequence:[0,1,2,3,4,4,5,5,5,5]};");
 
-for(const marker of ['BB_ANIMATION_QUALITY_RUNTIME','sequenceFit','bbQualityRunning','bbScorpionChainV5','motionQuality=v3'])if(!html.includes(marker))fail('missing '+marker);
+for(const marker of ['BB_ANIMATION_QUALITY_RUNTIME','sequenceFit','sequenceCenterX','bbQualityRunning','bbScorpionChainV5','motionQuality=v4'])if(!html.includes(marker))fail('missing '+marker);
 for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(code=>code.trim()).entries()){
   try{new vm.Script(script,{filename:`animation-quality-${index}.js`})
   }catch(error){fail(`generated inline script ${index} has invalid syntax: ${error.message}`)}
 }
 await fs.writeFile(file,html);
-console.log('Animation Quality PASS: shared sequence scale/anchor, low-memory two-pass normalization, safe Scorpion sources, 12-frame Scorpion/Mashle runs, connected spear presentation.');
+console.log('Animation Quality PASS: shared sequence scale + anchor, low-memory two-pass normalization, safe Scorpion sources, 12-frame Scorpion/Mashle runs, connected spear presentation.');
