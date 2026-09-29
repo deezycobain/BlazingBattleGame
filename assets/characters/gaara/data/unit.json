@@ -63,16 +63,16 @@
     "basic_attack": true,
     "jutsu": true,
     "recoil": true,
-    "notes": "September 27 approved Egyptian pack. Source sheets are retained at repository root; V1 runtime frames are normalized to a 512x768 bottom-center canvas.",
+    "notes": "September 27 approved Egyptian pack. Source sheets are retained at repository root; V1 runtime frames are normalized to a 512x768 bottom-center canvas. Run cadence tightened for smoother battlefield motion; expand to 12 authored run frames if visible pose stepping remains.",
     "animation_map": true
   },
   "balance": { "status": "provisional", "pass": "september27-egyptian-test", "notes": "Testing values; tune after battlefield-scale and Jutsu review." },
   "animation_standard": {
-    "version": "september27-egyptian-v1",
+    "version": "september27-egyptian-v1.1",
     "canvas": { "width": 512, "height": 768, "anchor_x": 256, "anchor_y": 742 },
     "animations": {
       "idle": { "frames": ["sprites/runtime/v1/idle/frame_01.png", "sprites/runtime/v1/idle/frame_02.png", "sprites/runtime/v1/idle/frame_03.png", "sprites/runtime/v1/idle/frame_04.png", "sprites/runtime/v1/idle/frame_05.png", "sprites/runtime/v1/idle/frame_06.png"], "frame_ms": 270, "loop": true, "events": [] },
-      "run": { "frames": ["sprites/runtime/v1/run/frame_01.png", "sprites/runtime/v1/run/frame_02.png", "sprites/runtime/v1/run/frame_03.png", "sprites/runtime/v1/run/frame_04.png", "sprites/runtime/v1/run/frame_05.png", "sprites/runtime/v1/run/frame_06.png", "sprites/runtime/v1/run/frame_07.png", "sprites/runtime/v1/run/frame_08.png", "sprites/runtime/v1/run/frame_09.png", "sprites/runtime/v1/run/frame_10.png"], "frame_ms": 95, "loop": true, "events": [] },
+      "run": { "frames": ["sprites/runtime/v1/run/frame_01.png", "sprites/runtime/v1/run/frame_02.png", "sprites/runtime/v1/run/frame_03.png", "sprites/runtime/v1/run/frame_04.png", "sprites/runtime/v1/run/frame_05.png", "sprites/runtime/v1/run/frame_06.png", "sprites/runtime/v1/run/frame_07.png", "sprites/runtime/v1/run/frame_08.png", "sprites/runtime/v1/run/frame_09.png", "sprites/runtime/v1/run/frame_10.png"], "frame_ms": 74, "loop": true, "events": [] },
       "basic_attack": { "frames": ["sprites/runtime/v1/attack/basic/frame_01.png", "sprites/runtime/v1/attack/basic/frame_02.png", "sprites/runtime/v1/attack/basic/frame_03.png", "sprites/runtime/v1/attack/basic/frame_04.png", "sprites/runtime/v1/attack/basic/frame_05.png", "sprites/runtime/v1/attack/basic/frame_06.png", "sprites/runtime/v1/attack/basic/frame_07.png", "sprites/runtime/v1/attack/basic/frame_08.png", "sprites/runtime/v1/attack/basic/frame_09.png", "sprites/runtime/v1/attack/basic/frame_10.png", "sprites/runtime/v1/attack/basic/frame_11.png", "sprites/runtime/v1/attack/basic/frame_12.png"], "frame_ms": 105, "loop": false, "events": [{ "frame": 6, "event": "apply_melee" }] },
       "recoil": { "frames": ["sprites/runtime/v1/recoil/frame_01.png", "sprites/runtime/v1/recoil/frame_03.png", "sprites/runtime/v1/recoil/frame_04.png", "sprites/runtime/v1/recoil/frame_05.png", "sprites/runtime/v1/recoil/frame_07.png", "sprites/runtime/v1/recoil/frame_08.png"], "frame_ms": 90, "loop": false, "events": [] }
     },
