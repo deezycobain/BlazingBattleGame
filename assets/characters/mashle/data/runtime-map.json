@@ -5,7 +5,7 @@
   "abilities": {
     "basic_attack": {
       "slot": "basic",
-      "animation_id": "mashle.animation.basic_attack_v2",
+      "animation_id": "mashle.animation.basic_attack",
       "runtime_handler": "animateLunge",
       "gameplay_actions": [
         {
@@ -22,7 +22,7 @@
     },
     "legacy_jutsu_pending": {
       "slot": "jutsu",
-      "animation_id": "mashle.animation.idle_v2",
+      "animation_id": "mashle.animation.idle",
       "runtime_handler": "disabled",
       "execution_status": "declared_not_wired",
       "migration_note": "Dedicated Legacy of the Shinobi Jutsu and VFX are intentionally deferred to the next character-authoring pass.",
@@ -30,9 +30,6 @@
     }
   },
   "states": {
-    "idle": "mashle.animation.idle_v2",
-    "run": "mashle.animation.run_v2",
-    "basic_attack": "mashle.animation.basic_attack_v2",
-    "recoil": "mashle.animation.recoil_v2"
+    "idle": "mashle.animation.idle"
   }
 }
