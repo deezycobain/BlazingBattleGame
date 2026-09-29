@@ -12,9 +12,10 @@ const scorpionGuard="   const bbScorpionRunGuard=name==='Scorpion'&&S?.drag&&S?.
 if(html.includes(scorpionGuard))html=html.replace(scorpionGuard,'');
 html=html.replace('   if(bbScorpionRunGuard)ctx.restore();\n','');
 
-// Final invariants. No per-frame scale hacks, no mismatched uploaded spear renderer,
-// and no destructive battle-frame clipping may survive after the V3 quality pass.
-for(const marker of ['BB_ANIMATION_QUALITY_RUNTIME','sequenceFit','motionQuality=v3','bbScorpionChainV5'])if(!html.includes(marker))fail('missing final marker '+marker);
+// Final invariants. V4 uses one scale and one anchor transform per animation
+// sequence. No per-frame recentering, old scale hacks, mismatched uploaded spear
+// renderer, or destructive Scorpion run clipping may survive.
+for(const marker of ['BB_ANIMATION_QUALITY_RUNTIME','sequenceFit','sequenceCenterX','sequenceBottomY','motionQuality=v4','bbScorpionChainV5'])if(!html.includes(marker))fail('missing final marker '+marker);
 for(const forbidden of ["const fit=Math.min(name==='Scorpion'?1.34:1.20",'bbScorpionSuppliedSpearV3','bbScorpionRunGuard'])if(html.includes(forbidden))fail('retired workaround survived: '+forbidden);
 
 for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(code=>code.trim()).entries()){
@@ -22,4 +23,4 @@ for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/scr
   }catch(error){fail(`generated inline script ${index} has invalid syntax: ${error.message}`)}
 }
 await fs.writeFile(file,html);
-console.log('Animation Quality Hotfix PASS: V3 sequence normalization is final; legacy Scorpion clip mask and mismatched spear renderer are absent.');
+console.log('Animation Quality Hotfix PASS: V4 shared-scale/shared-anchor normalization is final; legacy Scorpion clip mask and mismatched spear renderer are absent.');
