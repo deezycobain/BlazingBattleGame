@@ -11,7 +11,7 @@ const fail=message=>{throw new Error('Battle visual normalization: '+message)};
 // Mashle's V2 art fills substantially more of that canvas, so the previous 1.46
 // boost made him tower over the rest of the squad on mobile.
 const oldScale="name==='Scorpion'?1.38:name==='Mashle'?1.46:1";
-const newScale="name==='Scorpion'?1.38:name==='Mashle'?.92:1";
+const newScale="name==='Scorpion'?1.38:name==='Mashle'?0.92:1";
 if(html.includes(oldScale))html=html.replace(oldScale,newScale);
 else if(!html.includes(newScale))fail('fighter scale anchor missing');
 
