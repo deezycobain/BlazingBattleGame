@@ -17,7 +17,7 @@
         }
       ],
       "vfx": {
-        "projectile": "runtime.scorpion_chain_spear",
+        "projectile": "uploaded-v2.scorpion_chain_spear",
         "impact": "shared.vfx.impact.default"
       }
     },
