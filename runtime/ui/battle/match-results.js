@@ -68,12 +68,6 @@ function returnHome(){
  try{window.BlazingHomeSkin?.apply?.()}catch{}
  labelSecondaryButtons();syncHud();window.scrollTo(0,0);
 }
-function returnJourney(s,kind){
- const encounter=s?.bbRealmEncounter||null;
- returnHome();
- window.BlazingRealmExplorer?.resumeAfterBattle?.(kind,encounter);
- setTimeout(()=>window.BlazingRealmExplorer?.open?.('run'),120);
-}
 function launch(mode){returnHome();setTimeout(()=>document.getElementById(mode==='road'?'level1Btn':'boss1Btn')?.click(),180)}
 function openForge(name){
  returnHome();
@@ -151,13 +145,11 @@ function showResult(kind,s){
  const roadComplete=victory&&mode==='road'&&s?.bbRoadRun?.status==='complete';
  root.dataset.result=kind;
  root.dataset.roadComplete=roadComplete?'1':'0';
- document.getElementById('bbResultsKicker').textContent=mode==='road'?'BLAZING ROAD':mode==='castle'?'PHANTOM CASTLE':mode==='exploration'?'SHINOBI JOURNEY':'BATTLE COMPLETE';
+ document.getElementById('bbResultsKicker').textContent=mode==='road'?'BLAZING ROAD':mode==='castle'?'PHANTOM CASTLE':'BATTLE COMPLETE';
  document.getElementById('bbResultsTitle').textContent=roadComplete?'ROAD COMPLETE':victory?'VICTORY':'DEFEAT';
- document.getElementById('bbResultsSub').textContent=roadComplete?`All ${window.BlazingRoadContent?.MAX_STAGE||10} stages cleared`:mode==='road'?(victory?'Stage '+stage+' cleared':'Run ended'):(mode==='castle'?(victory?'Boss '+boss+' defeated':'Boss '+boss+' stands'):mode==='exploration'?(victory?'The route ahead is open':'The patrol still controls the bridge'):'Match complete');
+ document.getElementById('bbResultsSub').textContent=roadComplete?`All ${window.BlazingRoadContent?.MAX_STAGE||10} stages cleared`:mode==='road'?(victory?'Stage '+stage+' cleared':'Run ended'):mode==='castle'?(victory?'Boss '+boss+' defeated':'Boss '+boss+' stands'):'Match complete';
  const rewardBox=document.getElementById('bbResultsReward'),balance=document.getElementById('bbResultsBalance');
- const journeyReward=mode==='exploration'?s?.bbRealmEncounter?.reward:null;
- if(victory&&journeyReward){rewardBox.hidden=false;rewardBox.innerHTML='<strong>◈ +'+escapeHtml(journeyReward.amount||0)+'</strong><span>'+escapeHtml(String(journeyReward.resource||'route reward').replaceAll('_',' '))+'</span>';balance.textContent='JOURNEY REWARD SECURED'}
- else if(victory&&reward){rewardBox.hidden=false;rewardBox.innerHTML='<strong>'+escapeHtml(reward.symbol)+' +'+escapeHtml(reward.amount)+'</strong><span>'+escapeHtml(reward.currency)+'</span>';balance.textContent='BALANCE '+reward.balance+' '+reward.currency}
+ if(victory&&reward){rewardBox.hidden=false;rewardBox.innerHTML='<strong>'+escapeHtml(reward.symbol)+' +'+escapeHtml(reward.amount)+'</strong><span>'+escapeHtml(reward.currency)+'</span>';balance.textContent='BALANCE '+reward.balance+' '+reward.currency}
  else{rewardBox.hidden=true;rewardBox.innerHTML='';balance.textContent=victory?'':'NO BLAZING COINS EARNED'}
  const progression=renderXp(s,victory);
  renderRoadIntermission(s,{victory,roadComplete,stage});
@@ -173,7 +165,6 @@ function showResult(kind,s){
  }
  else if(!victory&&mode==='road'){actions.classList.add('two');add('RESTART ROAD','primary',()=>launch('road'));add('MAIN MENU','',returnHome)}
  else if(!victory&&mode==='castle'){actions.classList.add('two');add('RETRY BOSS','primary',()=>launch('castle'));add('MAIN MENU','',returnHome)}
- else if(mode==='exploration'){actions.classList.add('two');add(victory?'CONTINUE JOURNEY':'RETURN TO ROUTE','primary',()=>returnJourney(s,kind));add('MAIN MENU','',returnHome)}
  else add('RETURN TO MENU','primary',returnHome);
  root.classList.add('active');syncHud();
 }
