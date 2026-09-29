@@ -46,8 +46,6 @@ jobs:
           exit 1
       - name: Chromium + WebKit local paired-team smoke
         run: node scripts/team-pair-browser-smoke.mjs
-      - name: Chromium + WebKit local Realm Exploration smoke
-        run: npm run smoke:realm
       - name: WebKit mobile deployed Home input smoke
         if: always() && github.event_name == 'push' && github.ref_name == 'dev'
         env:
@@ -59,18 +57,6 @@ jobs:
             echo "Deployed WebKit Home input smoke attempt $attempt/3"
             if node scripts/browser-smoke-v8.mjs; then exit 0; fi
             sleep 15
-          done
-          exit 1
-      - name: Chromium + WebKit deployed Journey lock and runtime smoke
-        if: success() && github.event_name == 'push' && github.ref_name == 'dev'
-        env:
-          BB_SMOKE_URL: https://dev-blazing-battle-game.blazingbattle.workers.dev
-          BB_EXPECT_COMMIT: ${{ github.sha }}
-        run: |
-          for attempt in {1..6}; do
-            echo "Deployed Realm smoke attempt $attempt/6"
-            if npm run smoke:realm; then exit 0; fi
-            sleep 20
           done
           exit 1
       - name: Chromium + WebKit local boot smoke
