@@ -5,7 +5,7 @@
   "abilities": {
     "basic_attack": {
       "slot": "basic",
-      "animation_id": "scorpion.animation.basic_attack_v2",
+      "animation_id": "scorpion.animation.basic_attack",
       "runtime_handler": "animateScorpionSpearStrike",
       "gameplay_actions": [
         {
@@ -17,13 +17,13 @@
         }
       ],
       "vfx": {
-        "projectile": "runtime.scorpion_chain_spear",
+        "projectile": "uploaded-v2.scorpion_chain_spear",
         "impact": "shared.vfx.impact.default"
       }
     },
     "legacy_jutsu_pending": {
       "slot": "jutsu",
-      "animation_id": "scorpion.animation.idle_v2",
+      "animation_id": "scorpion.animation.idle",
       "runtime_handler": "disabled",
       "execution_status": "declared_not_wired",
       "migration_note": "Dedicated Legacy of the Shinobi Jutsu and VFX are intentionally deferred to the next character-authoring pass.",
@@ -31,9 +31,6 @@
     }
   },
   "states": {
-    "idle": "scorpion.animation.idle_v2",
-    "run": "scorpion.animation.run_v2",
-    "basic_attack": "scorpion.animation.basic_attack_v2",
-    "recoil": "scorpion.animation.recoil_v2"
+    "idle": "scorpion.animation.idle"
   }
 }
