@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "source_frame": {
+    "width_px": 512,
+    "height_px": 768,
+    "format": "RGBA_PNG",
+    "anchor": "bottom_center",
+    "feet_baseline_y_px": 700,
+    "feet_baseline_tolerance_px": 8,
+    "standard_body_height_px": 600,
+    "standard_body_height_tolerance_px": 30,
+    "minimum_transparent_gutter_px": 64,
+    "vfx_baked_into_character_frames": false
+  },
+  "runtime": {
+    "standard_body_height_logical_px": 96,
+    "size_classes": {
+      "small": 0.94,
+      "standard": 1.0,
+      "large": 1.06,
+      "boss": 1.18
+    },
+    "default_size_class": "standard",
+    "base_renderer_scale": 1.27995,
+    "maximum_unapproved_compensation": 1.45,
+    "minimum_unapproved_compensation": 0.78
+  },
+  "legacy_source_compensation": {
+    "Itachi": 0.960288,
+    "Scorpion": 1.38,
+    "Mashle": 0.92,
+    "Egyptian Gaara": 1.25
+  },
+  "rules": {
+    "source_canvas_never_sets_world_size": true,
+    "transparent_padding_never_sets_world_size": true,
+    "fighter_and_vfx_layers_are_separate": true,
+    "hitbox_never_derived_from_sprite_bounds": true,
+    "attack_origin_never_derived_from_frame_edge": true,
+    "per_unit_scale_hacks_outside_this_contract": false
+  }
+}
