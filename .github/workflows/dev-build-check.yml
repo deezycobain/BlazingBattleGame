@@ -75,6 +75,7 @@ jobs:
         with:
           name: home-browser-screenshots
           path: test-artifacts/*.png
+          retention-days: 3
       - name: Chromium + WebKit local results and economy smoke
         run: node scripts/results-browser-smoke.mjs
       - name: Chromium + WebKit local unit progression smoke

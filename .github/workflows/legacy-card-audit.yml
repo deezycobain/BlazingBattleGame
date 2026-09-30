@@ -22,3 +22,4 @@ jobs:
         with:
           name: legacy-card-visual-audit
           path: legacy-card-audit-output
+          retention-days: 3

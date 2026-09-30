@@ -34,3 +34,4 @@ jobs:
         with:
           name: legacy-sprite-visual-audit
           path: legacy-sprite-audit-output
+          retention-days: 3
