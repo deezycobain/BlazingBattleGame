@@ -5,8 +5,10 @@ import vm from 'node:vm';
 const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
 const fail=message=>{throw new Error('Animation quality: '+message)};
+const stableRuntime=await fs.readFile(path.join(process.cwd(),'runtime','animation','stable-sequence-runtime.js'),'utf8');
 
 const runtime=String.raw`
+${stableRuntime}
 const BB_ANIMATION_QUALITY_RUNTIME=(()=>{
  const specs=Object.freeze({
    Scorpion:Object.freeze({
@@ -48,36 +50,7 @@ const BB_ANIMATION_QUALITY_RUNTIME=(()=>{
  };
  const normalizedSequence=(name,kind)=>{
    const key=name+':'+kind;if(cache.has(key))return cache.get(key);
-   const sources=paths(name,kind),outputs=sources.map(()=>new Image());cache.set(key,outputs);
-   (async()=>{
-     const metrics=[];
-     for(let index=0;index<sources.length;index++){
-       const source=await loadImage(sources[index]);
-       if(!source){metrics.push(null);continue;}
-       try{metrics.push(measure(source,name,kind,index));}catch(error){console.warn('[BlazingBattle] motion measure fallback',name,kind,index+1,error);metrics.push(null);}
-     }
-     const valid=metrics.filter(Boolean);if(!valid.length){sources.forEach((src,index)=>outputs[index].src=src);return;}
-     const maxBodyH=Math.max(...valid.map(frame=>frame.bodyH)),maxBodyW=Math.max(...valid.map(frame=>frame.bodyW));
-     const sequenceCenterX=median(valid.map(frame=>frame.centerX)),sequenceBottomY=median(valid.map(frame=>frame.bottomY));
-     const targetHeight=600,maxWidth=kind==='attack'?448:kind==='run'?440:420;
-     const sequenceFit=Math.min(1.60,targetHeight/maxBodyH,maxWidth/maxBodyW);
-     const sequenceDx=Math.round(256-sequenceCenterX*sequenceFit),sequenceDy=Math.round(700-sequenceBottomY*sequenceFit);
-     // Second pass renders one frame at a time with ONE transform for the whole
-     // animation. Never recenter or rescale individual poses. This preserves
-     // authored body motion while removing the scale pumping / anchor wobble.
-     for(let index=0;index<metrics.length;index++){
-       const frame=metrics[index],output=outputs[index];if(!frame){output.src=sources[index];continue;}
-       const source=await loadImage(sources[index]);if(!source){output.src=sources[index];continue;}
-       const probe=document.createElement('canvas');probe.width=frame.width;probe.height=frame.height;
-       const pctx=probe.getContext('2d');pctx.drawImage(source,0,0,frame.width,frame.height);
-       for(const run of frame.junk||[])pctx.clearRect(run.start,0,run.end-run.start+1,frame.height);
-       const canvas=document.createElement('canvas');canvas.width=512;canvas.height=768;const ctx=canvas.getContext('2d');
-       ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(probe,0,0,frame.width,frame.height,sequenceDx,sequenceDy,frame.width*sequenceFit,frame.height*sequenceFit);
-       await new Promise(resolve=>canvas.toBlob(blob=>{if(!blob){output.src=sources[index];resolve();return;}const url=URL.createObjectURL(blob);output.addEventListener('load',()=>{URL.revokeObjectURL(url);resolve();},{once:true});output.addEventListener('error',()=>resolve(),{once:true});output.src=url;},'image/png'));
-     }
-     console.info('[BlazingBattle] sequence-normalized motion',name,kind,{sequenceFit,sequenceCenterX,sequenceBottomY,maxBodyH,maxBodyW,frames:valid.length});
-   })();
-   return outputs;
+   const outputs=window.BlazingStableAnimation.normalizedSequence(name,kind,paths(name,kind));cache.set(key,outputs);return outputs;
  };
  const idle=name=>{const frames=normalizedSequence(name,'idle');return name==='Scorpion'&&frames.length===6?[...frames,...frames.slice(1,-1).reverse()]:frames;};
  const run=name=>normalizedSequence(name,'run');
@@ -113,23 +86,22 @@ else if(!html.includes('const bbQualityRunning=BB_ANIMATION_QUALITY_RUNTIME.has(
 // authored VFX is approved.
 const spearRx=/}else if\(f\.kind==='uploadedScorpionSpear'\)\{[\s\S]*?(?=}else if\(f\.kind==='iceProjectile'\)\{)/;
 const spearRenderer=String.raw`}else if(f.kind==='uploadedScorpionSpear'){
-     /* bbScorpionChainV5: continuous hand-connected rope spear */
-     const t=clamp((performance.now()-f.start)/Math.max(1,f.duration),0,1),ease=1-Math.pow(1-t,2.5),from=f.from,to=f.to;
-     const tipX=from.x+(to.x-from.x)*ease,tipY=from.y+(to.y-from.y)*ease,dx=tipX-from.x,dy=tipY-from.y,len=Math.max(1,Math.hypot(dx,dy)),angle=Math.atan2(dy,dx);
-     ctx.save();ctx.imageSmoothingEnabled=true;ctx.lineCap='round';ctx.lineJoin='round';
-     const links=Math.max(5,Math.min(34,Math.floor(len/7.5)));
-     for(let n=0;n<=links;n++){const p=n/links,cx=from.x+dx*p,cy=from.y+dy*p+Math.sin(p*Math.PI*2.5+t*3)*.9*(1-p);ctx.save();ctx.translate(cx,cy);ctx.rotate(angle+(n%2?0:Math.PI/2));ctx.strokeStyle=n%3===0?'rgba(226,172,88,.98)':'rgba(86,61,43,.98)';ctx.lineWidth=1.15;ctx.beginPath();ctx.ellipse(0,0,3.5,1.55,0,0,Math.PI*2);ctx.stroke();ctx.restore();}
-     ctx.translate(tipX,tipY);ctx.rotate(angle);ctx.shadowColor='rgba(255,132,20,.48)';ctx.shadowBlur=3;ctx.fillStyle='#c8a15b';ctx.strokeStyle='#3a2920';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(4,-5.2);ctx.lineTo(-7,-2.1);ctx.lineTo(-11,0);ctx.lineTo(-7,2.1);ctx.lineTo(4,5.2);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+     /* bbScorpionDynamicChainV6: one hand socket, one travelling spear head */
+     const elapsed=Math.max(0,performance.now()-(f.bodyStart||f.start)),frameAt=Math.min((f.frameSequence||[]).length-1,Math.floor(elapsed/Math.max(1,f.frameMs||76))),sourceFrame=(f.frameSequence||[])[Math.max(0,frameAt)]??0;
+     const hand=window.BlazingStableAnimation.handSocket(f.origin||f.from,f.facing||1,sourceFrame);
+     window.BlazingStableAnimation.drawChainSpear(ctx,hand,f.to,performance.now()-f.start,f.duration,.55);
     `;
 if(spearRx.test(html))html=html.replace(spearRx,spearRenderer);
 else if(!html.includes('bbScorpionChainV5'))fail('Scorpion spear renderer anchor missing');
 
 html=html.replace('releaseDelay=360,flightDuration=420,impactHold=260','releaseDelay=350,flightDuration=390,impactHold=250');
 html=html.replace('releaseDelay=330,flightDuration=360,impactHold=250','releaseDelay=350,flightDuration=390,impactHold=250');
-html=html.replace("state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:95};","state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:80,frameSequence:[0,1,2,3,4,4,5,5,5,5]};");
-html=html.replace("state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:72,frameSequence:[0,1,2,3,4,4,4,4,5,5]};","state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:80,frameSequence:[0,1,2,3,4,4,5,5,5,5]};");
+html=html.replace("state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:95};","state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:76,frameSequence:window.BlazingStableAnimation.attackFrameOrder};");
+html=html.replace("state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:72,frameSequence:[0,1,2,3,4,4,4,4,5,5]};","state.attackPose[unitName]={kind:'basic_attack',start:performance.now(),duration:releaseDelay+flightDuration+impactHold,frameMs:76,frameSequence:window.BlazingStableAnimation.attackFrameOrder};");
+html=html.replace("const fx={kind:'uploadedScorpionSpear',from:{x:from.x+(enemy.x>=from.x?20:-20),y:from.y-25},to:{x:enemy.x,y:enemy.y-22},start:performance.now(),duration:flightDuration,life:1};","const pose=state.attackPose[unitName],fx={kind:'uploadedScorpionSpear',origin:{x:from.x,y:from.y},facing:enemy.x>=from.x?1:-1,frameSequence:pose.frameSequence,frameMs:pose.frameMs,bodyStart:pose.start,to:{x:enemy.x,y:enemy.y-22},start:performance.now(),duration:flightDuration,life:1};");
+html=html.replace("let frameIndex=Math.min(attackFrames.length-1,Math.floor(attackProgress*attackFrames.length));","let frameIndex=Math.min(attackFrames.length-1,Math.floor(attackProgress*attackFrames.length));if(Array.isArray(attackState.frameSequence)&&attackState.frameSequence.length)frameIndex=attackState.frameSequence[Math.min(attackState.frameSequence.length-1,Math.floor(attackProgress*attackState.frameSequence.length))]??frameIndex;");
 
-for(const marker of ['BB_ANIMATION_QUALITY_RUNTIME','sequenceFit','sequenceCenterX','bbQualityRunning','bbScorpionChainV5','motionQuality=v4'])if(!html.includes(marker))fail('missing '+marker);
+for(const marker of ['BB_ANIMATION_QUALITY_RUNTIME','sequenceFit','sequenceCenterX','bbQualityRunning','bbScorpionDynamicChainV6','BlazingStableAnimation','motionQuality=v4'])if(!html.includes(marker))fail('missing '+marker);
 for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(code=>code.trim()).entries()){
   try{new vm.Script(script,{filename:`animation-quality-${index}.js`})
   }catch(error){fail(`generated inline script ${index} has invalid syntax: ${error.message}`)}

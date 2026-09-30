@@ -54,6 +54,9 @@
             </div>
           </div>
           <div class="dummy" id="dummy"></div>
+          <canvas class="attackOverlay" id="attackOverlay" aria-hidden="true"></canvas>
+          <i class="handSocket" id="handSocket" aria-hidden="true"></i>
+          <i class="spearHead" id="spearHead" aria-hidden="true"></i>
           <img class="vfx" id="vfx" alt="attack VFX frame">
         </div>
       </section>
@@ -83,7 +86,7 @@
         <label><input id="bounds" type="checkbox" checked> Wrapper bounds</label>
         <label><input id="origin" type="checkbox" checked> Feet origin</label>
         <label><input id="alpha" type="checkbox" checked> Alpha bounds</label>
-        <label><input id="cleanBleed" type="checkbox" checked> Clean detached bleed</label>
+        <label><input id="showSocket" type="checkbox" checked> Attack hand socket</label>
         <label><input id="crop" type="checkbox"> Simulate crop</label>
         <label><input id="showSprite" type="checkbox" checked> Character layer</label>
         <label><input id="showVfx" type="checkbox" checked> VFX layer</label>
@@ -94,11 +97,12 @@
       <div class="section">
         <h2>Frame Inspector</h2>
         <pre id="diag">Loading Scorpion run frames…</pre>
-        <p class="hint">The inspector now flags detached horizontal alpha islands as likely source-sheet bleed. <b>Clean detached bleed</b> is a reversible lab-only mask so we can prove the diagnosis before replacing production PNGs.</p>
+        <p class="hint">Scorpion uses the same stable-canvas source normalizer and dynamic chain renderer as production. Source leakage is normalized before framing; this lab never relies on a display mask.</p>
       </div>
     </aside>
   </div>
 </div>
+<script src="../runtime/animation/stable-sequence-runtime.js"></script>
 <script src="./lab.js"></script>
 </body>
 </html>

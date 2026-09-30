@@ -26,7 +26,7 @@ for(const marker of [
   "sprites/runtime/v2/run',count:12",
   "sprites/runtime/v2/attack',count:12",
   "sprites/runtime/v2/recoil',count:12",
-  'frameSequence:[0,1,2,3,4,5,6,7,8,9,10,11]',
+  'attackFrameOrder',
   'motionQuality=v5'
 ])if(!finalizer.includes(marker))fail('finalizer missing marker '+marker);
 

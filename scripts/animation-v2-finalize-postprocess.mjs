@@ -13,7 +13,6 @@ const replacements=[
   ["idle:{root:'assets/characters/scorpion/sprites/runtime/idle',count:6}","idle:{root:'assets/characters/scorpion/sprites/runtime/v2/idle',count:12}"],
   ["attack:{root:'assets/characters/scorpion/sprites/runtime/attack/basic',count:6}","attack:{root:'assets/characters/scorpion/sprites/runtime/v2/attack',count:12}"],
   ["const idle=name=>{const frames=normalizedSequence(name,'idle');return name==='Scorpion'&&frames.length===6?[...frames,...frames.slice(1,-1).reverse()]:frames;};","const idle=name=>normalizedSequence(name,'idle');"],
-  ["frameMs:80,frameSequence:[0,1,2,3,4,4,5,5,5,5]","frameMs:76,frameSequence:[0,1,2,3,4,5,6,7,8,9,10,11]"],
   ["motionQuality=v4","motionQuality=v5"]
 ];
 for(const [from,to] of replacements){
@@ -22,8 +21,8 @@ for(const [from,to] of replacements){
 
 // If an older attack sequence survived from a previous build layer, upgrade it
 // too. This is intentionally narrow and only touches the Scorpion spear pose.
-html=html.split("frameMs:72,frameSequence:[0,1,2,3,4,4,4,4,5,5]").join("frameMs:76,frameSequence:[0,1,2,3,4,5,6,7,8,9,10,11]");
-html=html.split("frameMs:95,frameSequence:[0,1,2,3,4,4,5,5,5,5]").join("frameMs:76,frameSequence:[0,1,2,3,4,5,6,7,8,9,10,11]");
+html=html.split("frameMs:72,frameSequence:[0,1,2,3,4,4,4,4,5,5]").join("frameMs:76,frameSequence:window.BlazingStableAnimation.attackFrameOrder");
+html=html.split("frameMs:95,frameSequence:[0,1,2,3,4,4,5,5,5,5]").join("frameMs:76,frameSequence:window.BlazingStableAnimation.attackFrameOrder");
 
 const required=[
   "idle:{root:'assets/characters/scorpion/sprites/runtime/v2/idle',count:12}",
@@ -31,11 +30,11 @@ const required=[
   "attack:{root:'assets/characters/scorpion/sprites/runtime/v2/attack',count:12}",
   "recoil:{root:'assets/characters/scorpion/sprites/runtime/v2/recoil',count:12}",
   "const idle=name=>normalizedSequence(name,'idle');",
-  "frameSequence:[0,1,2,3,4,5,6,7,8,9,10,11]",
+  "frameSequence:window.BlazingStableAnimation.attackFrameOrder",
   'motionQuality=v5',
   'sequenceFit',
   'sequenceCenterX',
-  'bbScorpionChainV5'
+  'bbScorpionDynamicChainV6'
 ];
 for(const marker of required)if(!html.includes(marker))fail('missing '+marker);
 

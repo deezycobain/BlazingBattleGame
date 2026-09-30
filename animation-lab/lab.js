@@ -6,18 +6,18 @@
   const els = {
     unitId:$('unitId'), loadUnit:$('loadUnit'), preset:$('preset'), actions:$('actions'),
     prev:$('prev'), next:$('next'), play:$('play'), sequence:$('sequence'), vfxOnly:$('vfxOnly'), resetPos:$('resetPos'),
-    stage:$('stage'), actor:$('actorBox'), sprite:$('sprite'), alphaBounds:$('alphaBounds'), dummy:$('dummy'), vfx:$('vfx'),
+    stage:$('stage'), actor:$('actorBox'), sprite:$('sprite'), alphaBounds:$('alphaBounds'), dummy:$('dummy'), vfx:$('vfx'), overlay:$('attackOverlay'), handSocket:$('handSocket'), spearHead:$('spearHead'),
     frameTag:$('frameTag'), unitStatus:$('unitStatus'), assetStatus:$('assetStatus'), edgeStatus:$('edgeStatus'), playStatus:$('playStatus'), diag:$('diag'),
     frameMs:$('frameMs'), frameMsOut:$('frameMsOut'), scale:$('scale'), scaleOut:$('scaleOut'), anchorX:$('anchorX'), anchorXOut:$('anchorXOut'), anchorY:$('anchorY'), anchorYOut:$('anchorYOut'),
     vfxScale:$('vfxScale'), vfxScaleOut:$('vfxScaleOut'), travelMs:$('travelMs'), travelMsOut:$('travelMsOut'),
-    loop:$('loop'), travel:$('travel'), bounds:$('bounds'), origin:$('origin'), alpha:$('alpha'), cleanBleed:$('cleanBleed'), crop:$('crop'), showSprite:$('showSprite'), showVfx:$('showVfx')
+    loop:$('loop'), travel:$('travel'), bounds:$('bounds'), origin:$('origin'), alpha:$('alpha'), showSocket:$('showSocket'), crop:$('crop'), showSprite:$('showSprite'), showVfx:$('showVfx')
   };
 
   const state = {
     unit:'scorpion', display:'Scorpion', action:'run', manifest:null,
     frames:[], frame:0, playing:true, timer:null, loadToken:0,
     travelStart:null, sequenceToken:0, vfxFrames:[], vfxMode:false,
-    lastScan:null, scanCache:new Map()
+    lastScan:null, scanCache:new Map(), productionFrames:[]
   };
 
   const UNIT_ALIASES = {'sub-zero':'subzero','sub_zero':'subzero'};
@@ -126,6 +126,7 @@
     const [frames,vfxFrames] = await Promise.all([discoverFrames(action,token),discoverVfx(token)]);
     if(token !== state.loadToken) return;
     state.frames=frames; state.vfxFrames=vfxFrames; state.frame=0;
+    state.productionFrames=window.BlazingStableAnimation?.normalizedSequence(state.display,action,frames)||[];
     setActionButtons();
 
     const manifestMs = state.manifest?.animation_standard?.animations?.[action==='attack'?'basic_attack':action]?.frame_ms;
@@ -162,9 +163,15 @@
   function renderFrame(){
     const url=state.frames[state.frame];
     if(!url) return;
+    const production=state.productionFrames[state.frame];
+    if(production && !window.BlazingStableAnimation.ready(production)){
+      production.addEventListener('load',()=>renderFrame(),{once:true});
+      els.assetStatus.textContent='normalizing stable canvas…';
+      return;
+    }
     els.sprite.style.clipPath='';
     els.sprite.onload=()=>inspectFrame(els.sprite,url);
-    els.sprite.src=url;
+    els.sprite.src=production?.currentSrc||production?.src||url;
     els.frameTag.textContent=`${state.action} · ${state.frame+1}/${state.frames.length}`;
     els.assetStatus.textContent=url.split('/').slice(-5).join('/');
 
@@ -182,12 +189,20 @@
 
   function renderAttackVfx(){
     const trigger=Math.max(1,Math.floor(state.frames.length*.28));
-    if(state.frame<trigger){els.vfx.classList.remove('on');return;}
+    if(state.frame<trigger){els.vfx.classList.remove('on');clearAttackOverlay();return;}
     const p=(state.frame-trigger)/Math.max(1,state.frames.length-1-trigger);
-    const idx=Math.min(state.vfxFrames.length-1,Math.floor(p*state.vfxFrames.length));
-    els.vfx.src=state.vfxFrames[idx];
-    placeVfx(p);
-    els.vfx.classList.add('on');
+    drawAttackOverlay(p);
+  }
+
+  function clearAttackOverlay(){const ctx=els.overlay.getContext('2d');ctx.clearRect(0,0,els.overlay.width,els.overlay.height);}
+  function drawAttackOverlay(progress){
+    const stage=els.stage.getBoundingClientRect(),actor=els.actor.getBoundingClientRect(),dummy=els.dummy.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+    els.overlay.width=Math.round(stage.width*dpr);els.overlay.height=Math.round(stage.height*dpr);const ctx=els.overlay.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,stage.width,stage.height);
+    const sourceFrame=window.BlazingStableAnimation.attackFrameOrder[Math.min(window.BlazingStableAnimation.attackFrameOrder.length-1,state.frame)];
+    const scale=actor.height/68,origin={x:actor.left-stage.left+actor.width/2,y:actor.bottom-stage.top},offset=window.BlazingStableAnimation.handSocket({x:0,y:0},1,sourceFrame),hand={x:origin.x+offset.x*scale,y:origin.y+offset.y*scale};
+    const target={x:dummy.left-stage.left+14,y:dummy.top-stage.top+dummy.height*.44};
+    const result=window.BlazingStableAnimation.drawChainSpear(ctx,hand,target,progress*Number(els.travelMs.value),Number(els.travelMs.value),Number(els.vfxScale.value)/100);
+    els.handSocket.style.left=hand.x+'px';els.handSocket.style.top=hand.y+'px';els.spearHead.style.left=result.tip.x+'px';els.spearHead.style.top=result.tip.y+'px';
   }
 
   function placeVfx(progress){
@@ -246,22 +261,8 @@
     state.scanCache.set(url,scan); return scan;
   }
 
-  function shouldCleanBleed(scan){
-    return Boolean(
-      els.cleanBleed?.checked && scan?.detached?.length &&
-      state.unit==='scorpion' && state.action==='run' && state.frame<5
-    );
-  }
-
   function applySourceCleanup(scan){
     els.sprite.style.clipPath='';
-    if(!shouldCleanBleed(scan)||!scan.main)return false;
-    const pad=5;
-    const keepMin=Math.max(0,scan.main.x0-pad);
-    const keepMax=Math.min(scan.w-1,scan.main.x1+pad);
-    const left=(keepMin/scan.w)*100;
-    const right=((scan.w-1-keepMax)/scan.w)*100;
-    els.sprite.style.clipPath=`inset(0 ${right.toFixed(3)}% 0 ${left.toFixed(3)}%)`;
     return true;
   }
 
@@ -270,7 +271,7 @@
       const scan=scanAlpha(img,url);
       if(!scan){els.diag.textContent='Frame is fully transparent or unreadable.';return;}
       state.lastScan=scan;
-      const cleaned=applySourceCleanup(scan);
+      const cleaned=false;
       positionAlphaBounds();
       if(scan.detached.length){
         els.edgeStatus.textContent=`⚠ detached bleed${cleaned?' · masked':''}`;
@@ -282,7 +283,7 @@
       const rect=img.getBoundingClientRect();
       const islands=scan.detached.length?scan.detached.map(s=>`x ${s.x0}…${s.x1} (${s.pixels.toLocaleString()} px)`).join(', '):'none';
       els.diag.textContent=
-`${state.display} · ${state.action}\nframe ${state.frame+1}/${state.frames.length}\nsource ${scan.w}×${scan.h}\nrender box ${Math.round(rect.width)}×${Math.round(rect.height)}\nalpha x ${scan.minX}…${scan.maxX}\nalpha y ${scan.minY}…${scan.maxY}\ngutters L${scan.margins.l} R${scan.margins.r} T${scan.margins.t} B${scan.margins.b}\nopaque pixels ${scan.count.toLocaleString()}\nanchor bottom_center + (${els.anchorX.value}, ${els.anchorY.value})\ndetached islands ${islands}\n${cleaned?'✓ LAB MASK ACTIVE: isolated side bleed removed for diagnosis':scan.detached.length?'⚠ DETACHED ALPHA: likely source-sheet slice contamination':scan.touched.length?'⚠ SOURCE EDGE CONTACT: '+scan.touched.join(', '):'✓ source gutters intact'}\n\n${url}`;
+`${state.display} · ${state.action}\nframe ${state.frame+1}/${state.frames.length}\nsource ${scan.w}×${scan.h}\nrender box ${Math.round(rect.width)}×${Math.round(rect.height)}\nalpha x ${scan.minX}…${scan.maxX}\nalpha y ${scan.minY}…${scan.maxY}\ngutters L${scan.margins.l} R${scan.margins.r} T${scan.margins.t} B${scan.margins.b}\nopaque pixels ${scan.count.toLocaleString()}\nanchor bottom_center + (${els.anchorX.value}, ${els.anchorY.value})\ndetached islands ${islands}\n✓ production stable canvas + fixed feet anchor\n\n${url}`;
     }catch(err){els.diag.textContent=`Alpha inspector error:\n${String(err)}`;}
   }
 
@@ -382,12 +383,12 @@
   els.bounds.onchange=()=>els.actor.classList.toggle('showBounds',els.bounds.checked);
   els.origin.onchange=()=>els.actor.classList.toggle('showOrigin',els.origin.checked);
   els.alpha.onchange=()=>els.actor.classList.toggle('showAlpha',els.alpha.checked);
-  els.cleanBleed.onchange=()=>{const url=state.frames[state.frame];if(url&&els.sprite.complete)inspectFrame(els.sprite,url);};
+  els.showSocket.onchange=()=>els.stage.classList.toggle('showSocket',els.showSocket.checked);
   els.crop.onchange=()=>els.actor.classList.toggle('crop',els.crop.checked);
   els.showSprite.onchange=()=>els.sprite.classList.toggle('hidden',!els.showSprite.checked);
   els.showVfx.onchange=()=>{if(!els.showVfx.checked)els.vfx.classList.remove('on');else renderFrame();};
   window.addEventListener('resize',()=>requestAnimationFrame(positionAlphaBounds));
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopTimer();else startTimer();});
 
-  applyTransform(); applyVfxScale(); updatePlayback(); loadUnit('scorpion','run',{cancelSequence:false});
+  els.stage.classList.add('showSocket'); applyTransform(); applyVfxScale(); updatePlayback(); loadUnit('scorpion','run',{cancelSequence:false});
 })();
