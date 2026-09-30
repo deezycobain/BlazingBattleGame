@@ -73,6 +73,7 @@
         <label>Scale <span><input id="scale" type="range" min="40" max="180" value="100"><output id="scaleOut">1.00×</output></span></label>
         <label>Anchor X <span><input id="anchorX" type="range" min="-100" max="100" value="0"><output id="anchorXOut">0px</output></span></label>
         <label>Anchor Y <span><input id="anchorY" type="range" min="-100" max="100" value="0"><output id="anchorYOut">0px</output></span></label>
+        <label>VFX scale <span><input id="vfxScale" type="range" min="25" max="110" value="55" step="5"><output id="vfxScaleOut">0.55×</output></span></label>
         <label>Travel duration <span><input id="travelMs" type="range" min="300" max="2200" value="900" step="50"><output id="travelMsOut">900ms</output></span></label>
       </div>
 
@@ -82,6 +83,7 @@
         <label><input id="bounds" type="checkbox" checked> Wrapper bounds</label>
         <label><input id="origin" type="checkbox" checked> Feet origin</label>
         <label><input id="alpha" type="checkbox" checked> Alpha bounds</label>
+        <label><input id="cleanBleed" type="checkbox" checked> Clean detached bleed</label>
         <label><input id="crop" type="checkbox"> Simulate crop</label>
         <label><input id="showSprite" type="checkbox" checked> Character layer</label>
         <label><input id="showVfx" type="checkbox" checked> VFX layer</label>
@@ -92,7 +94,7 @@
       <div class="section">
         <h2>Frame Inspector</h2>
         <pre id="diag">Loading Scorpion run frames…</pre>
-        <p class="hint">Green touching a source edge points at the PNG. Safe source gutters plus clipping only with <b>Simulate crop</b> points at wrapper or anchor math.</p>
+        <p class="hint">The inspector now flags detached horizontal alpha islands as likely source-sheet bleed. <b>Clean detached bleed</b> is a reversible lab-only mask so we can prove the diagnosis before replacing production PNGs.</p>
       </div>
     </aside>
   </div>
