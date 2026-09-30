@@ -15,8 +15,9 @@ import { fileURLToPath } from 'node:url';
 // Current dev also has a temporary mismatch between Scorpion's uploaded V2
 // projectile mapping and the locked Animation V2 validator. The Animation Lab
 // loads the uploaded chain-spear frames directly, so normalize only the runtime
-// map copy used during this feature-branch build. This keeps normal game behavior
-// untouched while allowing the isolated diagnostics route to publish.
+// map copy used during this feature-branch build and expose a build-only resource
+// alias that points to the exact same authored VFX frames. This keeps normal game
+// behavior untouched while allowing all validators to agree for the preview.
 //
 // Do not carry this bootstrap into dev once the source registry/validator pair is
 // normalized at source.
@@ -108,6 +109,30 @@ for (const dirent of characterEntries) {
   }
 }
 
+// The locked V2 validator expects runtime.scorpion_chain_spear while current dev
+// registers the approved authored frames as uploaded-v2.scorpion_chain_spear.
+// Register a feature-branch alias to the same path instead of duplicating assets.
+manifest.units ??= {};
+manifest.units.scorpion ??= {};
+manifest.units.scorpion.vfx ??= {};
+if (!known.has('runtime.scorpion_chain_spear')) {
+  const authoredEntry = Object.values(manifest.units.scorpion.vfx)
+    .find(entry => entry?.resource_id === 'uploaded-v2.scorpion_chain_spear');
+
+  if (authoredEntry) {
+    manifest.units.scorpion.vfx.chain_spear_runtime_alias = {
+      ...authoredEntry,
+      resource_id: 'runtime.scorpion_chain_spear',
+      usage: 'Animation Lab feature-branch alias to the approved uploaded Scorpion chain-spear VFX frames.'
+    };
+    known.add('runtime.scorpion_chain_spear');
+    registrations++;
+    console.log('Animation Lab bootstrap: registered runtime.scorpion_chain_spear alias to uploaded V2 chain-spear frames.');
+  } else {
+    console.log('Animation Lab bootstrap: runtime.scorpion_chain_spear alias not created because uploaded V2 source registration is missing.');
+  }
+}
+
 await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 
 const scorpionRuntimeMapPath = path.join(charactersDir, 'scorpion/data/runtime-map.json');
@@ -119,4 +144,4 @@ if (scorpionBasic?.vfx?.projectile === 'uploaded-v2.scorpion_chain_spear') {
   console.log('Animation Lab bootstrap: normalized Scorpion runtime projectile for locked validator; lab VFX remains direct-loaded.');
 }
 
-console.log(`Animation Lab bootstrap complete: ${registrations} missing v2 state resource(s) registered for this build.`);
+console.log(`Animation Lab bootstrap complete: ${registrations} feature-branch resource registration(s) applied for this build.`);
