@@ -1,0 +1,68 @@
+name: Animation Lab - unpack Red runtime
+
+on:
+  push:
+    branches:
+      - feature/animation-lab
+    paths:
+      - incoming/red_animation_lab_runtime_v1.zip
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: animation-lab-red-runtime
+  cancel-in-progress: true
+
+jobs:
+  unpack-red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/animation-lab
+          fetch-depth: 0
+
+      - name: Verify uploaded runtime pack
+        id: verify
+        shell: bash
+        run: |
+          if [[ ! -f incoming/red_animation_lab_runtime_v1.zip ]]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "Red runtime pack is not present. Nothing to unpack."
+            exit 0
+          fi
+          size=$(stat -c%s incoming/red_animation_lab_runtime_v1.zip)
+          if (( size > 26214400 )); then
+            echo "Runtime pack exceeds 25 MB upload contract: $size bytes"
+            exit 1
+          fi
+          echo "present=true" >> "$GITHUB_OUTPUT"
+          echo "Runtime pack: $size bytes"
+
+      - name: Unpack Red into Animation Lab branch
+        if: steps.verify.outputs.present == 'true'
+        shell: bash
+        run: |
+          rm -rf assets/characters/red
+          unzip -oq incoming/red_animation_lab_runtime_v1.zip -d .
+          test -f assets/characters/red/data/unit.json
+          test "$(find assets/characters/red/sprites/runtime/v2/idle -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 12
+          test "$(find assets/characters/red/sprites/runtime/v2/attack -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 14
+          test "$(find assets/characters/red/sprites/runtime/v2/recoil -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 8
+          node -e "JSON.parse(require('fs').readFileSync('assets/characters/red/data/unit.json','utf8')); console.log('Red unit.json OK')"
+
+      - name: Commit Red lab assets
+        if: steps.verify.outputs.present == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/characters/red
+          if git diff --cached --quiet; then
+            echo "Red assets already match the uploaded pack."
+            exit 0
+          fi
+          git commit -m "Load Red runtime assets into Animation Lab"
+          git push origin HEAD:feature/animation-lab
