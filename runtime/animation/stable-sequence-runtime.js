@@ -116,7 +116,7 @@
         const outputContext = output.getContext('2d');
         outputContext.imageSmoothingEnabled = true;
         outputContext.imageSmoothingQuality = 'high';
-        outputContext.drawImage(frame.canvas, 0, 0, frame.width, frame.height, dx, dy, frame.width * fit, frame.height * fit);
+        outputContext.drawImage(frame.canvas, 0, 0, frame.width, frame.height, dx, dy, frame.width * sequenceFit, frame.height * sequenceFit);
         await new Promise(resolve => output.toBlob(blob => {
           if (!blob) { frames[index].src = sources[index]; resolve(); return; }
           const url = URL.createObjectURL(blob);
