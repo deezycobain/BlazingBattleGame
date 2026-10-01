@@ -1,0 +1,178 @@
+{
+  "schema_version": 3,
+  "id": "red",
+  "display_name": "Red",
+  "title": "Capture Prodigy",
+  "role": "playable",
+  "archetype": "ranged",
+  "element": "Fire",
+  "rarity": "Legendary",
+  "collection": {
+    "owned": true,
+    "inventory_visible": false,
+    "battle_ready": false
+  },
+  "stats": {
+    "level": 1,
+    "hp": 80,
+    "attack": 82,
+    "defense": 72,
+    "speed": 84
+  },
+  "combat": {
+    "mark": "R",
+    "movement_range": 90,
+    "basic_shape": {
+      "type": "circle",
+      "r": 120
+    },
+    "jutsu_shape": {
+      "type": "circle",
+      "r": 135
+    },
+    "chakra_max": 8,
+    "chakra_start": 2
+  },
+  "render": {
+    "scale": 1,
+    "sprite_anchor": "bottom_center",
+    "sprite_canvas": {
+      "width": 512,
+      "height": 768
+    }
+  },
+  "abilities": {
+    "basic": {
+      "id": "basic_attack",
+      "name": "Capture Orb Throw",
+      "damage_multiplier": 1,
+      "chakra_gain": 1,
+      "delivery": "projectile",
+      "target_mode": "single",
+      "presentation": {
+        "animation_kind": "basic_attack",
+        "projectile_asset": "props/red_capture_orb.png"
+      }
+    },
+    "jutsu": {
+      "id": "monster_release_pending",
+      "name": "Monster Release Pending",
+      "cost": 99,
+      "damage_multiplier": 0,
+      "delivery": "disabled",
+      "category": "jutsu",
+      "ultimate": false
+    }
+  },
+  "assets": {
+    "portrait": "reference/red_master_reference.png",
+    "card": null,
+    "icon": null,
+    "sprites": {
+      "idle": "sprites/runtime/v2/idle/",
+      "attack_basic": "sprites/runtime/v2/attack/",
+      "recoil": "sprites/runtime/v2/recoil/",
+      "run": null,
+      "jutsu": null
+    },
+    "projectile": "props/red_capture_orb.png",
+    "vfx": "vfx/runtime/orb_release/"
+  },
+  "readiness": {
+    "collection": false,
+    "battle": false,
+    "idle": true,
+    "run": false,
+    "basic_attack": true,
+    "recoil": true,
+    "jutsu": false,
+    "notes": "Animation Lab candidate only. Source sheets include edge-touching cells; inspect before production promotion."
+  },
+  "animation_standard": {
+    "version": "production-sprite-quality-v1.1-lab-candidate",
+    "animations": {
+      "idle": {
+        "frames": [
+          "sprites/runtime/v2/idle/frame_01.png",
+          "sprites/runtime/v2/idle/frame_02.png",
+          "sprites/runtime/v2/idle/frame_03.png",
+          "sprites/runtime/v2/idle/frame_04.png",
+          "sprites/runtime/v2/idle/frame_05.png",
+          "sprites/runtime/v2/idle/frame_06.png",
+          "sprites/runtime/v2/idle/frame_07.png",
+          "sprites/runtime/v2/idle/frame_08.png",
+          "sprites/runtime/v2/idle/frame_09.png",
+          "sprites/runtime/v2/idle/frame_10.png",
+          "sprites/runtime/v2/idle/frame_11.png",
+          "sprites/runtime/v2/idle/frame_12.png"
+        ],
+        "frame_ms": 115,
+        "loop": true,
+        "events": []
+      },
+      "basic_attack": {
+        "frames": [
+          "sprites/runtime/v2/attack/frame_01.png",
+          "sprites/runtime/v2/attack/frame_02.png",
+          "sprites/runtime/v2/attack/frame_03.png",
+          "sprites/runtime/v2/attack/frame_04.png",
+          "sprites/runtime/v2/attack/frame_05.png",
+          "sprites/runtime/v2/attack/frame_06.png",
+          "sprites/runtime/v2/attack/frame_07.png",
+          "sprites/runtime/v2/attack/frame_08.png",
+          "sprites/runtime/v2/attack/frame_09.png",
+          "sprites/runtime/v2/attack/frame_10.png",
+          "sprites/runtime/v2/attack/frame_11.png",
+          "sprites/runtime/v2/attack/frame_12.png",
+          "sprites/runtime/v2/attack/frame_13.png",
+          "sprites/runtime/v2/attack/frame_14.png"
+        ],
+        "frame_ms": 90,
+        "loop": false,
+        "events": [
+          {
+            "frame": 7,
+            "event": "release_projectile"
+          }
+        ]
+      },
+      "recoil": {
+        "frames": [
+          "sprites/runtime/v2/recoil/frame_01.png",
+          "sprites/runtime/v2/recoil/frame_02.png",
+          "sprites/runtime/v2/recoil/frame_03.png",
+          "sprites/runtime/v2/recoil/frame_04.png",
+          "sprites/runtime/v2/recoil/frame_05.png",
+          "sprites/runtime/v2/recoil/frame_06.png",
+          "sprites/runtime/v2/recoil/frame_07.png",
+          "sprites/runtime/v2/recoil/frame_08.png"
+        ],
+        "frame_ms": 95,
+        "loop": false,
+        "events": []
+      }
+    },
+    "vfx": {
+      "orb_release": {
+        "frames": [
+          "vfx/runtime/orb_release/frame_01.png",
+          "vfx/runtime/orb_release/frame_02.png",
+          "vfx/runtime/orb_release/frame_03.png",
+          "vfx/runtime/orb_release/frame_04.png",
+          "vfx/runtime/orb_release/frame_05.png",
+          "vfx/runtime/orb_release/frame_06.png",
+          "vfx/runtime/orb_release/frame_07.png",
+          "vfx/runtime/orb_release/frame_08.png",
+          "vfx/runtime/orb_release/frame_09.png",
+          "vfx/runtime/orb_release/frame_10.png",
+          "vfx/runtime/orb_release/frame_11.png",
+          "vfx/runtime/orb_release/frame_12.png",
+          "vfx/runtime/orb_release/frame_13.png",
+          "vfx/runtime/orb_release/frame_14.png"
+        ],
+        "frame_ms": 80,
+        "loop": false
+      }
+    }
+  }
+}

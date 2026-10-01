@@ -1,0 +1,885 @@
+{
+  "generated_from": "red_runtime_assets_v1",
+  "qa": [
+    {
+      "sequence": "idle",
+      "frame": 1,
+      "source_cell": [
+        241,
+        543
+      ],
+      "margins": {
+        "left": 13,
+        "right": 0,
+        "top": 54,
+        "bottom": 0
+      },
+      "touches": [
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "idle",
+      "frame": 2,
+      "source_cell": [
+        242,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 60,
+        "bottom": 0
+      },
+      "touches": [
+        "left",
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "idle",
+      "frame": 3,
+      "source_cell": [
+        241,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 60,
+        "bottom": 0
+      },
+      "touches": [
+        "left",
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "idle",
+      "frame": 4,
+      "source_cell": [
+        241,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 14,
+        "bottom": 0
+      },
+      "touches": [
+        "left",
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "idle",
+      "frame": 5,
+      "source_cell": [
+        242,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 63,
+        "bottom": 0
+      },
+      "touches": [
+        "left",
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "idle",
+      "frame": 6,
+      "source_cell": [
+        241,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 65,
+        "bottom": 0
+      },
+      "touches": [
+        "left",
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "idle",
+      "frame": 7,
+      "source_cell": [
+        241,
+        543
+      ],
+      "margins": {
+        "left": 21,
+        "right": 0,
+        "top": 0,
+        "bottom": 16
+      },
+      "touches": [
+        "right",
+        "top"
+      ]
+    },
+    {
+      "sequence": "idle",
+      "frame": 8,
+      "source_cell": [
+        242,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 16
+      },
+      "touches": [
+        "left",
+        "right",
+        "top"
+      ]
+    },
+    {
+      "sequence": "idle",
+      "frame": 9,
+      "source_cell": [
+        241,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 14
+      },
+      "touches": [
+        "left",
+        "right",
+        "top"
+      ]
+    },
+    {
+      "sequence": "idle",
+      "frame": 10,
+      "source_cell": [
+        241,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 16
+      },
+      "touches": [
+        "left",
+        "right",
+        "top"
+      ]
+    },
+    {
+      "sequence": "idle",
+      "frame": 11,
+      "source_cell": [
+        242,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 16
+      },
+      "touches": [
+        "left",
+        "right",
+        "top"
+      ]
+    },
+    {
+      "sequence": "idle",
+      "frame": 12,
+      "source_cell": [
+        241,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 14,
+        "top": 0,
+        "bottom": 15
+      },
+      "touches": [
+        "left",
+        "top"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 1,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 22,
+        "right": 8,
+        "top": 48,
+        "bottom": 0
+      },
+      "touches": [
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 2,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 1,
+        "right": 0,
+        "top": 84,
+        "bottom": 0
+      },
+      "touches": [
+        "left",
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 3,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 45,
+        "bottom": 0
+      },
+      "touches": [
+        "left",
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 4,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 15,
+        "bottom": 0
+      },
+      "touches": [
+        "left",
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 5,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 14
+      },
+      "touches": [
+        "left",
+        "right",
+        "top"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 6,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 13
+      },
+      "touches": [
+        "left",
+        "right",
+        "top"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 7,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "touches": [
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 8,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 27,
+        "right": 0,
+        "top": 48,
+        "bottom": 0
+      },
+      "touches": [
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 9,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 50,
+        "bottom": 4
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 10,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 56,
+        "bottom": 0
+      },
+      "touches": [
+        "left",
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 11,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 18,
+        "top": 65,
+        "bottom": 4
+      },
+      "touches": [
+        "left"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 12,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 41,
+        "right": 0,
+        "top": 22,
+        "bottom": 32
+      },
+      "touches": [
+        "right"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 13,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 22,
+        "bottom": 31
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "attack",
+      "frame": 14,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "touches": [
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "recoil",
+      "frame": 1,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 5,
+        "bottom": 6
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "recoil",
+      "frame": 2,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 35,
+        "bottom": 6
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "recoil",
+      "frame": 3,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 34,
+        "bottom": 6
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "recoil",
+      "frame": 4,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 66,
+        "bottom": 6
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "recoil",
+      "frame": 5,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 46,
+        "bottom": 16
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "recoil",
+      "frame": 6,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 13,
+        "bottom": 18
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "recoil",
+      "frame": 7,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 24,
+        "bottom": 16
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "recoil",
+      "frame": 8,
+      "source_cell": [
+        362,
+        543
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 1,
+        "bottom": 14
+      },
+      "touches": [
+        "left",
+        "right",
+        "top"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 1,
+      "source_cell": [
+        253,
+        444
+      ],
+      "margins": {
+        "left": 13,
+        "right": 0,
+        "top": 45,
+        "bottom": 10
+      },
+      "touches": [
+        "right"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 2,
+      "source_cell": [
+        254,
+        444
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 156,
+        "bottom": 10
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 3,
+      "source_cell": [
+        253,
+        444
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 15,
+        "bottom": 1
+      },
+      "touches": [
+        "left",
+        "right",
+        "bottom"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 4,
+      "source_cell": [
+        254,
+        444
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 37,
+        "bottom": 6
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 5,
+      "source_cell": [
+        253,
+        444
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 145,
+        "bottom": 6
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 6,
+      "source_cell": [
+        254,
+        444
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 9,
+        "bottom": 6
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 7,
+      "source_cell": [
+        253,
+        444
+      ],
+      "margins": {
+        "left": 0,
+        "right": 14,
+        "top": 136,
+        "bottom": 6
+      },
+      "touches": [
+        "left"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 8,
+      "source_cell": [
+        253,
+        443
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 25,
+        "bottom": 95
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 9,
+      "source_cell": [
+        254,
+        443
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 8,
+        "bottom": 64
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 10,
+      "source_cell": [
+        253,
+        443
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 1,
+        "bottom": 24
+      },
+      "touches": [
+        "left",
+        "right",
+        "top"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 11,
+      "source_cell": [
+        254,
+        443
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 31,
+        "bottom": 72
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 12,
+      "source_cell": [
+        253,
+        443
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 32,
+        "bottom": 40
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 13,
+      "source_cell": [
+        254,
+        443
+      ],
+      "margins": {
+        "left": 0,
+        "right": 0,
+        "top": 39,
+        "bottom": 34
+      },
+      "touches": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "sequence": "orb_release",
+      "frame": 14,
+      "source_cell": [
+        253,
+        443
+      ],
+      "margins": {
+        "left": 0,
+        "right": 14,
+        "top": 45,
+        "bottom": 99
+      },
+      "touches": [
+        "left"
+      ]
+    }
+  ]
+}

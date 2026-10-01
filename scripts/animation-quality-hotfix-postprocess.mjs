@@ -15,7 +15,7 @@ html=html.replace('   if(bbScorpionRunGuard)ctx.restore();\n','');
 // Final invariants. V4 uses one scale and one anchor transform per animation
 // sequence. No per-frame recentering, old scale hacks, mismatched uploaded spear
 // renderer, or destructive Scorpion run clipping may survive.
-for(const marker of ['BB_ANIMATION_QUALITY_RUNTIME','sequenceFit','sequenceCenterX','sequenceBottomY','motionQuality=v4','bbScorpionChainV5'])if(!html.includes(marker))fail('missing final marker '+marker);
+for(const marker of ['BB_ANIMATION_QUALITY_RUNTIME','sequenceFit','sequenceCenterX','sequenceBottomY','motionQuality=v4','bbScorpionDynamicChainV6','BlazingStableAnimation'])if(!html.includes(marker))fail('missing final marker '+marker);
 for(const forbidden of ["const fit=Math.min(name==='Scorpion'?1.34:1.20",'bbScorpionSuppliedSpearV3','bbScorpionRunGuard'])if(html.includes(forbidden))fail('retired workaround survived: '+forbidden);
 
 for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(code=>code.trim()).entries()){

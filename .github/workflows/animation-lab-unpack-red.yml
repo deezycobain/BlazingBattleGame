@@ -1,0 +1,88 @@
+name: Animation Lab - unpack Red runtime
+
+on:
+  push:
+    branches:
+      - feature/animation-lab
+    paths:
+      - red_runtime_assets_v1.zip
+      - red_animation_lab_runtime_v1.zip
+      - incoming/red_animation_lab_runtime_v1.zip
+      - .github/workflows/animation-lab-unpack-red.yml
+      - scripts/prepare-red-animation-lab.py
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: animation-lab-red-runtime
+  cancel-in-progress: true
+
+jobs:
+  unpack-red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/animation-lab
+          fetch-depth: 0
+
+      - name: Verify uploaded runtime pack
+        id: verify
+        shell: bash
+        run: |
+          pack=""
+          if [[ -f red_runtime_assets_v1.zip ]]; then
+            pack="red_runtime_assets_v1.zip"
+          elif [[ -f red_animation_lab_runtime_v1.zip ]]; then
+            pack="red_animation_lab_runtime_v1.zip"
+          elif [[ -f incoming/red_animation_lab_runtime_v1.zip ]]; then
+            pack="incoming/red_animation_lab_runtime_v1.zip"
+          fi
+          if [[ -z "$pack" ]]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "Red runtime pack is not present. Nothing to unpack."
+            exit 0
+          fi
+          size=$(stat -c%s "$pack")
+          if (( size > 26214400 )); then
+            echo "Runtime pack exceeds 25 MB upload contract: $size bytes"
+            exit 1
+          fi
+          echo "present=true" >> "$GITHUB_OUTPUT"
+          echo "pack=$pack" >> "$GITHUB_OUTPUT"
+          echo "Runtime pack: $pack ($size bytes)"
+
+      - name: Install image slicer dependency
+        if: steps.verify.outputs.present == 'true'
+        run: python3 -m pip install --disable-pip-version-check pillow
+
+      - name: Prepare Red Animation Lab runtime
+        if: steps.verify.outputs.present == 'true'
+        shell: bash
+        run: |
+          rm -rf .red-unpack
+          mkdir -p .red-unpack
+          unzip -oq "${{ steps.verify.outputs.pack }}" -d .red-unpack
+          python3 scripts/prepare-red-animation-lab.py .red-unpack .
+          test -f assets/characters/red/data/unit.json
+          test "$(find assets/characters/red/sprites/runtime/v2/idle -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 12
+          test "$(find assets/characters/red/sprites/runtime/v2/attack -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 14
+          test "$(find assets/characters/red/sprites/runtime/v2/recoil -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 8
+          test "$(find assets/characters/red/vfx/runtime/orb_release -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 14
+          node -e "JSON.parse(require('fs').readFileSync('assets/characters/red/data/unit.json','utf8')); console.log('Red unit.json OK')"
+
+      - name: Commit Red lab assets
+        if: steps.verify.outputs.present == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/characters/red
+          if git diff --cached --quiet; then
+            echo "Red assets already match the uploaded pack."
+            exit 0
+          fi
+          git commit -m "Load Red runtime assets into Animation Lab"
+          git push origin HEAD:feature/animation-lab

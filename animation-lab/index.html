@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0d0b0b">
+  <title>Blazing Battle Animation Lab</title>
+  <link rel="stylesheet" href="./lab.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div><h1>🔥 Blazing Battle · Animation Lab</h1><p>Direct sprite and VFX diagnostics. No team setup. No map loading.</p></div>
+    <span class="badge">feature/animation-lab</span>
+  </header>
+
+  <div class="layout">
+    <main class="card">
+      <div class="toolbar">
+        <input id="unitId" class="unitInput" value="scorpion" autocapitalize="off" spellcheck="false" aria-label="Unit id">
+        <button id="loadUnit" class="primary">Load Unit</button>
+        <select id="preset" aria-label="Unit preset">
+          <option value="scorpion">Scorpion</option>
+          <option value="red">Red</option>
+          <option value="obito">Obito</option>
+          <option value="sub-zero">Sub-Zero</option>
+          <option value="mashle">Mashle</option>
+          <option value="itachi">Itachi</option>
+        </select>
+        <div class="actions" id="actions">
+          <button data-action="idle">Idle</button>
+          <button data-action="run" class="active">Run</button>
+          <button data-action="attack">Attack</button>
+          <button data-action="recoil">Recoil</button>
+        </div>
+      </div>
+
+      <div class="toolbar transport">
+        <button id="prev">◀ Frame</button>
+        <button id="play" class="primary">Pause</button>
+        <button id="next">Frame ▶</button>
+        <button id="sequence">Run → Attack</button>
+        <button id="vfxOnly">VFX Only</button>
+        <button id="resetPos">Reset</button>
+      </div>
+
+      <section class="stageWrap">
+        <div class="stage" id="stage">
+          <div class="frameTag" id="frameTag">run · 0/0</div>
+          <div class="actorTrack">
+            <div class="actorBox showBounds showOrigin showAlpha" id="actorBox">
+              <img class="sprite" id="sprite" alt="unit animation frame">
+              <div class="alphaBounds" id="alphaBounds"></div>
+              <i class="origin"></i>
+            </div>
+          </div>
+          <div class="dummy" id="dummy"></div>
+          <canvas class="attackOverlay" id="attackOverlay" aria-hidden="true"></canvas>
+          <i class="handSocket" id="handSocket" aria-hidden="true"></i>
+          <i class="spearHead" id="spearHead" aria-hidden="true"></i>
+          <img class="vfx" id="vfx" alt="attack VFX frame">
+        </div>
+      </section>
+
+      <div class="statusStrip">
+        <div class="mini"><b>UNIT</b><span id="unitStatus">scorpion</span></div>
+        <div class="mini"><b>FRAME ASSET</b><span id="assetStatus">loading…</span></div>
+        <div class="mini"><b>ALPHA EDGE</b><span id="edgeStatus">checking…</span></div>
+        <div class="mini"><b>PLAYBACK</b><span id="playStatus">100 ms · 10.0 fps</span></div>
+      </div>
+    </main>
+
+    <aside class="card side">
+      <h2>Diagnostic Controls</h2>
+      <div class="section sliders">
+        <label>Frame duration <span><input id="frameMs" type="range" min="35" max="300" value="100" step="5"><output id="frameMsOut">100ms</output></span></label>
+        <label>Scale <span><input id="scale" type="range" min="40" max="180" value="100"><output id="scaleOut">1.00×</output></span></label>
+        <label>Anchor X <span><input id="anchorX" type="range" min="-100" max="100" value="0"><output id="anchorXOut">0px</output></span></label>
+        <label>Anchor Y <span><input id="anchorY" type="range" min="-100" max="100" value="0"><output id="anchorYOut">0px</output></span></label>
+        <label>VFX scale <span><input id="vfxScale" type="range" min="25" max="110" value="55" step="5"><output id="vfxScaleOut">0.55×</output></span></label>
+        <label>Travel duration <span><input id="travelMs" type="range" min="300" max="2200" value="900" step="50"><output id="travelMsOut">900ms</output></span></label>
+      </div>
+
+      <div class="section checks">
+        <label><input id="loop" type="checkbox" checked> Loop</label>
+        <label><input id="travel" type="checkbox"> Travel while running</label>
+        <label><input id="bounds" type="checkbox" checked> Wrapper bounds</label>
+        <label><input id="origin" type="checkbox" checked> Feet origin</label>
+        <label><input id="alpha" type="checkbox" checked> Alpha bounds</label>
+        <label><input id="showSocket" type="checkbox" checked> Attack hand socket</label>
+        <label><input id="crop" type="checkbox"> Simulate crop</label>
+        <label><input id="showSprite" type="checkbox" checked> Character layer</label>
+        <label><input id="showVfx" type="checkbox" checked> VFX layer</label>
+      </div>
+
+      <div class="legend"><span class="green"><i></i>alpha content</span><span class="blue"><i></i>runtime wrapper</span><span class="red"><i></i>bottom-center origin</span></div>
+
+      <div class="section">
+        <h2>Frame Inspector</h2>
+        <pre id="diag">Loading Scorpion run frames…</pre>
+        <p class="hint">Scorpion uses the same stable-canvas source normalizer and dynamic chain renderer as production. Red is loaded as a lab candidate so source-cell clipping stays visible instead of being hidden by masks.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+<script src="../runtime/animation/stable-sequence-runtime.js"></script>
+<script src="./lab.js"></script>
+<script>
+(() => {
+  const preset = document.getElementById('preset');
+  const unitId = document.getElementById('unitId');
+  const loadUnit = document.getElementById('loadUnit');
+  const actionButton = action => document.querySelector(`[data-action="${action}"]`);
+  const loadRedAction = action => {
+    unitId.value = 'red';
+    loadUnit.click();
+    setTimeout(() => (actionButton(action || 'idle') || actionButton('idle'))?.click(), 0);
+  };
+
+  preset.addEventListener('change', () => {
+    if (preset.value === 'red') loadRedAction('idle');
+  });
+
+  const params = new URLSearchParams(location.search);
+  if ((params.get('unit') || '').toLowerCase() === 'red') {
+    preset.value = 'red';
+    loadRedAction((params.get('action') || 'idle').toLowerCase());
+  }
+})();
+</script>
+</body>
+</html>
