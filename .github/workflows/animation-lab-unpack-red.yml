@@ -5,8 +5,10 @@ on:
     branches:
       - feature/animation-lab
     paths:
+      - red_runtime_assets_v1.zip
       - red_animation_lab_runtime_v1.zip
       - incoming/red_animation_lab_runtime_v1.zip
+      - .github/workflows/animation-lab-unpack-red.yml
   workflow_dispatch:
 
 permissions:
@@ -30,7 +32,9 @@ jobs:
         shell: bash
         run: |
           pack=""
-          if [[ -f red_animation_lab_runtime_v1.zip ]]; then
+          if [[ -f red_runtime_assets_v1.zip ]]; then
+            pack="red_runtime_assets_v1.zip"
+          elif [[ -f red_animation_lab_runtime_v1.zip ]]; then
             pack="red_animation_lab_runtime_v1.zip"
           elif [[ -f incoming/red_animation_lab_runtime_v1.zip ]]; then
             pack="incoming/red_animation_lab_runtime_v1.zip"
