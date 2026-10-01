@@ -5,6 +5,7 @@ on:
     branches:
       - feature/animation-lab
     paths:
+      - red_animation_lab_runtime_v1.zip
       - incoming/red_animation_lab_runtime_v1.zip
   workflow_dispatch:
 
@@ -28,25 +29,32 @@ jobs:
         id: verify
         shell: bash
         run: |
-          if [[ ! -f incoming/red_animation_lab_runtime_v1.zip ]]; then
+          pack=""
+          if [[ -f red_animation_lab_runtime_v1.zip ]]; then
+            pack="red_animation_lab_runtime_v1.zip"
+          elif [[ -f incoming/red_animation_lab_runtime_v1.zip ]]; then
+            pack="incoming/red_animation_lab_runtime_v1.zip"
+          fi
+          if [[ -z "$pack" ]]; then
             echo "present=false" >> "$GITHUB_OUTPUT"
             echo "Red runtime pack is not present. Nothing to unpack."
             exit 0
           fi
-          size=$(stat -c%s incoming/red_animation_lab_runtime_v1.zip)
+          size=$(stat -c%s "$pack")
           if (( size > 26214400 )); then
             echo "Runtime pack exceeds 25 MB upload contract: $size bytes"
             exit 1
           fi
           echo "present=true" >> "$GITHUB_OUTPUT"
-          echo "Runtime pack: $size bytes"
+          echo "pack=$pack" >> "$GITHUB_OUTPUT"
+          echo "Runtime pack: $pack ($size bytes)"
 
       - name: Unpack Red into Animation Lab branch
         if: steps.verify.outputs.present == 'true'
         shell: bash
         run: |
           rm -rf assets/characters/red
-          unzip -oq incoming/red_animation_lab_runtime_v1.zip -d .
+          unzip -oq "${{ steps.verify.outputs.pack }}" -d .
           test -f assets/characters/red/data/unit.json
           test "$(find assets/characters/red/sprites/runtime/v2/idle -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 12
           test "$(find assets/characters/red/sprites/runtime/v2/attack -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 14
