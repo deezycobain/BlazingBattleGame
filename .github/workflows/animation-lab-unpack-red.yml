@@ -9,6 +9,7 @@ on:
       - red_animation_lab_runtime_v1.zip
       - incoming/red_animation_lab_runtime_v1.zip
       - .github/workflows/animation-lab-unpack-red.yml
+      - scripts/prepare-red-animation-lab.py
   workflow_dispatch:
 
 permissions:
@@ -53,16 +54,23 @@ jobs:
           echo "pack=$pack" >> "$GITHUB_OUTPUT"
           echo "Runtime pack: $pack ($size bytes)"
 
-      - name: Unpack Red into Animation Lab branch
+      - name: Install image slicer dependency
+        if: steps.verify.outputs.present == 'true'
+        run: python3 -m pip install --disable-pip-version-check pillow
+
+      - name: Prepare Red Animation Lab runtime
         if: steps.verify.outputs.present == 'true'
         shell: bash
         run: |
-          rm -rf assets/characters/red
-          unzip -oq "${{ steps.verify.outputs.pack }}" -d .
+          rm -rf .red-unpack
+          mkdir -p .red-unpack
+          unzip -oq "${{ steps.verify.outputs.pack }}" -d .red-unpack
+          python3 scripts/prepare-red-animation-lab.py .red-unpack .
           test -f assets/characters/red/data/unit.json
           test "$(find assets/characters/red/sprites/runtime/v2/idle -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 12
           test "$(find assets/characters/red/sprites/runtime/v2/attack -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 14
           test "$(find assets/characters/red/sprites/runtime/v2/recoil -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 8
+          test "$(find assets/characters/red/vfx/runtime/orb_release -maxdepth 1 -name 'frame_*.png' | wc -l)" -eq 14
           node -e "JSON.parse(require('fs').readFileSync('assets/characters/red/data/unit.json','utf8')); console.log('Red unit.json OK')"
 
       - name: Commit Red lab assets
