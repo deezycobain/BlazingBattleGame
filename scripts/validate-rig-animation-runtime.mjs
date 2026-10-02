@@ -33,6 +33,7 @@ const validate=pkg.scripts?.validate||'',build=pkg.scripts?.build||'';
 if(!validate.includes('validate-rig-animation-runtime.mjs'))fail('package validate script missing rig validator');
 const fighter=build.indexOf('fighter-visual-contract-postprocess.mjs');
 const rig=build.indexOf('rig-animation-postprocess.mjs');
-if(fighter<0||rig<0||rig<fighter)fail('rig integration must run after fighter visual contract');
+if(fighter<0||rig<0||!(rig<fighter))fail('rig integration must run before final fighter visual contract');
+if(!build.trim().endsWith('node scripts/fighter-visual-contract-postprocess.mjs'))fail('fighter visual contract must remain final build authority');
 
-console.log('Rig Animation V1 validation PASS: normalized hybrid control-point mesh runtime, mobile mesh budget, pilot profiles and frame fallback contract are intact.');
+console.log('Rig Animation V1 validation PASS: normalized hybrid control-point mesh runtime, mobile mesh budget, pilot profiles, frame fallback, and final fighter visual authority are intact.');
