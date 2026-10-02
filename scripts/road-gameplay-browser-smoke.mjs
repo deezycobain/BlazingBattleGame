@@ -119,7 +119,9 @@ async function run(name,type){
 
   await enterRoad(page,1);
   const intro1=await waitCamera(page,'intro',1);if(intro1.mapKey!=='south-sac'||intro1.targetScale!==1)throw new Error(`Stage 1 intro camera should show full map: ${JSON.stringify(intro1)}`);
-  const camera1=await waitCamera(page,'combat',1);if(Math.abs(camera1.targetScale-1.16)>.001||camera1.combatScale!==camera1.targetScale||camera1.transitionMs!==1650)throw new Error(`Stage 1 combat camera zoom invalid: ${JSON.stringify(camera1)}`);
+  // This smoke intentionally runs at a 390px viewport. Keep the authored 1.16 combat camera intent,
+  // but require the compact-viewport compositor safety path to render at scale 1 so the map stays visible.
+  const camera1=await waitCamera(page,'combat',1);if(Math.abs(camera1.combatScale-1.16)>.001||Math.abs(camera1.targetScale-1)>.001||camera1.transitionMs!==1650||!/^(?:1(?:\.0+)?|none)?$/i.test(camera1.inlineScale)||!/^(?:none)?$/i.test(camera1.inlineTransform))throw new Error(`Stage 1 combat camera mobile-safety contract invalid: ${JSON.stringify(camera1)}`);
   if(!/center/i.test(camera1.position||''))throw new Error(`Stage 1 camera focus is not centered: ${JSON.stringify(camera1)}`);
 
   const initiative=await page.evaluate(()=>{
@@ -168,7 +170,7 @@ async function run(name,type){
   await page.evaluate(()=>{const s=globalThis.eval('S'),R=window.BlazingRoadRun;const fighters=s.pairs.flatMap(p=>p.units||[]).filter(u=>u&&u.name&&u.name!=='—'&&Number(u.maxHp)>0);const run=R.createRun(fighters,{stage:10});R.saveRun(run);window.BlazingMatchResults.returnHome()});
   await waitHome(page);await enterRoad(page,10);
   const intro10=await waitCamera(page,'intro',10);if(intro10.mapKey!=='training-grounds'||intro10.targetScale!==1)throw new Error(`Stage 10 intro camera should show full map: ${JSON.stringify(intro10)}`);
-  const camera10=await waitCamera(page,'combat',10);if(Math.abs(camera10.targetScale-1.16)>.001||camera10.mapKey!=='training-grounds')throw new Error(`Stage 10 combat camera invalid: ${JSON.stringify(camera10)}`);
+  const camera10=await waitCamera(page,'combat',10);if(Math.abs(camera10.combatScale-1.16)>.001||Math.abs(camera10.targetScale-1)>.001||camera10.mapKey!=='training-grounds'||!/^(?:1(?:\.0+)?|none)?$/i.test(camera10.inlineScale)||!/^(?:none)?$/i.test(camera10.inlineTransform))throw new Error(`Stage 10 combat camera mobile-safety contract invalid: ${JSON.stringify(camera10)}`);
   const stage10=await page.evaluate(()=>{const s=globalThis.eval('S');return {stage:s.bbRoadContent?.stage,elite:s.bbRoadContent?.elite,map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,enemies:s.enemies.map(e=>({hp:e.maxHp,attack:e.attack,defense:e.defense})),maxStage:window.BlazingRoadContent.MAX_STAGE}});
   if(stage10.stage!==10||!stage10.elite||stage10.maxStage!==10)throw new Error(`Stage 10 is not final elite: ${JSON.stringify(stage10)}`);
   if(!/stage-05-training-grounds\.webp$/.test(stage10.map||'')||stage10.mapSource!==stage10.map)throw new Error(`Stage 10 map slot wrong: ${JSON.stringify(stage10)}`);
@@ -180,7 +182,7 @@ async function run(name,type){
   await page.getByRole('button',{name:'MAIN MENU'}).click();await waitHome(page);const card=await page.locator('#bbHomeApproved [data-mode="road"] span:last-child').textContent();if(!/Road Complete/i.test(card||'')||!/10\/10/.test(card||''))throw new Error(`approved Home Road completion status wrong: ${card}`);
 
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Road gameplay smoke PASS (${name}): round Speed initiative, South Sac horizon clamp, segmented chakra HUD, compact Sub-Zero/Senku ranges, reduced 1.16 combat zoom, native touch drag, enemy AI, map routing, and Stage 10 completion verified.`);
+  console.log(`Road gameplay smoke PASS (${name}): round Speed initiative, South Sac horizon clamp, segmented chakra HUD, compact Sub-Zero/Senku ranges, authored 1.16 combat camera with compact-viewport compositor bypass, native touch drag, enemy AI, map routing, and Stage 10 completion verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
