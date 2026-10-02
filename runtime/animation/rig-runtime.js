@@ -139,9 +139,9 @@
     return !!profile?.clips?.[clipName]&&!!profile?.sources?.[clipName];
   }
 
-  function draw(ctx,{name,clip='idle',elapsedMs=performance.now(),x=0,y=0,w=0,h=0}={}){
+  function draw(ctx,{name,clip='idle',elapsedMs=performance.now(),sourceImage=null,x=0,y=0,w=0,h=0}={}){
     const profile=profiles.get(name);if(!profile||!has(name,clip))return false;
-    const image=imageFor(profile.sources[clip]);
+    const image=sourceImage||imageFor(profile.sources[clip]);
     if(!(image?.complete&&image.naturalWidth>0&&image.naturalHeight>0))return false;
     const pose=samplePins(profile,clip,elapsedMs);if(!pose)return false;
     return drawMesh(ctx,image,{x,y,w,h,profile,pose});
