@@ -128,16 +128,31 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
    const get=globalThis.eval;
    const body=get('LEGACY_SHINOBI_BODY_RUNTIME');
    let quality=null;try{quality=get('typeof BB_ANIMATION_QUALITY_RUNTIME!=="undefined"?BB_ANIMATION_QUALITY_RUNTIME:null')}catch(_){}
+   const ready=img=>!!(img?.complete&&img.naturalWidth>0&&img.naturalHeight>0);
    const waitImages=images=>Promise.all(images.map(img=>{
-    if(img.complete)return Promise.resolve(img.naturalWidth>0&&img.naturalHeight>0);
+    if(ready(img))return Promise.resolve(true);
     return new Promise(resolve=>{img.addEventListener('load',()=>resolve(true),{once:true});img.addEventListener('error',()=>resolve(false),{once:true});setTimeout(()=>resolve(false),8000)});
    }));
+   const waitQuality=async(images,timeoutMs=30000)=>{
+    const isReady=img=>quality?.ready?.(img)??ready(img);
+    const deadline=performance.now()+timeoutMs;
+    while(performance.now()<deadline){
+     const states=images.map(isReady);
+     if(states.every(Boolean))return states;
+     await new Promise(resolve=>setTimeout(resolve,50));
+    }
+    return images.map(isReady);
+   };
    const results=[];
    for(const name of names){
     const idle=body.idle(name)||[],basic=body.basic(name)||[];
     const v2Idle=name==='Scorpion'&&quality?.has?.(name)?quality.idle(name)||[]:[];
     const v2Basic=name==='Scorpion'&&quality?.has?.(name)?quality.basic(name)||[]:[];
-    const [idleOk,basicOk,v2IdleOk,v2BasicOk]=await Promise.all([waitImages(idle),waitImages(basic),waitImages(v2Idle),waitImages(v2Basic)]);
+    const [idleOk,basicOk]=await Promise.all([waitImages(idle),waitImages(basic)]);
+    let v2IdleOk=[],v2BasicOk=[];
+    if(name==='Scorpion'){
+     [v2IdleOk,v2BasicOk]=await Promise.all([waitQuality(v2Idle),waitQuality(v2Basic)]);
+    }
     const idleResolved=get('unitIdleFrames')(name);
     const attackResolved=get('unitAttackFrames')(name,'basic_attack');
     const data=Object.values(window.BLAZING_UNIT_DATA||{}).find(unit=>unit?.display_name===name);
