@@ -17,7 +17,7 @@
         }
       ],
       "vfx": {
-        "projectile": "uploaded-v2.scorpion_chain_spear",
+        "projectile": "runtime.scorpion_chain_spear",
         "impact": "shared.vfx.impact.default"
       }
     },
@@ -31,6 +31,8 @@
     }
   },
   "states": {
-    "idle": "scorpion.animation.idle"
+    "idle": "scorpion.animation.idle",
+    "run": "scorpion.animation.run",
+    "recoil": "scorpion.animation.recoil"
   }
 }
