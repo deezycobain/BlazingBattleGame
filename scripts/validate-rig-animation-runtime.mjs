@@ -20,7 +20,8 @@ for(const [name,source] of [['rig-runtime.js',runtime],['rig-profiles.js',profil
 }
 for(const marker of ['register','drawMesh','samplePins','trigger','active','impulses','sourceImage=null','window.BlazingRigRuntime'])if(!runtime.includes(marker))fail('runtime missing '+marker);
 for(const marker of ["runtime.register('Scorpion'","runtime.register('Mashle'",'recoilClip','sources:{idle:sourceIdle,recoil:sourceRecoil}','mobileCols:4','mobileRows:6'])if(!profiles.includes(marker))fail('pilot profiles missing '+marker);
-for(const marker of ['bb-rig-animation-runtime','bb-rig-animation-profiles','bbRigRecoilPilotV1','bbRigRecoilV1','bbRigImpulse','bbRigIdleV1','sourceImage:bbRigSource','if(!bbRigDrawn)ctx.drawImage'])if(!postprocess.includes(marker))fail('postprocess missing '+marker);
+for(const marker of ['bb-rig-animation-runtime','bb-rig-animation-profiles','bbRigRecoilPilotV1','const bbRigAttackState=S?.anim?.attackPose?.[name]||null;','bbRigRecoilV1','bbRigImpulse','bbRigIdleV1','sourceImage:bbRigSource','if(!bbRigDrawn)ctx.drawImage'])if(!postprocess.includes(marker))fail('postprocess missing '+marker);
+if(postprocess.includes("ensureAnimState()?.attackPose?.[name]"))fail('rig draw must not create animation state');
 
 if(standard.version!=='1.0.0')fail('unsupported standard version');
 if(standard.mode!=='hybrid')fail('rig standard must remain hybrid');
@@ -38,4 +39,4 @@ const rig=build.indexOf('rig-animation-postprocess.mjs');
 if(fighter<0||rig<0||!(rig<fighter))fail('rig integration must run before final fighter visual contract');
 if(!build.trim().endsWith('node scripts/fighter-visual-contract-postprocess.mjs'))fail('fighter visual contract must remain final build authority');
 
-console.log('Rig Animation V1 validation PASS: normalized hybrid idle mesh, authored-frame light recoil overlay, mobile mesh budget, frame fallback, and final fighter visual authority are intact.');
+console.log('Rig Animation V1 validation PASS: normalized hybrid idle mesh, authored-frame light recoil overlay, non-mutating draw state, mobile mesh budget, frame fallback, and final fighter visual authority are intact.');
