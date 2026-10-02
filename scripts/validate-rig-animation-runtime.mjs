@@ -20,7 +20,8 @@ for(const [name,source] of [['rig-runtime.js',runtime],['rig-profiles.js',profil
 }
 for(const marker of ['register','drawMesh','samplePins','sourceImage=null','window.BlazingRigRuntime'])if(!runtime.includes(marker))fail('runtime missing '+marker);
 for(const marker of ["runtime.register('Scorpion'","runtime.register('Mashle'",'mobileCols:4','mobileRows:6'])if(!profiles.includes(marker))fail('pilot profiles missing '+marker);
-for(const marker of ['bb-rig-animation-runtime','bb-rig-animation-profiles','bbRigIdleV1','bbRigSourceReady','sourceImage:bbRigSource','if(!bbRigDrawn)ctx.drawImage'])if(!postprocess.includes(marker))fail('postprocess missing '+marker);
+for(const marker of ['bb-rig-animation-runtime','bb-rig-animation-profiles','const bbRigAttackState=S?.anim?.attackPose?.[name]||null;','bbRigIdleV1','bbRigSourceReady','sourceImage:bbRigSource','if(!bbRigDrawn)ctx.drawImage'])if(!postprocess.includes(marker))fail('postprocess missing '+marker);
+if(postprocess.includes("ensureAnimState()?.attackPose?.[name]"))fail('idle rig draw must not create animation state');
 
 if(standard.version!=='1.0.0')fail('unsupported standard version');
 if(standard.mode!=='hybrid')fail('rig standard must remain hybrid');
@@ -36,4 +37,4 @@ const rig=build.indexOf('rig-animation-postprocess.mjs');
 if(fighter<0||rig<0||!(rig<fighter))fail('rig integration must run before final fighter visual contract');
 if(!build.trim().endsWith('node scripts/fighter-visual-contract-postprocess.mjs'))fail('fighter visual contract must remain final build authority');
 
-console.log('Rig Animation V1 validation PASS: normalized hybrid control-point mesh runtime, mobile mesh budget, pilot profiles, frame fallback, and final fighter visual authority are intact.');
+console.log('Rig Animation V1 validation PASS: normalized hybrid control-point mesh runtime, non-mutating idle draw, mobile mesh budget, pilot profiles, frame fallback, and final fighter visual authority are intact.');
