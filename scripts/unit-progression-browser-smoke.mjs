@@ -77,7 +77,10 @@ async function run(name,type){
   if(badPresentation.length)throw new Error(`Playable summon/element/Forge presentation integrity failed: ${JSON.stringify(badPresentation)}`);
   await page.evaluate(()=>window.BlazingProgression.openForge('Lebee'));
   await page.evaluate(()=>window.BlazingProgression.openForge('Kakashi'));
-  await page.waitForFunction(()=>document.getElementById('forgeName')?.textContent?.trim()==='KAKASHI');
+  await page.waitForFunction(()=>{
+    const card=document.getElementById('forgeCard'),portrait=document.getElementById('forgePortrait'),label=document.getElementById('forgeName')?.textContent?.trim()||'',src=portrait?.getAttribute('src')||'';
+    return label==='KAKASHI'&&!card?.hasAttribute('aria-busy')&&/\/kakashi\/cards\/legacy_summon_art\.png/i.test(src)&&!!portrait?.complete&&portrait.naturalWidth>0;
+  },null,{timeout:5000});
   const legacyForge=await page.evaluate(()=>({name:document.getElementById('forgeName')?.textContent?.trim()||'',src:document.getElementById('forgePortrait')?.getAttribute('src')||''}));
   if(legacyForge.name!=='KAKASHI'||!/\/kakashi\/cards\/legacy_summon_art\.png/i.test(legacyForge.src))throw new Error(`Legacy Forge art/route incorrect: ${JSON.stringify(legacyForge)}`);
   await page.evaluate(()=>window.BlazingProgression.openForge('Lebee'));
