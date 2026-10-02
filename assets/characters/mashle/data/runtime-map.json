@@ -30,6 +30,8 @@
     }
   },
   "states": {
-    "idle": "mashle.animation.idle"
+    "idle": "mashle.animation.idle",
+    "run": "mashle.animation.run",
+    "recoil": "mashle.animation.recoil"
   }
 }
