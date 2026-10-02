@@ -18,9 +18,9 @@ const [runtime,profiles,postprocess,standard,pkg]=await Promise.all([
 for(const [name,source] of [['rig-runtime.js',runtime],['rig-profiles.js',profiles]]){
   try{new vm.Script(source,{filename:name})}catch(error){fail(`${name} invalid syntax: ${error.message}`)}
 }
-for(const marker of ['register','drawMesh','samplePins','window.BlazingRigRuntime'])if(!runtime.includes(marker))fail('runtime missing '+marker);
+for(const marker of ['register','drawMesh','samplePins','sourceImage=null','window.BlazingRigRuntime'])if(!runtime.includes(marker))fail('runtime missing '+marker);
 for(const marker of ["runtime.register('Scorpion'","runtime.register('Mashle'",'mobileCols:4','mobileRows:6'])if(!profiles.includes(marker))fail('pilot profiles missing '+marker);
-for(const marker of ['bb-rig-animation-runtime','bb-rig-animation-profiles','bbRigIdleV1','if(!bbRigDrawn)ctx.drawImage'])if(!postprocess.includes(marker))fail('postprocess missing '+marker);
+for(const marker of ['bb-rig-animation-runtime','bb-rig-animation-profiles','bbRigIdleV1','bbRigSourceReady','sourceImage:bbRigSource','if(!bbRigDrawn)ctx.drawImage'])if(!postprocess.includes(marker))fail('postprocess missing '+marker);
 
 if(standard.version!=='1.0.0')fail('unsupported standard version');
 if(standard.mode!=='hybrid')fail('rig standard must remain hybrid');
@@ -35,4 +35,4 @@ const fighter=build.indexOf('fighter-visual-contract-postprocess.mjs');
 const rig=build.indexOf('rig-animation-postprocess.mjs');
 if(fighter<0||rig<0||rig<fighter)fail('rig integration must run after fighter visual contract');
 
-console.log('Rig Animation V1 validation PASS: hybrid control-point mesh runtime, mobile mesh budget, pilot profiles and frame fallback contract are intact.');
+console.log('Rig Animation V1 validation PASS: normalized hybrid control-point mesh runtime, mobile mesh budget, pilot profiles and frame fallback contract are intact.');
