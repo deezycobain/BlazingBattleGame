@@ -46,6 +46,8 @@ jobs:
           exit 1
       - name: Chromium + WebKit local paired-team smoke
         run: node scripts/team-pair-browser-smoke.mjs
+      - name: Chromium + WebKit local rig animation smoke
+        run: npm run smoke:rig
       - name: WebKit mobile deployed Home input smoke
         if: always() && github.event_name == 'push' && github.ref_name == 'dev'
         env:
