@@ -6,6 +6,7 @@
   const smooth=t=>{t=clamp(t);return t*t*(3-2*t)};
   const profiles=new Map();
   const images=new Map();
+  const impulses=new Map();
   const reduceMotion=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(_){return false}};
   const mobile=()=>{try{return matchMedia('(pointer: coarse)').matches||/iPhone|iPad|Android/i.test(navigator.userAgent)}catch(_){return false}};
 
@@ -139,6 +140,22 @@
     return !!profile?.clips?.[clipName]&&!!profile?.sources?.[clipName];
   }
 
+  function trigger(name,clipName='recoil'){
+    const profile=profiles.get(name),clip=profile?.clips?.[clipName];
+    if(!clip||!has(name,clipName))return false;
+    const durationMs=Math.max(1,Number(clip.durationMs)||260);
+    impulses.set(name,{clipName,start:performance.now(),durationMs});
+    return true;
+  }
+
+  function active(name,clipName='recoil',now=performance.now()){
+    const impulse=impulses.get(name);
+    if(!impulse||impulse.clipName!==clipName)return null;
+    const elapsedMs=Math.max(0,(Number(now)||0)-impulse.start);
+    if(elapsedMs>impulse.durationMs){impulses.delete(name);return null;}
+    return {clip:impulse.clipName,elapsedMs,durationMs:impulse.durationMs,progress:clamp(elapsedMs/impulse.durationMs)};
+  }
+
   function draw(ctx,{name,clip='idle',elapsedMs=performance.now(),sourceImage=null,x=0,y=0,w=0,h=0}={}){
     const profile=profiles.get(name);if(!profile||!has(name,clip))return false;
     const image=sourceImage||imageFor(profile.sources[clip]);
@@ -147,6 +164,6 @@
     return drawMesh(ctx,image,{x,y,w,h,profile,pose});
   }
 
-  const api=Object.freeze({register,has,draw,drawMesh,samplePins,profile:name=>profiles.get(name)||null});
+  const api=Object.freeze({register,has,draw,drawMesh,samplePins,trigger,active,profile:name=>profiles.get(name)||null});
   window.BlazingRigRuntime=api;
 })();

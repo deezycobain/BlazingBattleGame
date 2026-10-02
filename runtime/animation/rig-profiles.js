@@ -15,7 +15,25 @@
     {t:.75,pins:{head:{x:.003,y:-.003},chest:{x:.004,y:-.006},shoulderL:{x:.004,y:-.006},shoulderR:{x:.004,y:-.006},handL:{x:.003,y:-.003},handR:{x:.004,y:-.003},hips:{x:.001,y:.001}}},
     {t:1,pins:{}}
   ]});
-  const profile=(source)=>({sources:{idle:source},mesh:{cols:5,rows:8,mobileCols:4,mobileRows:6},pins:humanoidPins,clips:{idle:idleClip}});
-  runtime.register('Scorpion',profile('assets/characters/scorpion/sprites/runtime/v2/idle/frame_01.png?rig=v1'));
-  runtime.register('Mashle',profile('assets/characters/mashle/sprites/runtime/v2/idle/frame_01.png?rig=v1'));
+  const recoilClip=Object.freeze({durationMs:260,loop:false,easing:'smooth',keyframes:[
+    {t:0,pins:{}},
+    {t:.14,pins:{head:{x:-.008,y:.009},chest:{x:-.012,y:.007},shoulderL:{x:-.014,y:.007},shoulderR:{x:-.014,y:.007},handL:{x:-.010,y:.004},handR:{x:-.010,y:.004},hips:{x:-.004,y:.002}}},
+    {t:.34,pins:{head:{x:.004,y:-.003},chest:{x:.005,y:-.003},shoulderL:{x:.006,y:-.003},shoulderR:{x:.006,y:-.003},handL:{x:.004,y:-.002},handR:{x:.004,y:-.002},hips:{x:.002,y:0}}},
+    {t:.62,pins:{head:{x:-.002,y:.001},chest:{x:-.002,y:.001},shoulderL:{x:-.003,y:.001},shoulderR:{x:-.003,y:.001},handL:{x:-.002,y:.001},handR:{x:-.002,y:.001},hips:{x:-.001,y:0}}},
+    {t:1,pins:{}}
+  ]});
+  const profile=(sourceIdle,sourceRecoil)=>({
+    sources:{idle:sourceIdle,recoil:sourceRecoil},
+    mesh:{cols:5,rows:8,mobileCols:4,mobileRows:6},
+    pins:humanoidPins,
+    clips:{idle:idleClip,recoil:recoilClip}
+  });
+  runtime.register('Scorpion',profile(
+    'assets/characters/scorpion/sprites/runtime/v2/idle/frame_01.png?rig=v1',
+    'assets/characters/scorpion/sprites/runtime/v2/recoil/frame_01.png?rig=v1'
+  ));
+  runtime.register('Mashle',profile(
+    'assets/characters/mashle/sprites/runtime/v2/idle/frame_01.png?rig=v1',
+    'assets/characters/mashle/sprites/runtime/v2/recoil/frame_01.png?rig=v1'
+  ));
 })();

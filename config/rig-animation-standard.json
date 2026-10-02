@@ -19,11 +19,12 @@
     "frame_animation_fallback": true,
     "signature_attacks_stay_frame_authored": true,
     "feet_locked_for_idle_by_default": true,
+    "light_recoil_overlays_authored_frames": true,
     "rig_preferred_for": ["idle", "breathing", "subtle_sway", "anticipation", "light_recoil"],
     "frame_animation_preferred_for": ["extreme_pose_change", "perspective_change", "signature_attack", "jutsu", "teleport", "flip", "smear_frame"]
   },
   "pilot": {
     "units": ["Scorpion", "Mashle"],
-    "states": ["idle"]
+    "states": ["idle", "light_recoil_overlay"]
   }
 }
