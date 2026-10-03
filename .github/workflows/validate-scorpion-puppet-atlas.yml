@@ -1,4 +1,4 @@
-name: Validate Scorpion Puppet Atlas V1
+name: Validate Scorpion Puppet Atlas V1 (retry)
 
 on:
   push:
