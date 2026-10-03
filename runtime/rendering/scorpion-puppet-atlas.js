@@ -1,117 +1,37 @@
 (()=>{
 'use strict';
+// Phase 1 deliberately owns only the supplied body atlas. Weapon and VFX maps
+// remain preserved assets until their separate presentation work is approved.
 const ROOT='assets/characters/scorpion/puppet/v1';
 const BODY_IMAGE=ROOT+'/body/scorpion_puppet_body_atlas_v1.png';
 const BODY_MAP=ROOT+'/body/scorpion_puppet_body_atlas_v1.json';
-const MODE_KEY='bb.scorpion-puppet-atlas.mode';
-const DEV_KEY='bb.scorpion-puppet-atlas.dev';
-const BLANK_NAME='__bbScorpionPuppetTransparent';
+const MODE_KEY='bb.scorpion-puppet-atlas.mode',DEV_KEY='bb.scorpion-puppet-atlas.dev';
 const state={mode:'FRAME',ready:false,failed:false,error:null,bodyImage:null,bodyMap:null,metrics:{puppetDraws:0,lastVisibleParts:0,lastDrawBounds:null,lastFeet:null,footSamples:[]}};
-try{state.mode=localStorage.getItem(MODE_KEY)==='PUPPET'?'PUPPET':'FRAME'}catch(_){}
+try{state.mode=localStorage.getItem(MODE_KEY)==='PUPPET'?'PUPPET':'FRAME'}catch(_){ }
 const devEnabled=()=>{try{const query=new URLSearchParams(location.search);return query.has('scorpionPuppetAB')||localStorage.getItem(DEV_KEY)==='1'||['localhost','127.0.0.1','::1'].includes(location.hostname)}catch(_){return false}};
-function setMode(mode){
- state.mode=mode==='PUPPET'&&state.ready&&!state.failed?'PUPPET':'FRAME';
- try{localStorage.setItem(MODE_KEY,state.mode)}catch(_){}
- const button=document.getElementById('bb-scorpion-puppet-ab-switch');
- if(button)button.textContent='SCORPION · '+state.mode+' (A/B)';
- return state.mode;
-}
-function ensureSwitch(){
- if(!devEnabled()||document.getElementById('bb-scorpion-puppet-ab-switch'))return;
- const button=document.createElement('button');
- button.id='bb-scorpion-puppet-ab-switch';button.type='button';
- button.title='Development-only Scorpion atlas prototype A/B switch';
- button.style.cssText='position:fixed;z-index:2147483000;right:10px;bottom:10px;padding:7px 9px;border:1px solid #f0b43c;border-radius:6px;background:#15110a;color:#ffe3a4;font:700 10px/1.1 system-ui;letter-spacing:.06em;box-shadow:0 2px 12px #0009';
- button.addEventListener('click',()=>setMode(state.mode==='FRAME'?'PUPPET':'FRAME'));
- document.body.appendChild(button);setMode(state.mode);
-}
+function setMode(mode){state.mode=mode==='PUPPET'&&state.ready&&!state.failed?'PUPPET':'FRAME';try{localStorage.setItem(MODE_KEY,state.mode)}catch(_){ }const button=document.getElementById('bb-scorpion-puppet-ab-switch');if(button)button.textContent='SCORPION · '+state.mode+' (A/B)';return state.mode;}
+function ensureSwitch(){if(!devEnabled()||document.getElementById('bb-scorpion-puppet-ab-switch'))return;const button=document.createElement('button');button.id='bb-scorpion-puppet-ab-switch';button.type='button';button.title='Development-only Scorpion atlas prototype A/B switch';button.style.cssText='position:fixed;z-index:2147483000;right:10px;bottom:10px;padding:7px 9px;border:1px solid #f0b43c;border-radius:6px;background:#15110a;color:#ffe3a4;font:700 10px/1.1 system-ui;letter-spacing:.06em;box-shadow:0 2px 12px #0009';button.addEventListener('click',()=>setMode(state.mode==='FRAME'?'PUPPET':'FRAME'));document.body.appendChild(button);setMode(state.mode);}
 function imageReady(src){return new Promise((resolve,reject)=>{const image=new Image();image.decoding='async';image.onload=()=>resolve(image);image.onerror=()=>reject(new Error('Could not load '+src));image.src=src;});}
-function validateRectangleMap(map,image){
- if(!map||!Array.isArray(map.canvas)||map.canvas.length!==2||!map.parts)throw new Error('Body rectangle map shape is invalid');
- const atlasWidth=Number(map.canvas[0]),atlasHeight=Number(map.canvas[1]);
- if(atlasWidth!==image.naturalWidth||atlasHeight!==image.naturalHeight)throw new Error('Body atlas dimensions do not match its rectangle map');
- for(const [name,rect] of Object.entries(map.parts)){
-  for(const key of ['x','y','w','h'])if(!Number.isFinite(rect[key]))throw new Error('Invalid rectangle '+name);
-  if(rect.x<0||rect.y<0||rect.w<=0||rect.h<=0||rect.x+rect.w>atlasWidth||rect.y+rect.h>atlasHeight)throw new Error('Out-of-bounds rectangle '+name);
- }
- return true;
-}
-async function loadBodyAtlas(){
- try{
-  const [response,image]=await Promise.all([fetch(BODY_MAP,{cache:'no-store'}),imageReady(BODY_IMAGE)]);
-  if(!response.ok)throw new Error('Could not load '+BODY_MAP+' ('+response.status+')');
-  const map=await response.json();validateRectangleMap(map,image);
-  state.bodyMap=map;state.bodyImage=image;state.ready=true;setMode(state.mode);
- }catch(error){
-  state.failed=true;state.error=String(error&&error.message||error);setMode('FRAME');
-  console.warn('Scorpion Puppet Atlas V1 disabled; retaining frame animation fallback.',error);
- }finally{ensureSwitch();}
-}
-const skeleton=Object.freeze({
- root:{parent:null,x:0,y:12},pelvis:{parent:'root',x:0,y:-21},torso:{parent:'pelvis',x:0,y:-17},head:{parent:'torso',x:0,y:-18},
- leftShoulder:{parent:'torso',x:-12,y:-8},leftElbow:{parent:'leftShoulder',x:-7,y:14},leftWrist:{parent:'leftElbow',x:-4,y:14},
- rightShoulder:{parent:'torso',x:12,y:-8},rightElbow:{parent:'rightShoulder',x:7,y:14},rightWrist:{parent:'rightElbow',x:4,y:14},
- leftHip:{parent:'pelvis',x:-7,y:3},leftKnee:{parent:'leftHip',x:-2,y:17},leftAnkle:{parent:'leftKnee',x:1,y:1},
- rightHip:{parent:'pelvis',x:7,y:3},rightKnee:{parent:'rightHip',x:2,y:17},rightAnkle:{parent:'rightKnee',x:-1,y:1}
-});
-const children=Object.freeze(Object.keys(skeleton).reduce((tree,name)=>{const parent=skeleton[name].parent;if(parent)(tree[parent]||(tree[parent]=[])).push(name);return tree;},{}));
-const cutouts=Object.freeze({
- pelvis:[['body_07',27,18,.5,.53]],torso:[['body_02',31,32,.5,.62],['body_03',29,25,.5,.73]],head:[['body_01',25,23,.5,.72]],
- leftShoulder:[['body_04',15,12,.50,.55]],leftElbow:[['body_10',12,21,.50,.16]],leftWrist:[['body_11',10,18,.50,.16]],
- rightShoulder:[['body_05',15,12,.50,.55]],rightElbow:[['body_27',12,21,.50,.16]],rightWrist:[['body_12',10,18,.50,.16]],
- leftHip:[['body_08',14,21,.50,.13]],leftKnee:[['body_23',12,20,.50,.13]],leftAnkle:[['body_21',17,8,.50,1]],
- rightHip:[['body_06',14,21,.50,.13]],rightKnee:[['body_16',12,20,.50,.13]],rightAnkle:[['body_22',17,8,.50,1]]
-});
-const idleKeys=Object.freeze([
- {t:0,torso:0,head:-.018,leftShoulder:.055,leftElbow:-.03,leftWrist:.02,rightShoulder:-.04,rightElbow:.025,rightWrist:-.02},
- {t:.25,torso:-.020,head:-.042,leftShoulder:.105,leftElbow:-.065,leftWrist:.035,rightShoulder:-.075,rightElbow:.05,rightWrist:-.03},
- {t:.50,torso:.012,head:.018,leftShoulder:.016,leftElbow:-.012,leftWrist:.008,rightShoulder:-.012,rightElbow:.01,rightWrist:-.008},
- {t:.75,torso:.028,head:.047,leftShoulder:-.055,leftElbow:.036,leftWrist:-.021,rightShoulder:.070,rightElbow:-.046,rightWrist:.026}
-]);
-function idlePose(now){
- const scaled=(((now%1800)+1800)%1800/1800)*idleKeys.length,index=Math.floor(scaled)%idleKeys.length,next=idleKeys[(index+1)%idleKeys.length],current=idleKeys[index],raw=scaled-index,ease=raw*raw*(3-2*raw),pose={};
- for(const name of Object.keys(skeleton)){const a=Number(current[name]||0),b=Number(next[name]||0);pose[name]=a+(b-a)*ease;}return pose;
-}
-function drawCutout(ctx,image,map,key,width,height,pivotX,pivotY,unit){
- const rect=map.parts[key];if(!rect)throw new Error('Missing required puppet cutout '+key);
- const w=width*unit,h=height*unit;ctx.drawImage(image,rect.x,rect.y,rect.w,rect.h,-w*pivotX,-h*pivotY,w,h);
-}
-function drawPuppet(ctx,image,map,width,height){
- const unit=height/68,pose=idlePose(performance.now());let visible=0;
- const visit=name=>{const bone=skeleton[name];ctx.save();ctx.translate(bone.x*unit,bone.y*unit);ctx.rotate(pose[name]||0);for(const piece of cutouts[name]||[]){drawCutout(ctx,image,map,piece[0],piece[1],piece[2],piece[3],piece[4],unit);visible++;}for(const child of children[name]||[])visit(child);ctx.restore();};
- ctx.save();visit('root');ctx.restore();
- state.metrics.puppetDraws++;state.metrics.lastVisibleParts=visible;state.metrics.lastDrawBounds={left:-17*unit,right:17*unit,top:-62*unit,bottom:12*unit};state.metrics.lastFeet={left:12*unit,right:12*unit};
- if(state.metrics.footSamples.length<120)state.metrics.footSamples.push({left:12*unit,right:12*unit});
-}
-function canRenderPuppet(args){
- const visual=args[5],name=args[6],isEnemy=args[7];
- if(state.mode!=='PUPPET'||!state.ready||state.failed||name!=='Scorpion'||isEnemy||visual)return false;
- try{const battle=window.eval('S');return !battle?.anim?.attackPose?.Scorpion&&!battle?.anim?.unitFX?.Scorpion;}catch(_){return false;}
-}
-function installRenderer(){
- let original,ctx,sprites;try{original=window.eval('drawUnit');ctx=window.eval('ctx');sprites=window.eval('SPRITES');}catch(error){state.failed=true;state.error='Renderer seam unavailable: '+String(error&&error.message||error);return;}
- if(typeof original!=='function'||!ctx||!sprites){state.failed=true;state.error='Renderer seam unavailable';return;}
- const blank=document.createElement('canvas');blank.width=1;blank.height=1;sprites[BLANK_NAME]=blank;
- window.__bbScorpionPuppetDrawUnit=function(...args){
-  if(!canRenderPuppet(args))return original.apply(this,args);
-  const previousDrawImage=ctx.drawImage;let failed=false,result;
-  ctx.drawImage=function(image,...drawArgs){
-   if(image===blank&&drawArgs.length===4&&Number(ctx.globalAlpha)>=.98){
-    try{drawPuppet(ctx,state.bodyImage,state.bodyMap,Number(drawArgs[2]),Number(drawArgs[3]));}
-    catch(error){failed=true;state.failed=true;state.error='Puppet draw failed: '+String(error&&error.message||error);}
-   }
-   return previousDrawImage.call(ctx,image,...drawArgs);
-  };
-  try{const puppetArgs=args.slice();puppetArgs[5]={scale:1,rot:0,lift:0};puppetArgs[6]=BLANK_NAME;result=original.apply(this,puppetArgs);}
-  catch(error){failed=true;state.failed=true;state.error='Puppet renderer failed: '+String(error&&error.message||error);}
-  finally{ctx.drawImage=previousDrawImage;}
-  return failed?original.apply(this,args):result;
- };
- try{window.eval('drawUnit=window.__bbScorpionPuppetDrawUnit');}catch(error){state.failed=true;state.error='Could not attach renderer: '+String(error&&error.message||error);}
-}
-function footDrift(){const samples=state.metrics.footSamples;if(!samples.length)return {samples:0,left:0,right:0,max:0};const values=samples.flatMap(sample=>[sample.left,sample.right]),min=Math.min(...values),max=Math.max(...values);return {samples:samples.length,left:0,right:0,max:max-min};}
-window.BlazingScorpionPuppetAtlasV1=Object.freeze({
- version:'v1',durationMs:1800,joints:Object.freeze(Object.keys(skeleton)),get mode(){return state.mode},get ready(){return state.ready&&!state.failed},get error(){return state.error},get bodyAtlas(){return {src:BODY_IMAGE,width:state.bodyImage?.naturalWidth||0,height:state.bodyImage?.naturalHeight||0}},get metrics(){return {...state.metrics,footDrift:footDrift()}},setMode,validate:()=>state.bodyImage&&state.bodyMap?validateRectangleMap(state.bodyMap,state.bodyImage):false,footDrift,idleFootBaselines:()=>idleKeys.map(()=>({left:12,right:12})),get rectangleMap(){return state.bodyMap;}
-});
-installRenderer();loadBodyAtlas();ensureSwitch();
+function validateRectangleMap(map,image){if(!map||!Array.isArray(map.canvas)||map.canvas.length!==2||!map.parts)throw new Error('Body rectangle map shape is invalid');const [atlasWidth,atlasHeight]=map.canvas.map(Number);if(atlasWidth!==image.naturalWidth||atlasHeight!==image.naturalHeight)throw new Error('Body atlas dimensions do not match its rectangle map');for(const [name,rect] of Object.entries(map.parts)){for(const key of ['x','y','w','h'])if(!Number.isFinite(rect[key]))throw new Error('Invalid rectangle '+name);if(rect.x<0||rect.y<0||rect.w<=0||rect.h<=0||rect.x+rect.w>atlasWidth||rect.y+rect.h>atlasHeight)throw new Error('Out-of-bounds rectangle '+name);}return true;}
+async function loadBodyAtlas(){try{const [response,image]=await Promise.all([fetch(BODY_MAP,{cache:'no-store'}),imageReady(BODY_IMAGE)]);if(!response.ok)throw new Error('Could not load '+BODY_MAP+' ('+response.status+')');const map=await response.json();validateRectangleMap(map,image);state.bodyMap=map;state.bodyImage=image;state.ready=true;setMode(state.mode);}catch(error){state.failed=true;state.error=String(error?.message||error);setMode('FRAME');console.warn('Scorpion Puppet Atlas V1 disabled; retaining frame animation fallback.',error);}finally{ensureSwitch();}}
+
+// Names come from the reviewed, labeled pixel contact sheet, never body_XX order.
+const semanticParts=Object.freeze({head:'body_13',torso:'body_18',pelvis:'body_15',leftUpperArm:'body_04',leftLowerArm:'body_07',rightUpperArm:'body_09',rightLowerArm:'body_25',leftUpperLeg:'body_14',leftLowerLeg:'body_23',leftFoot:'body_21',rightUpperLeg:'body_26',rightLowerLeg:'body_31',rightFoot:'body_22'});
+const skeleton=Object.freeze({root:{parent:null,x:0,y:12},pelvis:{parent:'root',x:0,y:-20},torso:{parent:'pelvis',x:0,y:-17},head:{parent:'torso',x:0,y:-18},leftShoulder:{parent:'torso',x:-11,y:-6},leftElbow:{parent:'leftShoulder',x:-7,y:13},leftWrist:{parent:'leftElbow',x:-3,y:12},rightShoulder:{parent:'torso',x:11,y:-6},rightElbow:{parent:'rightShoulder',x:7,y:13},rightWrist:{parent:'rightElbow',x:3,y:12},leftHip:{parent:'pelvis',x:-7,y:1},leftKnee:{parent:'leftHip',x:-1,y:16},leftAnkle:{parent:'leftKnee',x:1,y:3},rightHip:{parent:'pelvis',x:7,y:1},rightKnee:{parent:'rightHip',x:1,y:16},rightAnkle:{parent:'rightKnee',x:-1,y:3}});
+const drawParts=Object.freeze({pelvis:[{part:'pelvis',w:25,h:21,px:.50,py:.20}],torso:[{part:'torso',w:29,h:29,px:.50,py:.20}],head:[{part:'head',w:20,h:23,px:.50,py:.88}],leftShoulder:[{part:'leftUpperArm',w:12,h:17,px:.25,py:.10}],leftElbow:[{part:'leftLowerArm',w:11,h:17,px:.25,py:.10}],rightShoulder:[{part:'rightUpperArm',w:12,h:17,px:.75,py:.10}],rightElbow:[{part:'rightLowerArm',w:11,h:16,px:.75,py:.10}],leftHip:[{part:'leftUpperLeg',w:12,h:18,px:.50,py:.08}],leftKnee:[{part:'leftLowerLeg',w:11,h:17,px:.50,py:.10}],leftAnkle:[{part:'leftFoot',w:17,h:8,px:.50,py:1}],rightHip:[{part:'rightUpperLeg',w:12,h:18,px:.50,py:.08}],rightKnee:[{part:'rightLowerLeg',w:11,h:17,px:.50,py:.10}],rightAnkle:[{part:'rightFoot',w:17,h:8,px:.50,py:1}]});
+const layerOrder=Object.freeze(['leftHip','leftKnee','leftAnkle','rightHip','rightKnee','rightAnkle','pelvis','torso','leftShoulder','leftElbow','rightShoulder','rightElbow','head']);
+const idleKeys=Object.freeze([{t:0,torso:0,head:-.018,leftShoulder:.045,leftElbow:-.026,rightShoulder:-.038,rightElbow:.023},{t:.25,torso:-.018,head:-.042,leftShoulder:.092,leftElbow:-.058,rightShoulder:-.070,rightElbow:.046},{t:.50,torso:.011,head:.017,leftShoulder:.014,leftElbow:-.010,rightShoulder:-.011,rightElbow:.009},{t:.75,torso:.025,head:.044,leftShoulder:-.050,leftElbow:.032,rightShoulder:.064,rightElbow:-.042}]);
+const multiply=(a,b)=>[a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];
+const point=(m,x,y)=>({x:m[0]*x+m[2]*y+m[4],y:m[1]*x+m[3]*y+m[5]});
+function idlePose(now){const scaled=(((now%1800)+1800)%1800/1800)*idleKeys.length,index=Math.floor(scaled)%idleKeys.length,next=idleKeys[(index+1)%idleKeys.length],current=idleKeys[index],raw=scaled-index,ease=raw*raw*(3-2*raw),pose={};for(const name of Object.keys(skeleton)){const a=Number(current[name]||0),b=Number(next[name]||0);pose[name]=a+(b-a)*ease;}return pose;}
+function jointMatrices(now){const pose=idlePose(now),out={};for(const [name,bone] of Object.entries(skeleton)){const r=pose[name]||0,c=Math.cos(r),s=Math.sin(r),local=[c,s,-s,c,bone.x,bone.y];out[name]=bone.parent?multiply(out[bone.parent],local):local;}return out;}
+function paintPart(ctx,spec,mat,unit){const rect=state.bodyMap.parts[semanticParts[spec.part]];if(!rect)throw new Error('Missing verified puppet component '+spec.part);ctx.save();ctx.transform(...mat);ctx.drawImage(state.bodyImage,rect.x,rect.y,rect.w,rect.h,-spec.w*unit*spec.px,-spec.h*unit*spec.py,spec.w*unit,spec.h*unit);ctx.restore();}
+function currentTransformPoint(ctx,p){const m=ctx.getTransform();return {x:m.a*p.x+m.c*p.y+m.e,y:m.b*p.x+m.d*p.y+m.f};}
+function recordFeet(ctx,joints){const left=currentTransformPoint(ctx,point(joints.leftAnkle,0,0)),right=currentTransformPoint(ctx,point(joints.rightAnkle,0,0));state.metrics.lastFeet={left,right};state.metrics.footSamples.push({left,right});if(state.metrics.footSamples.length>720)state.metrics.footSamples.shift();}
+function render(ctx,{bodyHeight=68,now=performance.now(),measure=false}={}){if(state.mode!=='PUPPET'||!state.ready||state.failed||!ctx)return false;try{const unit=bodyHeight/68,joints=jointMatrices(now);for(const joint of layerOrder)for(const spec of drawParts[joint]||[])paintPart(ctx,spec,joints[joint],unit);if(!measure){state.metrics.puppetDraws++;state.metrics.lastVisibleParts=13;state.metrics.lastDrawBounds={left:-18*unit,right:18*unit,top:-64*unit,bottom:12*unit};recordFeet(ctx,joints);}return true;}catch(error){state.failed=true;state.error='Puppet draw failed: '+String(error?.message||error);setMode('FRAME');console.warn('Scorpion Puppet Atlas V1 draw failed; retaining frame animation fallback.',error);return false;}}
+function footDrift(){const samples=state.metrics.footSamples;if(!samples.length)return {samples:0,left:0,right:0,max:0};const drift=side=>{const xs=samples.map(sample=>sample[side].x),ys=samples.map(sample=>sample[side].y);return Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys));};const left=drift('left'),right=drift('right');return {samples:samples.length,left,right,max:Math.max(left,right)};}
+function idleJointSamples(){return Array.from({length:37},(_,i)=>{const joints=jointMatrices(i*50);return {t:i*50,left:point(joints.leftAnkle,0,0),right:point(joints.rightAnkle,0,0)};});}
+function wantsPuppet(){return state.mode==='PUPPET'&&state.ready&&!state.failed;}
+window.BlazingScorpionPuppetAtlasV1=Object.freeze({version:'v1',durationMs:1800,joints:Object.freeze(Object.keys(skeleton)),semanticParts,get mode(){return state.mode},get ready(){return state.ready&&!state.failed},get error(){return state.error},get bodyAtlas(){return {src:BODY_IMAGE,width:state.bodyImage?.naturalWidth||0,height:state.bodyImage?.naturalHeight||0}},get metrics(){return {...state.metrics,footDrift:footDrift()}},setMode,wantsPuppet,render,validate:()=>state.bodyImage&&state.bodyMap?validateRectangleMap(state.bodyMap,state.bodyImage):false,footDrift,idleJointSamples,get rectangleMap(){return state.bodyMap;}});
+loadBodyAtlas();ensureSwitch();
 })();

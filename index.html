@@ -4174,6 +4174,11 @@ function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=fal
  let scale=visual?.scale||1,rot=visual?.rot||0,lift=visual?.lift||0;
  let activePulse=1;
  let fx=name?unitFX(name):null;
+ // Narrow atlas seam: PUPPET draws inside this unit's existing, authoritative
+ // transform. It never replaces drawUnit, identity, sprite metadata, or canvas
+ // methods. Non-idle presentation always stays on the authored frame path.
+ const bbPuppet=(!isEnemy&&name==='Scorpion'&&!visual)?window.BlazingScorpionPuppetAtlasV1:null;
+ const bbPuppetRequested=Boolean(bbPuppet?.wantsPuppet?.()&&!fx);
 
  // Deterministic per-character idle timing offset.
  // This MUST be initialized before any transform code references it.
@@ -4182,7 +4187,7 @@ function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=fal
    for(let i=0;i<name.length;i++)idlePhase+=name.charCodeAt(i)*(i+3);
  }
 
- if(active && !visual){
+ if(active && !visual && !bbPuppetRequested){
    activePulse=1+Math.sin(performance.now()/170)*.018;
  }
 
@@ -4212,7 +4217,7 @@ function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=fal
  ctx.save();
  ctx.translate(x,y-lift);
 
- if(!visual){
+ if(!visual && !bbPuppetRequested){
    let t=(performance.now()+idlePhase*5);
    // Lebee's supplied idle sheet already contains floating motion.
    if(name!=='Lebee'){
@@ -4258,6 +4263,16 @@ function drawUnit(x,y,label,color,active=false,visual=null,name=null,isEnemy=fal
  let idleFrames=name?unitIdleFrames(name):null;
  let attackState=(name&&S.anim?.attackPose)?S.anim.attackPose[name]:null;
  let attackFrames=(name&&attackState)?unitAttackFrames(name,attackState.kind):null;
+
+ // The atlas uses the exact bottom-centre frame footprint already calculated by
+ // drawUnit. If it cannot paint, render this same call through FRAME unchanged.
+ if(bbPuppetRequested&&!attackState){
+   const bbPuppetBodyHeight=68*(sizeScale||1)*UNIT_RENDER_SCALE*1.07*PLAYER_RENDER_BONUS;
+   if(bbPuppet.render(ctx,{bodyHeight:bbPuppetBodyHeight})){
+     ctx.restore();
+     return;
+   }
+ }
 
  // Lebee has a real recoil sheet. Hit art temporarily overrides idle/attack art,
  // but uses the same normalized canvas so her footprint stays stable.

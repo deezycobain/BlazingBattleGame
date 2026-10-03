@@ -8,12 +8,24 @@ This branch holds a development-only A/B prototype. The existing Scorpion V2 twe
 - weapons/ and vfx/, together with their supplied rectangle maps, are retained separately and are not loaded into the fighter renderer.
 - The original source ZIP is retained at the repository root.
 
-## Pivots and hierarchy
+## Verified part evidence and pivots
 
-The supplied maps define crop rectangles, not joints. Pivots were authored separately in local fighter space, using the current renderer’s established feet contact at local Y=12. Root is centered between planted ankles. Pelvis is 21 logical pixels above root; torso is 17 pixels above pelvis; head is 18 pixels above torso. Shoulders, elbows and wrists are parented from torso through the arm chains. Hips, knees and ankles are parented from pelvis through the leg chains. Cutout pivots are authored per attachment: shoulder and pelvis pieces use interior attachment pivots, limb pieces attach near their proximal edge, and each foot uses a bottom pivot at the ankle contact. Rectangle centers are never used as joints.
+[`scorpion-puppet-body-contact-sheet.png`](validation/scorpion-puppet-atlas-v1/scorpion-puppet-body-contact-sheet.png) was generated directly from the unmodified body PNG and JSON rectangles. The mapping used by the neutral puppet was selected by the visible pixels in that sheet—not by `body_XX` ordering:
 
-The 1.8-second idle has four interpolated keys. Only torso, head and arm rotations change; both hip-knee-ankle chains and both foot cutouts are invariant on every key. The renderer intercepts the existing Scorpion draw call and uses its existing x/y, scale, flip and bottom-center transform, so both A/B modes share the Fighter Visual Contract authority and battlefield origin.
+| Semantic part | Atlas ID | Pixel evidence |
+| --- | --- | --- |
+| head/mask | `body_13` | front hood, eye and gold mask |
+| torso | `body_18` | belt, chest armour and yellow waist panels |
+| pelvis | `body_15` | black hip cloth and gold hip guard |
+| left arm | `body_04`, `body_07` | armoured open-hand segments |
+| right arm | `body_09`, `body_25` | bracer and clenched-hand segments |
+| left leg/foot | `body_14`, `body_23`, `body_21` | gold thigh, trouser/shin and boot pixels |
+| right leg/foot | `body_26`, `body_31`, `body_22` | black/gold thigh, shin and boot pixels |
+
+The supplied maps define crop rectangles, not joints. Independent pivots are authored in local fighter space: root `(0,12)`, pelvis `(0,-20)`, torso `(0,-17)` from pelvis, head `(0,-18)` from torso, shoulders `(±11,-6)`, elbows `(±7,13)`, wrists `(±3,12)`, hips `(±7,1)`, knees `(±1,16)`, and ankles `(±1,3)`. Each cutout additionally has a local attachment pivot; feet are bottom-pivoted at their ankles. Rectangle centres are never used as joints.
+
+The 1.8-second idle has four interpolated keys. Only torso, head and arm rotations change; both hip-knee-ankle chains and both foot cutouts stay invariant. The narrow `drawUnit` seam calls the puppet only after the real Scorpion’s normal world transform/facing/scale has been established. It does not substitute a sprite, change Scorpion’s name, or intercept `ctx.drawImage`. Atlas load, rectangle validation, and drawing failure all return that same draw call to FRAME mode.
 
 ## Known reconstruction limits
 
-The V1 body map labels components only as body_01 through body_41; it does not identify semantic limbs or layer order. The neutral assembly therefore selects pieces by silhouette and proportions and uses authored pivots. It is adequate for the Phase 1 idle comparison, but exact armour layering and any weapon or chain attachment cannot be reconstructed cleanly until a semantic part manifest or artist pivot sheet is supplied. Weapons and VFX are intentionally deferred.
+The map does not supply an artist semantic manifest or final armour-layer order. The selected parts above are visually evidenced, but unselected components are intentionally not guessed into the body. Exact armour-layer refinements and all weapon, chain, recoil, attack, run, and VFX work remain out of scope for Phase 1.
