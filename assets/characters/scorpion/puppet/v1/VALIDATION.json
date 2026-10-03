@@ -1,0 +1,26 @@
+{
+  "body/scorpion_puppet_body_atlas_v1.png": {
+    "size": [
+      3072,
+      2048
+    ],
+    "mode": "RGBA",
+    "has_alpha": true
+  },
+  "weapons/scorpion_weapon_atlas_v1.png": {
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "has_alpha": true
+  },
+  "vfx/scorpion_vfx_atlas_v1.png": {
+    "size": [
+      2048,
+      1536
+    ],
+    "mode": "RGBA",
+    "has_alpha": true
+  }
+}

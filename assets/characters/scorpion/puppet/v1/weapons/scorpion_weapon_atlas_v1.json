@@ -1,0 +1,65 @@
+{
+  "version": "v1-review",
+  "canvas": [
+    1536,
+    1024
+  ],
+  "parts": {
+    "weapon_02": {
+      "x": 128,
+      "y": 128,
+      "w": 388,
+      "h": 301,
+      "source_component": 29,
+      "source_bbox": [
+        903,
+        822,
+        1250,
+        1084
+      ],
+      "gutter_px": 160
+    },
+    "weapon_04": {
+      "x": 676,
+      "y": 128,
+      "w": 296,
+      "h": 258,
+      "source_component": 37,
+      "source_bbox": [
+        982,
+        999,
+        1241,
+        1219
+      ],
+      "gutter_px": 160
+    },
+    "weapon_03": {
+      "x": 1132,
+      "y": 128,
+      "w": 276,
+      "h": 214,
+      "source_component": 30,
+      "source_bbox": [
+        980,
+        883,
+        1214,
+        1055
+      ],
+      "gutter_px": 160
+    },
+    "weapon_01": {
+      "x": 128,
+      "y": 589,
+      "w": 362,
+      "h": 126,
+      "source_component": 26,
+      "source_bbox": [
+        911,
+        740,
+        1234,
+        827
+      ],
+      "gutter_px": 160
+    }
+  }
+}
