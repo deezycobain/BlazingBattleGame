@@ -1,4 +1,4 @@
-name: Validate Scorpion Puppet Atlas V1 (final validation)
+name: Validate Scorpion Puppet Atlas V1 (focused)
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
           node-version: '22'
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
-      - run: npm run build
+      - run: node scripts/validate-scorpion-puppet-atlas-v1.mjs && node scripts/build-cloudflare.mjs && node scripts/scorpion-puppet-atlas-postprocess.mjs && node scripts/fighter-visual-contract-postprocess.mjs
       - name: Start built game
         run: |
           env -u RUNNER_TRACKING_ID nohup node scripts/serve-dist.mjs > /tmp/bb-scorpion-puppet-server.log 2>&1 </dev/null &
