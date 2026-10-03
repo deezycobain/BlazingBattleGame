@@ -461,22 +461,36 @@
       "animations": {
         "idle": {
           "resource_id": "scorpion.animation.idle",
-          "path": "assets/characters/scorpion/sprites/runtime/idle/",
-          "required_runtime_frames": 6,
+          "path": "assets/characters/scorpion/sprites/runtime/v2/idle/",
+          "required_runtime_frames": 12,
           "renderer": "BlazingFrameRuntime",
-          "usage": "Six-frame Scorpion Legacy of the Shinobi idle animation."
+          "usage": "Twelve-frame Scorpion V2 idle sequence."
+        },
+        "run": {
+          "resource_id": "scorpion.animation.run",
+          "path": "assets/characters/scorpion/sprites/runtime/v2/run/",
+          "required_runtime_frames": 12,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Twelve-frame Scorpion V2 run sequence."
         },
         "basic_attack": {
           "resource_id": "scorpion.animation.basic_attack",
-          "path": "assets/characters/scorpion/sprites/runtime/attack/basic/",
-          "required_runtime_frames": 6,
+          "path": "assets/characters/scorpion/sprites/runtime/v2/attack/",
+          "required_runtime_frames": 12,
           "renderer": "BlazingFrameRuntime",
-          "usage": "Six-frame Scorpion Legacy of the Shinobi Basic Attack animation."
+          "usage": "Twelve-frame Scorpion V2 Basic Attack sequence."
+        },
+        "recoil": {
+          "resource_id": "scorpion.animation.recoil",
+          "path": "assets/characters/scorpion/sprites/runtime/v2/recoil/",
+          "required_runtime_frames": 12,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Twelve-frame Scorpion V2 recoil sequence."
         }
       },
       "vfx": {
         "chain_spear": {
-          "resource_id": "uploaded-v2.scorpion_chain_spear",
+          "resource_id": "runtime.scorpion_chain_spear",
           "path": "assets/vfx/uploaded-v2/scorpion_chain_spear_vfx_atlas/",
           "required_runtime_frames": 12,
           "renderer": "animateScorpionSpearStrike",
@@ -507,17 +521,31 @@
       "animations": {
         "idle": {
           "resource_id": "mashle.animation.idle",
-          "path": "assets/characters/mashle/sprites/runtime/idle/",
-          "required_runtime_frames": 6,
+          "path": "assets/characters/mashle/sprites/runtime/v2/idle/",
+          "required_runtime_frames": 12,
           "renderer": "BlazingFrameRuntime",
-          "usage": "Six-frame Mashle Legacy of the Shinobi idle animation."
+          "usage": "Twelve-frame Mashle V2 idle sequence."
+        },
+        "run": {
+          "resource_id": "mashle.animation.run",
+          "path": "assets/characters/mashle/sprites/runtime/v2/run/",
+          "required_runtime_frames": 12,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Twelve-frame Mashle V2 run sequence."
         },
         "basic_attack": {
           "resource_id": "mashle.animation.basic_attack",
-          "path": "assets/characters/mashle/sprites/runtime/attack/basic/",
-          "required_runtime_frames": 6,
+          "path": "assets/characters/mashle/sprites/runtime/v2/attack/",
+          "required_runtime_frames": 12,
           "renderer": "BlazingFrameRuntime",
-          "usage": "Six-frame Mashle Legacy of the Shinobi Basic Attack animation."
+          "usage": "Twelve-frame Mashle V2 Basic Attack sequence."
+        },
+        "recoil": {
+          "resource_id": "mashle.animation.recoil",
+          "path": "assets/characters/mashle/sprites/runtime/v2/recoil/",
+          "required_runtime_frames": 12,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Twelve-frame Mashle V2 recoil sequence."
         }
       },
       "vfx": {}
