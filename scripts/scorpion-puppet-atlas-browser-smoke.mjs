@@ -24,6 +24,7 @@ async function run(name,type){
   await page.goto(BASE+'/',{waitUntil:'domcontentloaded'});await waitHome(page);await page.waitForFunction(()=>window.BlazingScorpionPuppetAtlasV1.ready===true,null,{timeout:20000});
   const maps=await mapContract(page);if(maps.some(map=>!map.inside)||maps[0].width!==3072||maps[0].height!==2048)throw new Error('Atlas rectangle contract failed: '+JSON.stringify(maps));
   await enterRoad(page);
+  await page.waitForFunction(()=>{try{return globalThis.eval("unitIdleFrames('Scorpion')").length===12}catch{return false}},null,{timeout:15000});
   const frame=await page.evaluate(()=>{const api=window.BlazingScorpionPuppetAtlasV1;api.setMode('FRAME');const s=globalThis.eval('S'),front=globalThis.eval('front'),pair=s.pairs.find(item=>front(item)?.name==='Scorpion');return {mode:api.mode,button:document.getElementById('bb-scorpion-puppet-ab-switch')?.textContent||'',frames:globalThis.eval("unitIdleFrames('Scorpion')").length,position:{x:pair?.x,y:pair?.y},draws:api.metrics.puppetDraws};});
   if(frame.mode!=='FRAME'||frame.frames!==12||!frame.position.x||!frame.button.includes('FRAME'))throw new Error('FRAME baseline unavailable: '+JSON.stringify(frame));
   await page.waitForTimeout(180);await page.screenshot({path:OUT+'/scorpion-frame-'+name+'.png',fullPage:true});
