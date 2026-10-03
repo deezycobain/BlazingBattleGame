@@ -127,14 +127,32 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   const runtime=await page.evaluate(async ({names})=>{
    const get=globalThis.eval;
    const body=get('LEGACY_SHINOBI_BODY_RUNTIME');
+   let quality=null;try{quality=get('typeof BB_ANIMATION_QUALITY_RUNTIME!=="undefined"?BB_ANIMATION_QUALITY_RUNTIME:null')}catch(_){}
+   const ready=img=>!!(img?.complete&&img.naturalWidth>0&&img.naturalHeight>0);
    const waitImages=images=>Promise.all(images.map(img=>{
-    if(img.complete)return Promise.resolve(img.naturalWidth>0&&img.naturalHeight>0);
+    if(ready(img))return Promise.resolve(true);
     return new Promise(resolve=>{img.addEventListener('load',()=>resolve(true),{once:true});img.addEventListener('error',()=>resolve(false),{once:true});setTimeout(()=>resolve(false),8000)});
    }));
+   const waitQuality=async(images,timeoutMs=30000)=>{
+    const isReady=img=>quality?.ready?.(img)??ready(img);
+    const deadline=performance.now()+timeoutMs;
+    while(performance.now()<deadline){
+     const states=images.map(isReady);
+     if(states.every(Boolean))return states;
+     await new Promise(resolve=>setTimeout(resolve,50));
+    }
+    return images.map(isReady);
+   };
    const results=[];
    for(const name of names){
     const idle=body.idle(name)||[],basic=body.basic(name)||[];
+    const v2Idle=name==='Scorpion'&&quality?.has?.(name)?quality.idle(name)||[]:[];
+    const v2Basic=name==='Scorpion'&&quality?.has?.(name)?quality.basic(name)||[]:[];
     const [idleOk,basicOk]=await Promise.all([waitImages(idle),waitImages(basic)]);
+    let v2IdleOk=[],v2BasicOk=[];
+    if(name==='Scorpion'){
+     [v2IdleOk,v2BasicOk]=await Promise.all([waitQuality(v2Idle),waitQuality(v2Basic)]);
+    }
     const idleResolved=get('unitIdleFrames')(name);
     const attackResolved=get('unitAttackFrames')(name,'basic_attack');
     const data=Object.values(window.BLAZING_UNIT_DATA||{}).find(unit=>unit?.display_name===name);
@@ -151,8 +169,12 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
      idleDims:idle.map(img=>[img.naturalWidth,img.naturalHeight]),
      basicDims:basic.map(img=>[img.naturalWidth,img.naturalHeight]),
      idleSrc:idle[0]?.src||'',
-     basicSrc:basic[0]?.src||''
-     ,expectedIdle:data?.animation_standard?.animations?.idle?.frames?.length||0,
+     basicSrc:basic[0]?.src||'',
+     v2IdleCount:v2Idle.length,
+     v2BasicCount:v2Basic.length,
+     v2IdleBroken:v2IdleOk.filter(ok=>!ok).length,
+     v2BasicBroken:v2BasicOk.filter(ok=>!ok).length,
+     expectedIdle:data?.animation_standard?.animations?.idle?.frames?.length||0,
      expectedBasic:data?.animation_standard?.animations?.basic_attack?.frames?.length||0
     });
    }
@@ -160,14 +182,16 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   },{names:NAMES});
   const normalized=dims=>Array.isArray(dims)&&dims.length>0&&dims.every(([w,h])=>w===512&&h===768);
   const badRuntime=runtime.filter(x=>{
-   const expectedIdleResolved=(x.name==='Wong Fei-Hung'||x.name==='Scorpion')&&x.idleCount===6?12:x.expectedIdle;
-   return x.idleCount!==x.expectedIdle||x.basicCount!==x.expectedBasic||x.idleResolved!==expectedIdleResolved||x.attackResolved!==x.expectedBasic||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!normalized(x.idleDims)||!normalized(x.basicDims)||!/\/sprites\/runtime\/idle\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.basicSrc);
+   const scorpionV2=x.name==='Scorpion';
+   const expectedIdleResolved=scorpionV2?12:((x.name==='Wong Fei-Hung'&&x.idleCount===6)?12:x.expectedIdle);
+   const expectedAttackResolved=scorpionV2?12:x.expectedBasic;
+   const v2Invalid=scorpionV2&&(x.v2IdleCount!==12||x.v2BasicCount!==12||x.v2IdleBroken||x.v2BasicBroken);
+   return x.idleCount!==x.expectedIdle||x.basicCount!==x.expectedBasic||x.idleResolved!==expectedIdleResolved||x.attackResolved!==expectedAttackResolved||v2Invalid||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!normalized(x.idleDims)||!normalized(x.basicDims)||!/\/sprites\/runtime\/idle\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.basicSrc);
   });
   if(badRuntime.length)throw new Error('Legacy battle animation runtime invalid: '+JSON.stringify(badRuntime));
 
   const drunkenCadence=await page.evaluate(()=>{const get=globalThis.eval,idle=get('unitIdleFrames')('Wong Fei-Hung')||[],basic=get('unitAttackFrames')('Wong Fei-Hung','basic_attack')||[];const src=frames=>frames.map(frame=>String(frame?.src||'').replace(/^.*\/frame_(\d+)\.png.*$/,'$1'));return{idle:src(idle),basic:src(basic)}});
   if(JSON.stringify(drunkenCadence.idle)!==JSON.stringify(['01','01','02','02','02','03','04','04','05','05','06','06'])||JSON.stringify(drunkenCadence.basic)!==JSON.stringify(['01','02','03','04','05','06']))throw new Error('Wong Fei-Hung drunken frame cadence invalid: '+JSON.stringify(drunkenCadence));
-
 
   // Legacy attack renderer probe: reproduce the real lunge condition where drawUnit
   // receives a non-null visual transform. The attack sheet must still win over idle.
@@ -227,7 +251,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   if(inventory.missing.length||inventory.broken.length)throw new Error('Legacy inventory invalid: '+JSON.stringify(inventory));
 
   if(errors.length)throw new Error('page errors: '+errors.join(' | '));
-  console.log('Legacy Shinobi browser smoke PASS ('+browserName+'): Home promo -> 12-unit summon banner -> full-card Kakashi reveal/results -> inventory cards -> playable roster -> audited 512x768 six-frame idle/basic runtime.');
+  console.log('Legacy Shinobi browser smoke PASS ('+browserName+'): Home promo -> 12-unit summon banner -> full-card Kakashi reveal/results -> inventory cards -> playable roster -> audited Legacy 512x768 runtime + canonical Scorpion 12-frame V2 override.');
   await context.close();
  }finally{
   if(browser)await browser.close().catch(()=>{});

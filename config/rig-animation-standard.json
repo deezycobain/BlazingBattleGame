@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "mode": "hybrid",
+  "renderer": "canvas2d_control_point_mesh",
+  "source_frame": {
+    "width_px": 512,
+    "height_px": 768,
+    "feet_baseline_y_px": 700,
+    "anchor": "bottom_center"
+  },
+  "mesh_budget": {
+    "desktop_default": {"columns": 5, "rows": 8},
+    "mobile_default": {"columns": 4, "rows": 6},
+    "desktop_max": {"columns": 10, "rows": 12},
+    "mobile_max": {"columns": 6, "rows": 8}
+  },
+  "policy": {
+    "opt_in_per_unit_and_state": true,
+    "frame_animation_fallback": true,
+    "signature_attacks_stay_frame_authored": true,
+    "feet_locked_for_idle_by_default": true,
+    "light_recoil_overlays_authored_frames": true,
+    "rig_preferred_for": ["idle", "breathing", "subtle_sway", "anticipation", "light_recoil"],
+    "frame_animation_preferred_for": ["extreme_pose_change", "perspective_change", "signature_attack", "jutsu", "teleport", "flip", "smear_frame"]
+  },
+  "pilot": {
+    "units": ["Scorpion", "Mashle"],
+    "states": ["idle", "light_recoil_overlay"]
+  }
+}

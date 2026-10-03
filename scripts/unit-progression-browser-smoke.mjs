@@ -11,18 +11,18 @@ const EXPECTED_PRESENTATION={
  'Senku':{element:'Nature',summon:'assets/characters/senku/cards/senku_card.jpeg',forge:'assets/characters/senku/art/senku_full_art.jpeg'},
  'Tyler':{element:'Earth',summon:'assets/characters/tyler/cards/current_collection_card.png',forge:'assets/characters/tyler/art/current_collection_art.png'},
  'Itachi':{element:'Fire',summon:'assets/characters/itachi/art/itachi_full_art.png',forge:'assets/characters/itachi/art/itachi_full_art.png'},
- 'Kakashi':{element:'Lightning',summon:'assets/characters/kakashi/cards/legacy_summon_art.png',forge:'assets/characters/kakashi/sprites/runtime/idle/frame_01.png'},
- 'Obito':{element:'Fire',summon:'assets/characters/obito/cards/legacy_summon_art.png',forge:'assets/characters/obito/sprites/runtime/idle/frame_01.png'},
- 'Jiraiya':{element:'Fire',summon:'assets/characters/jiraiya/cards/legacy_summon_art.png',forge:'assets/characters/jiraiya/sprites/runtime/idle/frame_01.png'},
- 'Sasuke':{element:'Lightning',summon:'assets/characters/sasuke/cards/legacy_summon_art.png',forge:'assets/characters/sasuke/sprites/runtime/idle/frame_01.png'},
- 'Pain':{element:'Dark',summon:'assets/characters/pain/cards/legacy_summon_art.png',forge:'assets/characters/pain/sprites/runtime/idle/frame_01.png'},
- 'Scorpion':{element:'Fire',summon:'assets/characters/scorpion/cards/legacy_summon_art.png',forge:'assets/characters/scorpion/sprites/runtime/idle/frame_01.png'},
- 'Rock Lee':{element:'Wind',summon:'assets/characters/rock_lee/cards/legacy_summon_art.png',forge:'assets/characters/rock_lee/sprites/runtime/idle/frame_01.png'},
- 'Mashle':{element:'Earth',summon:'assets/characters/mashle/cards/legacy_summon_art.png',forge:'assets/characters/mashle/sprites/runtime/idle/frame_01.png'},
- 'Wong Fei-Hung':{element:'Wind',summon:'assets/characters/jackie_chan/cards/legacy_summon_art.png',forge:'assets/characters/jackie_chan/sprites/runtime/idle/frame_01.png'},
- 'Gabimaru':{element:'Fire',summon:'assets/characters/gabimaru/cards/legacy_summon_art.png',forge:'assets/characters/gabimaru/sprites/runtime/idle/frame_01.png'},
- 'Killua':{element:'Lightning',summon:'assets/characters/killua/cards/legacy_summon_art.png',forge:'assets/characters/killua/sprites/runtime/idle/frame_01.png'},
- 'Zabuza':{element:'Water',summon:'assets/characters/zabuza/cards/legacy_summon_art.png',forge:'assets/characters/zabuza/sprites/runtime/idle/frame_01.png'}
+ 'Kakashi':{element:'Lightning',summon:'assets/characters/kakashi/cards/legacy_summon_art.png',forge:'assets/characters/kakashi/cards/legacy_summon_art.png'},
+ 'Obito':{element:'Fire',summon:'assets/characters/obito/cards/legacy_summon_art.png',forge:'assets/characters/obito/cards/legacy_summon_art.png'},
+ 'Jiraiya':{element:'Fire',summon:'assets/characters/jiraiya/cards/legacy_summon_art.png',forge:'assets/characters/jiraiya/cards/legacy_summon_art.png'},
+ 'Sasuke':{element:'Lightning',summon:'assets/characters/sasuke/cards/legacy_summon_art.png',forge:'assets/characters/sasuke/cards/legacy_summon_art.png'},
+ 'Pain':{element:'Dark',summon:'assets/characters/pain/cards/legacy_summon_art.png',forge:'assets/characters/pain/cards/legacy_summon_art.png'},
+ 'Scorpion':{element:'Fire',summon:'assets/characters/scorpion/cards/legacy_summon_art.png',forge:'assets/characters/scorpion/cards/legacy_summon_art.png'},
+ 'Rock Lee':{element:'Wind',summon:'assets/characters/rock_lee/cards/legacy_summon_art.png',forge:'assets/characters/rock_lee/cards/legacy_summon_art.png'},
+ 'Mashle':{element:'Earth',summon:'assets/characters/mashle/cards/legacy_summon_art.png',forge:'assets/characters/mashle/cards/legacy_summon_art.png'},
+ 'Wong Fei-Hung':{element:'Wind',summon:'assets/characters/jackie_chan/cards/legacy_summon_art.png',forge:'assets/characters/jackie_chan/cards/legacy_summon_art.png'},
+ 'Gabimaru':{element:'Fire',summon:'assets/characters/gabimaru/cards/legacy_summon_art.png',forge:'assets/characters/gabimaru/cards/legacy_summon_art.png'},
+ 'Killua':{element:'Lightning',summon:'assets/characters/killua/cards/legacy_summon_art.png',forge:'assets/characters/killua/cards/legacy_summon_art.png'},
+ 'Zabuza':{element:'Water',summon:'assets/characters/zabuza/cards/legacy_summon_art.png',forge:'assets/characters/zabuza/cards/legacy_summon_art.png'}
 };
 
 async function waitHome(page){
@@ -77,9 +77,12 @@ async function run(name,type){
   if(badPresentation.length)throw new Error(`Playable summon/element/Forge presentation integrity failed: ${JSON.stringify(badPresentation)}`);
   await page.evaluate(()=>window.BlazingProgression.openForge('Lebee'));
   await page.evaluate(()=>window.BlazingProgression.openForge('Kakashi'));
-  await page.waitForFunction(()=>document.getElementById('forgeName')?.textContent?.trim()==='KAKASHI');
+  await page.waitForFunction(()=>{
+    const card=document.getElementById('forgeCard'),portrait=document.getElementById('forgePortrait'),label=document.getElementById('forgeName')?.textContent?.trim()||'',src=portrait?.getAttribute('src')||'';
+    return label==='KAKASHI'&&!card?.hasAttribute('aria-busy')&&/\/kakashi\/cards\/legacy_summon_art\.png/i.test(src)&&!!portrait?.complete&&portrait.naturalWidth>0;
+  },null,{timeout:5000});
   const legacyForge=await page.evaluate(()=>({name:document.getElementById('forgeName')?.textContent?.trim()||'',src:document.getElementById('forgePortrait')?.getAttribute('src')||''}));
-  if(legacyForge.name!=='KAKASHI'||!/\/kakashi\/sprites\/runtime\/idle\/frame_01\.png/i.test(legacyForge.src))throw new Error(`Legacy Forge art/route incorrect: ${JSON.stringify(legacyForge)}`);
+  if(legacyForge.name!=='KAKASHI'||!/\/kakashi\/cards\/legacy_summon_art\.png/i.test(legacyForge.src))throw new Error(`Legacy Forge art/route incorrect: ${JSON.stringify(legacyForge)}`);
   await page.evaluate(()=>window.BlazingProgression.openForge('Lebee'));
   let panel=await page.locator('#bbLevelProgression').innerText();
   if(!/LV\.\s*1\s*\/\s*10/i.test(panel)||!/DUPLICATES\s*0/i.test(panel))throw new Error(`fresh progression panel incorrect: ${panel}`);

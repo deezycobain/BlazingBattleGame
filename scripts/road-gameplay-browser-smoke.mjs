@@ -57,36 +57,36 @@ async function advanceInitiativeTo(page,{name=null,kind=null}={}){
  },{name,kind});
 }
 
-async function dragLebeeAcrossOpenLane(page){
+async function dragPlayerAcrossOpenLane(page){
  await waitRoadCombatReady(page);
  const slot=await page.evaluate(()=>{
   const s=globalThis.eval('S'),front=globalThis.eval('front');
   const roster=s.pairs.flatMap(pair=>(pair.units||[]).filter(unit=>unit&&unit.name&&unit.name!=='—').map(unit=>unit.name));
   for(let pairIndex=0;pairIndex<s.pairs.length;pairIndex++){
-   const pair=s.pairs[pairIndex],index=(pair.units||[]).findIndex(unit=>unit?.name==='Lebee');
-   if(index>=0)return {pairIndex,index,scheduledName:front(pair)?.name||null,roster};
+   const pair=s.pairs[pairIndex],fighter=front(pair),index=(pair.units||[]).findIndex(unit=>unit?.name===fighter?.name);
+   if(fighter?.name&&fighter.name!=='—'&&index>=0)return {pairIndex,index,scheduledName:fighter.name,roster};
   }
-  return {error:'Lebee is not present in the Road battle roster',roster};
+  return {error:'Road battle roster has no active player fighter',roster};
  });
  if(slot.error)return slot;
- if(!slot.scheduledName)return {error:'Lebee pair has no active fighter for round initiative',slot};
+ if(!slot.scheduledName)return {error:'Road player pair has no active fighter for round initiative',slot};
  const advance=await advanceInitiativeTo(page,{name:slot.scheduledName,kind:'pair'});
- if(!advance.ok)return {error:'Could not advance Road initiative to Lebee pair',slot,advance};
+ if(!advance.ok)return {error:'Could not advance Road initiative to selected player pair',slot,advance};
  return page.evaluate(async({pairIndex,index})=>{
   const s=globalThis.eval('S'),front=globalThis.eval('front'),inputPoint=globalThis.eval('inputPoint'),C=window.BlazingRoadContent;
   const roster=s.pairs.flatMap(pair=>(pair.units||[]).filter(unit=>unit&&unit.name&&unit.name!=='—').map(unit=>unit.name));
   const pair=s.pairs[pairIndex];
-  if(!pair)return {error:'Lebee pair disappeared before drag setup',roster,pairIndex};
+  if(!pair)return {error:'selected player pair disappeared before drag setup',roster,pairIndex};
   pair.active=index;
-  const lebee=front(pair),start={x:90,y:300},end={x:390,y:300},padding=C.PLAYER_FOOT_PADDING;
-  if(!lebee||lebee.name!=='Lebee')return {error:'Lebee could not become the active pair fighter',roster,pairIndex,index,active:lebee?.name||null};
+  const fighter=front(pair),start={x:90,y:300},end={x:390,y:300},padding=C.PLAYER_FOOT_PADDING;
+  if(!fighter||fighter.name==='—')return {error:'selected player could not become the active pair fighter',roster,pairIndex,index,active:fighter?.name||null};
   if(!C.isWalkablePoint(s.bbRoadContent?.map,start,{padding})||!C.isWalkablePoint(s.bbRoadContent?.map,end,{padding}))return {error:'authored Stage 1 lane endpoints are not walkable',start,end,padding};
-  lebee.hp=Math.max(1,Number(lebee.hp)||Number(lebee.maxHp)||1);pair.x=start.x;pair.y=start.y;
+  fighter.hp=Math.max(1,Number(fighter.hp)||Number(fighter.maxHp)||1);pair.x=start.x;pair.y=start.y;
   s.drag=false;s.dragOrigin=null;s.dragVisual=null;s.dragGrabOffset=null;
   pair.gauge=100;s.ready={kind:'pair',ref:pair,g:100};s.phase='player';
   window.BlazingRoadTurns.sync();
   const readyShape={phase:s.phase,kind:s.ready?.kind||null,refIsPair:s.ready?.ref===pair,pairX:pair.x,pairY:pair.y};
-  if(s.phase!=='player'||s.ready?.kind!=='pair'||s.ready?.ref!==pair)return {error:'scheduled pair turn was lost while activating Lebee',roster,readyShape,round:window.BlazingRoadTurns.snapshot({limit:20})};
+  if(s.phase!=='player'||s.ready?.kind!=='pair'||s.ready?.ref!==pair)return {error:'scheduled player turn was lost while preparing touch drag',roster,readyShape,round:window.BlazingRoadTurns.snapshot({limit:20})};
 
   const cvs=document.getElementById('game');if(!(cvs instanceof HTMLCanvasElement))return {error:'battle canvas #game missing'};
   const rect=cvs.getBoundingClientRect();if(!(rect.width>0&&rect.height>0))return {error:'battle canvas has no visible bounds',rect:{width:rect.width,height:rect.height}};
@@ -100,7 +100,7 @@ async function dragLebeeAcrossOpenLane(page){
   for(let i=1;i<=30;i++){const t=i/30,point={x:start.x+(end.x-start.x)*t,y:start.y+(end.y-start.y)*t};dispatch('pointermove',point,1);if(i%5===0)samples.push({x:pair.x,y:pair.y});await new Promise(resolve=>setTimeout(resolve,6))}
   const endClient=dispatch('pointerup',end,0);await new Promise(resolve=>setTimeout(resolve,20));
   if(captureShim){try{delete cvs.setPointerCapture;delete cvs.releasePointerCapture;delete cvs.hasPointerCapture}catch(_){}}
-  return {name:lebee.name,start,end,startClient,endClient,logicalTL,logicalBR,readyShape,dragStarted,dragEnded:s.drag===false,final:{x:pair.x,y:pair.y},samples,padding,endpointWalkable:C.isWalkablePoint(s.bbRoadContent?.map,{x:pair.x,y:pair.y},{padding})};
+  return {name:fighter.name,start,end,startClient,endClient,logicalTL,logicalBR,readyShape,dragStarted,dragEnded:s.drag===false,final:{x:pair.x,y:pair.y},samples,padding,endpointWalkable:C.isWalkablePoint(s.bbRoadContent?.map,{x:pair.x,y:pair.y},{padding})};
  },slot);
 }
 
@@ -119,7 +119,9 @@ async function run(name,type){
 
   await enterRoad(page,1);
   const intro1=await waitCamera(page,'intro',1);if(intro1.mapKey!=='south-sac'||intro1.targetScale!==1)throw new Error(`Stage 1 intro camera should show full map: ${JSON.stringify(intro1)}`);
-  const camera1=await waitCamera(page,'combat',1);if(Math.abs(camera1.targetScale-1.16)>.001||camera1.combatScale!==camera1.targetScale||camera1.transitionMs!==1650)throw new Error(`Stage 1 combat camera zoom invalid: ${JSON.stringify(camera1)}`);
+  // This smoke intentionally runs at a 390px viewport. Keep the authored 1.16 combat camera intent,
+  // but require the compact-viewport compositor safety path to render at scale 1 so the map stays visible.
+  const camera1=await waitCamera(page,'combat',1);if(Math.abs(camera1.combatScale-1.16)>.001||Math.abs(camera1.targetScale-1)>.001||camera1.transitionMs!==1650||!/^(?:1(?:\.0+)?|none)?$/i.test(camera1.inlineScale)||!/^(?:none)?$/i.test(camera1.inlineTransform))throw new Error(`Stage 1 combat camera mobile-safety contract invalid: ${JSON.stringify(camera1)}`);
   if(!/center/i.test(camera1.position||''))throw new Error(`Stage 1 camera focus is not centered: ${JSON.stringify(camera1)}`);
 
   const initiative=await page.evaluate(()=>{
@@ -136,10 +138,10 @@ async function run(name,type){
   if(initiative.senkuRange?.type!=='circle'||initiative.senkuRange.r!==66||initiative.senkuPresentation?.hide_distance_px!==44||'close_retreat_min_px' in initiative.senkuPresentation)throw new Error(`Senku circular hide-retreat tuning missing: ${JSON.stringify(initiative)}`);
   if(initiative.chakraRings.some(r=>!/conic-gradient/i.test(r.background)||r.text.trim()))throw new Error(`segmented chakra portrait ring missing or numeric chakra survived: ${JSON.stringify(initiative.chakraRings)}`);
 
-  const lebeeDrag=await dragLebeeAcrossOpenLane(page);if(lebeeDrag.error)throw new Error(`Lebee touch drag setup failed: ${JSON.stringify(lebeeDrag)}`);
-  if(!lebeeDrag.dragStarted||!lebeeDrag.dragEnded)throw new Error(`Lebee native touch drag lifecycle failed: ${JSON.stringify(lebeeDrag)}`);
-  if(Math.hypot(lebeeDrag.final.x-lebeeDrag.end.x,lebeeDrag.final.y-lebeeDrag.end.y)>12)throw new Error(`Lebee hit an invisible blocker in clear Stage 1 lane: ${JSON.stringify(lebeeDrag)}`);
-  if(!lebeeDrag.endpointWalkable)throw new Error(`Lebee finished outside authored walkable terrain: ${JSON.stringify(lebeeDrag)}`);
+  const playerDrag=await dragPlayerAcrossOpenLane(page);if(playerDrag.error)throw new Error(`Road player touch drag setup failed: ${JSON.stringify(playerDrag)}`);
+  if(!playerDrag.dragStarted||!playerDrag.dragEnded)throw new Error(`Road player native touch drag lifecycle failed: ${JSON.stringify(playerDrag)}`);
+  if(Math.hypot(playerDrag.final.x-playerDrag.end.x,playerDrag.final.y-playerDrag.end.y)>12)throw new Error(`${playerDrag.name} hit an invisible blocker in clear Stage 1 lane: ${JSON.stringify(playerDrag)}`);
+  if(!playerDrag.endpointWalkable)throw new Error(`${playerDrag.name} finished outside authored walkable terrain: ${JSON.stringify(playerDrag)}`);
 
   const stage1=await page.evaluate(()=>{
    const s=globalThis.eval('S'),front=globalThis.eval('front'),C=window.BlazingRoadContent;
@@ -168,7 +170,7 @@ async function run(name,type){
   await page.evaluate(()=>{const s=globalThis.eval('S'),R=window.BlazingRoadRun;const fighters=s.pairs.flatMap(p=>p.units||[]).filter(u=>u&&u.name&&u.name!=='—'&&Number(u.maxHp)>0);const run=R.createRun(fighters,{stage:10});R.saveRun(run);window.BlazingMatchResults.returnHome()});
   await waitHome(page);await enterRoad(page,10);
   const intro10=await waitCamera(page,'intro',10);if(intro10.mapKey!=='training-grounds'||intro10.targetScale!==1)throw new Error(`Stage 10 intro camera should show full map: ${JSON.stringify(intro10)}`);
-  const camera10=await waitCamera(page,'combat',10);if(Math.abs(camera10.targetScale-1.16)>.001||camera10.mapKey!=='training-grounds')throw new Error(`Stage 10 combat camera invalid: ${JSON.stringify(camera10)}`);
+  const camera10=await waitCamera(page,'combat',10);if(Math.abs(camera10.combatScale-1.16)>.001||Math.abs(camera10.targetScale-1)>.001||camera10.mapKey!=='training-grounds'||!/^(?:1(?:\.0+)?|none)?$/i.test(camera10.inlineScale)||!/^(?:none)?$/i.test(camera10.inlineTransform))throw new Error(`Stage 10 combat camera mobile-safety contract invalid: ${JSON.stringify(camera10)}`);
   const stage10=await page.evaluate(()=>{const s=globalThis.eval('S');return {stage:s.bbRoadContent?.stage,elite:s.bbRoadContent?.elite,map:s.bbRoadContent?.map?.src,mapSource:s.bbRoadMapSource,enemies:s.enemies.map(e=>({hp:e.maxHp,attack:e.attack,defense:e.defense})),maxStage:window.BlazingRoadContent.MAX_STAGE}});
   if(stage10.stage!==10||!stage10.elite||stage10.maxStage!==10)throw new Error(`Stage 10 is not final elite: ${JSON.stringify(stage10)}`);
   if(!/stage-05-training-grounds\.webp$/.test(stage10.map||'')||stage10.mapSource!==stage10.map)throw new Error(`Stage 10 map slot wrong: ${JSON.stringify(stage10)}`);
@@ -180,7 +182,7 @@ async function run(name,type){
   await page.getByRole('button',{name:'MAIN MENU'}).click();await waitHome(page);const card=await page.locator('#bbHomeApproved [data-mode="road"] span:last-child').textContent();if(!/Road Complete/i.test(card||'')||!/10\/10/.test(card||''))throw new Error(`approved Home Road completion status wrong: ${card}`);
 
   await page.evaluate(()=>window.BlazingRoadRun.clearRun());if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
-  console.log(`Road gameplay smoke PASS (${name}): round Speed initiative, South Sac horizon clamp, segmented chakra HUD, compact Sub-Zero/Senku ranges, reduced 1.16 combat zoom, native touch drag, enemy AI, map routing, and Stage 10 completion verified.`);
+  console.log(`Road gameplay smoke PASS (${name}): round Speed initiative, South Sac horizon clamp, segmented chakra HUD, compact Sub-Zero/Senku ranges, authored 1.16 combat camera with compact-viewport compositor bypass, native touch drag, enemy AI, map routing, and Stage 10 completion verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
 
