@@ -122,7 +122,11 @@ function syncEnemyTerrain(state=liveState()){
   if(!enemy||finite(enemy.hp,0)<=0)continue;
   const current={x:finite(enemy.x,240),y:finite(enemy.y,320)},safe=clampPoint(current,current);
   enemy.x=safe.x;enemy.y=safe.y;
-  const animated=state.anim?.positions?.[enemy.name];
+  // Road teardown can clear the combat animation container between render ticks.
+  // Terrain clamping is observational, so skip an absent transient position instead
+  // of touching a stale animation object.
+  const animation=state?.anim||null,positions=animation?.positions||null;
+  const animated=positions?.[enemy.name]||null;
   if(animated&&Number.isFinite(animated.x)&&Number.isFinite(animated.y)){
    const safeAnimated=clampPoint({x:animated.x,y:animated.y},current);animated.x=safeAnimated.x;animated.y=safeAnimated.y;
   }
