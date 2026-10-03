@@ -532,6 +532,20 @@
           "required_runtime_frames": 6,
           "renderer": "BlazingFrameRuntime",
           "usage": "Six-frame Mashle Legacy of the Shinobi Basic Attack animation."
+        },
+        "run": {
+          "resource_id": "mashle.animation.run",
+          "path": "assets/characters/mashle/sprites/runtime/v2/run/",
+          "required_runtime_frames": 12,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Authored twelve-frame Mashle V2 run animation retained for the runtime state map."
+        },
+        "recoil": {
+          "resource_id": "mashle.animation.recoil",
+          "path": "assets/characters/mashle/sprites/runtime/v2/recoil/",
+          "required_runtime_frames": 12,
+          "renderer": "BlazingFrameRuntime",
+          "usage": "Authored twelve-frame Mashle V2 recoil animation retained for the runtime state map."
         }
       },
       "vfx": {}
