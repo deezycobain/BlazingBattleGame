@@ -1,0 +1,58 @@
+name: Stage Scorpion Puppet Atlas V1
+
+on:
+  push:
+    branches: [experiment/scorpion-puppet-atlas]
+    paths:
+      - ".github/workflows/stage-scorpion-puppet-atlas.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/scorpion-puppet-atlas
+          fetch-depth: 0
+      - name: Copy and unpack supplied atlas source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin experimental --depth=1
+          git show origin/experimental:Scorpion_Puppet_Atlas_V1_GitHub_Pack.zip > Scorpion_Puppet_Atlas_V1_GitHub_Pack.zip
+          python3 - <<'PY'
+          from pathlib import Path, PurePosixPath
+          from zipfile import ZipFile
+
+          root = Path("assets/characters/scorpion/puppet/v1")
+          root.mkdir(parents=True, exist_ok=True)
+          archive = Path("Scorpion_Puppet_Atlas_V1_GitHub_Pack.zip")
+          with ZipFile(archive) as pack:
+              members = [item for item in pack.infolist() if not item.is_dir()]
+              parts = [PurePosixPath(item.filename).parts for item in members]
+              common = parts[0][0] if parts and all(len(item) > 1 and item[0] == parts[0][0] for item in parts) else None
+              for item, item_parts in zip(members, parts):
+                  relative = PurePosixPath(*item_parts[1:]) if common else PurePosixPath(*item_parts)
+                  if not relative.parts or any(part in ("", ".", "..") for part in relative.parts):
+                      raise SystemExit(f"unsafe archive member: {item.filename}")
+                  output = root.joinpath(*relative.parts)
+                  output.parent.mkdir(parents=True, exist_ok=True)
+                  output.write_bytes(pack.read(item))
+                  print(f"EXTRACTED {output.as_posix()}")
+          PY
+          echo "ATLAS MANIFEST"
+          find assets/characters/scorpion/puppet/v1 -type f -printf '%p %s bytes\n' | sort
+      - name: Commit staged source assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/stage-scorpion-puppet-atlas.yml
+          git add Scorpion_Puppet_Atlas_V1_GitHub_Pack.zip assets/characters/scorpion/puppet/v1
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Stage Scorpion Puppet Atlas V1 assets"
+          git pull --rebase origin experiment/scorpion-puppet-atlas
+          git push origin HEAD:experiment/scorpion-puppet-atlas
