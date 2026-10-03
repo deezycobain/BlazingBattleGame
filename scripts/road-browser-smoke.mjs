@@ -62,7 +62,10 @@ async function enterMode(page,mode,pageErrors=[]){
   await panel.waitFor({state:'visible',timeout:5000});
   await page.locator(`#bbHomeApproved [data-mode="${mode}"]`).click();
   const result=await waitForMode(page,mode==='road'?'road':'castle',pageErrors);
-  if(mode==='road')await page.waitForFunction(()=>window.BlazingRoadSharedHp?.snapshot?.()?.active===true,null,{timeout:5000});
+  if(mode==='road')await page.waitForFunction(()=>{
+    const shared=window.BlazingRoadSharedHp?.snapshot?.();
+    return !!(shared?.active&&Number(shared.maxHp)>0&&Number(shared.hp)>0&&typeof shared.key==='string'&&shared.key.length>0);
+  },null,{timeout:5000});
   return result;
 }
 
