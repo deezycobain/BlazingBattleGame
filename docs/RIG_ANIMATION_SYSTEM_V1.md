@@ -15,9 +15,13 @@ Add smooth control-point animation without replacing the authored sprite system.
 
 ## Pilot
 
-Scorpion and Mashle use a single approved V2 idle source frame plus subtle control-point breathing/sway. Their run, Basic, recoil and all special/Jutsu presentation continue using authored frames.
+Scorpion and Mashle use a single approved V2 idle source frame plus subtle control-point breathing/sway. Their run, Basic and all special/Jutsu presentation continue using authored frames. The isolated recoil pilot keeps the authored recoil frame sequence and only adds a brief 260 ms control-point impact/settle overlay.
 
 The pilot intentionally uses a small mesh on mobile (4x6 cells) and a slightly denser mesh on desktop (5x8 cells). This keeps the proof-of-concept compatible with the existing iPhone/WebKit safety work.
+
+## Review tool
+
+The Rig Lab is an in-game review overlay available from Home. It shows the exact authored source and the same source drawn through the production mesh at enlarged scale, with a y=700 feet-baseline guide. `INSPECT 3×` amplifies only the lab's control-point deltas for visual review; it never changes combat or production rendering. `TRIGGER RECOIL` compares the authored recoil source against the isolated recoil overlay.
 
 ## Production direction
 

@@ -22,6 +22,25 @@ for(const [browserName,type] of Object.entries({chromium,webkit})){
       }catch(_){return false}
     },null,{timeout:30000});
 
+    await page.locator('#bb-rig-lab-launch').waitFor({state:'visible',timeout:30000});
+    await page.locator('#bb-rig-lab-launch').click();
+    await page.locator('#bb-rig-lab.bb-rig-lab-open').waitFor({state:'visible',timeout:10000});
+    const lab=await page.evaluate(()=>{
+      const root=document.getElementById('bb-rig-lab');
+      const canvases=[...root?.querySelectorAll('canvas')||[]];
+      return {
+        open:root?.classList.contains('bb-rig-lab-open')===true,
+        canvasCount:canvases.length,
+        canvasDimensions:canvases.map(canvas=>[canvas.width,canvas.height]),
+        baselineText:root?.textContent?.includes('feet baseline')===true
+      };
+    });
+    if(!lab.open||lab.canvasCount!==2||lab.canvasDimensions.some(([width,height])=>width!==512||height!==768)||!lab.baselineText)throw new Error('Rig Lab comparison is unavailable or broke its visual contract: '+JSON.stringify(lab));
+    await page.getByRole('button',{name:'INSPECT 3×',exact:true}).click();
+    await page.getByRole('button',{name:'TRIGGER RECOIL',exact:true}).click();
+    await page.getByRole('button',{name:'CLOSE',exact:true}).click();
+    await page.locator('#bb-rig-lab').waitFor({state:'hidden',timeout:10000});
+
     const result=await page.evaluate(async()=>{
       const rig=window.BlazingRigRuntime;
       const quality=globalThis.eval('BB_ANIMATION_QUALITY_RUNTIME');
@@ -86,7 +105,7 @@ for(const [browserName,type] of Object.entries({chromium,webkit})){
     if(result.recoil.centerDrift>3.5)throw new Error('light recoil overlay translated the fighter too far: '+JSON.stringify(result));
     if(!result.triggered||result.impulse?.clip!=='recoil'||result.impulse.durationMs!==260)throw new Error('recoil impulse lifecycle unavailable: '+JSON.stringify(result));
     if(result.source.idleW!==512||result.source.idleH!==768||result.source.recoilW!==512||result.source.recoilH!==768)throw new Error('rig source broke canonical 512x768 frame contract: '+JSON.stringify(result));
-    console.log(`Rig animation browser smoke PASS (${browserName}): idle + authored-frame recoil deformation kept planted feet; idle ${result.idle.differentPixels}px changed, recoil ${result.recoil.differentPixels}px changed, recoil bottom drift ${result.recoil.bottomDrift}px.`);
+    console.log(`Rig animation browser smoke PASS (${browserName}): Rig Lab comparison + idle/authored-frame recoil deformation kept planted feet; idle ${result.idle.differentPixels}px changed, recoil ${result.recoil.differentPixels}px changed, recoil bottom drift ${result.recoil.bottomDrift}px.`);
   }finally{
     if(browser)await browser.close().catch(()=>{});
   }

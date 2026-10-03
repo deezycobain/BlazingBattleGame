@@ -11,7 +11,8 @@ const fail=message=>{throw new Error('Rig animation integration: '+message)};
 // for every unit/state until that exact state receives an approved rig profile.
 const scripts=[
   ['bb-rig-animation-runtime','runtime/animation/rig-runtime.js'],
-  ['bb-rig-animation-profiles','runtime/animation/rig-profiles.js']
+  ['bb-rig-animation-profiles','runtime/animation/rig-profiles.js'],
+  ['bb-rig-animation-preview','runtime/animation/rig-preview.js']
 ];
 for(const [id] of scripts){
   html=html.replace(new RegExp(`<script\\b[^>]*id=["']${id}["'][^>]*>[\\s\\S]*?<\\/script>`,'gi'),'');
@@ -47,11 +48,11 @@ if(html.includes(drawSource))html=html.replace(drawSource,drawTarget);
 else if(!html.includes('const bbRigRecoilV1='))fail('canonical fighter draw seam missing');
 
 for(const [id] of scripts)if((html.match(new RegExp(`id=["']${id}["']`,'g'))||[]).length!==1)fail(id+' injection is not unique');
-for(const marker of [recoilMarker,'const bbRigAttackState=S?.anim?.attackPose?.[name]||null;','const bbRigRecoilV1=','const bbRigImpulse=','const bbRigIdleV1=','const bbRigSource=','BlazingRigRuntime','if(!bbRigDrawn)ctx.drawImage(spriteRef,-w/2,spriteY,w,h)'])if(!html.includes(marker))fail('missing '+marker);
+for(const marker of [recoilMarker,'const bbRigAttackState=S?.anim?.attackPose?.[name]||null;','const bbRigRecoilV1=','const bbRigImpulse=','const bbRigIdleV1=','const bbRigSource=','BlazingRigRuntime','bb-rig-animation-preview','if(!bbRigDrawn)ctx.drawImage(spriteRef,-w/2,spriteY,w,h)'])if(!html.includes(marker))fail('missing '+marker);
 for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(code=>code.trim()).entries()){
   try{new vm.Script(script,{filename:`rig-animation-${index}.js`})}
   catch(error){fail(`generated inline script ${index} has invalid syntax: ${error.message}`)}
 }
 
 await fs.writeFile(file,html);
-console.log('Rig Animation V1 PASS: normalized Canvas idle mesh + authored-frame recoil settle enabled for approved profiles without creating animation state; all other states preserve frame fallback.');
+console.log('Rig Animation V1 PASS: normalized Canvas idle mesh + authored-frame recoil settle enabled for approved profiles without creating animation state; Rig Lab comparison is available for review; all other states preserve frame fallback.');
