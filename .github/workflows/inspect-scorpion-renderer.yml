@@ -1,0 +1,38 @@
+name: Inspect Scorpion renderer seam
+
+on:
+  push:
+    branches: [experiment/scorpion-puppet-atlas]
+    paths:
+      - ".github/workflows/inspect-scorpion-renderer.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/scorpion-puppet-atlas
+          fetch-depth: 0
+      - name: Print drawUnit seam
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          for(const marker of ['function drawUnit','function render','function unitIdleFrames','const canvas=document.getElementById(\'game\')']){
+            const i=html.indexOf(marker);
+            console.log('SEAM '+marker+' @ '+i);
+            console.log(i<0?'MISSING':html.slice(i,i+6500));
+          }
+          NODE
+      - name: Remove one-shot inspector
+        run: |
+          git rm .github/workflows/inspect-scorpion-renderer.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Remove Scorpion renderer seam inspector"
+          git pull --rebase origin experiment/scorpion-puppet-atlas
+          git push origin HEAD:experiment/scorpion-puppet-atlas
