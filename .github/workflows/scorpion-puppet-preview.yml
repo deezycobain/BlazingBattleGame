@@ -50,6 +50,16 @@ jobs:
           cat /tmp/bb-server.log
           exit 1
 
+      - name: Capture V2 articulation gate
+        run: node scripts/scorpion-puppet-v2-browser-gate.mjs
+
+      - name: Publish V2 articulation gate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorpion-puppet-v2-articulation-gate
+          path: docs/validation/puppet-atlas-v2/
+          retention-days: 1
+
       - name: Start temporary phone test tunnel
         run: |
           env -u RUNNER_TRACKING_ID nohup npx wrangler tunnel quick-start http://127.0.0.1:4173 > /tmp/scorpion-tunnel.log 2>&1 </dev/null &
