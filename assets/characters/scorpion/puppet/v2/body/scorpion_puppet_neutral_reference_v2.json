@@ -1,0 +1,24 @@
+{
+  "version": "scorpion-puppet-neutral-reference-v2",
+  "sourceMaster": "assets/characters/scorpion/puppet/v2/source/scorpion_puppet_v2_master.png",
+  "coordinateSystem": "native-source-pixels-y-down",
+  "visualBounds": {"x":-215,"y":-885,"w":479,"h":885},
+  "baseline": 0,
+  "pieces": [
+    {"slot":"rightUpperLeg","sourceRect":{"x":211,"y":648,"w":148,"h":125},"topLeft":[15,-299],"zOrder":10},
+    {"slot":"rightLowerLeg","sourceRect":{"x":211,"y":720,"w":148,"h":131},"topLeft":[15,-227],"zOrder":11},
+    {"slot":"rightFoot","sourceRect":{"x":889,"y":850,"w":167,"h":108},"topLeft":[15,-108],"zOrder":12},
+    {"slot":"leftUpperLeg","sourceRect":{"x":26,"y":643,"w":160,"h":127},"topLeft":[-125,-315],"zOrder":20},
+    {"slot":"leftLowerLeg","sourceRect":{"x":26,"y":720,"w":160,"h":130},"topLeft":[-125,-238],"zOrder":21},
+    {"slot":"leftFoot","sourceRect":{"x":355,"y":841,"w":160,"h":119},"topLeft":[-125,-119],"zOrder":22},
+    {"slot":"rightUpperArm","sourceRect":{"x":409,"y":417,"w":149,"h":120},"topLeft":[95,-680],"zOrder":40},
+    {"slot":"rightForearm","sourceRect":{"x":409,"y":492,"w":149,"h":155},"topLeft":[115,-585],"zOrder":41},
+    {"slot":"rightHand","sourceRect":{"x":1340,"y":442,"w":78,"h":93},"topLeft":[120,-465],"zOrder":42},
+    {"slot":"torso","sourceRect":{"x":523,"y":203,"w":273,"h":208},"topLeft":[-135,-700],"zOrder":50},
+    {"slot":"pelvis","sourceRect":{"x":795,"y":219,"w":174,"h":219},"topLeft":[-85,-520],"zOrder":55},
+    {"slot":"leftUpperArm","sourceRect":{"x":12,"y":417,"w":148,"h":120},"topLeft":[-200,-680],"zOrder":60},
+    {"slot":"leftForearm","sourceRect":{"x":12,"y":492,"w":148,"h":155},"topLeft":[-215,-585],"zOrder":61},
+    {"slot":"leftHand","sourceRect":{"x":1336,"y":549,"w":85,"h":93},"topLeft":[-150,-465],"zOrder":62},
+    {"slot":"head","sourceRect":{"x":377,"y":9,"w":168,"h":203},"topLeft":[-70,-885],"zOrder":100}
+  ]
+}
