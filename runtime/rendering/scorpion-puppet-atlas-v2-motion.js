@@ -1,0 +1,29 @@
+(()=>{
+'use strict';
+const MANIFEST='assets/characters/scorpion/data/puppet-atlas-v2.json';
+const DEV_KEY='bb.scorpion-puppet-atlas.dev';
+const contract=globalThis.BlazingPuppetAtlasContractV1;
+const rad=d=>d*Math.PI/180;
+const state={ready:false,error:null,model:null,image:null};
+const motions=Object.freeze([{id:'idle',label:'Idle skeletal preview',frames:12,frameMs:125},{id:'run',label:'Run skeletal preview',frames:12,frameMs:82}]);
+const devEnabled=()=>{try{const q=new URLSearchParams(location.search);return q.has('scorpionPuppetV2')||q.has('scorpionPuppetMotion')||localStorage.getItem(DEV_KEY)==='1'||['localhost','127.0.0.1','::1'].includes(location.hostname);}catch(_){return false;}};
+const json=async path=>{const r=await fetch(path,{cache:'no-store'});if(!r.ok)throw new Error('Could not load '+path+' ('+r.status+')');return r.json();};
+const imageReady=src=>new Promise((resolve,reject)=>{const image=new Image();image.decoding='async';image.onload=()=>resolve(image);image.onerror=()=>reject(new Error('Could not load '+src));image.src=src;});
+function rotations(id,frame){
+ const p=((frame%12)+12)%12/12*Math.PI*2,s=Math.sin(p),c=Math.cos(p);
+ if(id==='idle')return {torso:rad(1.1*s),head:rad(-.7*s),leftShoulder:rad(1.8*s),rightShoulder:rad(-1.8*s),leftElbow:rad(1.4*c),rightElbow:rad(-1.4*c),leftHip:rad(-.6*s),rightHip:rad(.6*s),leftKnee:rad(.5*c),rightKnee:rad(-.5*c)};
+ if(id==='run')return {torso:rad(2*s),head:rad(-1.5*s),leftShoulder:rad(-10*s),rightShoulder:rad(10*s),leftElbow:rad(8*s),rightElbow:rad(-8*s),leftHip:rad(12*s),rightHip:rad(-12*s),leftKnee:rad(7+12*(.5-.5*s)),rightKnee:rad(7+12*(.5+.5*s))};
+ throw new Error('Unknown skeletal motion '+id);
+}
+function frameSurface(id,frame){if(!state.ready)throw new Error('Scorpion V2 motion is not ready');return contract.rasterize(state.model,state.image,undefined,{boneRotations:rotations(id,frame)});}
+function draw(canvas,surface){const ctx=canvas.getContext('2d');ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.translate(canvas.width/2,canvas.height-28);contract.render(ctx,state.model,surface,{bodyHeight:Math.min(540,canvas.height-56),baseline:0});ctx.strokeStyle='#69dec5';ctx.beginPath();ctx.moveTo(-canvas.width*.42,.5);ctx.lineTo(canvas.width*.42,.5);ctx.stroke();}
+function motionCard(motion,panel){const box=document.createElement('div');box.style.cssText='border:1px solid #435263;padding:10px;background:#17232d';const h=document.createElement('div');h.textContent=motion.label+' · 12 authored skeletal samples';h.style.cssText='font-weight:700;margin-bottom:8px';box.appendChild(h);const canvas=document.createElement('canvas');canvas.width=480;canvas.height=620;canvas.dataset.v2Motion=motion.id;canvas.style.cssText='display:block;width:100%;max-width:480px;background:#25323e';box.appendChild(canvas);let start=performance.now();const loop=now=>{if(!document.body.contains(canvas)||panel.hidden)return;const frame=Math.floor((now-start)/motion.frameMs)%motion.frames;draw(canvas,frameSurface(motion.id,frame));requestAnimationFrame(loop);};requestAnimationFrame(loop);return box;}
+function openLab(){
+ if(!devEnabled())return false;let panel=document.getElementById('bb-scorpion-puppet-v2-motion-lab');if(!panel){panel=document.createElement('section');panel.id='bb-scorpion-puppet-v2-motion-lab';panel.style.cssText='position:fixed;z-index:2147483003;inset:3vh 3vw;overflow:auto;padding:16px;border:1px solid #d7ae61;background:#101820;color:#eef4f7;font:13px system-ui';document.body.appendChild(panel);}panel.replaceChildren();panel.hidden=false;
+ const title=document.createElement('h2');title.textContent='Scorpion · Puppet Atlas V2 Skeletal Motion Preview';panel.appendChild(title);const close=document.createElement('button');close.textContent='Close motion lab';close.onclick=()=>{panel.hidden=true;};panel.appendChild(close);const note=document.createElement('p');note.textContent=state.ready?'Phase 2 preview only · 12-sample Idle + Run · bone rotations only · no piece scaling · not wired into production combat':state.error||'Loading motion preview…';panel.appendChild(note);if(!state.ready)return true;
+ const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px';for(const motion of motions)grid.appendChild(motionCard(motion,panel));panel.appendChild(grid);return true;
+}
+function ensureControl(){if(!devEnabled()||document.getElementById('bb-scorpion-puppet-v2-motion-switch'))return;const b=document.createElement('button');b.id='bb-scorpion-puppet-v2-motion-switch';b.textContent='SCORPION · MOTION V2';b.onclick=openLab;b.style.cssText='position:fixed;z-index:2147483001;right:10px;bottom:120px;padding:8px;background:#151d28;color:#ffe3a4;border:1px solid #d7ae61';document.body.appendChild(b);}
+window.BlazingScorpionPuppetAtlasV2Motion=Object.freeze({version:'scorpion-puppet-atlas-v2-motion-preview',get ready(){return state.ready},get error(){return state.error},motions:motions.map(m=>({id:m.id,label:m.label,frames:m.frames,frameMs:m.frameMs})),openLab,frameSurface,rotations});
+(async()=>{try{if(!contract)throw new Error('Puppet Atlas Contract v1 module missing');const manifest=await json(MANIFEST),[schema,map,image]=await Promise.all([json('config/puppet-atlas-contract-v1.schema.json'),json(manifest.atlas.map),imageReady(manifest.atlas.image)]);const source={width:image.naturalWidth,height:image.naturalHeight,map};contract.validate(manifest,schema,source);state.model=contract.compile(manifest,schema,source);state.image=image;state.ready=true;}catch(error){state.error=String(error?.message||error);console.warn('Scorpion Puppet V2 motion preview unavailable.',error);}finally{ensureControl();}})();
+})();
