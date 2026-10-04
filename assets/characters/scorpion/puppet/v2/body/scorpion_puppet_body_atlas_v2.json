@@ -19,7 +19,7 @@
   "parts": {
     "v2_head":{"x":377,"y":9,"w":168,"h":203,"slot":"head","authored":true},
     "v2_torso":{"x":523,"y":203,"w":273,"h":208,"slot":"torso","authored":true},
-    "v2_pelvis":{"x":795,"y":219,"w":174,"h":219,"slot":"pelvis","authored":true},
+    "v2_pelvis":{"x":988,"y":204,"w":261,"h":251,"slot":"pelvis","authored":true},
     "v2_left_upper_arm":{"x":12,"y":417,"w":148,"h":120,"slot":"leftUpperArm","authored":true},
     "v2_left_forearm":{"x":12,"y":492,"w":148,"h":155,"slot":"leftForearm","authored":true},
     "v2_left_hand":{"x":1336,"y":549,"w":85,"h":93,"slot":"leftHand","authored":true},
