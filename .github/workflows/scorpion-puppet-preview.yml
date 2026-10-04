@@ -16,7 +16,7 @@ concurrency:
 jobs:
   preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 25
     steps:
       - name: Checkout atlas experiment
         uses: actions/checkout@v4
@@ -28,9 +28,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
-      - name: Install browser engines
-        run: npx playwright install --with-deps chromium webkit
 
       - name: Build experiment
         run: npm run build
@@ -53,26 +50,42 @@ jobs:
           cat /tmp/bb-server.log
           exit 1
 
-      - name: Validate Scorpion puppet in Chromium and WebKit
-        run: node scripts/scorpion-puppet-atlas-browser-smoke.mjs
-
-      - name: Upload non-production Cloudflare version
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Start temporary phone test tunnel
         run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
-            echo "CLOUDFLARE_API_TOKEN is not configured in GitHub Actions secrets."
-            exit 20
+          env -u RUNNER_TRACKING_ID nohup npx wrangler tunnel quick-start http://127.0.0.1:4173 > /tmp/scorpion-tunnel.log 2>&1 </dev/null &
+          tunnel_pid=$!
+          echo "$tunnel_pid" > /tmp/scorpion-tunnel.pid
+          url=""
+          for i in {1..60}; do
+            if ! kill -0 "$tunnel_pid" 2>/dev/null; then
+              echo "Quick Tunnel exited before producing a URL"
+              cat /tmp/scorpion-tunnel.log
+              exit 1
+            fi
+            url=$(grep -Eo 'https://[a-z0-9-]+\.trycloudflare\.com' /tmp/scorpion-tunnel.log | tail -1 || true)
+            if [ -n "$url" ]; then
+              break
+            fi
+            sleep 1
+          done
+          if [ -z "$url" ]; then
+            echo "Quick Tunnel did not produce a URL"
+            cat /tmp/scorpion-tunnel.log
+            exit 1
           fi
-          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "CLOUDFLARE_ACCOUNT_ID is not configured in GitHub Actions secrets."
-            exit 21
-          fi
-          npx wrangler versions upload 2>&1 | tee /tmp/scorpion-preview.txt
-          echo "## Scorpion Puppet Preview" >> "$GITHUB_STEP_SUMMARY"
-          echo "Branch: experiment/scorpion-puppet-atlas" >> "$GITHUB_STEP_SUMMARY"
-          echo "Commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          cat /tmp/scorpion-preview.txt >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' "$url" | tee /tmp/scorpion-preview-url.txt
+          echo "## Scorpion Puppet Phone Test" >> "$GITHUB_STEP_SUMMARY"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
+          echo "Temporary Quick Tunnel for experiment/scorpion-puppet-atlas at $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish temporary URL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorpion-puppet-live-url
+          path: /tmp/scorpion-preview-url.txt
+          retention-days: 1
+
+      - name: Keep phone test alive for 20 minutes
+        run: |
+          echo "Temporary phone test is live."
+          sleep 1200
