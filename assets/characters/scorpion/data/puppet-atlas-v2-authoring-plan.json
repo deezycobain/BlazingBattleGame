@@ -1,0 +1,64 @@
+{
+  "status": "authoring-only",
+  "unitId": "scorpion",
+  "branch": "experiment/scorpion-puppet-atlas",
+  "visualMaster": {
+    "source": "Puppet Atlas Contract v1 approved neutral reconstruction",
+    "visualBounds": { "x": -148, "y": -809, "w": 383, "h": 809 },
+    "baseline": 0,
+    "anchorX": 43.5,
+    "normalization": "whole-character-only-after-assembly"
+  },
+  "rules": {
+    "automaticAlphaIslandMapping": false,
+    "perPieceScaling": false,
+    "weaponInBodyAtlas": false,
+    "vfxInBodyAtlas": false,
+    "nativeSourcePixels": true,
+    "hiddenJointOverlapRequired": true,
+    "zeroTransformMustMatchMaster": true
+  },
+  "pieces": [
+    { "id": "headHood", "parentBone": "head", "jointOverlapWith": ["torso"] },
+    { "id": "torso", "parentBone": "torso", "jointOverlapWith": ["headHood", "leftUpperArm", "rightUpperArm", "pelvis"] },
+    { "id": "pelvis", "parentBone": "pelvis", "jointOverlapWith": ["torso", "leftThigh", "rightThigh"] },
+    { "id": "leftUpperArm", "parentBone": "leftShoulder", "jointOverlapWith": ["torso", "leftForearm"] },
+    { "id": "leftForearm", "parentBone": "leftElbow", "jointOverlapWith": ["leftUpperArm", "leftHand"] },
+    { "id": "leftHand", "parentBone": "leftWrist", "jointOverlapWith": ["leftForearm"] },
+    { "id": "rightUpperArm", "parentBone": "rightShoulder", "jointOverlapWith": ["torso", "rightForearm"] },
+    { "id": "rightForearm", "parentBone": "rightElbow", "jointOverlapWith": ["rightUpperArm", "rightHand"] },
+    { "id": "rightHand", "parentBone": "rightWrist", "jointOverlapWith": ["rightForearm"] },
+    { "id": "leftThigh", "parentBone": "leftHip", "jointOverlapWith": ["pelvis", "leftShin"] },
+    { "id": "leftShin", "parentBone": "leftKnee", "jointOverlapWith": ["leftThigh", "leftFoot"] },
+    { "id": "leftFoot", "parentBone": "leftAnkle", "jointOverlapWith": ["leftShin"] },
+    { "id": "rightThigh", "parentBone": "rightHip", "jointOverlapWith": ["pelvis", "rightShin"] },
+    { "id": "rightShin", "parentBone": "rightKnee", "jointOverlapWith": ["rightThigh", "rightFoot"] },
+    { "id": "rightFoot", "parentBone": "rightAnkle", "jointOverlapWith": ["rightShin"] }
+  ],
+  "optionalExtraPieces": {
+    "allowedOnlyWhenNecessary": true,
+    "examples": ["waistClothFront", "waistClothRear", "shoulderArmorOverlay"],
+    "maximumPreferredTotalPieces": 20
+  },
+  "acceptance": {
+    "zeroTransform": {
+      "required": true,
+      "mustMatchMaster": true,
+      "reject": [
+        "silhouette drift",
+        "proportion drift",
+        "head scale drift",
+        "baseline drift",
+        "duplicate anatomy",
+        "transparent seams",
+        "piece stretching"
+      ]
+    },
+    "articulation": [
+      { "joint": "elbow", "rotationDeg": 20 },
+      { "joint": "shoulder", "rotationDeg": 10 },
+      { "joint": "knee", "rotationDeg": 10 }
+    ],
+    "mustPassBefore": ["idle", "run", "attack", "recoil"]
+  }
+}
