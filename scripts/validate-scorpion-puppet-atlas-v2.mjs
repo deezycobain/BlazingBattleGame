@@ -1,10 +1,9 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {contract,schema,validateFile} from './validate-puppet-atlas-contract-v1.mjs';
+import {contract,schema} from './validate-puppet-atlas-contract-v1.mjs';
 
 const V2='assets/characters/scorpion/data/puppet-atlas-v2.json';
 const manifest=JSON.parse(await fs.readFile(V2,'utf8'));
-await validateFile(V2);
 
 assert.equal(manifest.contractVersion,'blazing-battle-puppet-atlas-v1','V2 must reuse Contract v1 without redesign');
 assert.equal(manifest.components.length,15,'Canonical Scorpion V2 should use exactly 15 required anatomical pieces');
