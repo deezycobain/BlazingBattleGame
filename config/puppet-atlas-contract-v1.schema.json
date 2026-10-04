@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "blazing-battle:puppet-atlas-contract-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "unitId",
+    "coordinateSystem",
+    "atlas",
+    "requiredSlots",
+    "bones",
+    "components",
+    "neutral",
+    "normalization",
+    "fallback",
+    "supportedStates"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "blazing-battle-puppet-atlas-v1"
+    },
+    "unitId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "coordinateSystem": {
+      "const": "native-source-pixels-y-down"
+    },
+    "atlas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "image",
+        "map",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "image": {
+          "type": "string",
+          "minLength": 1
+        },
+        "map": {
+          "type": "string",
+          "minLength": 1
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "requiredSlots": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "const": [
+        "head",
+        "torso",
+        "leftUpperArm",
+        "rightUpperArm",
+        "pelvis",
+        "leftForearm",
+        "leftHand",
+        "rightForearm",
+        "rightHand",
+        "leftUpperLeg",
+        "leftLowerLeg",
+        "leftFoot",
+        "rightUpperLeg",
+        "rightLowerLeg",
+        "rightFoot"
+      ]
+    },
+    "bones": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "parent",
+          "restOffset",
+          "restRotation"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "parent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "restOffset": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "restRotation": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "slot",
+          "covers",
+          "parentBone",
+          "attachmentPoint",
+          "zOrder",
+          "defaultAttachment",
+          "attachments"
+        ],
+        "properties": {
+          "slot": {
+            "type": "string",
+            "minLength": 1
+          },
+          "covers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
+          "parentBone": {
+            "type": "string",
+            "minLength": 1
+          },
+          "attachmentPoint": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "zOrder": {
+            "type": "integer"
+          },
+          "defaultAttachment": {
+            "type": "string",
+            "minLength": 1
+          },
+          "attachments": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "sourceRegion",
+                "atlasRect",
+                "pivot",
+                "restOffset",
+                "restRotation",
+                "mirrorEligible",
+                "nativeAspectRatio"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sourceRegion": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "atlasRect": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "x",
+                    "y",
+                    "w",
+                    "h"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "y": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "w": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "h": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                },
+                "pivot": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "restOffset": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "restRotation": {
+                  "type": "number"
+                },
+                "mirrorEligible": {
+                  "type": "boolean"
+                },
+                "nativeAspectRatio": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "neutral": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "visualBounds",
+        "baseline",
+        "anchorX",
+        "footTolerance",
+        "feet"
+      ],
+      "properties": {
+        "visualBounds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "w": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "h": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "baseline": {
+          "type": "number"
+        },
+        "anchorX": {
+          "type": "number"
+        },
+        "footTolerance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "feet": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "slot",
+              "point"
+            ],
+            "properties": {
+              "slot": {
+                "type": "string",
+                "minLength": 1
+              },
+              "point": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          }
+        }
+      }
+    },
+    "normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "anchor",
+        "authority"
+      ],
+      "properties": {
+        "stage": {
+          "const": "whole-character-only"
+        },
+        "anchor": {
+          "const": "bottom-center"
+        },
+        "authority": {
+          "const": "existing-fighter-visual-contract"
+        }
+      }
+    },
+    "fallback": {
+      "const": "existing-frame-animation"
+    },
+    "supportedStates": {
+      "const": [
+        "neutral"
+      ]
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import { chromium, webkit } from 'playwright';
 import fs from 'node:fs/promises';
 
-const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,''),OUT='docs/validation/scorpion-puppet-atlas-v1',TYPES={chromium,webkit};
+const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,''),OUT='docs/validation/puppet-atlas-contract-v1',TYPES=process.env.BB_SMOKE_BROWSER==='chromium'?{chromium}:process.env.BB_SMOKE_BROWSER==='webkit'?{webkit}:{chromium,webkit};
 await fs.mkdir(OUT,{recursive:true});
 const equal=(a,b,tolerance=.001)=>Math.abs(a-b)<=tolerance;
 
@@ -9,6 +9,7 @@ async function waitHome(page){
  await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
  const loading=page.locator('#bb-loading-screen');if(await loading.count())await loading.waitFor({state:'hidden',timeout:30000}).catch(()=>{});
  await page.waitForFunction(()=>typeof window.BlazingScorpionPuppetAtlasV1==='object'&&typeof window.BlazingRoadRun==='object'&&typeof window.BlazingRoadCamera==='object',null,{timeout:30000});
+ const username=page.getByRole('textbox',{name:'Username',exact:true});if(await username.isVisible()){await username.fill('Puppet QA');await page.getByRole('button',{name:'ENTER',exact:true}).click();await page.locator('#bbHomeProfileGate').waitFor({state:'hidden',timeout:5000});}
 }
 async function enterSettledRoad(page){
  const panel=page.locator('#bbHomeApproved .bb-home-v4-battle');if(!await panel.isVisible())await page.locator('#bbHomeApproved [data-nav="battle"]').click();
@@ -29,33 +30,51 @@ async function isolatedLoop(page){return page.evaluate(()=>{
  return {samples,joints,opaqueMin:Math.min(...samples.map(sample=>sample.opaque)),renderedBaselineDrift:baseline,leftJointDrift:Math.max(range(joints.map(sample=>sample.left.x)),range(joints.map(sample=>sample.left.y))),rightJointDrift:Math.max(range(joints.map(sample=>sample.right.x)),range(joints.map(sample=>sample.right.y)))};
 });}
 async function run(name,type){
- let browser;try{
+ let browser,page;const errors=[],failedRequests=[];try{
+  console.log('Scorpion contract smoke START ('+name+')');
   browser=await type.launch({headless:true,timeout:30000});const context=await browser.newContext({viewport:{width:480,height:800},isMobile:false});
-  await context.addInitScript(()=>{localStorage.setItem('bb.scorpion-puppet-atlas.dev','1');localStorage.setItem('bb.scorpion-puppet-atlas.mode','FRAME');localStorage.removeItem('bb.scorpion-puppet-atlas.components');localStorage.removeItem('bb.scorpion-puppet-atlas.components.v2');localStorage.setItem('blazingBattle.activeTeam.v6',JSON.stringify(['Scorpion','Tyler','Lebee','Senku','Sub-Zero','Crimson']));});
-  const page=await context.newPage();page.setDefaultTimeout(25000);const errors=[];page.on('pageerror',error=>errors.push(String(error?.message||error)));
+  await context.addInitScript(()=>{localStorage.setItem('bb.scorpion-puppet-atlas.dev','1');localStorage.setItem('bb.scorpion-puppet-atlas.mode','FRAME');localStorage.setItem('bb.scorpion-puppet-atlas.components',JSON.stringify({head:'body_99.9'}));localStorage.setItem('bb.scorpion-puppet-atlas.components.v2',JSON.stringify({torso:'body_99.9'}));localStorage.setItem('blazingBattle.activeTeam.v6',JSON.stringify(['Scorpion','Tyler','Lebee','Senku','Sub-Zero','Crimson']));});
+  page=await context.newPage();page.setDefaultTimeout(25000);page.on('requestfailed',r=>failedRequests.push({url:r.url(),error:r.failure()?.errorText}));page.on('pageerror',error=>errors.push(String(error?.message||error)));
   await page.goto(BASE+'/',{waitUntil:'domcontentloaded'});await waitHome(page);await page.waitForFunction(()=>window.BlazingScorpionPuppetAtlasV1.ready===true,null,{timeout:20000});
   const maps=await mapContract(page);if(maps.some(map=>!map.inside)||maps[0].width!==3072||maps[0].height!==2048)throw new Error('Atlas rectangle contract failed: '+JSON.stringify(maps));
   const components=await page.evaluate(()=>{const api=window.BlazingScorpionPuppetAtlasV1;api.openLab();return {count:api.components.length,assignments:api.componentAssignments,lab:Boolean(document.getElementById('bb-scorpion-puppet-lab')&&!document.getElementById('bb-scorpion-puppet-lab').hidden)};});
-  if(components.count<41||!components.assignments.head?.startsWith('body_04.')||!components.assignments.torso?.startsWith('body_01.')||!components.assignments.leftForearm?.startsWith('body_13.')||!components.assignments.rightForearm?.startsWith('body_14.')||!components.lab)throw new Error('neutral-v2 alpha-island lab did not expose reviewed components: '+JSON.stringify(components));
+  if(components.count!==11||!components.assignments.head?.startsWith('body_04')||!components.assignments.torso?.startsWith('body_01')||!components.assignments.leftForearm?.startsWith('body_13')||!components.assignments.rightForearm?.startsWith('body_14')||!components.lab)throw new Error('contract inspector did not expose authored components: '+JSON.stringify(components));
+  await page.locator('[data-preview]').screenshot({path:OUT+'/scorpion-neutral-'+name+'.png'});
+  const authored=await page.evaluate(()=>{const api=window.BlazingScorpionPuppetAtlasV1;return {duration:api.durationMs,states:api.manifest.supportedStates,pixels:api.pixelValidation};});
+  if(authored.duration!==0||JSON.stringify(authored.states)!=='["neutral"]'||authored.pixels.bounds.h!==809||authored.pixels.baseline!==0)throw new Error('Neutral acceptance failed '+JSON.stringify(authored));
   await page.getByRole('button',{name:'Close lab',exact:true}).click();
-  await enterSettledRoad(page);await page.waitForFunction(()=>{try{return globalThis.eval("unitIdleFrames('Scorpion')").length===12}catch{return false}},null,{timeout:15000});
-  const frame=await page.evaluate(()=>{const api=window.BlazingScorpionPuppetAtlasV1,s=globalThis.eval('S'),front=globalThis.eval('front'),pair=s.pairs.find(item=>front(item)?.name==='Scorpion'),frames=globalThis.eval("unitIdleFrames('Scorpion')");api.setMode('FRAME');return {mode:api.mode,button:document.getElementById('bb-scorpion-puppet-ab-switch')?.textContent||'',frames:frames.length,fingerprint:frames.map(frame=>frame?.src||'').join('|'),position:{x:pair?.x,y:pair?.y},camera:window.BlazingRoadCamera.snapshot?.()};});
+  await enterSettledRoad(page);console.log(name+': settled battle; waiting for 12-frame resolver');await page.waitForFunction(()=>{try{return globalThis.eval("unitIdleFrames('Scorpion')").length===12}catch{return false}},null,{timeout:60000});
+  const frame=await page.evaluate(()=>{const api=window.BlazingScorpionPuppetAtlasV1,s=globalThis.eval('S'),front=globalThis.eval('front'),pair=s.pairs.find(item=>front(item)?.name==='Scorpion'),frames=globalThis.eval("unitIdleFrames('Scorpion')");api.setMode('FRAME');return {mode:api.mode,button:document.getElementById('bb-scorpion-puppet-ab-switch')?.textContent||'',frames:frames.length,fingerprint:frames.map(frame=>{const token=frame?.src||frame?.toDataURL?.()||'';let hash=2166136261;for(let i=0;i<token.length;i++)hash=Math.imul(hash^token.charCodeAt(i),16777619);return [frame.width,frame.height,hash>>>0].join(':')}).join('|'),position:{x:pair?.x,y:pair?.y},camera:window.BlazingRoadCamera.snapshot?.()};});
   if(frame.mode!=='FRAME'||frame.frames!==12||!frame.button.includes('FRAME')||!frame.camera||frame.camera.mode!=='combat'||frame.camera.locked)throw new Error('settled FRAME baseline unavailable: '+JSON.stringify(frame));
   await page.screenshot({path:OUT+'/scorpion-frame-'+name+'.png',fullPage:true});
   await page.locator('#bb-scorpion-puppet-ab-switch').click();await page.waitForFunction(()=>window.BlazingScorpionPuppetAtlasV1.mode==='PUPPET'&&window.BlazingScorpionPuppetAtlasV1.metrics.puppetDraws>2,null,{timeout:10000});
+  const override=await page.evaluate(()=>{const api=window.BlazingScorpionPuppetAtlasV1,before=api.metrics.puppetDraws;globalThis.eval("drawUnit(0,0,'','#fff',false,{scale:1,rot:0,lift:0},'Scorpion',false,1,1)");return api.metrics.puppetDraws===before;});if(!override)throw new Error('Explicit full-frame override was consumed by puppet');
   const loop=await isolatedLoop(page);if(loop.opaqueMin<=0||loop.renderedBaselineDrift!==0||loop.leftJointDrift!==0||loop.rightJointDrift!==0)throw new Error('isolated alpha/foot loop failed: '+JSON.stringify(loop));
   await page.waitForTimeout(220);
   const puppet=await page.evaluate(()=>{const api=window.BlazingScorpionPuppetAtlasV1,s=globalThis.eval('S'),front=globalThis.eval('front'),pair=s.pairs.find(item=>front(item)?.name==='Scorpion');return {mode:api.mode,button:document.getElementById('bb-scorpion-puppet-ab-switch')?.textContent||'',position:{x:pair?.x,y:pair?.y},metrics:api.metrics,camera:window.BlazingRoadCamera.snapshot?.(),componentAssignments:api.componentAssignments,version:api.version};});
-  if(puppet.mode!=='PUPPET'||puppet.version!=='v1-neutral-v2'||!puppet.button.includes('PUPPET')||puppet.metrics.lastVisibleParts!==11||puppet.metrics.puppetDraws<3||!puppet.camera||puppet.camera.mode!=='combat'||puppet.camera.locked)throw new Error('PUPPET neutral-v2 did not render at the settled camera: '+JSON.stringify(puppet));
+  if(puppet.mode!=='PUPPET'||puppet.version!=='puppet-atlas-contract-v1'||!puppet.button.includes('PUPPET')||puppet.metrics.lastVisibleParts!==11||puppet.metrics.puppetDraws<3||!puppet.camera||puppet.camera.mode!=='combat'||puppet.camera.locked)throw new Error('PUPPET contract-v1 did not render at the settled camera: '+JSON.stringify(puppet));
   if(!equal(puppet.position.x,frame.position.x)||!equal(puppet.position.y,frame.position.y))throw new Error('A/B origin changed: '+JSON.stringify({frame,puppet}));
   await page.screenshot({path:OUT+'/scorpion-puppet-'+name+'.png',fullPage:true});
+  await fs.writeFile(OUT+'/result-'+name+'.json',JSON.stringify({authored,loop,frame,puppet},null,2));
   await page.locator('#bb-scorpion-puppet-ab-switch').click();await page.waitForFunction(()=>window.BlazingScorpionPuppetAtlasV1.mode==='FRAME',null,{timeout:5000});
-  const restored=await page.evaluate(()=>{const frames=globalThis.eval("unitIdleFrames('Scorpion')");return {mode:window.BlazingScorpionPuppetAtlasV1.mode,frames:frames.length,fingerprint:frames.map(frame=>frame?.src||'').join('|')};});
+  const restored=await page.evaluate(()=>{const frames=globalThis.eval("unitIdleFrames('Scorpion')");return {mode:window.BlazingScorpionPuppetAtlasV1.mode,frames:frames.length,fingerprint:frames.map(frame=>{const token=frame?.src||frame?.toDataURL?.()||'';let hash=2166136261;for(let i=0;i<token.length;i++)hash=Math.imul(hash^token.charCodeAt(i),16777619);return [frame.width,frame.height,hash>>>0].join(':')}).join('|')};});
   if(restored.mode!=='FRAME'||restored.frames!==12||restored.fingerprint!==frame.fingerprint)throw new Error('FRAME did not restore the exact 12-frame resolver output: '+JSON.stringify({frame,restored}));
+  await page.screenshot({path:OUT+'/scorpion-frame-restored-'+name+'.png',fullPage:true});
   const fallback=await page.evaluate(()=>{const api=window.BlazingScorpionPuppetAtlasV1;api.setMode('PUPPET');api.render({},{});const frames=globalThis.eval("unitIdleFrames('Scorpion')");return {mode:api.mode,ready:api.ready,error:api.error,frames:frames.length};});
   if(fallback.mode!=='FRAME'||fallback.ready||fallback.frames!==12||!fallback.error)throw new Error('render failure did not cleanly fall back to FRAME: '+JSON.stringify(fallback));
+  // A failed load and invalid anatomy both retain the exact frame resolver.
+  for(const failure of ['image','manifest']){
+   const broken=await context.newPage();
+   if(failure==='image')await broken.route('**/scorpion_puppet_body_atlas_v1.png',route=>route.abort());
+   else await broken.route('**/puppet-atlas-v1.json',async route=>{const response=await route.fetch(),manifest=await response.json();manifest.components.pop();await route.fulfill({json:manifest});});
+   await broken.goto(BASE+'/',{waitUntil:'domcontentloaded'});await waitHome(broken);
+   await broken.waitForFunction(()=>Boolean(window.BlazingScorpionPuppetAtlasV1.error));
+   const result=await broken.evaluate(()=>{const api=window.BlazingScorpionPuppetAtlasV1;return {mode:api.setMode('PUPPET'),ready:api.ready,error:api.error};});
+   if(result.mode!=='FRAME'||result.ready||!result.error)throw new Error('Load/validation fallback failed '+failure);
+   await broken.close();
+  }
   if(errors.length)throw new Error('pageerror: '+errors.join(' | '));
-  console.log('Scorpion Puppet Atlas browser PASS ('+name+'): neutral-v2 mapping, native aspect ratios, settled camera, atlas bounds, isolated alpha, transformed joints/rendered baseline at 0px drift, both A/B directions, and rendering-failure fallback.');
- }finally{if(browser)await browser.close().catch(()=>{});}
+  console.log('Scorpion Puppet Atlas browser PASS ('+name+'): authored Contract v1 anatomy, native aspect ratios, settled camera, atlas bounds, isolated alpha, transformed joints/rendered baseline at 0px drift, both A/B directions, and rendering-failure fallback.');
+ }catch(error){if(page){await page.screenshot({path:OUT+'/failure-'+name+'.png',fullPage:true}).catch(()=>{});const diagnostics=await page.evaluate(()=>({frames:globalThis.eval("unitIdleFrames('Scorpion')")?.length,puppet:{ready:window.BlazingScorpionPuppetAtlasV1?.ready,error:window.BlazingScorpionPuppetAtlasV1?.error},camera:window.BlazingRoadCamera?.snapshot?.()})).catch(()=>null);console.error(name+' diagnostics',JSON.stringify({diagnostics,errors,failedRequests}));}throw error;}finally{if(browser)await browser.close().catch(()=>{});}
 }
-let failed=false;for(const [name,type] of Object.entries(TYPES)){try{await run(name,type)}catch(error){failed=true;console.error('Scorpion Puppet Atlas browser FAIL ('+name+'): '+String(error?.stack||error?.message||error));}}if(failed)process.exit(1);
+const results=await Promise.allSettled(Object.entries(TYPES).map(([name,type])=>run(name,type)));let failed=false;for(const result of results)if(result.status==='rejected'){failed=true;console.error(result.reason);}if(failed)process.exit(1);

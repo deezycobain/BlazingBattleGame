@@ -2,12 +2,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
-const marker='runtime/rendering/scorpion-puppet-atlas.js?v=phase1-neutral-v2';
-if(!html.includes(marker)){
- const tag='<script src="'+marker+'"></script>';
- if(!html.includes('</body>'))throw new Error('Scorpion Puppet Atlas V1 postprocess: closing body tag missing');
- html=html.replace('</body>',tag+'</body>');
-}
-if(!html.includes(marker))throw new Error('Scorpion Puppet Atlas V1 postprocess: renderer module was not injected');
+const modules=['puppet-atlas-contract-v1.js','scorpion-puppet-atlas.js'];
+// Idempotently replace only these integration tags, preserving final fighter authority.
+html=html.replace(/<script src="runtime\/rendering\/(?:scorpion-puppet-atlas|puppet-atlas-contract-v1)\.js[^"\n]*"><\/script>/g,'');
+if(!html.includes('</body>'))throw new Error('Puppet Atlas Contract v1: closing body tag missing');
+html=html.replace('</body>',modules.map(name=>'<script src="runtime/rendering/'+name+'?v=contract-v1"></script>').join('\n')+'</body>');
 await fs.writeFile(file,html);
-console.log('Scorpion Puppet Atlas V1 postprocess PASS: neutral-v2 atlas renderer injected before final fighter-scale authority.');
+console.log('Puppet Atlas Contract v1: shared contract + Scorpion adapter injected before final fighter authority.');

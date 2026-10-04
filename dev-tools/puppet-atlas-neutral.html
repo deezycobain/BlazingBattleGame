@@ -1,0 +1,15 @@
+<!doctype html><meta charset="utf-8"><title>Puppet Atlas Contract v1 — Scorpion neutral</title>
+<style>body{background:#111b25;color:#e6eff6;font:14px system-ui;margin:24px}canvas{background:#243442;max-width:65vw;max-height:85vh}pre{white-space:pre-wrap}main{display:flex;gap:24px}h1{font-size:20px}</style>
+<h1>Puppet Atlas Contract v1 · authored neutral inspection</h1><main><canvas id="body"></canvas><pre id="report">Loading…</pre></main>
+<script src="../runtime/rendering/puppet-atlas-contract-v1.js"></script>
+<script>
+(async()=>{const api=BlazingPuppetAtlasContractV1;
+const [m,s]=await Promise.all(['assets/characters/scorpion/data/puppet-atlas-v1.json','config/puppet-atlas-contract-v1.schema.json'].map(p=>fetch('../'+p).then(r=>r.json())));
+const image=new Image();image.src='../'+m.atlas.image;await image.decode();
+const map=await fetch('../'+m.atlas.map).then(r=>r.json());
+const model=api.compile(m,s,{width:image.naturalWidth,height:image.naturalHeight,map});const surface=api.rasterize(model,image);
+const canvas=document.getElementById('body');canvas.width=surface.canvas.width;canvas.height=surface.canvas.height;canvas.getContext('2d').drawImage(surface.canvas,0,0);
+let validation;try{validation=api.verifyPixels(model,surface)}catch(e){validation=e.message}
+document.getElementById('report').textContent=JSON.stringify({validation,nativeSurface:surface.bounds,feet:surface.pose.feet,parts:m.components.map(c=>[c.slot,c.defaultAttachment])},null,2);
+window.neutralInspection={model,surface,validation};})().catch(e=>document.getElementById('report').textContent=e.stack);
+</script>

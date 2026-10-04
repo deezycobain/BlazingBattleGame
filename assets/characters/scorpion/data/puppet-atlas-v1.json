@@ -1,0 +1,614 @@
+{
+  "contractVersion": "blazing-battle-puppet-atlas-v1",
+  "unitId": "scorpion",
+  "coordinateSystem": "native-source-pixels-y-down",
+  "atlas": {
+    "image": "assets/characters/scorpion/puppet/v1/body/scorpion_puppet_body_atlas_v1.png",
+    "map": "assets/characters/scorpion/puppet/v1/body/scorpion_puppet_body_atlas_v1.json",
+    "width": 3072,
+    "height": 2048
+  },
+  "requiredSlots": [
+    "head",
+    "torso",
+    "leftUpperArm",
+    "rightUpperArm",
+    "pelvis",
+    "leftForearm",
+    "leftHand",
+    "rightForearm",
+    "rightHand",
+    "leftUpperLeg",
+    "leftLowerLeg",
+    "leftFoot",
+    "rightUpperLeg",
+    "rightLowerLeg",
+    "rightFoot"
+  ],
+  "bones": [
+    {
+      "id": "root",
+      "parent": null,
+      "restOffset": [
+        0,
+        0
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "pelvis",
+      "parent": "root",
+      "restOffset": [
+        0,
+        -430
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "torso",
+      "parent": "pelvis",
+      "restOffset": [
+        0,
+        -165
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "head",
+      "parent": "torso",
+      "restOffset": [
+        20,
+        -15
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "leftShoulder",
+      "parent": "torso",
+      "restOffset": [
+        -90,
+        30
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "leftElbow",
+      "parent": "leftShoulder",
+      "restOffset": [
+        -15,
+        48
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "leftWrist",
+      "parent": "leftElbow",
+      "restOffset": [
+        55,
+        165
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "rightShoulder",
+      "parent": "torso",
+      "restOffset": [
+        105,
+        35
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "rightElbow",
+      "parent": "rightShoulder",
+      "restOffset": [
+        10,
+        43
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "rightWrist",
+      "parent": "rightElbow",
+      "restOffset": [
+        50,
+        160
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "leftHip",
+      "parent": "pelvis",
+      "restOffset": [
+        -80,
+        10
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "leftKnee",
+      "parent": "leftHip",
+      "restOffset": [
+        30,
+        178
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "leftAnkle",
+      "parent": "leftKnee",
+      "restOffset": [
+        0,
+        155
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "rightHip",
+      "parent": "pelvis",
+      "restOffset": [
+        65,
+        10
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "rightKnee",
+      "parent": "rightHip",
+      "restOffset": [
+        0,
+        178
+      ],
+      "restRotation": 0
+    },
+    {
+      "id": "rightAnkle",
+      "parent": "rightKnee",
+      "restOffset": [
+        0,
+        155
+      ],
+      "restRotation": 0
+    }
+  ],
+  "components": [
+    {
+      "slot": "head",
+      "covers": [],
+      "parentBone": "head",
+      "attachmentPoint": [
+        0,
+        0
+      ],
+      "zOrder": 100,
+      "defaultAttachment": "body_04",
+      "attachments": [
+        {
+          "id": "body_04",
+          "sourceRegion": "body_04",
+          "atlasRect": {
+            "x": 128,
+            "y": 1075,
+            "w": 226,
+            "h": 252
+          },
+          "pivot": [
+            122,
+            218
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 0.8968253968253969
+        },
+        {
+          "id": "body_05",
+          "sourceRegion": "body_05",
+          "atlasRect": {
+            "x": 482,
+            "y": 1075,
+            "w": 224,
+            "h": 250
+          },
+          "pivot": [
+            121,
+            216
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 0.896
+        }
+      ]
+    },
+    {
+      "slot": "torso",
+      "covers": [
+        "leftUpperArm",
+        "rightUpperArm"
+      ],
+      "parentBone": "torso",
+      "attachmentPoint": [
+        0,
+        0
+      ],
+      "zOrder": 50,
+      "defaultAttachment": "body_01",
+      "attachments": [
+        {
+          "id": "body_01",
+          "sourceRegion": "body_01",
+          "atlasRect": {
+            "x": 2486,
+            "y": 128,
+            "w": 296,
+            "h": 238
+          },
+          "pivot": [
+            148,
+            80
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 1.2436974789915967
+        }
+      ]
+    },
+    {
+      "slot": "pelvis",
+      "covers": [],
+      "parentBone": "pelvis",
+      "attachmentPoint": [
+        0,
+        0
+      ],
+      "zOrder": 80,
+      "defaultAttachment": "body_07",
+      "attachments": [
+        {
+          "id": "body_07",
+          "sourceRegion": "body_07",
+          "atlasRect": {
+            "x": 1746,
+            "y": 645,
+            "w": 273,
+            "h": 268
+          },
+          "pivot": [
+            136,
+            55
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 1.0186567164179106
+        }
+      ]
+    },
+    {
+      "slot": "leftForearm",
+      "covers": [
+        "leftHand"
+      ],
+      "parentBone": "leftElbow",
+      "attachmentPoint": [
+        0,
+        0
+      ],
+      "zOrder": 60,
+      "defaultAttachment": "body_13",
+      "attachments": [
+        {
+          "id": "body_13",
+          "sourceRegion": "body_13",
+          "atlasRect": {
+            "x": 128,
+            "y": 645,
+            "w": 192,
+            "h": 302
+          },
+          "pivot": [
+            64,
+            46
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 0.6357615894039735
+        }
+      ]
+    },
+    {
+      "slot": "rightForearm",
+      "covers": [
+        "rightHand"
+      ],
+      "parentBone": "rightElbow",
+      "attachmentPoint": [
+        0,
+        0
+      ],
+      "zOrder": 40,
+      "defaultAttachment": "body_14",
+      "attachments": [
+        {
+          "id": "body_14",
+          "sourceRegion": "body_14",
+          "atlasRect": {
+            "x": 1415,
+            "y": 645,
+            "w": 203,
+            "h": 272
+          },
+          "pivot": [
+            62,
+            46
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 0.7463235294117647
+        }
+      ]
+    },
+    {
+      "slot": "leftUpperLeg",
+      "covers": [],
+      "parentBone": "leftHip",
+      "attachmentPoint": [
+        0,
+        0
+      ],
+      "zOrder": 20,
+      "defaultAttachment": "body_26",
+      "attachments": [
+        {
+          "id": "body_26",
+          "sourceRegion": "body_26",
+          "atlasRect": {
+            "x": 834,
+            "y": 1075,
+            "w": 198,
+            "h": 250
+          },
+          "pivot": [
+            77,
+            36
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 0.792
+        }
+      ]
+    },
+    {
+      "slot": "leftLowerLeg",
+      "covers": [],
+      "parentBone": "leftKnee",
+      "attachmentPoint": [
+        0,
+        0
+      ],
+      "zOrder": 21,
+      "defaultAttachment": "body_31",
+      "attachments": [
+        {
+          "id": "body_31",
+          "sourceRegion": "body_31",
+          "atlasRect": {
+            "x": 474,
+            "y": 1455,
+            "w": 132,
+            "h": 228
+          },
+          "pivot": [
+            66,
+            38
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 0.5789473684210527
+        }
+      ]
+    },
+    {
+      "slot": "leftFoot",
+      "covers": [],
+      "parentBone": "leftAnkle",
+      "attachmentPoint": [
+        0,
+        0
+      ],
+      "zOrder": 19,
+      "defaultAttachment": "body_35",
+      "attachments": [
+        {
+          "id": "body_35",
+          "sourceRegion": "body_35",
+          "atlasRect": {
+            "x": 2601,
+            "y": 1455,
+            "w": 183,
+            "h": 163
+          },
+          "pivot": [
+            67,
+            57
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 1.1226993865030674
+        }
+      ]
+    },
+    {
+      "slot": "rightUpperLeg",
+      "covers": [],
+      "parentBone": "rightHip",
+      "attachmentPoint": [
+        0,
+        0
+      ],
+      "zOrder": 10,
+      "defaultAttachment": "body_23",
+      "attachments": [
+        {
+          "id": "body_23",
+          "sourceRegion": "body_23",
+          "atlasRect": {
+            "x": 781,
+            "y": 645,
+            "w": 167,
+            "h": 280
+          },
+          "pivot": [
+            83,
+            36
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 0.5964285714285714
+        }
+      ]
+    },
+    {
+      "slot": "rightLowerLeg",
+      "covers": [],
+      "parentBone": "rightKnee",
+      "attachmentPoint": [
+        0,
+        0
+      ],
+      "zOrder": 11,
+      "defaultAttachment": "body_34",
+      "attachments": [
+        {
+          "id": "body_34",
+          "sourceRegion": "body_34",
+          "atlasRect": {
+            "x": 1283,
+            "y": 1455,
+            "w": 129,
+            "h": 208
+          },
+          "pivot": [
+            64,
+            38
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 0.6201923076923077
+        }
+      ]
+    },
+    {
+      "slot": "rightFoot",
+      "covers": [],
+      "parentBone": "rightAnkle",
+      "attachmentPoint": [
+        0,
+        0
+      ],
+      "zOrder": 9,
+      "defaultAttachment": "body_41",
+      "attachments": [
+        {
+          "id": "body_41",
+          "sourceRegion": "body_41",
+          "atlasRect": {
+            "x": 1028,
+            "y": 1811,
+            "w": 148,
+            "h": 145
+          },
+          "pivot": [
+            64,
+            37
+          ],
+          "restOffset": [
+            0,
+            0
+          ],
+          "restRotation": 0,
+          "mirrorEligible": false,
+          "nativeAspectRatio": 1.0206896551724138
+        }
+      ]
+    }
+  ],
+  "neutral": {
+    "visualBounds": {
+      "x": -148,
+      "y": -809,
+      "w": 383,
+      "h": 809
+    },
+    "baseline": 0,
+    "anchorX": 43.5,
+    "footTolerance": 2,
+    "feet": [
+      {
+        "slot": "leftFoot",
+        "point": [
+          134,
+          144
+        ]
+      },
+      {
+        "slot": "rightFoot",
+        "point": [
+          66,
+          124
+        ]
+      }
+    ]
+  },
+  "normalization": {
+    "stage": "whole-character-only",
+    "anchor": "bottom-center",
+    "authority": "existing-fighter-visual-contract"
+  },
+  "fallback": "existing-frame-animation",
+  "supportedStates": [
+    "neutral"
+  ]
+}

@@ -1,41 +1,35 @@
-# Scorpion Puppet Atlas V1 — Phase 1
+# Scorpion — Puppet Atlas Contract v1 pilot
 
-This branch holds a development-only A/B prototype. The existing Scorpion V2 twelve-frame idle remains the default FRAME mode and the hard fallback for any atlas load or draw failure. PUPPET is enabled only by localhost, the `scorpionPuppetAB` / `scorpionPuppetLab` query flags, or the development local-storage flag.
+This supersedes the former Phase 1 and Neutral V2 alpha-island prototypes. See [Puppet Atlas Contract v1](PUPPET_ATLAS_CONTRACT_V1.md) for the reusable architecture and authoring rules.
 
-## Asset boundaries
+The checked-in source of truth is `assets/characters/scorpion/data/puppet-atlas-v1.json`. No automatic island assignment or saved lab mapping participates in production rendering. The Atlas Lab is now a read-only neutral/manifest inspector. The existing 12-frame FRAME idle remains the default and fallback. Run, Attack, Recoil, spear, chain, and VFX remain on their existing frame/effect paths. No puppet animation, including idle breathing, is enabled.
 
-- `body/` is the only atlas Phase 1 loads and renders.
-- `weapons/` and `vfx/`, together with their supplied rectangle maps, are retained separately and are not loaded into the fighter renderer.
-- The original source ZIP is retained at the repository root.
+## Reviewed native assembly
 
-## Neutral V2 anatomy correction
+Left/right slot names are retained from the pilot and denote the two assembly chains as seen in the neutral preview; they are not an automatic inference of anatomical laterality from packing positions. The original source atlas has no artist-authored skeleton or assembled neutral reference. The following is an explicit authored reconstruction, visually reviewed against its visible cutouts, rather than a claim of recovering an original source rig.
 
-The first phone Atlas Lab test exposed an important topology error rather than an animation error. `body_08` and `body_10` were treated as upper-arm pieces even though the actual atlas pixels show they are complete arms. Drawing those cells and then adding `body_13` / `body_14` forearms stacked duplicate anatomy through Scorpion's chest and waist.
+| Slot | Source region | Native crop | Crop-local pivot | Parent bone | Layer |
+| --- | --- | --- | --- | --- | --- |
+| head | body_04 | 226 × 252 | 122,218 | head | 100 |
+| torso + embedded upper arms | body_01 | 296 × 238 | 148,80 | torso | 50 |
+| pelvis | body_07 | 273 × 268 | 136,55 | pelvis | 80 |
+| leftForearm + hand | body_13 | 192 × 302 | 64,46 | leftElbow | 60 |
+| rightForearm + hand | body_14 | 203 × 272 | 62,46 | rightElbow | 40 |
+| leftUpperLeg | body_26 | 198 × 250 | 77,36 | leftHip | 20 |
+| leftLowerLeg | body_31 | 132 × 228 | 66,38 | leftKnee | 21 |
+| leftFoot | body_35 | 183 × 163 | 67,57 | leftAnkle | 19 |
+| rightUpperLeg | body_23 | 167 × 280 | 83,36 | rightHip | 10 |
+| rightLowerLeg | body_34 | 129 × 208 | 64,38 | rightKnee | 11 |
+| rightFoot | body_41 | 148 × 145 | 64,37 | rightAnkle | 9 |
 
-[`scorpion-puppet-body-contact-sheet.png`](validation/scorpion-puppet-atlas-v1/scorpion-puppet-body-contact-sheet.png) and the development-only **SCORPION · ATLAS LAB** are the source evidence. The lab derives eight-connected alpha islands from the unchanged body atlas and labels them `body_XX.N`; local test assignments never mutate the supplied PNG or JSON.
+The torso explicitly uses the top 238 source rows of body_01, covering its duplicate lower belt under body_07. This authored subrect is recorded in the manifest; the supplied map and PNG are unchanged. Torso owns both upper-arm shapes, and forearm attachments own their hands: no duplicate full-arm or hand components. Feet render behind their shins so native cuff overlaps remain hidden. body_05 is declared as an optional head attachment with its own native crop and pivot (121,216); it is not selected by the neutral pilot. All attachment-level mirror permissions are false until separately reviewed.
 
-Neutral V2 now follows the anatomy actually present in the atlas:
+Native visible envelope: `x=-148, y=-809, w=383, h=809`. Bottom-center anchor: `x=43.5, baseline=0`. Native surface including source gutters: 425 × 849. Two authored sole contacts land at `(17,0)` and `(67,0)`; the pixel verifier confirms actual opaque source pixels at those contacts. They are sole markers, not inferred ankle centers. Rendered alpha >16 contains 160,654 pixels.
 
-| Semantic part | Atlas ID | Pixel evidence |
-| --- | --- | --- |
-| head/mask | `body_04.0` | hood, eyes, gold mask and neck cloth |
-| torso + upper arms | `body_01.0` | front chest, both shoulders/upper arms and waist edge as one authored attachment |
-| pelvis | `body_07.0` | belt, medallion, pelvis armour and hanging cloth |
-| left forearm/hand | `body_13.0` | independent bracer, forearm and open hand |
-| right forearm/hand | `body_14.0` | independent bracer, forearm and fist |
-| left leg/foot | `body_26.0`, `body_31.0`, `body_35.0` | thigh, shin guard and boot |
-| right leg/foot | `body_28.0`, `body_32.0`, `body_40.0` | thigh, shin guard and boot |
+The original atlas/contact sheet remains source evidence at [original contact sheet](validation/scorpion-puppet-atlas-v1/scorpion-puppet-body-contact-sheet.png). The standalone inspector reconstructs the current authored neutral pose directly from the checked-in manifest and source atlas. Browser screenshots and result JSON are generated validation artifacts and are not committed. The old screenshots and claims that island existence alone established visual correctness are historical, not acceptance evidence for this contract.
 
-The torso therefore owns the upper-arm art in Phase 1. The renderer does **not** invent upper-arm cuts that do not exist in the approved atlas. Future motion can use alternate whole-arm/torso attachments or a later deliberately authored split if more shoulder articulation is required.
+## Scope and continuity
 
-## Pivots, scale and layering
+The Scorpion adapter compiles the manifest, paints the complete neutral body at native size, validates its actual pixels, and draws it once through the existing bottom-center fighter seam. It does not change `drawUnit`, character identity, sprite resolver metadata, or canvas methods. The final whole-body scale takes the existing draw seam's body height; combat hitboxes never derive from puppet bounds.
 
-The supplied maps define crop rectangles, not joints. Neutral V2 uses local fighter-space pivots with a planted baseline at `y=12`: root `(0,-8)`, pelvis `y=-17` from root, torso `y=-19` from pelvis, head `y=-2` from torso, forearm anchors `(±16,8)` from torso, hips `(±7,-2)` from pelvis, knees roughly `17px` below each hip, and ankles `22px` below each knee.
-
-Attachment width is derived from each isolated component's **native pixel aspect ratio**. Only logical attachment height is authored. This replaces the first prototype's forced `w × h` rectangles, which visibly stretched and squashed body parts. Layering is legs → torso → forearms → pelvis → head so the pelvis cleanly covers the torso waist seam without duplicating belt art.
-
-The 1.8-second idle has four interpolated keys. Only torso, head and forearm rotations change; both hip-knee-ankle chains and both foot cutouts stay invariant. The narrow `drawUnit` seam calls the puppet only after the real Scorpion's normal world transform/facing/scale has been established. It does not substitute a sprite, change Scorpion's name, or intercept `ctx.drawImage`. Atlas load, rectangle validation, assignment failure, and drawing failure all return that same draw call to FRAME mode.
-
-## Known reconstruction limits
-
-This is still the neutral/idle proof. Weapon, chain, recoil, attack, run and VFX conversion remain intentionally out of scope until the neutral anatomy is visually accepted on-device. The approved atlas contains several whole-arm and pose-specific attachments rather than a perfectly segmented upper-arm/forearm anatomy, so later actions should prefer attachment swaps where that is visually cleaner than forcing every pose through one skeleton.
+Source assets, weapons/VFX, Character Sprite / Atlas Contract v1, combat behavior, canonical unit data, and save compatibility are preserved. Only `experiment/scorpion-puppet-atlas` is used. No merge to dev/main or production deployment is part of this work.

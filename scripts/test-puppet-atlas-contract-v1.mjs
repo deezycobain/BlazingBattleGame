@@ -1,0 +1,48 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {contract,schema,validateAll} from './validate-puppet-atlas-contract-v1.mjs';
+const source=JSON.parse(await fs.readFile('assets/characters/scorpion/data/puppet-atlas-v1.json','utf8'));
+const map=JSON.parse(await fs.readFile(source.atlas.map,'utf8'));
+const clone=()=>structuredClone(source),check=m=>contract.validate(m,schema,{width:3072,height:2048,map});
+let checks=0;
+function rejects(edit,pattern){const m=clone();edit(m);assert.throws(()=>check(m),pattern);checks++;}
+await validateAll();
+rejects(m=>m.components.pop(),/missing required semantic slot/);
+rejects(m=>m.requiredSlots.pop(),/must equal/);
+rejects(m=>m.components.push(m.components[0]),/duplicate mandatory body slot/);
+rejects(m=>m.components[0].covers.push('leftHand'),/duplicate mandatory body slot/);
+rejects(m=>m.components[0].attachments[0].atlasRect.x=3070,/out of bounds/);
+rejects(m=>m.components[0].attachments[0].atlasRect.x=500,/outside authored source region/);
+rejects(m=>m.components[0].parentBone='absent',/missing parent bone/);
+rejects(m=>m.bones[1].parent='head',/cyclic parent hierarchy/);
+rejects(m=>m.bones[1].parent=null,/one root/);
+rejects(m=>m.bones.push(m.bones[0]),/duplicate bone/);
+rejects(m=>m.neutral.feet[0].point[1]-=5,/unstable feet/);
+rejects(m=>m.neutral.feet[1]=m.neutral.feet[0],/two distinct/);
+rejects(m=>m.components[0].attachments[0].nativeAspectRatio=2,/aspect ratio mismatch/);
+rejects(m=>m.components[0].scale=2,/unknown property/);
+rejects(m=>m.bones[0].scale=2,/unknown property/);
+rejects(m=>m.components[0].attachments[0].widthScale=2,/unknown property/);
+rejects(m=>m.normalization.stage='per-piece',/must equal/);
+rejects(m=>m.atlas.image='assets/characters/scorpion/../other.png',/owning character/);
+rejects(m=>m.components[0].attachments[0].pivot[0]=999,/pivot outside/);
+assert.throws(()=>contract.validate(source,schema,{width:1,height:1,map}),/dimensions mismatch/);checks++;
+const model=contract.compile(source,schema,{width:3072,height:2048,map});
+assert.ok(Object.isFrozen(model.manifest.components[0]));
+const reversed=clone();reversed.bones.reverse();reversed.components.reverse();assert.deepEqual(contract.assemble(reversed).parts,model.neutral.parts);checks++;
+const swap=contract.assemble(source,{attachments:{head:'body_05'}});assert.equal(swap.parts.find(p=>p.slot==='head').attachment.sourceRegion,'body_05');
+assert.deepEqual(swap.feet,model.neutral.feet);checks++;
+const pose=contract.assemble(source,{boneRotations:{head:.1}});assert.notDeepEqual(pose.bones.head,model.neutral.bones.head);assert.deepEqual(pose.feet,model.neutral.feet);checks++;
+assert.throws(()=>contract.assemble(source,{attachments:{head:'missing'}}),/unknown attachment/);
+assert.throws(()=>contract.assemble(source,{boneRotations:{missing:1}}),/invalid skeletal/);checks+=2;
+let depth=0,scales=[],crops=[];
+const ctx={save(){depth++},restore(){depth--},translate(){},transform(){},scale(x,y){scales.push([x,y])},drawImage(...args){crops.push(args)}};
+contract.paintNative(ctx,{},model.neutral);assert.equal(scales.length,0);
+for(const args of crops){assert.equal(args[3],args[7]);assert.equal(args[4],args[8]);}assert.equal(depth,0);checks++;
+for(const height of [34,68,136]){
+ scales=[];crops=[];const out=contract.render(ctx,model,{canvas:{},bounds:model.neutral.bounds,pose:model.neutral},{bodyHeight:height});
+ assert.deepEqual(scales,[[height/source.neutral.visualBounds.h,height/source.neutral.visualBounds.h]]);assert.equal(crops.length,1);assert.equal(out.bounds.h,height);assert.ok(out.feet.every(f=>f.point[1]===12));assert.equal(depth,0);checks++;
+}
+ctx.drawImage=()=>{throw new Error('injected drawing failure')};
+assert.throws(()=>contract.render(ctx,model,{canvas:{},bounds:model.neutral.bounds,pose:model.neutral},{bodyHeight:68}),/injected/);assert.equal(depth,0);checks++;
+console.log('Puppet Atlas Contract v1 PASS: '+checks+' invariant, hierarchy, native-size, swap, scaling, and canvas-state checks.');
