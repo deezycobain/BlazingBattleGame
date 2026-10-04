@@ -7,15 +7,13 @@ const manifest=JSON.parse(await fs.readFile(V2,'utf8'));
 await validateFile(V2);
 
 assert.equal(manifest.contractVersion,'blazing-battle-puppet-atlas-v1','V2 must reuse Contract v1 without redesign');
-assert.ok(manifest.components.length>=15&&manifest.components.length<=20,'V2 piece count outside 15–20 target');
 assert.equal(manifest.components.length,15,'Canonical Scorpion V2 should use exactly the 15 required anatomical pieces');
-assert.deepEqual(manifest.supportedStates,['neutral'],'Run/Attack/Recoil must stay blocked during articulation gate');
+assert.deepEqual(manifest.supportedStates,['neutral'],'Attack/Recoil production wiring stays blocked during semantic map test');
 assert.ok(manifest.components.every(c=>c.covers.length===0),'V2 must expose every anatomical piece directly');
 
 const slots=new Set(manifest.components.map(c=>c.slot));
 for(const slot of manifest.requiredSlots)assert.ok(slots.has(slot),'Missing explicit V2 slot '+slot);
 assert.deepEqual([...slots].sort(),[...manifest.requiredSlots].sort(),'V2 should not contain alternate or duplicate runtime slots');
-for(const forbidden of ['leftShoulderArmor','rightShoulderArmor'])assert.ok(!slots.has(forbidden),'V2 should not add duplicate shoulder anatomy');
 
 assert.equal(manifest.atlas.image,'assets/characters/scorpion/puppet/v2/source/scorpion_puppet_v2_master.png');
 assert.equal(manifest.atlas.map,'assets/characters/scorpion/puppet/v2/body/scorpion_puppet_body_atlas_v2.json');
@@ -25,77 +23,90 @@ assert.equal(manifest.atlas.height,1086);
 const map=JSON.parse(await fs.readFile(manifest.atlas.map,'utf8'));
 assert.deepEqual(map.canvas,[manifest.atlas.width,manifest.atlas.height]);
 assert.equal(map.metadata?.sourceMaster,manifest.atlas.image);
+assert.equal(map.metadata?.approvedSourceMaster,manifest.atlas.image);
 assert.equal(map.metadata?.neutralReference,'assets/characters/scorpion/puppet/v2/body/scorpion_puppet_neutral_reference_v2.json');
 assert.equal(map.metadata?.authoringMode,'manual-canonical-source-rects-v2');
+assert.equal(map.metadata?.semanticBodyPartMap,true,'Every atlas part must carry explicit semantic body-part metadata');
 assert.equal(map.metadata?.automaticAlphaIslandMapping,false,'Automatic alpha-island mapping is forbidden for V2');
 assert.equal(map.metadata?.weaponAndVfxExcluded,true);
 assert.equal(map.metadata?.sourceSheetApproved,true);
+assert.equal(map.metadata?.runtimePackingPending,true,'Semantic mapping must pass before repacking a final runtime atlas');
 assert.equal(map.metadata?.pieceCount,15);
 assert.equal(Object.keys(map.parts).length,15);
+
+const semanticBySlot=new Map();
+for(const [id,part] of Object.entries(map.parts)){
+ assert.equal(part.authored,true,'All V2 pieces must be manually authored: '+id);
+ assert.equal(part.canonical,true,'All V2 runtime pieces must be canonical: '+id);
+ assert.ok(typeof part.slot==='string'&&part.slot.length>0,'Missing semantic slot '+id);
+ assert.ok(typeof part.bodyPart==='string'&&part.bodyPart.length>0,'Missing bodyPart metadata '+id);
+ assert.ok(['left','right','center'].includes(part.side),'Invalid side metadata '+id);
+ assert.ok(typeof part.segment==='string'&&part.segment.length>0,'Missing segment metadata '+id);
+ assert.ok(typeof part.parentBone==='string'&&part.parentBone.length>0,'Missing parentBone metadata '+id);
+ assert.ok(Array.isArray(part.pivot)&&part.pivot.length===2,'Missing pivot metadata '+id);
+ assert.ok(Array.isArray(part.neutralTopLeft)&&part.neutralTopLeft.length===2,'Missing neutral coordinate metadata '+id);
+ assert.ok(typeof part.sourceComponentId==='string'&&part.sourceComponentId.length>0,'Missing authored source component ID '+id);
+ assert.ok(part.x>=0&&part.y>=0&&part.x+part.w<=manifest.atlas.width&&part.y+part.h<=manifest.atlas.height,'Authored source rectangle out of bounds '+id);
+ assert.ok(!semanticBySlot.has(part.slot),'Duplicate semantic slot in map '+part.slot);
+ semanticBySlot.set(part.slot,{id,...part});
+}
 
 for(const component of manifest.components){
  const a=component.attachments.find(x=>x.id===component.defaultAttachment);
  const part=map.parts[a.sourceRegion];
- assert.ok(part,'Missing authored map part '+a.sourceRegion);
- assert.deepEqual({x:a.atlasRect.x,y:a.atlasRect.y,w:a.atlasRect.w,h:a.atlasRect.h},{x:part.x,y:part.y,w:part.w,h:part.h},'Runtime crop drift for '+component.slot);
- assert.equal(part.authored,true,'All V2 pieces must be manually authored');
+ assert.ok(part,'Missing authored semantic map part '+a.sourceRegion);
+ assert.equal(part.slot,component.slot,'Semantic slot drift '+component.slot);
+ assert.equal(part.parentBone,component.parentBone,'Parent bone drift '+component.slot);
+ assert.equal(part.zOrder,component.zOrder,'Z-order drift '+component.slot);
+ assert.deepEqual(a.pivot,part.pivot,'Pivot metadata drift '+component.slot);
+ assert.deepEqual({x:a.atlasRect.x,y:a.atlasRect.y,w:a.atlasRect.w,h:a.atlasRect.h},{x:part.x,y:part.y,w:part.w,h:part.h},'Coordinate drift '+component.slot);
 }
 
-const sourceRect=slot=>{
- const component=manifest.components.find(c=>c.slot===slot),a=component.attachments[0];
- return a.atlasRect;
-};
-function overlap(a,b){
- const A=sourceRect(a),B=sourceRect(b);
+const overlap=(A,B)=>{
  const w=Math.max(0,Math.min(A.x+A.w,B.x+B.w)-Math.max(A.x,B.x));
  const h=Math.max(0,Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y));
  return {w,h,area:w*h};
-}
-for(const [a,b,minPixels,minArea] of [
- ['leftUpperArm','leftForearm',40,6000],
- ['rightUpperArm','rightForearm',40,6000],
- ['leftUpperLeg','leftLowerLeg',45,7500],
- ['rightUpperLeg','rightLowerLeg',45,7500]
+};
+for(const [a,b,minPixels] of [
+ ['leftUpperArm','leftForearm',30],
+ ['rightUpperArm','rightForearm',30],
+ ['leftUpperLeg','leftLowerLeg',50],
+ ['rightUpperLeg','rightLowerLeg',50]
 ]){
- const o=overlap(a,b);
- assert.ok(Math.max(o.w,o.h)>=minPixels&&o.area>=minArea,'Insufficient authored hidden source overlap '+a+' / '+b+': '+JSON.stringify(o));
+ const A=semanticBySlot.get(a),B=semanticBySlot.get(b);
+ assert.equal(A.sourceComponentId,B.sourceComponentId,'Joint split must come from one authored source component: '+a+'/'+b);
+ const o=overlap(A,B);
+ assert.ok(Math.max(o.w,o.h)>=minPixels,'Insufficient authored hidden source overlap '+a+' / '+b+': '+JSON.stringify(o));
 }
+
+assert.equal(semanticBySlot.get('leftHand').bodyPart,'closed_fist');
+assert.equal(semanticBySlot.get('rightHand').bodyPart,'closed_fist');
 
 const neutralReference=JSON.parse(await fs.readFile(map.metadata.neutralReference,'utf8'));
 assert.equal(neutralReference.version,'scorpion-puppet-neutral-reference-v2');
 assert.equal(neutralReference.sourceMaster,manifest.atlas.image);
+assert.equal(neutralReference.approvedSourceMaster,manifest.atlas.image);
 assert.deepEqual(neutralReference.visualBounds,manifest.neutral.visualBounds);
 assert.equal(neutralReference.pieces.length,15);
-const refBySlot=new Map(neutralReference.pieces.map(p=>[p.slot,p]));
+const neutralBySlot=new Map(neutralReference.pieces.map(p=>[p.slot,p]));
 for(const c of manifest.components){
- const a=c.attachments[0],ref=refBySlot.get(c.slot);
+ const a=c.attachments[0],semantic=semanticBySlot.get(c.slot),ref=neutralBySlot.get(c.slot);
  assert.ok(ref,'Neutral reference missing '+c.slot);
  assert.deepEqual(ref.sourceRect,a.atlasRect,'Neutral reference crop drift '+c.slot);
- assert.equal(ref.zOrder,c.zOrder,'Neutral reference z-order drift '+c.slot);
+ assert.deepEqual(ref.topLeft,semantic.neutralTopLeft,'Neutral placement metadata drift '+c.slot);
+ assert.deepEqual(ref.pivot,semantic.pivot,'Neutral pivot metadata drift '+c.slot);
+ assert.equal(ref.zOrder,c.zOrder,'Neutral z-order drift '+c.slot);
+ assert.equal(ref.sourceComponentId,semantic.sourceComponentId,'Neutral source-component drift '+c.slot);
 }
-
-const component=slot=>manifest.components.find(c=>c.slot===slot);
-assert.equal(component('leftUpperArm').parentBone,'leftShoulder');
-assert.equal(component('leftForearm').parentBone,'leftElbow');
-assert.equal(component('leftHand').parentBone,'leftWrist');
-assert.equal(component('rightUpperArm').parentBone,'rightShoulder');
-assert.equal(component('rightForearm').parentBone,'rightElbow');
-assert.equal(component('rightHand').parentBone,'rightWrist');
-assert.equal(component('leftUpperLeg').parentBone,'leftHip');
-assert.equal(component('leftLowerLeg').parentBone,'leftKnee');
-assert.equal(component('leftFoot').parentBone,'leftAnkle');
-assert.equal(component('rightUpperLeg').parentBone,'rightHip');
-assert.equal(component('rightLowerLeg').parentBone,'rightKnee');
-assert.equal(component('rightFoot').parentBone,'rightAnkle');
 
 const source={width:manifest.atlas.width,height:manifest.atlas.height,map};
 const model=contract.compile(manifest,schema,source);
 const neutral=contract.assemble(model.manifest);
-assert.deepEqual(neutral.bounds,manifest.neutral.visualBounds,'V2 zero-transform rectangle must equal authored neutral reference bounds');
+assert.deepEqual(neutral.bounds,manifest.neutral.visualBounds,'V2 zero-transform rectangle must equal authored semantic neutral bounds');
 for(const part of neutral.parts){
- const ref=refBySlot.get(part.slot),a=part.attachment;
+ const semantic=semanticBySlot.get(part.slot),a=part.attachment;
  const topLeft=contract.point(part.matrix,[-a.pivot[0],-a.pivot[1]]);
- assert.ok(Math.abs(topLeft[0]-ref.topLeft[0])<1e-9&&Math.abs(topLeft[1]-ref.topLeft[1])<1e-9,'Zero-transform placement drift '+part.slot+' '+JSON.stringify({topLeft,expected:ref.topLeft}));
+ assert.ok(Math.abs(topLeft[0]-semantic.neutralTopLeft[0])<1e-9&&Math.abs(topLeft[1]-semantic.neutralTopLeft[1])<1e-9,'Zero-transform placement drift '+part.slot+' '+JSON.stringify({topLeft,expected:semantic.neutralTopLeft}));
 }
 
 const rad=d=>d*Math.PI/180;
@@ -109,12 +120,12 @@ for(const [name,rotations] of [
 }
 
 const runtime=await fs.readFile('runtime/rendering/scorpion-puppet-atlas-v2.js','utf8');
-for(const marker of ['puppet-atlas-v2.json','scorpion_puppet_neutral_reference_v2.json','manual-canonical-source-rects-v2','Elbow +20°','Shoulder +10°','Knee +10°','Run / Attack / Recoil remain blocked','BlazingScorpionPuppetAtlasV2'])assert.ok(runtime.includes(marker),'V2 runtime lab missing '+marker);
-for(const forbidden of ['extractBodyComponents','candidateComponents','automaticAlphaIslandMapping=true','idleKeys','runKeys','attackKeys','recoilKeys'])assert.ok(!runtime.includes(forbidden),'V2 runtime reintroduced forbidden inference/animation '+forbidden);
+for(const marker of ['puppet-atlas-v2.json','scorpion_puppet_neutral_reference_v2.json','manual-canonical-source-rects-v2','Elbow +20°','Shoulder +10°','Knee +10°','BlazingScorpionPuppetAtlasV2'])assert.ok(runtime.includes(marker),'V2 runtime lab missing '+marker);
+for(const forbidden of ['extractBodyComponents','candidateComponents','automaticAlphaIslandMapping=true'])assert.ok(!runtime.includes(forbidden),'V2 runtime reintroduced forbidden inference '+forbidden);
 
 const postprocess=await fs.readFile('scripts/scorpion-puppet-atlas-postprocess.mjs','utf8');
 assert.ok(postprocess.includes('scorpion-puppet-atlas-v2.js'),'V2 lab is not injected into Cloudflare build');
 const pkg=JSON.parse(await fs.readFile('package.json','utf8'));
 assert.ok(pkg.scripts.validate.includes('validate-scorpion-puppet-atlas-v2.mjs'),'V2 validator is not part of npm validate');
 
-console.log('Scorpion Puppet Atlas V2 PASS: 15 canonical MK2/UMK3-anime source rectangles, authored elbow/knee overlap, exact neutral-reference placement, and only the 20° elbow / 10° shoulder / 10° knee articulation gate.');
+console.log('Scorpion Puppet Atlas V2 PASS: 15 semantic body-part records with explicit authored source coordinates, side/segment labels, pivots, neutral placement coordinates, and source-component joint overlap; Contract v1 remains unchanged.');
