@@ -1,0 +1,36 @@
+{
+  "version": "scorpion-puppet-body-atlas-v2-manual",
+  "canvas": [1448,1086],
+  "metadata": {
+    "sourceMaster": "assets/characters/scorpion/puppet/v2/source/scorpion_puppet_v2_master.png",
+    "neutralReference": "assets/characters/scorpion/puppet/v2/body/scorpion_puppet_neutral_reference_v2.json",
+    "authoringMode": "manual-canonical-source-rects-v2",
+    "automaticAlphaIslandMapping": false,
+    "pieceCount": 15,
+    "weaponAndVfxExcluded": true,
+    "sourceSheetApproved": true,
+    "jointSourceOverlap": {
+      "leftElbow":{"pixels":45,"area":6660},
+      "rightElbow":{"pixels":45,"area":6705},
+      "leftKnee":{"pixels":50,"area":8000},
+      "rightKnee":{"pixels":53,"area":7844}
+    }
+  },
+  "parts": {
+    "v2_head":{"x":377,"y":9,"w":168,"h":203,"slot":"head","authored":true},
+    "v2_torso":{"x":523,"y":203,"w":273,"h":208,"slot":"torso","authored":true},
+    "v2_pelvis":{"x":795,"y":219,"w":174,"h":219,"slot":"pelvis","authored":true},
+    "v2_left_upper_arm":{"x":12,"y":417,"w":148,"h":120,"slot":"leftUpperArm","authored":true},
+    "v2_left_forearm":{"x":12,"y":492,"w":148,"h":155,"slot":"leftForearm","authored":true},
+    "v2_left_hand":{"x":1336,"y":549,"w":85,"h":93,"slot":"leftHand","authored":true},
+    "v2_right_upper_arm":{"x":409,"y":417,"w":149,"h":120,"slot":"rightUpperArm","authored":true},
+    "v2_right_forearm":{"x":409,"y":492,"w":149,"h":155,"slot":"rightForearm","authored":true},
+    "v2_right_hand":{"x":1340,"y":442,"w":78,"h":93,"slot":"rightHand","authored":true},
+    "v2_left_upper_leg":{"x":26,"y":643,"w":160,"h":127,"slot":"leftUpperLeg","authored":true},
+    "v2_left_lower_leg":{"x":26,"y":720,"w":160,"h":130,"slot":"leftLowerLeg","authored":true},
+    "v2_left_foot":{"x":355,"y":841,"w":160,"h":119,"slot":"leftFoot","authored":true},
+    "v2_right_upper_leg":{"x":211,"y":648,"w":148,"h":125,"slot":"rightUpperLeg","authored":true},
+    "v2_right_lower_leg":{"x":211,"y":720,"w":148,"h":131,"slot":"rightLowerLeg","authored":true},
+    "v2_right_foot":{"x":889,"y":850,"w":167,"h":108,"slot":"rightFoot","authored":true}
+  }
+}
