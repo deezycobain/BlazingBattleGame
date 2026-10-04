@@ -9,13 +9,16 @@ const state={ready:false,error:null,image:null,sourceMasterImage:null,map:null,c
 const devEnabled=()=>{try{const q=new URLSearchParams(location.search);return q.has('scorpionPuppetAB')||q.has('scorpionPuppetLab')||q.has('scorpionPuppetV2')||localStorage.getItem(DEV_KEY)==='1'||['localhost','127.0.0.1','::1'].includes(location.hostname);}catch(_){return false;}};
 const json=async path=>{const r=await fetch(path,{cache:'no-store'});if(!r.ok)throw new Error('Could not load '+path+' ('+r.status+')');return r.json();};
 const imageReady=src=>new Promise((resolve,reject)=>{const image=new Image();image.decoding='async';image.onload=()=>resolve(image);image.onerror=()=>reject(new Error('Could not load '+src));image.src=src;});
+function buildPackedAtlas(sourceMaster,map,manifest){
+ const canvas=document.createElement('canvas');canvas.width=manifest.atlas.width;canvas.height=manifest.atlas.height;
+ const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)throw new Error('Canvas 2D unavailable for packed V2 atlas');ctx.clearRect(0,0,canvas.width,canvas.height);
+ for(const id of map.metadata.packingOrder){const p=map.parts[id],s=p?.sourceRect;if(!p||!s)throw new Error('Packed V2 metadata missing '+id);ctx.drawImage(sourceMaster,s.x,s.y,s.w,s.h,p.x,p.y,p.w,p.h);}
+ return canvas;
+}
 function authoredNeutralSurface(image,reference,pose){
  const b=reference.visualBounds,canvas=document.createElement('canvas');canvas.width=b.w;canvas.height=b.h;
  const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)throw new Error('Canvas 2D unavailable for V2 neutral reference');
- for(const part of [...reference.pieces].sort((a,b)=>a.zOrder-b.zOrder||a.slot.localeCompare(b.slot))){
-  const r=part.sourceRect,x=part.topLeft[0]-b.x,y=part.topLeft[1]-b.y;
-  ctx.drawImage(image,r.x,r.y,r.w,r.h,x,y,r.w,r.h);
- }
+ for(const part of [...reference.pieces].sort((a,b)=>a.zOrder-b.zOrder||a.slot.localeCompare(b.slot))){const r=part.sourceRect,x=part.topLeft[0]-b.x,y=part.topLeft[1]-b.y;ctx.drawImage(image,r.x,r.y,r.w,r.h,x,y,r.w,r.h);}
  return {canvas,bounds:{...b},pose};
 }
 function nativeDiff(reference,candidate){
@@ -24,7 +27,7 @@ function nativeDiff(reference,candidate){
  const aa=pixels(reference),bb=pixels(candidate);let changedPixels=0,maxChannelDelta=0,totalChannelDelta=0,referenceOpaque=0,candidateOpaque=0,silhouetteMismatch=0;
  for(let i=0;i<aa.length;i+=4){if(aa[i+3]>16)referenceOpaque++;if(bb[i+3]>16)candidateOpaque++;if((aa[i+3]>16)!==(bb[i+3]>16))silhouetteMismatch++;let changed=false;for(let c=0;c<4;c++){const d=Math.abs(aa[i+c]-bb[i+c]);if(d){changed=true;totalChannelDelta+=d;maxChannelDelta=Math.max(maxChannelDelta,d);}}if(changed)changedPixels++;}
  const boundsEqual=reference.bounds.x===candidate.bounds.x&&reference.bounds.y===candidate.bounds.y&&reference.bounds.w===candidate.bounds.w&&reference.bounds.h===candidate.bounds.h,changedRatio=referenceOpaque?changedPixels/referenceOpaque:1,meanDeltaPerOpaque=referenceOpaque?totalChannelDelta/referenceOpaque:Infinity;
- const accepted=boundsEqual&&silhouetteMismatch<=8&&Math.abs(referenceOpaque-candidateOpaque)<=8&&maxChannelDelta<=8&&changedRatio<=0.03&&meanDeltaPerOpaque<=0.14;
+ const accepted=boundsEqual&&silhouetteMismatch===0&&referenceOpaque===candidateOpaque&&maxChannelDelta<=4&&changedRatio<=0.02&&meanDeltaPerOpaque<=0.08;
  return {changedPixels,maxChannelDelta,totalChannelDelta,referenceOpaque,candidateOpaque,silhouetteMismatch,changedRatio,meanDeltaPerOpaque,boundsEqual,exact:changedPixels===0,accepted};
 }
 function articulationSurface(rotations){return contract.rasterize(state.candidate,state.image,undefined,{boneRotations:rotations});}
@@ -34,26 +37,25 @@ function card(label,model,surface){const box=document.createElement('div');box.s
 function openLab(){
  if(!devEnabled())return false;let panel=document.getElementById('bb-scorpion-puppet-v2-lab');if(!panel){panel=document.createElement('section');panel.id='bb-scorpion-puppet-v2-lab';panel.style.cssText='position:fixed;z-index:2147483002;inset:3vh 3vw;overflow:auto;padding:16px;border:1px solid #d7ae61;background:#101820;color:#eef4f7;font:13px system-ui';document.body.appendChild(panel);}panel.replaceChildren();panel.hidden=false;
  const title=document.createElement('h2');title.textContent='Scorpion · Puppet Atlas V2 Packed Semantic Gate';panel.appendChild(title);const close=document.createElement('button');close.textContent='Close V2 lab';close.onclick=()=>{panel.hidden=true;};panel.appendChild(close);
- const status=document.createElement('p');status.textContent=state.ready?'15 isolated semantic cells · 128px gutters · explicit body-part metadata · approved MK2/UMK3 anime source · weapon/VFX excluded':state.error||'Loading packed V2 candidate…';panel.appendChild(status);if(!state.ready)return true;
+ const status=document.createElement('p');status.textContent=state.ready?'15 isolated semantic cells · 128px gutters · explicit body-part metadata · runtime canvas materialized from approved MK2/UMK3 anime source · weapon/VFX excluded':state.error||'Loading packed V2 candidate…';panel.appendChild(status);if(!state.ready)return true;
  const diff=state.neutralDiff,gate=document.createElement('p');gate.style.cssText='padding:9px;border:1px solid '+(diff.accepted?'#69dec5':'#d7ae61')+';background:#0d151c';gate.textContent=(diff.accepted?'PACKED NEUTRAL: PASS':'PACKED NEUTRAL: REVIEW')+' · source-vs-runtime changed '+diff.changedPixels+' px ('+(diff.changedRatio*100).toFixed(3)+'%) · max channel Δ '+diff.maxChannelDelta+' · silhouette Δ '+diff.silhouetteMismatch+' · native bounds '+(diff.boundsEqual?'match':'DIFFER');panel.appendChild(gate);
  const authored=document.createElement('p');authored.textContent='Authoring · '+state.authoring.authoringMode+' · alpha-island inference OFF · runtime packing '+(state.authoring.runtimePackingPending?'PENDING':'LOCKED')+' · gutter '+state.authoring.gutterPixels+'px';panel.appendChild(authored);
  const note=document.createElement('p');note.textContent='Gate only: packed neutral, +20° elbow, +10° shoulder, +10° knee. Idle / Run / Attack / Recoil remain blocked until this packed atlas is visually approved.';panel.appendChild(note);
  const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px';const master=card('Approved source-master neutral reference',state.candidate,state.masterSurface);master.querySelector('canvas').dataset.masterPreview='';grid.appendChild(master);for(const pose of POSES){const surface=pose.id==='neutral'?state.candidateSurface:articulationSurface(pose.rotations),item=card('Packed runtime · '+pose.label,state.candidate,surface);item.querySelector('canvas').dataset.v2Pose=pose.id;grid.appendChild(item);}panel.appendChild(grid);
- const parts=document.createElement('pre');parts.style.cssText='white-space:pre-wrap;margin-top:12px';parts.textContent=state.candidate.manifest.components.map(c=>{const a=c.attachments.find(x=>x.id===c.defaultAttachment),m=state.map.parts[a.sourceRegion];return c.slot+' ← '+m.bodyPart+' ['+m.side+'] · atlas '+a.atlasRect.x+','+a.atlasRect.y+' '+a.atlasRect.w+'×'+a.atlasRect.h+' · pivot '+a.pivot.join(',')+' · '+c.parentBone;}).join('\n');panel.appendChild(parts);return true;
+ const parts=document.createElement('pre');parts.style.cssText='white-space:pre-wrap;margin-top:12px';parts.textContent=state.candidate.manifest.components.map(c=>{const a=c.attachments.find(x=>x.id===c.defaultAttachment),m=state.map.parts[a.sourceRegion];return c.slot+' ← '+m.bodyPart+' ['+m.side+'] · atlas '+a.atlasRect.x+','+a.atlasRect.y+' '+a.atlasRect.w+'×'+a.atlasRect.h+' · source '+m.sourceRect.x+','+m.sourceRect.y+' '+m.sourceRect.w+'×'+m.sourceRect.h+' · pivot '+a.pivot.join(',')+' · '+c.parentBone;}).join('\n');panel.appendChild(parts);return true;
 }
 function ensureControl(){if(!devEnabled()||document.getElementById('bb-scorpion-puppet-v2-lab-switch'))return;const b=document.createElement('button');b.id='bb-scorpion-puppet-v2-lab-switch';b.textContent='SCORPION · PUPPET V2';b.onclick=openLab;b.style.cssText='position:fixed;z-index:2147483000;right:10px;bottom:80px;padding:8px;background:#151d28;color:#ffe3a4;border:1px solid #d7ae61';document.body.appendChild(b);}
 window.BlazingScorpionPuppetAtlasV2=Object.freeze({version:'scorpion-puppet-atlas-v2-packed-semantic-gate',get ready(){return state.ready},get error(){return state.error},get manifest(){return state.candidate?.manifest},get neutralDiff(){return state.neutralDiff},get authoring(){return state.authoring},get components(){return state.candidate?.manifest.components||[]},poses:POSES.map(p=>({id:p.id,label:p.label})),openLab,articulationSurface:(id)=>{const pose=POSES.find(p=>p.id===id);if(!state.ready||!pose)throw new Error('Unknown/unready V2 pose '+id);return pose.id==='neutral'?state.candidateSurface:articulationSurface(pose.rotations);}});
 (async()=>{try{
  if(!contract)throw new Error('Puppet Atlas Contract v1 module missing');
  const manifest=await json(CANDIDATE);
- const [schema,map,image,neutralReference]=await Promise.all([json(SCHEMA),json(manifest.atlas.map),imageReady(manifest.atlas.image),json('assets/characters/scorpion/puppet/v2/body/scorpion_puppet_neutral_reference_v2.json')]);
- const sourceMasterPath=map.metadata?.approvedSourceMaster;
- if(!sourceMasterPath)throw new Error('Packed V2 atlas missing approved source-master trace');
- const sourceMasterImage=await imageReady(sourceMasterPath);
- const source={width:image.naturalWidth,height:image.naturalHeight,map};contract.validate(manifest,schema,source);if(manifest.components.length!==15)throw new Error('Packed V2 requires exactly 15 canonical semantic pieces');
+ const [schema,map,neutralReference]=await Promise.all([json(SCHEMA),json(manifest.atlas.map),json('assets/characters/scorpion/puppet/v2/body/scorpion_puppet_neutral_reference_v2.json')]);
+ const sourceMasterPath=map.metadata?.approvedSourceMaster;if(!sourceMasterPath)throw new Error('Packed V2 atlas missing approved source-master trace');
+ const sourceMasterImage=await imageReady(sourceMasterPath),image=buildPackedAtlas(sourceMasterImage,map,manifest);
+ const source={width:image.width,height:image.height,map};contract.validate(manifest,schema,source);if(manifest.components.length!==15)throw new Error('Packed V2 requires exactly 15 canonical semantic pieces');
  if(map.metadata?.automaticAlphaIslandMapping!==false||map.metadata?.authoringMode!=='manual-semantic-runtime-pack-v2'||map.metadata?.semanticBodyPartMap!==true||map.metadata?.runtimePackingPending!==false)throw new Error('V2 atlas is not the locked semantic runtime pack');
  if(neutralReference.approvedSourceMaster!==sourceMasterPath)throw new Error('V2 source-master trace drift');
- for(const c of manifest.components){const a=c.attachments.find(x=>x.id===c.defaultAttachment),m=map.parts[a.sourceRegion];if(!m||!m.bodyPart||!m.side||!m.segment||m.parentBone!==c.parentBone)throw new Error('Missing semantic metadata for '+c.slot);}
+ for(const c of manifest.components){const a=c.attachments.find(x=>x.id===c.defaultAttachment),m=map.parts[a.sourceRegion];if(!m||!m.bodyPart||!m.side||!m.segment||m.parentBone!==c.parentBone||!m.sourceRect)throw new Error('Missing semantic metadata for '+c.slot);}
  const candidate=contract.compile(manifest,schema,source),candidateSurface=contract.rasterize(candidate,image);contract.verifyPixels(candidate,candidateSurface);
  const masterSurface=authoredNeutralSurface(sourceMasterImage,neutralReference,candidateSurface.pose),neutralDiff=nativeDiff(masterSurface,candidateSurface);
  Object.assign(state,{image,sourceMasterImage,map,candidate,candidateSurface,masterSurface,neutralDiff,authoring:map.metadata,neutralReference,ready:true});
