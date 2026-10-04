@@ -5,9 +5,17 @@ const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'')
 const OUT='docs/validation/puppet-atlas-v2';
 await fs.mkdir(OUT,{recursive:true});
 
+async function launchBrowser(){
+ try{return await chromium.launch({headless:true,channel:'chrome',timeout:30000});}
+ catch(channelError){
+  try{return await chromium.launch({headless:true,timeout:30000});}
+  catch(defaultError){throw new Error('Could not launch Chrome/Chromium for V2 gate: '+channelError.message+' | '+defaultError.message);}
+ }
+}
+
 let browser;
 try{
- browser=await chromium.launch({headless:true,timeout:30000});
+ browser=await launchBrowser();
  const context=await browser.newContext({viewport:{width:980,height:900}});
  await context.addInitScript(()=>localStorage.setItem('bb.scorpion-puppet-atlas.dev','1'));
  const page=await context.newPage();
@@ -25,13 +33,36 @@ try{
   const canvas=page.locator(selector);await canvas.waitFor({state:'visible'});await canvas.screenshot({path:OUT+'/'+name+'.png'});
  }
  await page.locator('#bb-scorpion-puppet-v2-lab').screenshot({path:OUT+'/articulation-gate-full.png'});
- const report=await page.evaluate(()=>{const api=window.BlazingScorpionPuppetAtlasV2;return {version:api.version,ready:api.ready,error:api.error,componentCount:api.components.length,poses:api.poses,neutralDiff:api.neutralDiff,slots:api.components.map(c=>c.slot)};});
+
+ const report=await page.evaluate(()=>{
+  const api=window.BlazingScorpionPuppetAtlasV2;
+  const jointByPose={elbow:'leftElbow',shoulder:'leftShoulder',knee:'leftKnee'};
+  const alphaAround=(surface,boneId,radius=14)=>{
+   const matrix=surface.pose?.bones?.[boneId];if(!matrix)throw new Error('Missing pose bone '+boneId);
+   const cx=Math.round(matrix[4]-surface.bounds.x),cy=Math.round(matrix[5]-surface.bounds.y);
+   const ctx=surface.canvas.getContext('2d',{willReadFrequently:true}),data=ctx.getImageData(0,0,surface.canvas.width,surface.canvas.height).data;
+   let samples=0,opaque=0,strong=0,alphaSum=0;
+   for(let y=-radius;y<=radius;y++)for(let x=-radius;x<=radius;x++){
+    if(x*x+y*y>radius*radius)continue;const px=cx+x,py=cy+y;if(px<0||py<0||px>=surface.canvas.width||py>=surface.canvas.height)continue;
+    const alpha=data[(py*surface.canvas.width+px)*4+3];samples++;alphaSum+=alpha;if(alpha>16)opaque++;if(alpha>128)strong++;
+   }
+   return {boneId,sourcePoint:{x:matrix[4],y:matrix[5]},canvasPoint:{x:cx,y:cy},radius,samples,opaque,strong,opaqueRatio:samples?opaque/samples:0,strongRatio:samples?strong/samples:0,meanAlpha:samples?alphaSum/samples:0};
+  };
+  const neutralSurface=api.articulationSurface('neutral'),articulation={};
+  for(const id of ['elbow','shoulder','knee']){
+   const surface=api.articulationSurface(id),bone=jointByPose[id],neutral=alphaAround(neutralSurface,bone),posed=alphaAround(surface,bone);
+   articulation[id]={bone,neutral,posed,opaqueRetention:neutral.opaque?posed.opaque/neutral.opaque:0,strongRetention:neutral.strong?posed.strong/neutral.strong:0,nativeBounds:surface.bounds};
+  }
+  return {version:api.version,ready:api.ready,error:api.error,componentCount:api.components.length,poses:api.poses,neutralDiff:api.neutralDiff,slots:api.components.map(c=>c.slot),articulation,note:'Alpha-around-joint metrics are diagnostics only. Final elbow/shoulder/knee acceptance remains a visual inspection gate.'};
+ });
  await fs.writeFile(OUT+'/result.json',JSON.stringify(report,null,2));
  if(report.componentCount!==17)throw new Error('Expected 17 V2 components, got '+report.componentCount);
  if(report.poses.map(p=>p.id).join(',')!=='neutral,elbow,shoulder,knee')throw new Error('Unexpected articulation gate poses '+JSON.stringify(report.poses));
- if(!report.neutralDiff?.boundsEqual)throw new Error('V2 neutral native bounds drift from V1 master: '+JSON.stringify(report.neutralDiff));
+ if(!report.neutralDiff?.boundsEqual||!report.neutralDiff?.exact||report.neutralDiff.changedPixels!==0)throw new Error('V2 zero-transform does not exactly match approved V1 neutral: '+JSON.stringify(report.neutralDiff));
+ for(const [id,stats] of Object.entries(report.articulation))if(stats.neutral.opaque<=0||stats.posed.opaque<=0)throw new Error(id+' joint lost all opaque coverage: '+JSON.stringify(stats));
  if(pageErrors.length)throw new Error('pageerror: '+pageErrors.join(' | '));
- console.log('Scorpion Puppet Atlas V2 browser gate PASS:',JSON.stringify(report));
+ console.log('Scorpion Puppet Atlas V2 browser gate PASS: exact zero-transform match; 17 authored pieces; elbow/shoulder/knee evidence captured. Visual articulation acceptance is still required before Idle/Run.');
+ console.log(JSON.stringify(report));
 } finally {
  if(browser)await browser.close().catch(()=>{});
 }
