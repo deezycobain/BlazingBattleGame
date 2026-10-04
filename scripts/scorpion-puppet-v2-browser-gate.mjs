@@ -12,6 +12,7 @@ async function launchBrowser(){
   catch(defaultError){throw new Error('Could not launch Chrome/Chromium for V2 gate: '+channelError.message+' | '+defaultError.message);}
  }
 }
+const writeDataUrl=async(path,dataUrl)=>fs.writeFile(path,Buffer.from(dataUrl.split(',',2)[1],'base64'));
 
 let browser;
 try{
@@ -33,6 +34,22 @@ try{
   const canvas=page.locator(selector);await canvas.waitFor({state:'visible'});await canvas.screenshot({path:OUT+'/'+name+'.png'});
  }
  await page.locator('#bb-scorpion-puppet-v2-lab').screenshot({path:OUT+'/articulation-gate-full.png'});
+
+ const native=await page.evaluate(async()=>{
+  const api=window.BlazingScorpionPuppetAtlasV2,contract=window.BlazingPuppetAtlasContractV1;
+  const [manifest,schema]=await Promise.all([
+   fetch('assets/characters/scorpion/data/puppet-atlas-v1.json',{cache:'no-store'}).then(r=>r.json()),
+   fetch('config/puppet-atlas-contract-v1.schema.json',{cache:'no-store'}).then(r=>r.json())
+  ]);
+  const map=await fetch(manifest.atlas.map,{cache:'no-store'}).then(r=>r.json());
+  const image=await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('V1 atlas image load failed'));img.src=manifest.atlas.image;});
+  const model=contract.compile(manifest,schema,{width:image.naturalWidth,height:image.naturalHeight,map});
+  const master=contract.rasterize(model,image);
+  const surfaces={master:master.canvas.toDataURL('image/png')};
+  for(const id of ['neutral','elbow','shoulder','knee'])surfaces[id]=api.articulationSurface(id).canvas.toDataURL('image/png');
+  return surfaces;
+ });
+ await Promise.all(Object.entries(native).map(([name,dataUrl])=>writeDataUrl(OUT+'/native-'+name+'.png',dataUrl)));
 
  const report=await page.evaluate(()=>{
   const api=window.BlazingScorpionPuppetAtlasV2;
