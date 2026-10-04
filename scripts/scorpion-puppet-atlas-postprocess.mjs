@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
-const marker='runtime/rendering/scorpion-puppet-atlas.js';
+const marker='runtime/rendering/scorpion-puppet-atlas.js?v=phase1-lab';
 if(!html.includes(marker)){
  const tag='<script src="'+marker+'"></script>';
  if(!html.includes('</body>'))throw new Error('Scorpion Puppet Atlas V1 postprocess: closing body tag missing');

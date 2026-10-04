@@ -28,7 +28,7 @@ for (index, entry) in ordered.enumerated() {
     NSColor(calibratedRed: 0.04, green: 0.07, blue: 0.10, alpha: 1).setFill(); NSBezierPath(rect: cell).fill()
     NSColor(calibratedWhite: 0.38, alpha: 1).setStroke(); NSBezierPath(rect: cell).stroke()
     let rect = entry.value
-    let sourceRect = CGRect(x: rect.x, y: CGFloat(sourceCG.height) - rect.y - rect.h, width: rect.w, height: rect.h)
+    let sourceRect = CGRect(x: rect.x, y: rect.y, width: rect.w, height: rect.h)
     if let crop = sourceCG.cropping(to: sourceRect) {
         let fit = min((cellW - 24) / CGFloat(crop.width), (cellH - 58) / CGFloat(crop.height), 1)
         let width = CGFloat(crop.width) * fit, height = CGFloat(crop.height) * fit

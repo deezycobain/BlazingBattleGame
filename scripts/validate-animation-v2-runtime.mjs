@@ -18,7 +18,11 @@ for(const id of ['scorpion','mashle']){
 
 const scorpionMap=await readJson('assets/characters/scorpion/data/runtime-map.json');
 if(scorpionMap.abilities?.basic_attack?.runtime_handler!=='animateScorpionSpearStrike')fail('Scorpion basic must remain on animateScorpionSpearStrike');
-if(scorpionMap.abilities?.basic_attack?.vfx?.projectile!=='runtime.scorpion_chain_spear')fail('Scorpion basic must use the runtime hand-connected chain until replacement traveling VFX is approved');
+const scorpionSpearResource='uploaded-v2.scorpion_chain_spear';
+if(scorpionMap.abilities?.basic_attack?.vfx?.projectile!==scorpionSpearResource)fail('Scorpion basic must use the registered hand-connected chain resource');
+const manifest=await readJson('runtime/registry/asset-manifest.json');
+const registeredSpear=manifest?.units?.scorpion?.vfx?.chain_spear;
+if(registeredSpear?.resource_id!==scorpionSpearResource||registeredSpear?.renderer!=='animateScorpionSpearStrike')fail('Scorpion chain spear resource contract is not registered to its runtime renderer');
 
 const finalizer=await fs.readFile(path.join(root,'scripts/animation-v2-finalize-postprocess.mjs'),'utf8');
 for(const marker of [
