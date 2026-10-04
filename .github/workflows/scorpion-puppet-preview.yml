@@ -55,10 +55,16 @@ jobs:
         run: node scripts/scorpion-puppet-v2-browser-gate.mjs
 
       - name: Publish V2 articulation gate artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: scorpion-puppet-v2-articulation-gate
-          path: docs/validation/puppet-atlas-v2/
+          path: |
+            docs/validation/puppet-atlas-v2/
+            assets/characters/scorpion/puppet/v1/body/scorpion_puppet_body_atlas_v1.png
+            assets/characters/scorpion/puppet/v1/body/scorpion_puppet_body_atlas_v1.json
+            assets/characters/scorpion/data/puppet-atlas-v1.json
+            assets/characters/scorpion/data/puppet-atlas-v2.json
           retention-days: 7
 
       - name: Start temporary phone test tunnel
