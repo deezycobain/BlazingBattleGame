@@ -11,11 +11,11 @@
   "requiredSlots": [
     "head",
     "torso",
-    "pelvis",
     "leftUpperArm",
+    "rightUpperArm",
+    "pelvis",
     "leftForearm",
     "leftHand",
-    "rightUpperArm",
     "rightForearm",
     "rightHand",
     "leftUpperLeg",
