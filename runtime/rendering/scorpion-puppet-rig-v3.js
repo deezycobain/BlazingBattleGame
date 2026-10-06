@@ -58,7 +58,7 @@ function openLab(){
  const close=button('Close',()=>{panel.hidden=true;cancelAnimationFrame(state.raf);});panel.appendChild(close);
  const status=document.createElement('p');status.id='bb-scorpion-rig-v3-status';status.textContent=state.ready?'READY · '+state.source+' · 15 explicit anatomical bindings · atlas placement is storage only':state.error||'Loading rig data…';panel.appendChild(status);
  const file=document.createElement('input');file.type='file';file.accept='image/png,image/webp';file.onchange=async()=>{try{await loadLocalFile(file.files?.[0]);status.textContent='READY · '+state.source+' · 15 explicit anatomical bindings';}catch(error){state.ready=false;state.error=String(error?.message||error);status.textContent=state.error;}};panel.appendChild(file);
- const hint=document.createElement('p');hint.textContent='For this first live gate, choose the approved scorpion_puppet_atlas_v2.png generated in ChatGPT if the repository atlas has not been uploaded yet.';panel.appendChild(hint);
+ const hint=document.createElement('p');hint.textContent='For this first live gate, choose the repaired scorpion_puppet_atlas_v31_left_arm_repair.png generated in ChatGPT if the repository atlas has not been uploaded yet.';panel.appendChild(hint);
  const controls=document.createElement('div');controls.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:10px 0';controls.append(
    button('Neutral',()=>{state.motion='neutral';state.start=performance.now();}),
    button('Idle V1',()=>{state.motion='idle';state.start=performance.now();}),
@@ -71,6 +71,6 @@ function openLab(){
  loop(canvas);return true;
 }
 function ensureControl(){if(!devEnabled()||document.getElementById('bb-scorpion-rig-v3-switch'))return;const b=button('SCORPION · RIG V3',openLab);b.id='bb-scorpion-rig-v3-switch';b.style.cssText+=';position:fixed;z-index:2147483008;right:10px;bottom:160px';document.body.appendChild(b);}
-window.BlazingScorpionRigV3=Object.freeze({version:'scorpion-bb-humanoid-3q-v1-live-gate',get ready(){return state.ready},get error(){return state.error},get source(){return state.source},openLab,loadLocalFile,renderCanvas,setMotion:id=>{if(!['neutral','idle'].includes(id))throw new Error('Unknown motion '+id);state.motion=id;state.start=performance.now();}});
+window.BlazingScorpionRigV3=Object.freeze({version:'scorpion-bb-humanoid-3q-v1-live-gate-v31-seam-repair',get ready(){return state.ready},get error(){return state.error},get source(){return state.source},openLab,loadLocalFile,renderCanvas,setMotion:id=>{if(!['neutral','idle'].includes(id))throw new Error('Unknown motion '+id);state.motion=id;state.start=performance.now();}});
 (async()=>{try{if(!CONTRACT)throw new Error('Puppet Atlas Contract v1 module missing');const [manifest,map,idle,schema]=await Promise.all([json(MANIFEST),json('assets/characters/scorpion/puppet/v3/runtime/scorpion_puppet_v3_runtime_atlas.json'),json(IDLE),json(SCHEMA)]);Object.assign(state,{manifest,map,idle,schema});await loadRemote();}catch(error){state.error=String(error?.message||error);console.warn('Scorpion Rig V3 metadata unavailable.',error);}finally{ensureControl();}})();
 })();
