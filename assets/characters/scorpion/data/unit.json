@@ -101,7 +101,7 @@
     "notes": "Temporary first-pass combat values for banner testing. Jutsu intentionally disabled until authored."
   },
   "animation_standard": {
-    "version": "v2-fullframe-run-dev",
+    "version": "legacy-shinobi-v2-audited",
     "animations": {
       "idle": {
         "frames": [
