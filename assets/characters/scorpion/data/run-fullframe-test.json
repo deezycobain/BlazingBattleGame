@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "unit_id": "scorpion",
+  "animation_id": "scorpion.animation.run",
+  "release": "fullframe-run-test-v1",
+  "frame_rate": 24,
+  "frame_count": 12,
+  "loop": true,
+  "loop_seconds": 0.5,
+  "runtime_canvas": [
+    768,
+    768
+  ],
+  "anchor": "bottom_center",
+  "frames": [
+    "sprites/runtime/v2/run/frame_01.png",
+    "sprites/runtime/v2/run/frame_02.png",
+    "sprites/runtime/v2/run/frame_03.png",
+    "sprites/runtime/v2/run/frame_04.png",
+    "sprites/runtime/v2/run/frame_05.png",
+    "sprites/runtime/v2/run/frame_06.png",
+    "sprites/runtime/v2/run/frame_07.png",
+    "sprites/runtime/v2/run/frame_08.png",
+    "sprites/runtime/v2/run/frame_09.png",
+    "sprites/runtime/v2/run/frame_10.png",
+    "sprites/runtime/v2/run/frame_11.png",
+    "sprites/runtime/v2/run/frame_12.png"
+  ],
+  "quality_contract": {
+    "full_body": true,
+    "direct_frame_art": true,
+    "puppet_or_mesh": false,
+    "sockets_or_layer_compositing": false,
+    "motion": [
+      "alternating contacts",
+      "knee compression and lift",
+      "counter-swinging arms",
+      "head and torso lead",
+      "cloth follow-through"
+    ]
+  }
+}
