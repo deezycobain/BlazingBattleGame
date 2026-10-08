@@ -490,7 +490,7 @@
       },
       "vfx": {
         "chain_spear": {
-          "resource_id": "uploaded-v2.scorpion_chain_spear",
+          "resource_id": "runtime.scorpion_chain_spear",
           "path": "assets/vfx/uploaded-v2/scorpion_chain_spear_vfx_atlas/",
           "required_runtime_frames": 12,
           "renderer": "animateScorpionSpearStrike",
