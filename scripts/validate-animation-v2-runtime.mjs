@@ -22,12 +22,11 @@ if(scorpionMap.abilities?.basic_attack?.vfx?.projectile!=='runtime.scorpion_chai
 
 const finalizer=await fs.readFile(path.join(root,'scripts/animation-v2-finalize-postprocess.mjs'),'utf8');
 for(const marker of [
-  "sprites/runtime/v2/idle',count:12",
-  "sprites/runtime/v2/run',count:12",
-  "sprites/runtime/v2/attack',count:12",
+  "sprites/runtime/idle',count:6",
+  "sprites/runtime/run',count:12",
+  "sprites/runtime/attack/basic',count:6",
   "sprites/runtime/v2/recoil',count:12",
-  'frameSequence:[0,1,2,3,4,5,6,7,8,9,10,11]',
-  'motionQuality=v5'
+  'motionQuality=v6'
 ])if(!finalizer.includes(marker))fail('finalizer missing marker '+marker);
 
 const packageJson=await readJson('package.json');
@@ -40,4 +39,4 @@ const order=[
 ].map(name=>build.indexOf(name));
 if(order.some(index=>index<0)||!(order[0]<order[1]&&order[1]<order[2]&&order[2]<order[3]))fail('animation/fighter postprocess ordering is invalid');
 
-console.log('Animation V2 validation PASS: Scorpion and Mashle own 12-frame V2 idle/run/attack/recoil sets; runtime states and final postprocess ordering are locked.');
+console.log('Animation V2 validation PASS: retained V2 packs are structurally valid; Scorpion active idle/basic/run routing is approval-locked.');

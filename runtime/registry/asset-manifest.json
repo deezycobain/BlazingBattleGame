@@ -475,10 +475,10 @@
         },
         "run": {
           "resource_id": "scorpion.animation.run",
-          "path": "assets/characters/scorpion/sprites/runtime/v2/run/",
+          "path": "assets/characters/scorpion/sprites/runtime/run/",
           "required_runtime_frames": 12,
           "renderer": "BlazingFrameRuntime",
-          "usage": "Twelve-frame direct full-body Scorpion run cycle at 24 FPS in the dev build. Each PNG is a coherent complete character frame; this state does not use a puppet atlas."
+          "usage": "Approved-design twelve-frame direct full-body Scorpion run cycle at 24 FPS. Each PNG is a coherent complete character frame; this state does not use a puppet atlas."
         },
         "recoil": {
           "resource_id": "scorpion.animation.recoil",

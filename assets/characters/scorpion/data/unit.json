@@ -78,7 +78,7 @@
       "idle": "sprites/runtime/idle/",
       "attack_basic": "sprites/runtime/attack/basic/",
       "jutsu": null,
-      "run": "sprites/runtime/v2/run/"
+      "run": "sprites/runtime/run/"
     },
     "vfx": "../../vfx/uploaded-v2/scorpion_chain_spear_vfx_atlas/",
     "summon_art": "cards/legacy_summon_art.png",
@@ -136,26 +136,26 @@
       },
       "run": {
         "frames": [
-          "sprites/runtime/v2/run/frame_01.png",
-          "sprites/runtime/v2/run/frame_02.png",
-          "sprites/runtime/v2/run/frame_03.png",
-          "sprites/runtime/v2/run/frame_04.png",
-          "sprites/runtime/v2/run/frame_05.png",
-          "sprites/runtime/v2/run/frame_06.png",
-          "sprites/runtime/v2/run/frame_07.png",
-          "sprites/runtime/v2/run/frame_08.png",
-          "sprites/runtime/v2/run/frame_09.png",
-          "sprites/runtime/v2/run/frame_10.png",
-          "sprites/runtime/v2/run/frame_11.png",
-          "sprites/runtime/v2/run/frame_12.png"
+          "sprites/runtime/run/frame_01.png",
+          "sprites/runtime/run/frame_02.png",
+          "sprites/runtime/run/frame_03.png",
+          "sprites/runtime/run/frame_04.png",
+          "sprites/runtime/run/frame_05.png",
+          "sprites/runtime/run/frame_06.png",
+          "sprites/runtime/run/frame_07.png",
+          "sprites/runtime/run/frame_08.png",
+          "sprites/runtime/run/frame_09.png",
+          "sprites/runtime/run/frame_10.png",
+          "sprites/runtime/run/frame_11.png",
+          "sprites/runtime/run/frame_12.png"
         ],
         "frame_rate": 24,
         "frame_ms": 41.666666666666664,
         "loop": true,
         "events": [],
-        "source": "direct-full-body-frame-art",
+        "source": "approved-runtime-direct-full-body-frame-art",
         "canvas": [
-          768,
+          512,
           768
         ],
         "anchor": "bottom_center",

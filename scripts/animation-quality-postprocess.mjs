@@ -11,7 +11,7 @@ const BB_ANIMATION_QUALITY_RUNTIME=(()=>{
  const specs=Object.freeze({
    Scorpion:Object.freeze({
      idle:{root:'assets/characters/scorpion/sprites/runtime/idle',count:6},
-     run:{root:'assets/characters/scorpion/sprites/runtime/v2/run',count:12},
+     run:{root:'assets/characters/scorpion/sprites/runtime/run',count:12},
      attack:{root:'assets/characters/scorpion/sprites/runtime/attack/basic',count:6},
      recoil:{root:'assets/characters/scorpion/sprites/runtime/v2/recoil',count:12}
    }),

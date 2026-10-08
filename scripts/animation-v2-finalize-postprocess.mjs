@@ -6,33 +6,25 @@ const file=path.join(process.cwd(),'dist','index.html');
 let html=await fs.readFile(file,'utf8');
 const fail=message=>{throw new Error('Animation V2 finalize: '+message)};
 
-// Promote Scorpion's already-authored V2 motion pack to the canonical runtime.
-// The previous quality pass deliberately kept the old six-frame idle/basic as a
-// safety fallback. That fallback is now the remaining source of stepped motion.
+// Curate Scorpion's active runtime around the approved Legacy of the Shinobi
+// character design. The V2 pack remains retained on disk for audit history, but
+// it is not allowed to override the approved idle, attack, or direct-frame run.
 const replacements=[
-  ["idle:{root:'assets/characters/scorpion/sprites/runtime/idle',count:6}","idle:{root:'assets/characters/scorpion/sprites/runtime/v2/idle',count:12}"],
-  ["attack:{root:'assets/characters/scorpion/sprites/runtime/attack/basic',count:6}","attack:{root:'assets/characters/scorpion/sprites/runtime/v2/attack',count:12}"],
-  ["const idle=name=>{const frames=normalizedSequence(name,'idle');return name==='Scorpion'&&frames.length===6?[...frames,...frames.slice(1,-1).reverse()]:frames;};","const idle=name=>normalizedSequence(name,'idle');"],
-  ["frameMs:80,frameSequence:[0,1,2,3,4,4,5,5,5,5]","frameMs:76,frameSequence:[0,1,2,3,4,5,6,7,8,9,10,11]"],
-  ["motionQuality=v4","motionQuality=v5"]
+  ["run:{root:'assets/characters/scorpion/sprites/runtime/v2/run',count:12}","run:{root:'assets/characters/scorpion/sprites/runtime/run',count:12}"],
+  ["motionQuality=v4","motionQuality=v6"],
+  ["motionQuality=v5","motionQuality=v6"]
 ];
 for(const [from,to] of replacements){
   if(html.includes(from))html=html.split(from).join(to);
 }
 
-// If an older attack sequence survived from a previous build layer, upgrade it
-// too. This is intentionally narrow and only touches the Scorpion spear pose.
-html=html.split("frameMs:72,frameSequence:[0,1,2,3,4,4,4,4,5,5]").join("frameMs:76,frameSequence:[0,1,2,3,4,5,6,7,8,9,10,11]");
-html=html.split("frameMs:95,frameSequence:[0,1,2,3,4,4,5,5,5,5]").join("frameMs:76,frameSequence:[0,1,2,3,4,5,6,7,8,9,10,11]");
-
 const required=[
-  "idle:{root:'assets/characters/scorpion/sprites/runtime/v2/idle',count:12}",
-  "run:{root:'assets/characters/scorpion/sprites/runtime/v2/run',count:12}",
-  "attack:{root:'assets/characters/scorpion/sprites/runtime/v2/attack',count:12}",
+  "idle:{root:'assets/characters/scorpion/sprites/runtime/idle',count:6}",
+  "run:{root:'assets/characters/scorpion/sprites/runtime/run',count:12}",
+  "attack:{root:'assets/characters/scorpion/sprites/runtime/attack/basic',count:6}",
   "recoil:{root:'assets/characters/scorpion/sprites/runtime/v2/recoil',count:12}",
-  "const idle=name=>normalizedSequence(name,'idle');",
-  "frameSequence:[0,1,2,3,4,5,6,7,8,9,10,11]",
-  'motionQuality=v5',
+  "const idle=name=>{const frames=normalizedSequence(name,'idle');return name==='Scorpion'&&frames.length===6?[...frames,...frames.slice(1,-1).reverse()]:frames;};",
+  'motionQuality=v6',
   'sequenceFit',
   'sequenceCenterX',
   'bbScorpionChainV5'
@@ -40,11 +32,11 @@ const required=[
 for(const marker of required)if(!html.includes(marker))fail('missing '+marker);
 
 const forbidden=[
-  "assets/characters/scorpion/sprites/runtime/idle',count:6",
-  "assets/characters/scorpion/sprites/runtime/attack/basic',count:6",
-  "frames.length===6?[...frames",
-  'frameSequence:[0,1,2,3,4,4,5,5,5,5]',
-  'frameSequence:[0,1,2,3,4,4,4,4,5,5]'
+  "assets/characters/scorpion/sprites/runtime/v2/run',count:12",
+  "assets/characters/scorpion/sprites/runtime/v2/idle',count:12",
+  "assets/characters/scorpion/sprites/runtime/v2/attack',count:12",
+  'motionQuality=v4',
+  'motionQuality=v5'
 ];
 for(const marker of forbidden)if(html.includes(marker))fail('stale six-frame Scorpion path survived: '+marker);
 
@@ -54,4 +46,4 @@ for(const [index,script] of [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/scr
 }
 
 await fs.writeFile(file,html);
-console.log('Animation V2 Finalize PASS: Scorpion idle/run/basic/recoil use authored 12-frame V2 motion; one sequence transform remains authoritative; six-frame attack sequencing retired.');
+console.log('Animation runtime curation PASS: Scorpion uses approved-design idle/basic frames and the direct-frame twelve-frame run; one sequence transform remains authoritative.');
