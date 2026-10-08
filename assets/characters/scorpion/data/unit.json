@@ -37,7 +37,7 @@
     "scale": 1,
     "sprite_anchor": "bottom_center",
     "sprite_canvas": {
-      "width": 512,
+      "width": 768,
       "height": 768
     }
   },
@@ -77,7 +77,8 @@
     "sprites": {
       "idle": "sprites/runtime/idle/",
       "attack_basic": "sprites/runtime/attack/basic/",
-      "jutsu": null
+      "jutsu": null,
+      "run": "sprites/runtime/v2/run/"
     },
     "vfx": "../../vfx/uploaded-v2/scorpion_chain_spear_vfx_atlas/",
     "summon_art": "cards/legacy_summon_art.png",
@@ -90,8 +91,9 @@
     "basic_attack": true,
     "jutsu": false,
     "recoil": false,
-    "notes": "Scorpion uses a lazily decoded twelve-frame mobile-safe motion set and the supplied spear atlas for Basic attacks. Jutsu remains deferred.",
-    "animation_map": true
+    "notes": "Scorpion's run state uses an authored twelve-frame full-body direct-frame cycle at 24 FPS. Jutsu remains deferred.",
+    "animation_map": true,
+    "run": true
   },
   "balance": {
     "status": "provisional",
@@ -99,7 +101,7 @@
     "notes": "Temporary first-pass combat values for banner testing. Jutsu intentionally disabled until authored."
   },
   "animation_standard": {
-    "version": "legacy-shinobi-v2-audited",
+    "version": "v2-fullframe-run-dev",
     "animations": {
       "idle": {
         "frames": [
@@ -131,6 +133,33 @@
             "event": "apply_melee"
           }
         ]
+      },
+      "run": {
+        "frames": [
+          "sprites/runtime/v2/run/frame_01.png",
+          "sprites/runtime/v2/run/frame_02.png",
+          "sprites/runtime/v2/run/frame_03.png",
+          "sprites/runtime/v2/run/frame_04.png",
+          "sprites/runtime/v2/run/frame_05.png",
+          "sprites/runtime/v2/run/frame_06.png",
+          "sprites/runtime/v2/run/frame_07.png",
+          "sprites/runtime/v2/run/frame_08.png",
+          "sprites/runtime/v2/run/frame_09.png",
+          "sprites/runtime/v2/run/frame_10.png",
+          "sprites/runtime/v2/run/frame_11.png",
+          "sprites/runtime/v2/run/frame_12.png"
+        ],
+        "frame_rate": 24,
+        "frame_ms": 41.666666666666664,
+        "loop": true,
+        "events": [],
+        "source": "direct-full-body-frame-art",
+        "canvas": [
+          768,
+          768
+        ],
+        "anchor": "bottom_center",
+        "quality_contract": "whole-character only; no puppet rig, mesh deformation, sockets, or layer assembly"
       }
     },
     "vfx": {},
