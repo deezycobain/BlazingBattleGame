@@ -1,0 +1,113 @@
+name: Scorpion Full-Frame Run Preview
+
+on:
+  push:
+    branches:
+      - codex/scorpion-fullframe-run-test
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+
+concurrency:
+  group: scorpion-fullframe-run-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate direct-frame run contract
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const unit=JSON.parse(fs.readFileSync('assets/characters/scorpion/data/unit.json','utf8'));
+          const meta=JSON.parse(fs.readFileSync('assets/characters/scorpion/data/run-fullframe-test.json','utf8'));
+          const run=unit.animation_standard?.animations?.run;
+          if(!run||run.frame_rate!==24||run.frame_ms!==1000/24||run.loop!==true)throw new Error('Scorpion run timing contract is invalid');
+          if(!Array.isArray(run.frames)||run.frames.length!==12)throw new Error('Scorpion run must declare twelve frames');
+          if(meta.frame_count!==12||meta.frame_rate!==24||meta.quality_contract?.puppet_or_mesh!==false)throw new Error('Scorpion full-frame metadata is invalid');
+          for(const rel of run.frames){
+            const full=path.join('assets/characters/scorpion',rel);
+            const png=fs.readFileSync(full);
+            if(png.subarray(1,4).toString('ascii')!=='PNG')throw new Error(full+' is not PNG');
+            const width=png.readUInt32BE(16),height=png.readUInt32BE(20);
+            if(width!==768||height!==768)throw new Error(full+' must be 768x768; got '+width+'x'+height);
+          }
+          console.log('Scorpion full-frame run contract PASS: 12 unique 768x768 PNG frames at 24 FPS.');
+          NODE
+
+      - name: Build test game
+        run: npm run build
+
+      - name: Start built game
+        run: |
+          env -u RUNNER_TRACKING_ID nohup node scripts/serve-dist.mjs > /tmp/bb-server.log 2>&1 </dev/null &
+          server_pid=$!
+          for i in {1..30}; do
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              cat /tmp/bb-server.log
+              exit 1
+            fi
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat /tmp/bb-server.log
+          exit 1
+
+      - name: Start temporary phone test tunnel
+        run: |
+          env -u RUNNER_TRACKING_ID nohup npx wrangler tunnel quick-start http://127.0.0.1:4173 > /tmp/scorpion-tunnel.log 2>&1 </dev/null &
+          tunnel_pid=$!
+          url=""
+          for i in {1..60}; do
+            if ! kill -0 "$tunnel_pid" 2>/dev/null; then
+              cat /tmp/scorpion-tunnel.log
+              exit 1
+            fi
+            url=$(grep -Eo 'https://[a-z0-9-]+\.trycloudflare\.com' /tmp/scorpion-tunnel.log | tail -1 || true)
+            if [ -n "$url" ]; then break; fi
+            sleep 1
+          done
+          if [ -z "$url" ]; then
+            cat /tmp/scorpion-tunnel.log
+            exit 1
+          fi
+          printf '%s\n' "$url" | tee /tmp/scorpion-preview-url.txt
+          {
+            echo "## Scorpion full-frame run phone test"
+            echo "$url"
+            echo "Move Scorpion in the test build to exercise the 24 FPS direct-frame run state."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish live preview commit status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url=$(cat /tmp/scorpion-preview-url.txt)
+          payload=$(jq -nc --arg state success --arg target_url "$url" --arg description "20-minute Scorpion full-frame run phone preview" --arg context "scorpion-fullframe-run/live" '{state:$state,target_url:$target_url,description:$description,context:$context}')
+          curl -fsS -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -d "$payload"
+
+      - name: Keep phone test alive for 20 minutes
+        run: sleep 1200

@@ -478,7 +478,7 @@
           "path": "assets/characters/scorpion/sprites/runtime/v2/run/",
           "required_runtime_frames": 12,
           "renderer": "BlazingFrameRuntime",
-          "usage": "Authored twelve-frame Scorpion V2 run animation retained for the runtime state map."
+          "usage": "Twelve-frame direct full-body Scorpion run cycle at 24 FPS for the gameplay test. Each PNG is a coherent complete character frame; this state does not use the experimental puppet atlas."
         },
         "recoil": {
           "resource_id": "scorpion.animation.recoil",
