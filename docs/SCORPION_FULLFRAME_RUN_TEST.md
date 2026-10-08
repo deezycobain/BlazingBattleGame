@@ -8,3 +8,5 @@ This branch replaces only the Scorpion V2 run-state PNGs with the new direct ful
 - Visible alternating foot contacts, knee bend/lift, arm counter-swing, body lead, and cloth follow-through
 
 The state map continues to resolve `run` to `scorpion.animation.run`. The frame list and timing live in `assets/characters/scorpion/data/unit.json`.
+
+The branch-scoped preview workflow validates this contract before opening its temporary phone-test tunnel.
