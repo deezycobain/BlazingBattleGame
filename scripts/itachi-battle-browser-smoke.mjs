@@ -29,7 +29,7 @@ async function run(name,type){
   console.log(`Itachi battle smoke START (${name}) -> ${BASE}`);
   browser=await type.launch({headless:true,timeout:15000});
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:name==='webkit'});
-  await context.addInitScript(()=>localStorage.setItem('blazingBattle.activeTeam.v6',JSON.stringify(['Itachi','Tyler','Lebee','Senku','Sub-Zero','Crimson'])));
+   await context.addInitScript(()=>{const team=['Itachi','Tyler','Lebee','Senku','Sub-Zero','Crimson'];localStorage.setItem('blazingBattle.activeTeam.v6',JSON.stringify(team));localStorage.setItem('blazing.collection.v1',JSON.stringify({version:1,owned:['itachi','tyler','lebee','senku','subzero','crimson']}));});
   const page=await context.newPage();
   page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
