@@ -3,7 +3,7 @@
 const norm=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');
 const text=el=>String(el?.innerText||el?.textContent||'').replace(/\s+/g,' ').trim();
 const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-const inventoryUnits=()=>Object.values(window.BLAZING_UNIT_DATA||{}).filter(unit=>unit?.collection?.inventory_visible!==false&&unit?.display_name);
+const inventoryUnits=()=>Object.values(window.BLAZING_UNIT_DATA||{}).filter(unit=>unit?.role==='playable'&&unit?.collection?.inventory_visible!==false&&unit?.display_name&&window.BlazingCollection?.owns?.(unit));
 const isVisible=el=>{if(!el||el.hidden)return false;const s=getComputedStyle(el);return s.display!=='none'&&s.visibility!=='hidden'&&s.opacity!=='0';};
 const assetPath=(unit,asset)=>{if(!asset)return'';if(/^https?:|^data:|^assets\//.test(asset))return asset;return`assets/characters/${unit.id}/${asset}`;};
 const rarityStars=rarity=>/legend/i.test(rarity)?6:/myth/i.test(rarity)?6:/epic/i.test(rarity)?5:/rare/i.test(rarity)?4:3;
@@ -83,5 +83,6 @@ let queued=false;function schedule(){if(queued)return;queued=true;requestAnimati
 new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class','style']});
 document.addEventListener('click',()=>setTimeout(schedule,0),true);document.addEventListener('pointerup',()=>setTimeout(schedule,0),true);
 setTimeout(schedule,0);
+window.addEventListener('bb:collection',render);
 window.BlazingInventorySkin=Object.freeze({sync,activate,render,findInventoryScreen:findLegacyInventory,get legacyInventory(){return legacyInventory;}});
 })();
