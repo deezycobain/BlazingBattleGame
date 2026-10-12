@@ -12,6 +12,22 @@ for(const [name,type] of Object.entries({chromium,webkit})){
   await page.waitForFunction(()=>typeof window.BB_BUILD_META==='object',{timeout:30000});
   const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
   if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error('commit mismatch');
+   const initial=await page.evaluate(()=>{
+    const get=globalThis.eval;
+    return {team:get('getActiveTeam()'),owned:window.BlazingCollection?.load?.().owned||[],coins:window.BlazingEconomy?.balance?.(),embers:window.BlazingEconomy?.emberBalance?.()};
+   });
+   if(initial.team.filter(Boolean).length!==3||initial.owned.length!==3||
+      !['tyler','subzero','senku'].every(id=>initial.owned.includes(id))||
+      initial.coins!==300||initial.embers!==3)throw new Error('new-account starter rules invalid: '+JSON.stringify(initial));
+   // Unlock a complete six-fighter test roster so paired-team and partner-swap
+   // coverage remains strict, while new accounts begin with only three.
+   await page.evaluate(()=>{
+    const team=['Tyler','Itachi','Lebee','Senku','Sub-Zero','Crimson'];
+    team.forEach(name=>window.BlazingCollection.unlock(name));
+    localStorage.setItem(globalThis.eval('TEAM_STORAGE_KEY'),JSON.stringify(team));
+   });
+   await page.reload({waitUntil:'domcontentloaded'});
+   await page.waitForFunction(()=>typeof window.BlazingCollection==='object');
   const contract=await page.evaluate(()=>{
    const get=globalThis.eval;
    const team=get('getActiveTeam()');
