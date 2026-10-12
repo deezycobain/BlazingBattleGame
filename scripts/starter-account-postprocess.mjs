@@ -26,9 +26,9 @@ const pairRx=/function buildPlayerPairs\(y\)\{[\s\S]*?\n\}\nconst ACTIVE_BOSSES/
 const pair=html.match(pairRx);
 if(!pair||!pair[0].includes('if(!BATTLE_ROSTER[name])'))throw new Error('Starter account: paired fighter builder missing');
 html=html.replace(pairRx,pair[0].replace('if(!BATTLE_ROSTER[name])','if(!name||!BATTLE_ROSTER[name])'));
-one('<script id="bb-progression-runtime">',
- '<script id="bb-starter-collection" src="runtime/core/starter-collection.js"></script><script id="bb-progression-runtime">',
- 'collection script insertion');
+oneRx(/(<script id="blazing-unit-data">window\\.BLAZING_UNIT_DATA=\\{.*?\\};<\\/script>)/s,
+ match=>match+'<script id="bb-starter-collection" src="runtime/core/starter-collection.js"></script>',
+ 'collection runtime before team initialization');
 one('function activateSummons(){',[
 "function activateSummons(){",
 " const syncWallet=()=>{",
