@@ -50,7 +50,7 @@ const growth=P.statMultipliers(P.unit('Lebee'));
 assert(growth.coreGrowth>=.219&&growth.coreGrowth<=.221,'level + Awakening core growth should cap near 22%');
 assert(growth.speedGrowth<=.051,'speed progression must remain deliberately restrained');
 
-P.reset();E.reset();
+P.reset();E.reset();E.save({...E.load(),battleMarks:0,lifetimeEarned:0,embers:0}); // Explicit empty-wallet fixture
 const insufficient=P.buyLevel('Tyler');
 assert(!insufficient.ok&&insufficient.reason==='INSUFFICIENT_MARKS','zero-coin level purchase must report insufficient coins');
 assert(P.unit('Tyler').level===1&&P.unit('Tyler').xp===0,'failed coin purchase must not mutate unit progression');
@@ -62,7 +62,7 @@ const before=E.balance(),bought=P.buyLevel('Tyler');
 assert(bought.ok&&bought.level===2,'Blazing Coins should finish the current level');
 assert(E.balance()===before-bought.cost,'level purchase must deduct exact Blazing Coins');
 
-E.reset();E.grantMarks(E.EMBER_COST*12,'VALIDATION');
+E.reset();E.save({...E.load(),battleMarks:0,lifetimeEarned:0,embers:0});E.grantMarks(E.EMBER_COST*12,'VALIDATION');
 for(let i=0;i<E.EMBER_WEEKLY_CAP;i++)assert(E.purchaseEmber().ok,`Ember purchase ${i+1} should succeed`);
 const capped=E.purchaseEmber();
 assert(!capped.ok&&capped.reason==='WEEKLY_CAP','Ember exchange must stop at weekly cap');
