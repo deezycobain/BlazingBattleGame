@@ -16,7 +16,7 @@ function weekKey(date=new Date()){
 }
 
 function fresh(){
-  return {version:VERSION,battleMarks:0,lifetimeEarned:0,embers:0,emberWeek:weekKey(),embersBoughtThisWeek:0,wins:{road:0,castle:0}};
+  return {version:VERSION,battleMarks:300,lifetimeEarned:300,embers:3,emberWeek:weekKey(),embersBoughtThisWeek:0,wins:{road:0,castle:0}};
 }
 
 function normalize(input){
