@@ -217,6 +217,9 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   const missedAttackRender=attackRenderProbe.filter(result=>!result.usedAttack);
   if(missedAttackRender.length)throw new Error('Legacy attack renderer probe failed: '+JSON.stringify(missedAttackRender));
 
+  // Full roster inventory QA must own all twelve fighters; new accounts do not.
+  // Unlock only in this browser test, never in the production starter collection.
+  await page.evaluate(ids=>{for(const id of ids)window.BlazingCollection.unlock(id);},IDS);
   await page.goto(BASE+'/?legacyInventory=1',{waitUntil:'domcontentloaded'});
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
   await page.locator('#bbHomeApproved [data-nav="units"]').click();
