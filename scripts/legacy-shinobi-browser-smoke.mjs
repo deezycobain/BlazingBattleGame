@@ -1,4 +1,5 @@
 import {chromium,webkit} from 'playwright';
+import {seedSmokeProfile} from './smoke-fixtures.mjs';
 
 const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'');
 const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
@@ -15,7 +16,9 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
  try{
   browser=await browserType.launch({headless:true,timeout:15000});
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:browserName==='webkit',hasTouch:true});
-  const page=await context.newPage();
+  // This test spends eleven Embers while checking single/ten-pull art and layout.
+   await seedSmokeProfile(context,{embers:20});
+   const page=await context.newPage();
   page.setDefaultTimeout(20000);
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
