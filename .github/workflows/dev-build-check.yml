@@ -28,7 +28,17 @@ jobs:
       - name: Run source regression validators
         if: always()
         run: npm run validate
-      - run: npm run build
+      - name: Build with actionable failure annotation
+        shell: bash
+        run: |
+          if npm run build > /tmp/bb-build.log 2>&1; then
+            tail -n 20 /tmp/bb-build.log
+          else
+            tail -n 70 /tmp/bb-build.log
+            last_error="$(tail -n 18 /tmp/bb-build.log | tr '\n' ' ' | cut -c 1-3000)"
+            printf '::error title=Blazing Battle build failure::%s\n' "$last_error"
+            exit 1
+          fi
       - name: Start built game
         run: |
           env -u RUNNER_TRACKING_ID nohup node scripts/serve-dist.mjs > /tmp/bb-server.log 2>&1 </dev/null &
