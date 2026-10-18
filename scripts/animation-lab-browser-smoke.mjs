@@ -34,6 +34,7 @@ try{
    await page.locator('#next').click();
    if(!(await page.locator('#position').innerText()).includes('2 / 2'))fail(name+' frame advance failed');
    await page.locator('#reference').setInputFiles(files);
+   await page.locator('#referencePane').waitFor({state:'visible'});
    if(await page.locator('#referencePane').isHidden())fail(name+' compare reference hidden');
    await page.locator('#play').click();
    await page.waitForTimeout(250);
