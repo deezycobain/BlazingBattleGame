@@ -1,0 +1,40 @@
+name: Animation Lab focused QA
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'animation-lab/**'
+      - 'scripts/qa-sprite-frames.py'
+      - 'scripts/test-qa-sprite-frames.py'
+      - 'scripts/test-animation-lab.mjs'
+      - 'scripts/animation-lab-browser-smoke.mjs'
+      - '.github/workflows/animation-lab-qa.yml'
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'animation-lab/**'
+      - 'scripts/qa-sprite-frames.py'
+      - 'scripts/test-qa-sprite-frames.py'
+      - 'scripts/test-animation-lab.mjs'
+      - 'scripts/animation-lab-browser-smoke.mjs'
+      - '.github/workflows/animation-lab-qa.yml'
+permissions:
+  contents: read
+jobs:
+  focused-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install Pillow
+      - run: python scripts/test-qa-sprite-frames.py
+      - run: node scripts/test-animation-lab.mjs
+      - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
+      - run: node scripts/animation-lab-browser-smoke.mjs
