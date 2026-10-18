@@ -20,6 +20,14 @@ jobs:
           node-version: '22'
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
+      - name: Validate proposed Common roster
+        run: node scripts/validate-recruitment-roster.mjs
+      - name: Validate preserved Journey contract
+        if: always()
+        run: node scripts/validate-realm-exploration.mjs
+      - name: Run source regression validators
+        if: always()
+        run: npm run validate
       - run: npm run build
       - name: Start built game
         run: |
