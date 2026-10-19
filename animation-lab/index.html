@@ -49,9 +49,10 @@ a{color:var(--gold)}
 <section class="stack" aria-label="Controls">
 <div>
 <h2>Load animations</h2>
-<label for="demo">Existing enemy example (legacy four-frame assets)</label>
+<label for="demo">Animation Lab sample</label>
 <select id="demo">
 <option value="road_rookie">Road Rookie</option>
+<option value="road_rookie_idle_pilot">Road Rookie idle pilot — dev-only, not Contract v1</option>
 <option value="blond_rookie">Blond Rookie</option>
 <option value="masked_scout">Masked Scout</option>
 <option value="rogue_kunoichi">Rogue Kunoichi</option>
@@ -146,10 +147,27 @@ function extractLegacy(image,name){
  }
  return frames;
 }
+var ROAD_ROOKIE_PILOT="road_rookie_idle_pilot";
+var PILOT_FRAME_PATHS=["frame_01.png","frame_02.png","frame_03.png","frame_04.png"];
+async function loadRoadRookiePilot(){
+ var base="pilots/road_rookie_idle_20261019/";
+ var frames=[];
+ for(var i=0;i<PILOT_FRAME_PATHS.length;i++){
+  var file=PILOT_FRAME_PATHS[i];
+  frames.push(await decodeUrl(base+file,"Road Rookie idle pilot "+file));
+ }
+ return frames;
+}
 async function loadDemo(){
  stop();releaseUrls("draft");releaseUrls("reference");
  var id=byId("demo").value;
  try{
+  if(id===ROAD_ROOKIE_PILOT){
+   state.draft=await loadRoadRookiePilot();state.reference=[];state.index=0;
+   byId("referencePane").hidden=true;
+   byId("sourceLabel").textContent="Road Rookie four-frame idle pilot (dev-only; not Contract v1 or gameplay-routed)";
+   refresh();return;
+  }
   var image=await decodeUrl("../assets/sprites/enemies/"+id+"/"+id+"_idle.png",id);
   if(image.width!==2172||image.height!==724)throw new Error("Unexpected legacy source dimensions");
   state.draft=extractLegacy(image.img,id);state.reference=[];state.index=0;

@@ -27,6 +27,10 @@ try{
    const page=await browser.newPage({viewport:{width:1100,height:800}});
    await page.goto('http://127.0.0.1:'+port+'/animation-lab/index.html');
    await page.waitForFunction(()=>document.getElementById('countLabel').textContent==='4 FRAMES');
+   await page.locator('#demo').selectOption('road_rookie_idle_pilot');
+   await page.locator('#loadDemo').click();
+   await page.waitForFunction(()=>document.getElementById('sourceLabel').textContent.includes('dev-only'));
+   if(await page.locator('#countLabel').innerText()!=='4 FRAMES')fail(name+' Road Rookie pilot did not load four frames');
    await page.locator('#draft').setInputFiles(files);
    await page.waitForFunction(()=>document.getElementById('countLabel').textContent==='2 FRAMES');
    const qa=await page.locator('#qa').innerText();
