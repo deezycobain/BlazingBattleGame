@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "status": "preproduction_not_summonable",
+  "purpose": "Add genuine low-rarity original units to standard summons without replacing exclusive or approved fighter pools",
+  "ordinary_banner_policy": {
+    "name": "Shinobi Recruitment",
+    "odds_percent": {
+      "Common": 68,
+      "Uncommon": 23,
+      "Rare": 8,
+      "Legendary": 1
+    },
+    "exclusive_units_excluded": true,
+    "apply_when": "At least six QA-approved playable Commons have canonical unit.json, runtime-map.json, card art, idle, basic and recoil; summon integration and server-authoritative RNG remain separate work"
+  },
+  "new_player_ownership": {
+    "starting_units": [
+      "tyler",
+      "subzero",
+      "senku"
+    ],
+    "do_not_grant_recruits_automatically": true
+  },
+  "rules": [
+    "Existing Road enemies remain enemies until separately authored as player units; never mutate their combat definitions in place",
+    "Never mark concepts or mismatched atlas art playable",
+    "Canonical recruitment units require distinct character folders and approved battle/card animation resources",
+    "New Common units have basic attacks and simple roles; exotic Jutsu, Light/Dark types, event exclusivity, and premium traits stay rare",
+    "Do not change live Legacy or Treasury pools as part of asset intake"
+  ],
+  "units": [
+    {
+      "id": "road_rookie",
+      "name": "Road Rookie",
+      "rarity": "Common",
+      "element": "Earth",
+      "role": "frontline",
+      "production_status": "asset_qa",
+      "source_art": "assets/sprites/enemies/road_rookie/road_rookie_idle.png",
+      "source_attack": "assets/sprites/enemies/road_rookie/road_rookie_attack.png",
+      "qa_note": ""
+    },
+    {
+      "id": "blond_rookie",
+      "name": "Blond Rookie",
+      "rarity": "Common",
+      "element": "Wind",
+      "role": "striker",
+      "production_status": "asset_qa",
+      "source_art": "assets/sprites/enemies/blond_rookie/blond_rookie_idle.png",
+      "source_attack": "assets/sprites/enemies/blond_rookie/blond_rookie_attack.png",
+      "qa_note": "attack atlas has contaminated edge"
+    },
+    {
+      "id": "masked_scout",
+      "name": "Masked Scout",
+      "rarity": "Common",
+      "element": "Lightning",
+      "role": "skirmisher",
+      "production_status": "asset_qa",
+      "source_art": "assets/sprites/enemies/masked_scout/masked_scout_idle.png",
+      "source_attack": "assets/sprites/enemies/masked_scout/masked_scout_attack.png",
+      "qa_note": "attack atlas needs edge-frame repair"
+    },
+    {
+      "id": "rogue_kunoichi",
+      "name": "Rogue Kunoichi",
+      "rarity": "Common",
+      "element": "Fire",
+      "role": "striker",
+      "production_status": "blocked_wrong_animation",
+      "source_art": "assets/sprites/enemies/rogue_kunoichi/rogue_kunoichi_idle.png",
+      "source_attack": "assets/sprites/enemies/rogue_kunoichi/rogue_kunoichi_attack.png",
+      "qa_note": "attack image belongs to different fighter; must regenerate before recruitment"
+    },
+    {
+      "id": "purple_scarf_kunoichi",
+      "name": "Purple Scarf Kunoichi",
+      "rarity": "Common",
+      "element": "Earth",
+      "role": "controller",
+      "production_status": "blocked_wrong_animation",
+      "source_art": "assets/sprites/enemies/purple_scarf_kunoichi/purple_scarf_kunoichi_idle.png",
+      "source_attack": "assets/sprites/enemies/purple_scarf_kunoichi/purple_scarf_kunoichi_attack.png",
+      "qa_note": "idle image mismatched; require true idle before recruitment"
+    },
+    {
+      "id": "mist_rogue",
+      "name": "Mist Rogue",
+      "rarity": "Common",
+      "element": "Water",
+      "role": "skirmisher",
+      "production_status": "asset_qa",
+      "source_art": "assets/sprites/enemies/mist_rogue/mist_rogue_idle.png",
+      "source_attack": "assets/sprites/enemies/mist_rogue/mist_rogue_attack.png",
+      "qa_note": ""
+    },
+    {
+      "id": "mistblade_initiate",
+      "name": "Mistblade Initiate",
+      "rarity": "Common",
+      "element": "Water",
+      "role": "striker",
+      "production_status": "card_only",
+      "source_art": "assets/characters/mistblade/cards/mistblade_initiate_common_card_art.png",
+      "source_attack": null,
+      "qa_note": "approved card candidate; body sheets remain in upload archive"
+    },
+    {
+      "id": "ember_scout",
+      "name": "Ember Scout",
+      "rarity": "Common",
+      "element": "Fire",
+      "role": "ranged",
+      "production_status": "archive_only",
+      "source_art": "blazing-battle-ember-scout-common-assets-v1.zip",
+      "source_attack": null,
+      "qa_note": "unpack, audit and normalize before integrating"
+    },
+    {
+      "id": "sand_courier",
+      "name": "Sand Courier",
+      "rarity": "Common",
+      "element": "Earth",
+      "role": "skirmisher",
+      "production_status": "concept",
+      "source_art": null,
+      "source_attack": null,
+      "qa_note": "fast messenger with lightweight satchel and dust technique"
+    },
+    {
+      "id": "village_medic",
+      "name": "Village Medic",
+      "rarity": "Common",
+      "element": "Nature",
+      "role": "healer",
+      "production_status": "concept",
+      "source_art": null,
+      "source_attack": null,
+      "qa_note": "low-impact healing basics; no revive at common tier"
+    },
+    {
+      "id": "iron_guard",
+      "name": "Iron Guard",
+      "rarity": "Common",
+      "element": "Earth",
+      "role": "defender",
+      "production_status": "concept",
+      "source_art": null,
+      "source_attack": null,
+      "qa_note": "heavy blocking posture and slow shield strike"
+    },
+    {
+      "id": "forest_tracker",
+      "name": "Forest Tracker",
+      "rarity": "Common",
+      "element": "Wind",
+      "role": "ranged",
+      "production_status": "concept",
+      "source_art": null,
+      "source_attack": null,
+      "qa_note": "shortbow and rope snare; no advanced status effects until wired"
+    },
+    {
+      "id": "ash_monk",
+      "name": "Ash Monk",
+      "rarity": "Uncommon",
+      "element": "Fire",
+      "role": "striker",
+      "production_status": "concept",
+      "source_art": null,
+      "source_attack": null,
+      "qa_note": "Design and production art required"
+    },
+    {
+      "id": "glacier_warden",
+      "name": "Glacier Warden",
+      "rarity": "Uncommon",
+      "element": "Water",
+      "role": "defender",
+      "production_status": "concept",
+      "source_art": null,
+      "source_attack": null,
+      "qa_note": "Design and production art required"
+    },
+    {
+      "id": "storm_acolyte",
+      "name": "Storm Acolyte",
+      "rarity": "Uncommon",
+      "element": "Lightning",
+      "role": "ranged",
+      "production_status": "concept",
+      "source_art": null,
+      "source_attack": null,
+      "qa_note": "Design and production art required"
+    },
+    {
+      "id": "wayward_alchemist",
+      "name": "Wayward Alchemist",
+      "rarity": "Uncommon",
+      "element": "Nature",
+      "role": "support",
+      "production_status": "concept",
+      "source_art": null,
+      "source_attack": null,
+      "qa_note": "Design and production art required"
+    }
+  ]
+}

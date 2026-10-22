@@ -90,7 +90,7 @@ async function run(name,type){
 
     await page.evaluate(()=>{
       const E=window.BlazingEconomy,P=window.BlazingUnitProgression,R=window.BlazingRoadRun;
-      P.reset();E.reset();R.clearRun();
+      P.reset();E.reset();E.save({...E.load(),battleMarks:0,lifetimeEarned:0,embers:0});R.clearRun();
       window.BlazingHomeV8.saveProfile('ProfileTest');
       E.grantMarks(500,'PROFILE_SMOKE');
       E.awardVictory({mode:'road',stage:1});

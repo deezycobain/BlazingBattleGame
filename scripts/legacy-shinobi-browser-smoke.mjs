@@ -1,4 +1,5 @@
 import {chromium,webkit} from 'playwright';
+import {seedSmokeProfile} from './smoke-fixtures.mjs';
 
 const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'');
 const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
@@ -15,7 +16,9 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
  try{
   browser=await browserType.launch({headless:true,timeout:15000});
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:browserName==='webkit',hasTouch:true});
-  const page=await context.newPage();
+  // This test spends eleven Embers while checking single/ten-pull art and layout.
+   await seedSmokeProfile(context,{embers:20});
+   const page=await context.newPage();
   page.setDefaultTimeout(20000);
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
@@ -160,7 +163,9 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   },{names:NAMES});
   const normalized=dims=>Array.isArray(dims)&&dims.length>0&&dims.every(([w,h])=>w===512&&h===768);
   const badRuntime=runtime.filter(x=>{
-   const expectedIdleResolved=(x.name==='Wong Fei-Hung'||x.name==='Scorpion')&&x.idleCount===6?12:x.expectedIdle;
+   // Wong uses an intentional 12-tick repeat of six poses. Scorpion's approved live idle remains six frames.
+   // Keep the V2 Scorpion animation candidate separate until its runtime presentation is approved.
+   const expectedIdleResolved=x.name==='Wong Fei-Hung'&&x.idleCount===6?12:x.expectedIdle;
    return x.idleCount!==x.expectedIdle||x.basicCount!==x.expectedBasic||x.idleResolved!==expectedIdleResolved||x.attackResolved!==x.expectedBasic||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!normalized(x.idleDims)||!normalized(x.basicDims)||!/\/sprites\/runtime\/idle\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.basicSrc);
   });
   if(badRuntime.length)throw new Error('Legacy battle animation runtime invalid: '+JSON.stringify(badRuntime));
@@ -212,6 +217,9 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   const missedAttackRender=attackRenderProbe.filter(result=>!result.usedAttack);
   if(missedAttackRender.length)throw new Error('Legacy attack renderer probe failed: '+JSON.stringify(missedAttackRender));
 
+  // Full roster inventory QA must own all twelve fighters; new accounts do not.
+  // Unlock only in this browser test, never in the production starter collection.
+  await page.evaluate(ids=>{for(const id of ids)window.BlazingCollection.unlock(id);},IDS);
   await page.goto(BASE+'/?legacyInventory=1',{waitUntil:'domcontentloaded'});
   await page.locator('#bbHomeApproved[data-bb-home-version="approved-v4"]').waitFor({state:'visible',timeout:30000});
   await page.locator('#bbHomeApproved [data-nav="units"]').click();
