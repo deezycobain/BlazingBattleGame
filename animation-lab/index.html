@@ -1,302 +1,59 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Blazing Battle | Animation Lab</title>
-<style>
-:root{color-scheme:dark;--bg:#10141b;--panel:#1b2430;--edge:#354150;--ink:#f3f0e9;--muted:#aab5c2;--gold:#f0c778;--danger:#ff9c89;--good:#a5dfac}
-*{box-sizing:border-box}
-body{font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink);margin:0}
-header{border-bottom:1px solid var(--edge);padding:18px clamp(16px,4vw,44px);display:flex;gap:18px;align-items:center;flex-wrap:wrap}
-header h1{margin:0;font-size:24px;letter-spacing:.02em}
-small,.muted{color:var(--muted)}
-.tag{border:1px solid var(--edge);border-radius:99px;padding:4px 10px;color:var(--gold);font-size:12px}
-main{max-width:1440px;margin:auto;padding:22px;display:grid;grid-template-columns:minmax(240px,340px) 1fr;gap:18px}
-section,.panel{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:16px}
-h2{font-size:17px;margin:0 0 14px}
-h3{font-size:14px;margin:16px 0 8px}
-.stack{display:grid;gap:14px;align-content:start}
-label{font-weight:600;font-size:13px;display:block;margin-bottom:6px}
-input[type=file],select,input[type=number],button{font:inherit;color:var(--ink);background:#121b25;border:1px solid var(--edge);border-radius:8px;padding:9px;width:100%;max-width:100%}
-input[type=range]{width:100%;accent-color:var(--gold)}
-button{cursor:pointer;font-weight:600}
-button:hover{border-color:var(--gold)}
-button:disabled{opacity:.45;cursor:not-allowed}
-button.primary{background:#5e482a;border-color:#9c7641}
-.controls{display:flex;flex-wrap:wrap;gap:9px;align-items:end}
-.controls button{width:auto;min-width:52px}
-.controls label{margin:0}
-.stage-area{min-width:0}
-.stages{display:flex;gap:14px;justify-content:center;align-items:start;flex-wrap:wrap}
-.stage{min-width:210px;flex:1 1 240px;max-width:460px}
-.stage h3{margin:0 0 8px}
-.checker{background-color:#25303a;background-image:linear-gradient(45deg,#33404c 25%,transparent 25%),linear-gradient(-45deg,#33404c 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#33404c 75%),linear-gradient(-45deg,transparent 75%,#33404c 75%);background-size:32px 32px;background-position:0 0,0 16px,16px -16px,-16px 0;border:1px solid #56616f;border-radius:7px;overflow:hidden}
-canvas{display:block;width:100%;height:auto;aspect-ratio:2/3}
-.status{background:#121b25;border:1px solid var(--edge);padding:12px;border-radius:9px;white-space:pre-wrap;word-break:break-word}
-.warning{color:var(--danger)}.pass{color:var(--good)}.framebar{display:flex;justify-content:space-between;gap:12px;align-items:center}
-hr{border:0;border-top:1px solid var(--edge);margin:2px 0}
-a{color:var(--gold)}
-@media(max-width:800px){main{display:block;padding:12px}main>section{margin-bottom:12px}}
-</style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blazing Motion Studio | Animation Lab</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="studio.css">
 </head>
 <body>
-<header>
-<div><h1>Blazing Battle | Animation Lab</h1><small>Isolated developer tool. No combat, save, summon, or roster changes.</small></div>
-<span class="tag">SOURCE PREVIEW + QA</span>
-</header>
+<header><div class="brand"><span class="mark">B/M</span><div><h1>Blazing Motion Studio <small>1.0</small></h1><p>Animation Lab · reference, inspect, prepare</p></div></div><span class="badge">ISOLATED PRODUCTION WORKSPACE</span><a href="../ITACHI_GOLD_MOTION_AUDIT.md">Gold motion audit ↗</a></header>
 <main>
-<section class="stack" aria-label="Controls">
-<div>
-<h2>Load animations</h2>
-<label for="demo">Animation Lab sample</label>
-<select id="demo">
-<option value="road_rookie">Road Rookie</option>
-<option value="road_rookie_idle_pilot">Road Rookie idle pilot — dev-only, not Contract v1</option>
-<option value="blond_rookie">Blond Rookie</option>
-<option value="masked_scout">Masked Scout</option>
-<option value="rogue_kunoichi">Rogue Kunoichi</option>
-<option value="purple_scarf_kunoichi">Purple Scarf Kunoichi</option>
-<option value="mist_rogue">Mist Rogue</option>
-</select>
-<button id="loadDemo" type="button" style="margin-top:7px">Load existing idle</button>
-</div>
-<div>
-<label for="draft">Draft: select individual PNGs (multi-select)</label>
-<input id="draft" type="file" accept="image/png" multiple>
-<small>Names are sorted naturally. Each file stays separate; no AI sheet cutting.</small>
-</div>
-<div>
-<label for="reference">Approved reference frames (optional)</label>
-<input id="reference" type="file" accept="image/png" multiple>
-<small>Both sides play the same frame index for visual comparison.</small>
-</div>
-<hr>
-<div>
-<h2>Playback</h2>
-<div class="controls">
-<button id="prev" type="button" aria-label="Previous frame">◀</button>
-<button id="play" type="button" class="primary">Play</button>
-<button id="next" type="button" aria-label="Next frame">▶</button>
-</div>
-</div>
-<div>
-<label for="rate">Frame duration: <span id="rateLabel">160 ms</span></label>
-<input id="rate" type="range" min="60" max="500" value="160" step="10">
-<label for="frame">Scrub frame</label>
-<input id="frame" type="range" min="0" max="0" value="0">
-<div class="framebar"><small id="position">0 / 0</small><small>Manual visual approval still required</small></div>
-</div>
-<div>
-<label><input id="bounds" type="checkbox" checked> Show alpha bounding boxes and baseline</label>
-<label><input id="onion" type="checkbox"> Ghost preceding frame (onion skin)</label>
-</div>
-<div>
-<h2>QA checks</h2>
-<div class="status" id="qa" role="status">Load an example or a draft to inspect actual frame dimensions, alpha safety, and motion stability.</div>
-<button id="export" type="button" disabled style="margin-top:12px">Export QA JSON</button>
-<small>Automatic QA checks are structural. Visual continuity, character identity, and impact feel require review.</small>
-</div>
+<aside class="stack">
+<section><div class="section-title"><span>01</span><h2>Reference library</h2></div>
+<label for="character">Working character</label><select id="character"><option value="itachi">Itachi · Gold Standard</option><option value="obito">Obito</option><option value="scorpion">Scorpion · approved design</option><option value="road_rookie_idle_pilot">Road Rookie · idle pilot</option></select>
+<label for="animation">Animation</label><select id="animation"></select>
+<div class="row"><label for="timing">Playback contract</label><select id="timing"><option value="runtime">Effective runtime</option><option value="manifest">Declared manifest</option></select></div>
+<button id="roadWorkspace" class="accent">Prepare Road Rookie workspace</button>
+<details><summary>Existing enemy references</summary><label for="demo">Legacy four-cell sheet</label><select id="demo"><option value="road_rookie">Road Rookie</option><option value="road_rookie_idle_pilot">Road Rookie idle pilot · dev-only</option><option value="blond_rookie">Blond Rookie</option><option value="masked_scout">Masked Scout</option><option value="rogue_kunoichi">Rogue Kunoichi</option><option value="purple_scarf_kunoichi">Purple Scarf Kunoichi</option><option value="mist_rogue">Mist Rogue</option></select><button id="loadDemo">Load existing idle</button></details>
 </section>
-<section class="stage-area stack" aria-label="Animation previews">
-<div class="framebar">
-<div><h2 style="margin:0">Frame viewer</h2><small id="sourceLabel">No frames loaded</small></div>
-<span class="tag" id="countLabel">0 FRAMES</span>
-</div>
-<div class="stages">
-<div class="stage"><h3>Draft / current</h3><div class="checker"><canvas id="stageA" width="512" height="768"></canvas></div></div>
-<div class="stage" id="referencePane" hidden><h3>Approved reference</h3><div class="checker"><canvas id="stageB" width="512" height="768"></canvas></div></div>
-</div>
-<div class="panel"><h3>Pipeline rules</h3>
-<p style="margin-top:0">One PNG per pose → inspect motion → normalize to 512×768 RGBA with grounded y=700 → run <code>python3 scripts/qa-sprite-frames.py</code> → only then pack or import.</p>
-<p class="muted">The legacy demo uses the existing 543×724 four-frame enemy sheets as references only; they are not automatically approved for collection or gameplay. Drafts are local to your browser and never uploaded by this page.</p>
-</div>
+<section><div class="section-title"><span>02</span><h2>Compare & import</h2></div>
+<label for="refCharacter">Comparison character</label><select id="refCharacter"><option value="none">No comparison</option><option value="itachi" selected>Itachi · Gold Standard</option><option value="obito">Obito</option><option value="scorpion">Scorpion · approved design</option></select>
+<label for="refAnimation">Comparison animation</label><select id="refAnimation"></select>
+<label for="sync">Synchronization</label><select id="sync"><option value="elapsed">Shared elapsed time · true cadence</option><option value="phase">Lock cycle phase · retimed B</option></select>
+<label for="draftAnimation">Local artwork motion</label><select id="draftAnimation"><option value="run">Run</option><option value="idle">Idle</option><option value="basic">Basic attack</option><option value="recoil">Recoil</option></select>
+<label for="draft">Import individual PNG frames</label><input id="draft" type="file" accept="image/png" multiple>
+<label for="reference">Import comparison PNGs</label><input id="reference" type="file" accept="image/png" multiple>
+<p class="muted">Naturally sorted; decoded locally. Source artwork stays untouched. New imports use the 512×768 production contract.</p>
 </section>
-</main>
-<script>
-"use strict";
-(function(){
-var byId=function(id){return document.getElementById(id)};
-var stageA=byId("stageA"),stageB=byId("stageB");
-var state={draft:[],reference:[],index:0,playing:false,stamp:0,accum:0,report:null,urls:{draft:[],reference:[]}};
-var fileNames=function(a,b){return a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:"base"})};
-function releaseUrls(kind){state.urls[kind].forEach(function(url){URL.revokeObjectURL(url)});state.urls[kind]=[]}
-function decodeUrl(url,name){
- return new Promise(function(resolve,reject){
-  var img=new Image();img.onload=function(){resolve({img:img,name:name,width:img.naturalWidth,height:img.naturalHeight})};
-  img.onerror=function(){reject(new Error("Unreadable image: "+name))};
-  img.src=url;
- });
-}
-async function decodeFiles(files,kind){
- var list=Array.from(files).sort(fileNames);
- if(list.some(function(f){return f.type!=="image/png" && !f.name.toLowerCase().endsWith(".png")}))throw new Error("Select PNG files only");
- var results=[];
- for(var i=0;i<list.length;i++){
-  var url=URL.createObjectURL(list[i]);state.urls[kind].push(url);
-  results.push(await decodeUrl(url,list[i].name));
- }
- return results;
-}
-function extractLegacy(image,name){
- var frames=[];
- for(var n=0;n<4;n++){
-  var c=document.createElement("canvas");c.width=543;c.height=724;
-  c.getContext("2d").drawImage(image,n*543,0,543,724,0,0,543,724);
-  frames.push({name:name+" frame "+(n+1),img:c,width:543,height:724});
- }
- return frames;
-}
-var ROAD_ROOKIE_PILOT="road_rookie_idle_pilot";
-var PILOT_FRAME_PATHS=["frame_01.png","frame_02.png","frame_03.png","frame_04.png"];
-async function loadRoadRookiePilot(){
- var base="pilots/road_rookie_idle_20261019/";
- var frames=[];
- for(var i=0;i<PILOT_FRAME_PATHS.length;i++){
-  var file=PILOT_FRAME_PATHS[i];
-  frames.push(await decodeUrl(base+file,"Road Rookie idle pilot "+file));
- }
- return frames;
-}
-async function loadDemo(){
- stop();releaseUrls("draft");releaseUrls("reference");
- var id=byId("demo").value;
- try{
-  if(id===ROAD_ROOKIE_PILOT){
-   state.draft=await loadRoadRookiePilot();state.reference=[];state.index=0;
-   byId("referencePane").hidden=true;
-   byId("sourceLabel").textContent="Road Rookie four-frame idle pilot (dev-only; not Contract v1 or gameplay-routed)";
-   refresh();return;
-  }
-  var image=await decodeUrl("../assets/sprites/enemies/"+id+"/"+id+"_idle.png",id);
-  if(image.width!==2172||image.height!==724)throw new Error("Unexpected legacy source dimensions");
-  state.draft=extractLegacy(image.img,id);state.reference=[];state.index=0;
-  byId("referencePane").hidden=true;
-  byId("sourceLabel").textContent=id+" (legacy reference, not production-approved)";
-  refresh();
- }catch(error){byId("qa").textContent="ERROR: "+error.message}
-}
-async function loadFiles(input,kind){
- stop();
- try{
-  releaseUrls(kind);
-  var result=await decodeFiles(input.files,kind);
-  state[kind]=result;
-  if(kind==="draft"){state.index=0;byId("sourceLabel").textContent="Local draft: "+result.length+" PNG frames"}
-  byId("referencePane").hidden=!state.reference.length;
-  refresh();
- }catch(error){byId("qa").textContent="ERROR: "+error.message}
-}
-var metricsCache=new WeakMap();
-function analyzeOne(item){
- if(metricsCache.has(item.img))return metricsCache.get(item.img);
- var c=document.createElement("canvas");c.width=item.width;c.height=item.height;
- var cx=c.getContext("2d",{willReadFrequently:true});cx.drawImage(item.img,0,0);
- var pix=cx.getImageData(0,0,c.width,c.height).data;
- var l=c.width,t=c.height,r=-1,b=-1,opaque=true;
- for(var y=0;y<c.height;y++)for(var x=0;x<c.width;x++){
-  var alpha=pix[(y*c.width+x)*4+3];
-  if(alpha<255)opaque=false;
-  if(alpha>12){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y)}
- }
- if(r<l){var empty={name:item.name,error:"Empty visible frame",width:c.width,height:c.height};metricsCache.set(item.img,empty);return empty}
- var margins=[l,t,c.width-r-1,c.height-b-1];
- var errors=[],warnings=[];
- if(margins.some(function(v){return v<4}))errors.push("Near rectangle boundary");
- if(opaque)errors.push("Background opaque");
- if(item.width!==512||item.height!==768)warnings.push("Not canonical 512×768 runtime dimensions");
- if(item.width===512 && item.height===768 && Math.abs(b+1-700)>8)warnings.push("Grounded idle y differs from 700±8");
- var result={name:item.name,width:item.width,height:item.height,bounds:[l,t,r+1,b+1],margins:margins,
-  centerX:(l+r+1)/2,bodyHeight:b-t+1,feetY:b+1,errors:errors,warnings:warnings};
- metricsCache.set(item.img,result);return result;
-}
-function updateQA(){
- if(!state.draft.length){state.report=null;byId("qa").textContent="Load PNG frames to start QA.";byId("export").disabled=true;return}
- var entries=state.draft.map(analyzeOne),errors=[],warnings=[];
- entries.forEach(function(e){(e.errors||[]).forEach(function(x){errors.push(e.name+": "+x)});
-  (e.warnings||[]).forEach(function(x){warnings.push(e.name+": "+x)});
-  if(e.error)errors.push(e.name+": "+e.error)});
- if(entries.length>1 && entries.every(function(e){return e.bounds})){
-  var cx=entries.map(function(e){return e.centerX});
-  var heights=entries.map(function(e){return e.bodyHeight});
-  if(Math.max.apply(null,cx)-Math.min.apply(null,cx)>20)warnings.push("Center drift exceeds 20px");
-  if(Math.max.apply(null,heights)-Math.min.apply(null,heights)>24)warnings.push("Silhouette height variation exceeds 24px");
- }
- state.report={tool:"Blazing Battle Animation Lab",automatic_checks_only:true,
-  frame_count:entries.length,errors:errors,warnings:warnings,frames:entries};
- var lines=["Structural: "+(errors.length?"FAIL":"NO HARD FAILURES")+" | "+entries.length+" frames"];
- if(errors.length)lines.push("Errors:\n"+errors.join("\n"));
- if(warnings.length)lines.push("Review:\n"+warnings.join("\n"));
- lines.push("No automatic judgment of anatomy, loop quality or character identity.");
- byId("qa").textContent=lines.join("\n\n");
- byId("qa").className="status"+(errors.length?" warning":"");
- byId("export").disabled=false;
-}
-function draw(canvas,frames,reference){
- var ctx=canvas.getContext("2d");ctx.clearRect(0,0,512,768);
- if(!frames.length)return;
- var idx=state.index%frames.length,item=frames[idx];
- function paint(frame,alpha){
-  var ratio=Math.min(512/frame.width,768/frame.height);
-  var w=frame.width*ratio,h=frame.height*ratio;
-  ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(frame.img,(512-w)/2,(768-h)/2,w,h);ctx.restore();
- }
- if(byId("onion").checked&&frames.length>1)paint(frames[(idx+frames.length-1)%frames.length],.23);
- paint(item,1);
- if(!byId("bounds").checked)return;
- var reportEntry=analyzeOne(item);
- if(reportEntry.bounds){
-  var ratio=Math.min(512/item.width,768/item.height),dx=(512-item.width*ratio)/2,dy=(768-item.height*ratio)/2;
-  var b=reportEntry.bounds;
-  ctx.strokeStyle="#f0c778";ctx.lineWidth=2;ctx.strokeRect(dx+b[0]*ratio,dy+b[1]*ratio,(b[2]-b[0])*ratio,(b[3]-b[1])*ratio);
- }
- ctx.beginPath();ctx.moveTo(0,700);ctx.lineTo(512,700);ctx.strokeStyle="#76dbc0";ctx.lineWidth=1.5;ctx.stroke();
- ctx.font="19px system-ui";ctx.fillStyle="#f0c778";ctx.fillText((reference?"Reference":"Draft")+" "+(idx+1)+"/"+frames.length,12,28);
-}
-function refresh(){
- var count=state.draft.length;state.index=Math.min(state.index,Math.max(0,count-1));
- byId("frame").max=String(Math.max(0,count-1));byId("frame").value=String(state.index);
- byId("position").textContent=(count?state.index+1:0)+" / "+count;
- byId("countLabel").textContent=count+" FRAMES";
- draw(stageA,state.draft,false);draw(stageB,state.reference,true);updateQA();
-}
-function step(by){if(!state.draft.length)return;state.index=(state.index+by+state.draft.length)%state.draft.length;refreshFrame()}
-function refreshFrame(){
- byId("frame").value=String(state.index);
- byId("position").textContent=(state.index+1)+" / "+state.draft.length;
- draw(stageA,state.draft,false);draw(stageB,state.reference,true);
-}
-function stop(){state.playing=false;state.stamp=0;state.accum=0;byId("play").textContent="Play"}
-function tick(now){
- if(!state.playing)return;
- if(state.stamp){state.accum+=Math.min(500,now-state.stamp)}
- state.stamp=now;
- var delay=Number(byId("rate").value);
- if(state.accum>=delay){var delta=Math.floor(state.accum/delay);state.accum%=delay;step(delta)}
- requestAnimationFrame(tick);
-}
-byId("loadDemo").addEventListener("click",loadDemo);
-byId("draft").addEventListener("change",function(){loadFiles(this,"draft")});
-byId("reference").addEventListener("change",function(){loadFiles(this,"reference")});
-byId("prev").addEventListener("click",function(){step(-1)});
-byId("next").addEventListener("click",function(){step(1)});
-byId("play").addEventListener("click",function(){
- if(!state.draft.length)return;
- if(state.playing){stop();return}
- state.playing=true;state.stamp=0;state.accum=0;this.textContent="Pause";requestAnimationFrame(tick);
-});
-byId("rate").addEventListener("input",function(){byId("rateLabel").textContent=this.value+" ms"});
-byId("frame").addEventListener("input",function(){state.index=Number(this.value);refreshFrame()});
-byId("bounds").addEventListener("change",refreshFrame);
-byId("onion").addEventListener("change",refreshFrame);
-byId("export").addEventListener("click",function(){
- if(!state.report)return;
- var url=URL.createObjectURL(new Blob([JSON.stringify(state.report,null,2)],{type:"application/json"}));
- var a=document.createElement("a");a.href=url;a.download="animation-lab-qa.json";a.click();
- setTimeout(function(){URL.revokeObjectURL(url)},1000);
-});
-loadDemo();
-})();
-</script>
-</body>
-</html>
+<section><div class="section-title"><span>03</span><h2>Motion profile</h2></div>
+<button id="inherit">Inherit Itachi timing</button><p class="muted">Maps Gold timing onto your artwork count. Pose correspondence and artwork still require review.</p>
+<label for="events">Event markers · JSON</label><textarea id="events" rows="4" spellcheck="false">[]</textarea><button id="saveEvents">Apply event markers</button>
+<div class="button-grid"><button id="exportProfile">Export profile</button><button id="exportMetrics">Export metrics</button></div>
+<label for="importProfile">Restore profile metadata</label><input id="importProfile" type="file" accept="application/json,.json"><p class="muted">Reimport the same PNGs first. JSON stores editable timing, order, events and guides; it does not embed artwork.</p>
+</section>
+</aside>
+<div class="workspace stack">
+<section class="viewer"><div class="viewer-heading"><div><span class="eyebrow">MOTION INSPECTION</span><h2 id="sourceLabel">Loading real reference frames…</h2></div><span class="badge" id="countLabel">0 FRAMES</span></div>
+<div id="notice" role="status" aria-live="polite">Loading reference library…</div>
+<div class="toolbar"><label>View <select id="presentation"><option value="source">Untouched source</option><option value="normalized">Runtime preparation preview</option></select></label><label><input type="checkbox" id="bounds" checked> Bounds & guides</label><label><input type="checkbox" id="onion"> Onion skin</label><label><input type="checkbox" id="mirror"> Mirror both</label></div>
+<div class="stages"><div class="stage"><h3>A <span id="labelA">Working artwork</span></h3><div class="checker"><canvas id="stageA" width="512" height="768" tabindex="0" aria-label="Working frame; click to place the selected anatomical landmark"></canvas></div><p id="metricsA" class="metrics"></p></div><div class="stage" id="referencePane"><h3>B <span id="labelB">Gold reference</span></h3><div class="checker"><canvas id="stageB" width="512" height="768" aria-label="Synchronized comparison frame"></canvas></div><p id="metricsB" class="metrics"></p></div></div>
+<div class="toolbar"><label>Reference overlay <input id="overlay" type="range" min="0" max="1" value="0" step=".05"></label><label>Onion opacity <input id="onionOpacity" type="range" min=".05" max=".8" value=".22" step=".01"></label></div>
+<p class="muted" id="timingNote"></p><p class="muted" id="transformNote"></p>
+</section>
+<section><div class="section-title"><span>04</span><h2>Frame timeline</h2><small id="position">0 / 0</small></div>
+<div class="transport"><button id="prev" aria-label="Previous frame">◀</button><button id="play" class="accent">Play</button><button id="next" aria-label="Next frame">▶</button><label><input id="loop" type="checkbox" checked> Loop</label><label>Speed <select id="speed"><option value=".25">0.25×</option><option value=".5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label><span id="clock" class="mono">0 ms</span></div>
+<label for="frame" class="sr-only">Scrub playback slot</label><input id="frame" type="range" min="0" max="0" value="0"><div id="timeline" class="timeline" aria-label="Frame thumbnails"></div>
+<div class="transport"><label>Duration (ms)<input id="duration" type="number" min="1" max="60000" step="1" value="85"></label><button id="moveEarlier">Move earlier</button><button id="moveLater">Move later</button><button id="undo">Undo edit</button><button id="reset">Reload reference</button></div><p id="eventSummary" class="muted"></p>
+</section>
+<section><div class="section-title"><span>05</span><h2>Anatomical motion guide</h2><span class="badge">MANUAL · UNVERIFIED</span></div><div class="toolbar"><label><input id="anatomy" type="checkbox"> Show / edit landmarks on A</label><button id="scaffold">Add editable guide scaffold</button></div>
+<div class="landmark-editor"><label>Landmark<select id="joint"></select></label><label>X<input id="jointX" type="number" step="1"></label><label>Y<input id="jointY" type="number" step="1"></label><button id="placeJoint">Set point</button><button id="deleteJoint">Remove point</button></div>
+<label for="pose">Pose annotation</label><select id="pose"><option value="">Pending pose annotation</option></select><p id="guideStatus" class="muted">Select a joint and click the artwork, or drag a point. Coordinates use the original PNG canvas.</p><p class="muted">Near limbs: gold · far limbs: blue. A scaffold supplies editable positions only; it does not detect or approve anatomy. Check alternating contacts, compression, passing, opposite arms and flight.</p>
+</section>
+<section><div class="section-title"><span>06</span><h2>Gameplay scale A / B</h2></div><label for="gameScale">Display model</label><select id="gameScale"><option value="legacy">Audited neutral legacy renderer</option><option value="standard">96 logical px production target</option></select><div class="game-stages"><div><canvas id="gameA" width="320" height="200"></canvas><small id="gameLabelA"></small></div><div><canvas id="gameB" width="320" height="200"></canvas><small id="gameLabelB"></small></div></div><p class="muted">One canvas pixel = one logical display pixel at native CSS size. Neutral legacy view uses a fully prepared idle reference and per-frame placement; a cached fallback can change real legacy size; camera/depth, pickup pulse, glow and VFX are excluded. New imports always use one fixed 96/600 transform.</p></section>
+<section><div class="section-title"><span>07</span><h2>Production validation</h2><button id="export">Export QA JSON</button></div><div id="qa" class="report" role="status"></div><details><summary>Comparison QA</summary><pre id="qaB"></pre></details><p class="muted">Hard technical failures and review warnings are separate. Pixel metrics cannot approve anatomy, identity or animation quality. Run/jump foot lift is allowed.</p></section>
+<section id="roadPlan" hidden><div class="section-title"><span>08</span><h2>Road Rookie · pending artwork</h2></div><p>Identity reference: existing four-frame idle pilot, pending producer approval. Keep the approved face, proportions, outfit, shin guards, elbow coverings and harness. No finished run sequence is available here.</p><ol id="pendingPoses"></ol><p class="muted">Illustrate and review these poses against Itachi's cycle. No frame synthesis, body bending or gameplay integration is performed.</p></section>
+</div>
+</main><footer>512×768 RGBA PNG · bottom-center · neutral feet Y=700±8 · body height 600±30 · size classes from the existing visual standard · independent VFX</footer>
+<script type="module" src="studio.mjs"></script>
+</body></html>

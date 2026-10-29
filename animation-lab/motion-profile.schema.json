@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blazing Motion Profile v1",
+  "type": "object",
+  "required": ["schemaVersion", "id", "animations"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "id": {"type": "string", "minLength": 1},
+    "name": {"type": "string"},
+    "extends": {"type": ["string", "null"]},
+    "reviewStatus": {"type": "string"},
+    "sourceCommit": {"type": "string"},
+    "productionContract": {"type": "object", "description": "Snapshot of config/fighter-visual-standard.json; that source remains authoritative."},
+    "spatialTransform": {"type": "object", "properties": {"scope": {"const": "whole-sequence"}, "scale": {"type": "number", "exclusiveMinimum": 0}, "dx": {"type": "number"}, "dy": {"type": "number"}, "anchor": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}}},
+    "frameTargets": {"type": "object", "description": "Targets for new illustrated poses, never hard frame-count limits."},
+    "animations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "timeline": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["frame", "durationMs"], "properties": {"frame": {"type": "integer", "minimum": 0}, "durationMs": {"type": "number", "minimum": 1, "maximum": 60000}}}},
+          "loop": {"type": "boolean"},
+          "events": {"type": "array", "items": {"type": "object", "required": ["name", "timeMs"], "properties": {"name": {"type": "string", "minLength": 1}, "timeMs": {"type": "number", "minimum": 0}, "layer": {"type": "string"}}}},
+          "artworkReferences": {"type": "array", "items": {"type": "string"}},
+          "artworkEmbedded": {"const": false},
+          "anatomyStatus": {"type": "string"},
+          "frames": {"type": "array", "items": {"type": "object", "required": ["name", "landmarks"], "properties": {"name": {"type": "string"}, "pose": {"type": "string"}, "landmarks": {"type": "object", "propertyNames": {"enum": ["head", "neck", "torso", "pelvis", "near_shoulder", "near_elbow", "near_wrist", "near_hand", "near_hip", "near_knee", "near_ankle", "near_foot", "far_shoulder", "far_elbow", "far_wrist", "far_hand", "far_hip", "far_knee", "far_ankle", "far_foot"]}, "additionalProperties": {"type": "object", "required": ["x", "y"], "properties": {"x": {"type": "number", "minimum": 0}, "y": {"type": "number", "minimum": 0}, "status": {"type": "string"}}}}}}}
+        }
+      }
+    }
+  }
+}
