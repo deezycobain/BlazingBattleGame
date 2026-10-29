@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const collection=fs.readFileSync('runtime/core/starter-collection.js','utf8');
+const teamPostprocess=fs.readFileSync('scripts/starter-account-postprocess.mjs','utf8');
+assert.ok(teamPostprocess.includes("testMode?['Itachi',null,'Obito',null,'Scorpion',null]"),'QA team defaults to three requested fighters');
+assert.ok(teamPostprocess.includes('blazingBattle.animationTestTeam.v1'), 'QA team storage stays separate from the normal account');
 const economy=fs.readFileSync('runtime/modes/battle-economy.js','utf8');
 function boot(entries={},search=''){
  const store=new Map(Object.entries(entries));
