@@ -65,3 +65,17 @@ Legacy neutral-scale emulation uses a fully prepared cached idle reference; live
 WebKit's browser binary is not installed in this local environment; local Safari/iPhone execution and full combat end-to-end regressions were not run. CI retains the prior default Chromium + WebKit browser-smoke coverage. Full local build/validation and the isolated Chromium smoke passed.
 
 Next: review this milestone; annotate Itachi's actual near/far contacts and passing poses; confirm the Road Rookie identity master; then illustrate and review his eight run poses at gameplay scale. Keep gameplay routing and character replacement outside that phase until separately approved.
+
+## Follow-up CI evidence
+
+The Animation Lab focused QA workflow completed successfully in both Chromium and WebKit: https://github.com/deezycobain/BlazingBattleGame/actions/runs/40828891669 . Physical Safari/iPhone review remains pending.
+
+The broader game workflow built successfully and passed paired-team and Itachi integration checks, then failed in the unchanged Legacy summon test at its ten-pull action. That test started with the production three-Ember wallet and had already spent one Ember. Its old full-roster inventory and Scorpion twelve-slot expectations also predated current starter ownership and the approved ten-slot quality idle.
+
+The follow-up changes only that presentation test: seed owned Legacy fighters in its isolated browser context, fund exactly eleven Embers through the actual wallet API, assert all eleven are spent, and await/expect Scorpion's real ten-slot quality idle. Production wallet, ownership, sprites and gameplay code remain untouched. Default Chromium + WebKit coverage is retained; environment selectors allow the installed local browser to be used explicitly.
+
+```sh
+BB_SMOKE_URL=http://127.0.0.1:4174 BB_SMOKE_BROWSER=chromium PLAYWRIGHT_MODULE=file:///workspace/.tools/node_modules/playwright/index.mjs CHROMIUM_EXECUTABLE=/usr/bin/chromium node scripts/legacy-shinobi-browser-smoke.mjs
+```
+
+PASS: Legacy lobby, single reveal/results, ten-pull grid, exact wallet spending, inventory, active runtime and attack-render probes. A new full CI run is required before merge.
