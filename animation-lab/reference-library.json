@@ -733,47 +733,6 @@
           "notes": "Desktop uploaded route only. Normal hit 180ms; strong hit 230ms. Quality recoil method is not selected by final drawUnit."
         }
       }
-    },
-    "road_rookie_idle_pilot": {
-      "label": "Road Rookie \u00b7 idle pilot (pending review)",
-      "legacy": true,
-      "anchor": [
-        256,
-        700
-      ],
-      "sequences": {
-        "idle": {
-          "paths": [
-            "animation-lab/pilots/road_rookie_idle_20261019/frame_01.png",
-            "animation-lab/pilots/road_rookie_idle_20261019/frame_02.png",
-            "animation-lab/pilots/road_rookie_idle_20261019/frame_03.png",
-            "animation-lab/pilots/road_rookie_idle_20261019/frame_04.png"
-          ],
-          "timeline": [
-            {
-              "frame": 0,
-              "durationMs": 160
-            },
-            {
-              "frame": 1,
-              "durationMs": 160
-            },
-            {
-              "frame": 2,
-              "durationMs": 160
-            },
-            {
-              "frame": 3,
-              "durationMs": 160
-            }
-          ],
-          "manifestFrameMs": 160,
-          "loop": true,
-          "events": [],
-          "normalization": "none",
-          "notes": "Four dev-only idle pilot poses; identity master approval remains external. Run poses are pending production."
-        }
-      }
     }
   }
 }

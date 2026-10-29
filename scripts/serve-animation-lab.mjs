@@ -7,7 +7,7 @@ export async function createStudioServer(root=path.resolve(path.dirname(fileURLT
   const library=JSON.parse(await fs.readFile(path.join(root,'animation-lab/reference-library.json'),'utf8'));
   const files=new Set(['animation-lab/index.html','animation-lab/README.md','animation-lab/motion-profile.schema.json','animation-lab/studio.css','animation-lab/studio.mjs','animation-lab/core.mjs','animation-lab/reference-library.json','animation-lab/profiles/itachi-gold-v1.json','config/fighter-visual-standard.json','ITACHI_GOLD_MOTION_AUDIT.md']);
   for(const unit of Object.values(library.units))for(const seq of Object.values(unit.sequences))for(const file of seq.paths)files.add(file);
-  for(const id of ['road_rookie','blond_rookie','masked_scout','rogue_kunoichi','purple_scarf_kunoichi','mist_rogue'])files.add(`assets/sprites/enemies/${id}/${id}_idle.png`);
+  for(const id of ['blond_rookie','masked_scout','rogue_kunoichi','purple_scarf_kunoichi','mist_rogue'])files.add(`assets/sprites/enemies/${id}/${id}_idle.png`);
   return http.createServer(async(req,res)=>{
     try{
       if(!['GET','HEAD'].includes(req.method)){res.writeHead(405);res.end();return;}

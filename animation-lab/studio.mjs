@@ -1,4 +1,4 @@
-import {PROFILE_VERSION,LANDMARKS,BONES,RUN_POSES,clone,median,totalMs,frameAt,timelineFor,pngInfo,inspectPixels,validateSequence,validateTimeline,resolveProfile,inheritTiming,scaffold,validateLandmarks} from './core.mjs';
+import {PROFILE_VERSION,LANDMARKS,BONES,RUN_POSES,clone,median,totalMs,frameAt,timelineFor,pngInfo,inspectPixels,validateSequence,validateTimeline,resolveProfile,inheritTiming,scaffold,validateLandmarks,matchedViewTransforms} from './core.mjs';
 const $=id=>document.getElementById(id), root=new URL('../',import.meta.url);
 const state={a:null,b:null,elapsed:0,playing:false,lastStamp:null,raf:null,loading:0,generation:{a:0,b:0},reports:{},undo:[],library:null,standard:null,gold:null};
 const cache=new Map();
@@ -60,7 +60,7 @@ async function librarySequence(character,animation,timing='runtime'){
   if(timing==='manifest'&&sequence.manifestFrameMs)sequence.timeline=timelineFor(sequence.frames.length,sequence.manifestFrameMs);
   sequence.timing=timing;
   // The real renderer caches idle occupancy, not the animation being inspected.
-  if(animation!=='idle'&&character!=='road_rookie_idle_pilot')sequence.idleReference=await librarySequence(character,'idle','runtime');
+  if(animation!=='idle')sequence.idleReference=await librarySequence(character,'idle','runtime');
   else sequence.idleReference=null;
   return sequence;
 }
@@ -80,18 +80,25 @@ async function install(side,promise){
   try{
     const seq=await promise;if(token!==state.generation[side]){dispose(seq);return;}
     dispose(state[side]);state[side]=seq;
-    if(side==='a'){state.elapsed=0;state.undo=[];$('loop').checked=seq.loop;$('events').value=JSON.stringify(seq.events,null,2);$('sourceLabel').textContent=seq.label;$('countLabel').textContent=`${seq.frames.length} FRAMES`;$('roadPlan').hidden=seq.character!=='road_rookie_idle_pilot'&&!(seq.local&&state.roadWorkspace);}
+    if(side==='a'){state.elapsed=0;state.undo=[];$('loop').checked=seq.loop;$('events').value=JSON.stringify(seq.events,null,2);$('sourceLabel').textContent=seq.label;$('countLabel').textContent=`${seq.frames.length} FRAMES`;$('roadPlan').hidden=!(seq.local&&state.roadWorkspace);if(seq.local)$('presentation').value='matched';}
     $('referencePane').hidden=!state.b;
     refreshAll();notice(seq.notes||'Frames decoded. Inspect source QA and review artwork before approval.');
   }catch(error){if(token===state.generation[side])notice(error.message,true);}
   finally{state.loading--;}
 }
 function fillAnimations(character,element){
-  const unit=state.library.units[character];element.replaceChildren();if(!unit)return;
+  const unit=state.library.units[character];element.replaceChildren();element.disabled=!unit;if(!unit){if(character==='road_rookie_pending')element.add(new Option('Approved artwork required','pending'));return;}
   for(const kind of ['idle','run','basic','recoil']){const option=new Option(unit.sequences[kind]?kind:`${kind} · unavailable`,kind);option.disabled=!unit.sequences[kind];element.add(option);}
   element.value=unit.sequences.run?'run':'idle';
 }
-function loadA(){return install('a',librarySequence($('character').value,$('animation').value,$('timing').value));}
+function loadA(){if($('character').value==='road_rookie_pending')return openRoadWorkspace();return install('a',librarySequence($('character').value,$('animation').value,$('timing').value));}
+async function openRoadWorkspace(){
+  pause();++state.generation.a;dispose(state.a);state.a=null;state.elapsed=0;state.undo=[];state.roadWorkspace=true;
+  $('character').value='road_rookie_pending';fillAnimations('road_rookie_pending',$('animation'));
+  $('refCharacter').value='itachi';fillAnimations('itachi',$('refAnimation'));$('refAnimation').value='run';
+  $('sourceLabel').textContent='Road Rookie / approved artwork required';$('countLabel').textContent='0 FRAMES';$('events').value='[]';$('loop').checked=true;$('roadPlan').hidden=false;refreshAll();await loadB();
+  notice('Rejected Road Rookie artwork removed. Attach the approved master or frame pack in chat before run production; local imports remain on this device.');
+}
 function loadB(){if($('refCharacter').value==='none'){++state.generation.b;dispose(state.b);state.b=null;$('referencePane').hidden=true;refreshAll();return Promise.resolve();}return install('b',librarySequence($('refCharacter').value,$('refAnimation').value,'runtime'));}
 async function loadLocal(input,side){
   const files=[...input.files].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));if(!files.length)return;
@@ -105,6 +112,7 @@ function current(side){const seq=state[side];if(!seq)return null;let time=state.
 }
 function sourceFrame(side,prepared=false){const seq=state[side],at=current(side);return seq&&at?.frame>=0?(prepared?seq.prepared:seq.frames)[at.frame]:null;}
 function sourceTransform(seq,frame,prepared=false){
+  if($('presentation').value==='matched'){const index=seq===state.a?0:1,fit=matchedViewTransforms([state.a,state.b])[index];if(fit)return {...fit,mirror:$('mirror').checked};}
   const fit=Math.min(1,512/frame.width,768/frame.height),anchor=prepared&&seq.normalization==='quality-sequence'?[256,700]:seq.anchor;
   return {scale:fit,dx:256-anchor[0]*fit,dy:700-anchor[1]*fit,mirror:$('mirror').checked};
 }
@@ -122,7 +130,7 @@ function drawAnatomy(ctx,frame,t){
 }
 function draw(side){
   const target=$(side==='a'?'stageA':'stageB'),ctx=target.getContext('2d');ctx.clearRect(0,0,512,768);
-  const seq=state[side],at=current(side);if(!seq||at.frame<0)return;
+  const seq=state[side],at=current(side);if(!seq||at.frame<0){if(side==='a'&&state.roadWorkspace){ctx.fillStyle='#a2aeb9';ctx.font='18px system-ui';ctx.fillText('Approved Road Rookie artwork required',20,370);$('labelA').textContent='Road Rookie · awaiting approved art';$('metricsA').textContent='Old pilot removed · no replacement supplied';}return;}
   const prepared=$('presentation').value==='normalized',frames=prepared?seq.prepared:seq.frames,frame=frames[at.frame];
   if(!frame?.img){ctx.fillStyle='#ffa58d';ctx.font='16px system-ui';ctx.fillText('Frame unavailable · see QA report',20,340);return;}
   const t=sourceTransform(seq,frame,prepared);
@@ -141,7 +149,7 @@ function idleGeometry(seq){const idle=seq.idleReference||seq,frames=idle.normali
 function drawGame(side){
   const target=$(side==='a'?'gameA':'gameB'),ctx=target.getContext('2d'),seq=state[side],raw=sourceFrame(side,true);ctx.clearRect(0,0,320,200);ctx.strokeStyle='#517466';ctx.beginPath();ctx.moveTo(0,172);ctx.lineTo(320,172);ctx.stroke();if(!seq||!raw?.img)return;
   const m=raw.metrics,standard=state.standard;let scale=96/standard.source_frame.standard_body_height_px,anchor=seq.anchor,mode='96px production target';
-  if(!seq.production&&$('gameScale').value==='legacy'&&seq.character!=='road_rookie_idle_pilot'&&m?.bounds){
+  if(!seq.production&&$('gameScale').value==='legacy'&&seq.character!=='road_rookie_pending'&&m?.bounds){
     const idle=idleGeometry(seq),name=state.library.units[seq.character]?.label||seq.character;
     const compensation=standard.legacy_source_compensation[name]??1,sizeClass=standard.runtime.size_classes[standard.runtime.default_size_class];
     const base=68*1.14*1.07*1.09*standard.runtime.base_renderer_scale*compensation*sizeClass;
@@ -156,7 +164,7 @@ function drawGame(side){
 function selected(){return sourceFrame('a',false);}
 function updateJoint(){const frame=selected(),p=frame?.landmarks?.[$('joint').value];$('jointX').value=p?.x?.toFixed(1)||'';$('jointY').value=p?.y?.toFixed(1)||'';$('pose').value=frame?.pose||'';$('guideStatus').textContent=frame?`${Object.keys(frame.landmarks).length}/${LANDMARKS.length} source landmarks · ${p?.status||'selected point not placed'} · anatomy approval pending`:'';}
 function renderTimeline(){
-  const seq=state.a,container=$('timeline');container.replaceChildren();if(!seq)return;
+  const seq=state.a,container=$('timeline');container.replaceChildren();if(!seq){$('frame').max=Math.max(0,(state.b?.timeline.length||1)-1);$('frame').value=0;$('position').textContent='0 / 0 · reference playback available';$('eventSummary').textContent='Approved artwork required before authoring a timeline.';return;}
   seq.timeline.forEach((slot,index)=>{const f=seq.frames[slot.frame],button=document.createElement('button');button.type='button';button.className='thumbnail';button.dataset.slot=index;button.title=`Slot ${index+1}: source ${slot.frame+1}, ${slot.durationMs}ms`;
     if(f?.url){const image=new Image();image.src=f.url;image.alt=`Source frame ${slot.frame+1}`;button.append(image);}const label=document.createElement('span');label.textContent=`${index+1} · F${slot.frame+1}`;const duration=document.createElement('span');duration.textContent=`${Math.round(slot.durationMs*100)/100} ms`;button.append(label,duration);button.onclick=()=>seekSlot(index);container.append(button);});
   $('frame').max=Math.max(0,seq.timeline.length-1);$('eventSummary').textContent=seq.events.length?seq.events.map(e=>`${e.name} @ ${e.timeMs}ms${e.layer?' ['+e.layer+']':''}`).join(' · '):'No event markers authored.';
@@ -165,21 +173,23 @@ function reportText(report){return [`${report.technicalPass?'NO HARD TECHNICAL F
 function updateQA(){
   for(const side of ['a','b']){const seq=state[side];state.reports[side]=seq?validateSequence(seq,state.standard):null;}
   $('qa').textContent=state.reports.a?reportText(state.reports.a):'Load PNG frames to inspect.';$('qa').classList.toggle('fail',!!state.reports.a?.errors.length);$('qaB').textContent=state.reports.b?reportText(state.reports.b):'No comparison loaded.';
-  for(const id of ['export','exportMetrics','exportProfile','inherit'])$(id).disabled=!state.a;
+  for(const id of ['export','exportMetrics','exportProfile','inherit','duration'])$(id).disabled=!state.a;
+  for(const id of ['play','prev','next'])$(id).disabled=!(state.a||state.b);
 }
 function refreshFrame(){
   const at=current('a'),seq=state.a;if(seq&&at){$('frame').value=at.index;$('position').textContent=`${at.index+1} / ${seq.timeline.length} slots · source ${at.frame+1} / ${seq.frames.length}`;$('duration').value=Math.round(seq.timeline[at.index].durationMs*1000)/1000;for(const b of $('timeline').children)b.setAttribute('aria-current',Number(b.dataset.slot)===at.index?'true':'false');}
+  if(!seq&&state.b){const ref=current('b');$('frame').value=ref.index;$('position').textContent=`Reference ${ref.index+1} / ${state.b.timeline.length} · artwork pending`;}
   $('clock').textContent=`${Math.round(state.elapsed)} ms`;
   draw('a');draw('b');drawGame('a');drawGame('b');updateJoint();
-  const t=state.a?.preparationTransform;$('transformNote').textContent=$('presentation').value==='source'?`Untouched source coordinates. Source anchor: ${state.a?.anchor?.join(', ')||'unavailable'}; displayed at viewer ground Y=700.`:t?.scope==='whole-sequence'?`Preview only: one sequence transform, scale ${t.scale.toFixed(5)}, offset (${t.dx}, ${t.dy}). Original PNGs remain unchanged.`:t?`Legacy recoil preparation uses per-frame registration. This is not a production transform for new artwork.`:'No runtime preparation is applied to this source sequence.';
+  const t=state.a?.preparationTransform;$('transformNote').textContent=$('presentation').value==='matched'?'Matched sequence body scale: one fixed viewer transform using the sequence median body height. Source dimensions, pixels, pose movement and exported production transforms stay unchanged.':$('presentation').value==='source'?`Untouched source coordinates. Source anchor: ${state.a?.anchor?.join(', ')||'unavailable'}; displayed at viewer ground Y=700.`:t?.scope==='whole-sequence'?`Preview only: one sequence transform, scale ${t.scale.toFixed(5)}, offset (${t.dx}, ${t.dy}). Original PNGs remain unchanged.`:t?`Legacy recoil preparation uses per-frame registration. This is not a production transform for new artwork.`:'No runtime preparation is applied to this source sequence.';
 }
 function refreshAll(){renderTimeline();updateQA();refreshFrame();const seq=state.a;if(seq){const spec=state.library.units[seq.character]?.sequences[seq.animation];$('timingNote').textContent=`${seq.timing==='manifest'?'Declared manifest':'Effective / edited'}: ${seq.timeline.length} playback slots, ${Math.round(totalMs(seq.timeline))}ms. Manifest: ${spec?.manifestFrameMs?spec.manifestFrameMs.toFixed(2)+'ms/frame':'not declared'}. ${seq.notes||''}${$('sync').value==='phase'?' B is deliberately retimed to A’s cycle phase.':' A/B share elapsed time; each retains its own durations.'}`;}}
-function seekSlot(index){pause();if(!state.a)return;state.elapsed=state.a.timeline.slice(0,index).reduce((sum,s)=>sum+s.durationMs,0);refreshFrame();}
-function step(delta){const seq=state.a;if(!seq)return;const at=current('a'),next=(at.index+delta+seq.timeline.length)%seq.timeline.length;seekSlot(next);}
+function seekSlot(index){pause();const seq=state.a||state.b;if(!seq)return;state.elapsed=seq.timeline.slice(0,index).reduce((sum,s)=>sum+s.durationMs,0);refreshFrame();}
+function step(delta){const seq=state.a||state.b;if(!seq)return;const at=current(state.a?'a':'b'),next=(at.index+delta+seq.timeline.length)%seq.timeline.length;seekSlot(next);}
 function tick(now){
   if(!state.playing)return;
   if(state.lastStamp!==null)state.elapsed+=Math.max(0,now-state.lastStamp)*Number($('speed').value);state.lastStamp=now;
-  if(!$('loop').checked&&state.a&&state.elapsed>=totalMs(state.a.timeline)){state.elapsed=totalMs(state.a.timeline);pause();refreshFrame();return;}
+  const primary=state.a||state.b;if(!$('loop').checked&&primary&&state.elapsed>=totalMs(primary.timeline)){state.elapsed=totalMs(primary.timeline);pause();refreshFrame();return;}
   refreshFrame();state.raf=requestAnimationFrame(tick);
 }
 function download(name,data){const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
@@ -199,13 +209,13 @@ function installHandlers(){
   $('character').onchange=()=>{fillAnimations($('character').value,$('animation'));return loadA();};$('animation').onchange=loadA;$('timing').onchange=loadA;
   $('refCharacter').onchange=()=>{fillAnimations($('refCharacter').value,$('refAnimation'));return loadB();};$('refAnimation').onchange=loadB;
   $('draft').onchange=guarded(()=>loadLocal($('draft'),'a'));$('reference').onchange=guarded(()=>loadLocal($('reference'),'b'));
-  $('roadWorkspace').onclick=guarded(async()=>{state.roadWorkspace=true;$('character').value='road_rookie_idle_pilot';fillAnimations('road_rookie_idle_pilot',$('animation'));$('refCharacter').value='itachi';fillAnimations('itachi',$('refAnimation'));$('refAnimation').value='run';await Promise.all([loadA(),loadB()]);$('roadPlan').hidden=false;notice('Road Rookie idle identity pilot versus Itachi run. Eight run poses remain pending illustrated production.');});
+  $('roadWorkspace').onclick=guarded(openRoadWorkspace);
   $('loadDemo').onclick=guarded(async()=>{
-    const id=$('demo').value;if(id==='road_rookie_idle_pilot')return install('a',librarySequence(id,'idle'));
+    const id=$('demo').value;
     await install('a',(async()=>{const path=`assets/sprites/enemies/${id}/${id}_idle.png`,res=await fetch(new URL(path,root));if(!res.ok)throw new Error(`HTTP ${res.status}`);const buffer=await res.arrayBuffer(),header=pngInfo(buffer),blobUrl=URL.createObjectURL(new Blob([buffer],{type:'image/png'}));const image=new Image();try{image.src=blobUrl;await image.decode();if(image.naturalWidth!==2172||image.naturalHeight!==724)throw new Error('Unexpected legacy sheet dimensions');const frames=[];for(let i=0;i<4;i++){const c=canvas(543,724);c.getContext('2d').drawImage(image,i*543,0,543,724,0,0,543,724);const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));frames.push(await decode(await blob.arrayBuffer(),`${id}_f${String(i).padStart(2,'0')}.png`,path));}return {character:'legacy-enemy',animation:'idle',label:`${id} · legacy enemy reference`,frames,prepared:frames,timeline:timelineFor(4,160),events:[],loop:true,normalization:'none',anchor:[271.5,700],production:false,local:true,notes:`Legacy ${header.width}×${header.height} sheet; reference-only, no artwork approval.`};}finally{URL.revokeObjectURL(blobUrl);}})());
   });
   $('prev').onclick=()=>step(-1);$('next').onclick=()=>step(1);
-  $('play').onclick=()=>{if(!state.a||state.loading)return;if(state.playing)return pause();if(!$('loop').checked&&state.elapsed>=totalMs(state.a.timeline))state.elapsed=0;state.playing=true;state.lastStamp=null;$('play').textContent='Pause';state.raf=requestAnimationFrame(tick);};
+  $('play').onclick=()=>{const primary=state.a||state.b;if(!primary||state.loading)return;if(state.playing)return pause();if(!$('loop').checked&&state.elapsed>=totalMs(primary.timeline))state.elapsed=0;state.playing=true;state.lastStamp=null;$('play').textContent='Pause';state.raf=requestAnimationFrame(tick);};
   $('frame').oninput=()=>seekSlot(Number($('frame').value));
   for(const id of ['bounds','onion','mirror','overlay','onionOpacity','anatomy','presentation','gameScale','loop'])$(id).oninput=refreshFrame;
   $('sync').onchange=refreshAll;$('joint').onchange=()=>{updateJoint();draw('a');};
@@ -225,8 +235,8 @@ function installHandlers(){
   $('exportProfile').onclick=()=>download('blazing-motion-profile-v1.json',profile());
   $('importProfile').onchange=guarded(async()=>{if(!state.a)throw new Error('Load artwork first');const file=$('importProfile').files[0];if(!file)return;const data=JSON.parse(await file.text()),resolved=resolveProfile(data,id=>id===state.gold.id?state.gold:null),meta=resolved.animations[state.a.animation];if(!meta)throw new Error('Profile does not contain the loaded animation');remember();applyMetadata(state.a,meta);$('loop').checked=!!meta.loop;$('events').value=JSON.stringify(state.a.events,null,2);state.elapsed=0;refreshAll();notice('Profile metadata restored against matching artwork. Review state remains pending.');});
   let dragging=false;
-  const pointerPoint=e=>{const rect=$('stageA').getBoundingClientRect(),f=selected();if(!f||$('presentation').value!=='source')return null;let x=(e.clientX-rect.left)*512/rect.width;const y=(e.clientY-rect.top)*768/rect.height,t=sourceTransform(state.a,f);if(t.mirror)x=512-x;return {x:(x-t.dx)/t.scale,y:(y-t.dy)/t.scale};};
-  $('stageA').onpointerdown=guarded(e=>{if(!$('anatomy').checked)return;if($('presentation').value!=='source')throw new Error('Switch to Untouched source to edit source-coordinate landmarks');pause();const p=pointerPoint(e);if(!p)return;const f=selected(),nearest=Object.entries(f.landmarks).map(([name,q])=>({name,d:Math.hypot(q.x-p.x,q.y-p.y)})).sort((a,b)=>a.d-b.d)[0];if(nearest?.d<18)$('joint').value=nearest.name;remember();dragging=true;$('stageA').setPointerCapture(e.pointerId);setJoint(p.x,p.y,false);});
+  const pointerPoint=e=>{const rect=$('stageA').getBoundingClientRect(),f=selected();if(!f||$('presentation').value==='normalized')return null;let x=(e.clientX-rect.left)*512/rect.width;const y=(e.clientY-rect.top)*768/rect.height,t=sourceTransform(state.a,f);if(t.mirror)x=512-x;return {x:(x-t.dx)/t.scale,y:(y-t.dy)/t.scale};};
+  $('stageA').onpointerdown=guarded(e=>{if(!$('anatomy').checked)return;if($('presentation').value==='normalized')throw new Error('Switch to Matched body scale or Untouched source to edit source-coordinate landmarks');pause();const p=pointerPoint(e);if(!p)return;const f=selected(),nearest=Object.entries(f.landmarks).map(([name,q])=>({name,d:Math.hypot(q.x-p.x,q.y-p.y)})).sort((a,b)=>a.d-b.d)[0];if(nearest?.d<18)$('joint').value=nearest.name;remember();dragging=true;$('stageA').setPointerCapture(e.pointerId);setJoint(p.x,p.y,false);});
   $('stageA').onpointermove=guarded(e=>{if(!dragging)return;const p=pointerPoint(e);if(p)setJoint(p.x,p.y,false);});
   $('stageA').onpointerup=()=>{dragging=false;};$('stageA').onpointercancel=()=>{dragging=false;};
   $('stageA').onkeydown=guarded(e=>{const deltas={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]},d=deltas[e.key],f=selected(),p=f?.landmarks[$('joint').value];if(d&&p&&$('anatomy').checked){e.preventDefault();setJoint(p.x+d[0]*(e.shiftKey?10:1),p.y+d[1]*(e.shiftKey?10:1));}});
@@ -241,5 +251,5 @@ async function init(){
   await Promise.all([loadA(),loadB()]);
 }
 // Read-only diagnostics and deterministic seeking for smoke tests; never touches the game.
-window.motionStudio={snapshot:()=>({loading:state.loading,playing:state.playing,elapsedMs:state.elapsed,a:state.a?{character:state.a.character,animation:state.a.animation,timeline:clone(state.a.timeline),frame:current('a'),paths:state.a.frames.map(f=>f.sourcePath),landmarks:clone(selected()?.landmarks||{}),normalization:state.a.normalization,preparationTransform:clone(state.a.preparationTransform||null)}:null,b:state.b?{character:state.b.character,animation:state.b.animation,frame:current('b'),timeline:clone(state.b.timeline)}:null,reports:clone(state.reports)}),seekTime:ms=>{pause();state.elapsed=Math.max(0,Number(ms)||0);refreshFrame();},exportProfile:profile};
+window.motionStudio={snapshot:()=>({view:{mode:$('presentation').value,transforms:matchedViewTransforms([state.a,state.b])},loading:state.loading,playing:state.playing,elapsedMs:state.elapsed,a:state.a?{character:state.a.character,animation:state.a.animation,timeline:clone(state.a.timeline),frame:current('a'),paths:state.a.frames.map(f=>f.sourcePath),landmarks:clone(selected()?.landmarks||{}),normalization:state.a.normalization,preparationTransform:clone(state.a.preparationTransform||null)}:null,b:state.b?{character:state.b.character,animation:state.b.animation,frame:current('b'),timeline:clone(state.b.timeline)}:null,reports:clone(state.reports)}),seekTime:ms=>{pause();state.elapsed=Math.max(0,Number(ms)||0);refreshFrame();},exportProfile:profile};
 init().catch(error=>notice(`Studio startup failed: ${error.message}`,true));

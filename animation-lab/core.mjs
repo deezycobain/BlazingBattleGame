@@ -95,3 +95,29 @@ export function scaffold(width,height) {
 export function validateLandmarks(points,width,height){
   for(const [name,p] of Object.entries(points)){if(!LANDMARKS.includes(name)||!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<0||p.y<0||p.x>width||p.y>height)throw new Error(`Invalid landmark: ${name}`);}
 }
+
+// Viewer zoom only: compare neutral body occupancy without changing source pixels,
+// per-frame motion, exported production transforms, or gameplay size compensation.
+export function matchedViewTransforms(sequences,{bodyHeight=450,width=512,groundY=700}={}) {
+  const references=sequences.map(sequence=>{
+    if(!sequence)return null;
+    const reference=sequence;
+    const heights=reference.frames.map(f=>f.metrics?.bodyHeight).filter(h=>h>0);
+    if(!heights.length)return null;
+    return {sequence,height:median(heights),anchor:sequence.anchor};
+  });
+  let maxHalfWidthRatio=0;
+  for(const reference of references){
+    if(!reference)continue;
+    for(const frame of reference.sequence.frames){
+      const bounds=frame.metrics?.bounds;if(!bounds)continue;
+      maxHalfWidthRatio=Math.max(maxHalfWidthRatio,Math.abs(bounds[0]-reference.anchor[0])/reference.height,Math.abs(bounds[2]-reference.anchor[0])/reference.height);
+    }
+  }
+  const target=Math.min(bodyHeight,maxHalfWidthRatio?((width-32)/2)/maxHalfWidthRatio:bodyHeight);
+  return references.map(reference=>{
+    if(!reference)return null;
+    const scale=target/reference.height;
+    return {scale,dx:width/2-reference.anchor[0]*scale,dy:groundY-reference.anchor[1]*scale,targetBodyHeight:target,referenceBodyHeight:reference.height};
+  });
+}

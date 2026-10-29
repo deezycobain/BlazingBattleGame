@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import {frameAt,totalMs,timelineFor,pngInfo,inspectPixels,validateSequence,resolveProfile,inheritTiming,scaffold,validateLandmarks} from '../animation-lab/core.mjs';
+import {frameAt,totalMs,timelineFor,pngInfo,inspectPixels,validateSequence,resolveProfile,inheritTiming,scaffold,validateLandmarks,matchedViewTransforms} from '../animation-lab/core.mjs';
 const standard=JSON.parse(await fs.readFile('config/fighter-visual-standard.json','utf8'));
 const gold=JSON.parse(await fs.readFile('animation-lab/profiles/itachi-gold-v1.json','utf8'));
 const library=JSON.parse(await fs.readFile('animation-lab/reference-library.json','utf8'));
@@ -64,4 +64,20 @@ test('manual anatomy scaffold separates near/far limbs and rejects malformed sav
 test('studio stays isolated and build continues copying the existing Animation Lab',async()=>{
  const html=await fs.readFile('animation-lab/index.html','utf8'),app=await fs.readFile('animation-lab/studio.mjs','utf8'),build=await fs.readFile('scripts/build-cloudflare.mjs','utf8');
  assert.ok(html.includes('src="studio.mjs"'));assert.ok(!build.includes("'animation-lab'"));assert.doesNotMatch(app,/localStorage|sessionStorage|XMLHttpRequest|method:\s*['"](?:POST|PUT|PATCH|DELETE)/);assert.doesNotMatch(app,/BlazingCombatRuntime|BlazingRoadRun|canonicalUnit\(/);
+});
+
+test('matched viewer scale preserves source pixels and one transform across different poses',async()=>{
+ const imported=sequence([await frame('frame_01.png'),await frame('frame_02.png',{top:130})],'run');imported.anchor=[256,700];
+ const itachi={frames:[await frame('legacy.png',{width:420,height:420,left:120,right:300,top:11,bottom:402})],anchor:[210,402]};
+ imported.idleReference={frames:[await frame('old-idle.png',{top:0,bottom:740})]};
+ const before=imported.frames[0].metrics.fingerprint,[a,b]=matchedViewTransforms([imported,itachi]);
+ assert.equal(a.referenceBodyHeight,585,'legacy idle occupancy cannot dictate the current sequence viewer size');
+ assert.ok(Math.abs(a.scale*a.referenceBodyHeight-b.scale*b.referenceBodyHeight)<1e-8);
+ assert.equal(a.scale,matchedViewTransforms([imported,itachi])[0].scale);
+ assert.notEqual(imported.frames[0].metrics.bodyHeight*a.scale,imported.frames[1].metrics.bodyHeight*a.scale,'intentional pose compression survives');
+ assert.equal(imported.frames[0].metrics.fingerprint,before);
+});
+test('rejected Road Rookie pilot is absent from the reference library and source tree',async()=>{
+ assert.equal(library.units.road_rookie_idle_pilot,undefined);
+ await assert.rejects(fs.access('animation-lab/pilots/road_rookie_idle_20261019/frame_01.png'));
 });

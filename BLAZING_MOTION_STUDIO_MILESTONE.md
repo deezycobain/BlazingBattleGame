@@ -10,7 +10,7 @@ The existing `animation-lab/` has been upgraded into the first reference and ins
 - Local individual-PNG import; actual PNG/RGBA/alpha/dimension/empty-frame/edge/gap/duplicate/registration/occupancy/loop QA. Edited playback order is used for loop analysis. Hard failures and visual-review warnings are separate.
 - Twenty editable manual humanoid landmarks, distinct near/far limbs, numeric/click/drag/keyboard placement, unverified guide scaffolds, pose annotation and metadata undo.
 - Versioned Gold motion JSON, portable profile/QA/timing core, inheritance with animation-specific overrides, independent event markers, profile/metrics/QA export and source-name/pixel-fingerprint-checked profile restoration.
-- Road Rookie's existing four-frame idle pilot beside Itachi's run, with eight illustrated run poses explicitly pending. No fabricated run or automatic artwork approval.
+- An empty Road Rookie workspace beside Itachi's run, with eight illustrated run poses pending the approved replacement artwork. No fabricated run or automatic artwork approval.
 
 The audit is [ITACHI_GOLD_MOTION_AUDIT.md](ITACHI_GOLD_MOTION_AUDIT.md); workflow and profile details are [animation-lab/README.md](animation-lab/README.md).
 
@@ -84,3 +84,14 @@ PASS: Legacy lobby, single reveal/results, ten-pull grid, exact wallet spending,
 ## Phone-access follow-up
 
 Added a compact phone controls panel for character selection, comparison, and PNG import, with a Back to viewer action. Local validation passes 14 core tests and 63 Chromium assertions, including opening the phone panel, choosing Obito, and returning to the viewer at 390px. The same static studio is deployed privately through Sites at https://blazing-motion-studio-review.wirydace13.chatgpt.site ; imported frames remain browser-local. No game or account scripts, audit documents, uploaded personal frames or credentials were included in that deployment. Physical iPhone/Safari review remains for the producer.
+
+
+## Road Rookie correction requested by the producer
+
+The producer rejected the old Road Rookie version. The four pilot PNGs and their README have been deleted from `animation-lab/pilots/road_rookie_idle_20261019`; the pilot is removed from the reference catalog and legacy demo controls. The phone deployment excludes both that pilot and the old Road Rookie enemy sheets. The two enemy sheets under `assets/sprites/enemies/road_rookie/` remain in the game repository only until a replacement is available, because live encounter routing still uses them. No existing game route or approved fighter art was changed. Earlier pilot QA observations in this report are historical, not approval of that rejected art.
+
+The default source viewer now matches sequence body scale with one fixed transform based on each sequence median body height. Itachi's idle body reference is about 391 source pixels; production artwork is normally about 600 pixels. Matched view aligns their comparison size without changing original pixels, intentional pose compression, frame-to-frame movement, production transforms or game compensation. Untouched source and legacy runtime inspection remain available. The default small gameplay comparison uses the 96px production target.
+
+The approved replacement is not present in this conversation or checkout. A PNG imported on the phone stays in that browser; the producer must attach the approved master or frame pack in chat before palette review, persistent replacement and genuine illustrated run production can continue. No substitute master or run poses were fabricated.
+
+Correction validation: 16 core tests and 66 local Chromium assertions pass, including rejected-path HTTP 404, empty Road Rookie workspace, reference-only stepping, and equal sequence comparison height for imported 600px art versus legacy Itachi. The full existing build/validation chain also passes. The original approved replacement and its run remain pending the producer's file attachment.
