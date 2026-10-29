@@ -85,6 +85,30 @@ for(const [name,type] of Object.entries({chromium,webkit})){
    return {before,partner,after,active:get('S.pairs[0].active'),reserveVisible};
   });
   if(!swap.reserveVisible||!swap.partner||swap.partner==='—'||swap.after!==swap.partner||swap.after===swap.before||swap.active!==1)throw new Error('partner portrait swap failed outside Road: '+JSON.stringify(swap));
+  // The animation-review URL must bypass normal ownership without touching real saves.
+  await page.goto(BASE+'/?bbAnimationTest=1',{waitUntil:'domcontentloaded'});
+  await page.waitForFunction(()=>window.BlazingCollection?.testMode===true&&typeof window.BB_BUILD_META==='object',null,{timeout:30000});
+  const qa=await page.evaluate(()=>{
+   const evalGame=globalThis.eval;
+   const units=Object.values(window.BLAZING_UNIT_DATA||{}).filter(unit=>unit?.id&&unit?.role==='playable'&&unit?.collection?.battle_ready!==false);
+   const team=evalGame('getActiveTeam()');
+   const pairs=evalGame('buildPlayerPairs(575)');
+   return {
+    team, key:evalGame('TEAM_STORAGE_KEY'),
+    names:pairs.map(pair=>pair.units.find(unit=>unit?.name&&unit.name!=='—')?.name||null),
+    unlocked:units.filter(unit=>window.BlazingCollection.owns(unit)).length,
+    total:units.length,
+    realTeamSave:localStorage.getItem('blazingBattle.activeTeam.v6'),
+    testTeamSave:localStorage.getItem('blazingBattle.animationTestTeam.v1'),
+    valid:evalGame('validActiveTeam(getActiveTeam())')
+   };
+  });
+  if(JSON.stringify(qa.team)!==JSON.stringify(['Itachi',null,'Obito',null,'Scorpion',null])||
+     JSON.stringify(qa.names)!==JSON.stringify(['Itachi','Obito','Scorpion'])||
+     qa.key!=='blazingBattle.animationTestTeam.v1'||!qa.valid||
+     qa.unlocked!==qa.total||qa.total<15||qa.testTeamSave!==null||!qa.realTeamSave)
+   throw new Error('animation review roster not isolated or not ready: '+JSON.stringify(qa));
+  console.log('Animation review smoke PASS ('+name+'): Itachi / Obito / Scorpion start, full playable roster, independent team storage.');
   console.log('Team pair smoke PASS ('+name+'): 6 selected units -> clean card/full art including Legacy fighters, compact 3-pair editor, mobile scrolling, fixed Save, and live portrait swap.');
  }finally{if(browser)await browser.close().catch(()=>{})}
 }
