@@ -190,6 +190,12 @@ function profile(){
 function checkEvents(events){if(!Array.isArray(events)||events.some(e=>typeof e?.name!=='string'||!e.name.trim()||!Number.isFinite(e.timeMs)||e.timeMs<0))throw new Error('Events must be an array of {name, timeMs}; timeMs must be finite and nonnegative');}
 function guarded(action){return async(...args)=>{try{await action(...args);}catch(error){notice(error.message,true);}};}
 function installHandlers(){
+  const phoneHeader=()=>document.body.style.setProperty('--phone-header-height',document.querySelector('header').getBoundingClientRect().height+'px');
+  const phoneControls=open=>{document.body.classList.toggle('controls-open',open);$('phoneControls').setAttribute('aria-expanded',String(open));$('phoneControls').textContent=open?'Back to viewer':'Characters & import';phoneHeader();};
+  $('phoneControls').onclick=()=>phoneControls(!document.body.classList.contains('controls-open'));
+  window.addEventListener('resize',()=>{if(innerWidth>640)phoneControls(false);else phoneHeader();});
+  window.addEventListener('keydown',event=>{if(event.key==='Escape')phoneControls(false);});
+  phoneHeader();
   $('character').onchange=()=>{fillAnimations($('character').value,$('animation'));return loadA();};$('animation').onchange=loadA;$('timing').onchange=loadA;
   $('refCharacter').onchange=()=>{fillAnimations($('refCharacter').value,$('refAnimation'));return loadB();};$('refAnimation').onchange=loadB;
   $('draft').onchange=guarded(()=>loadLocal($('draft'),'a'));$('reference').onchange=guarded(()=>loadLocal($('reference'),'b'));

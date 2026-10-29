@@ -54,7 +54,7 @@ Read-only browser probes of the final built resolvers were also run against fres
 npm run serve:motion
 ```
 
-Open `http://127.0.0.1:5181/animation-lab/` on the same computer. Node 20+ is sufficient; the included loopback server only serves explicit studio resources and referenced artwork. No externally accessible preview URL is available and no public site was deployed. The session's configured download-output directory is read-only, so no downloadable review ZIP was attached; the source, audit and this report are available on the feature branch.
+Open `http://127.0.0.1:5181/animation-lab/` on the same computer. Node 20+ is sufficient; the included loopback server only serves explicit studio resources and referenced artwork. An owner-private phone review is now available at https://blazing-motion-studio-review.wirydace13.chatgpt.site . Sign in with the same ChatGPT account if prompted. This hosts only the studio browser files, required reference sprites and visual constants; the game deployment is unchanged. The session's configured download-output directory is read-only, so the source, audit and this report are available on the feature branch.
 
 ## Limits and next step
 
@@ -79,3 +79,8 @@ BB_SMOKE_URL=http://127.0.0.1:4174 BB_SMOKE_BROWSER=chromium PLAYWRIGHT_MODULE=f
 ```
 
 PASS: Legacy lobby, single reveal/results, ten-pull grid, exact wallet spending, inventory, active runtime and attack-render probes. A new full CI run is required before merge.
+
+
+## Phone-access follow-up
+
+Added a compact phone controls panel for character selection, comparison, and PNG import, with a Back to viewer action. Local validation passes 14 core tests and 63 Chromium assertions, including opening the phone panel, choosing Obito, and returning to the viewer at 390px. The same static studio is deployed privately through Sites at https://blazing-motion-studio-review.wirydace13.chatgpt.site ; imported frames remain browser-local. No game or account scripts, audit documents, uploaded personal frames or credentials were included in that deployment. Physical iPhone/Safari review remains for the producer.

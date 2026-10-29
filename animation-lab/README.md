@@ -10,7 +10,11 @@ From the repository root, with Node 20+:
 npm run serve:motion
 ```
 
-Open `http://127.0.0.1:5181/animation-lab/` on that same computer. `STUDIO_PORT=5182 npm run serve:motion` selects another local port. The included server serves only explicit studio resources and reference artwork over loopback. No public deployment is made. The studio is also included by the existing static game build; use its `/animation-lab/` path when reviewing a separately authorized preview.
+Open `http://127.0.0.1:5181/animation-lab/` on that same computer. `STUDIO_PORT=5182 npm run serve:motion` selects another local port. The included server serves only explicit studio resources and reference artwork over loopback. Phone review is hosted separately at https://blazing-motion-studio-review.wirydace13.chatgpt.site with owner-only ChatGPT sign-in; the game deployment is unchanged. The studio is also included by the existing static game build; use its `/animation-lab/` path when reviewing a separately authorized preview.
+
+## Phone review
+
+Open https://blazing-motion-studio-review.wirydace13.chatgpt.site in Safari or Chrome and sign in with the same ChatGPT account if asked. Tap **Characters & import** to open the controls panel; tap **Back to viewer** to close it. Play and step controls remain in the viewer. Local PNG imports use the phone file picker and stay on the device. This is a static review copy of the same Animation Lab, with only its required reference sprites and visual constants; no game/account code is hosted there.
 
 ## First inspection
 
