@@ -3,16 +3,16 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 const collection=fs.readFileSync('runtime/core/starter-collection.js','utf8');
 const economy=fs.readFileSync('runtime/modes/battle-economy.js','utf8');
-function boot(entries={}){
+function boot(entries={},search=''){
  const store=new Map(Object.entries(entries));
  const localStorage={
   getItem:key=>store.has(key)?store.get(key):null,
   setItem:(key,val)=>store.set(key,String(val)),
   removeItem:key=>store.delete(key)
  };
- const win={BLAZING_UNIT_DATA:{tyler:{id:'tyler',display_name:'Tyler'},subzero:{id:'subzero',display_name:'Sub-Zero'},senku:{id:'senku',display_name:'Senku'},scorpion:{id:'scorpion',display_name:'Scorpion'}},addEventListener(){},dispatchEvent(){}};
+ const win={location:{search},BLAZING_UNIT_DATA:{tyler:{id:'tyler',display_name:'Tyler',role:'playable'},subzero:{id:'subzero',display_name:'Sub-Zero',role:'playable'},senku:{id:'senku',display_name:'Senku',role:'playable'},scorpion:{id:'scorpion',display_name:'Scorpion',role:'playable'}},addEventListener(){},dispatchEvent(){}};
  const document={readyState:'loading',addEventListener(){},getElementById(){return null}};
- const ctx=vm.createContext({window:win,document,localStorage,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail}},MutationObserver:class{observe(){}},console});
+ const ctx=vm.createContext({window:win,document,localStorage,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail}},MutationObserver:class{observe(){}},URLSearchParams,console});
  vm.runInContext(collection,ctx,{filename:'starter-collection.js'});
  vm.runInContext(economy,ctx,{filename:'battle-economy.js'});
  return {win,store};
@@ -33,4 +33,9 @@ assert.equal(earned.win.BlazingCollection.owns('scorpion'),true);
 assert.equal(earned.win.BlazingEconomy.balance(),900);
 assert.equal(earned.win.BlazingEconomy.emberBalance(),12);
 assert.equal(earned.win.BlazingCollection.owns('Obito'),false);
+const tester=boot({},'?bbAnimationTest=1');
+assert.equal(tester.win.BlazingCollection.testMode,true);
+assert.equal(tester.win.BlazingCollection.owns('Scorpion'),true);
+assert.deepEqual(JSON.parse(tester.store.get('blazing.collection.v1')).owned,['tyler','subzero','senku']);
+assert.equal(fresh.win.BlazingCollection.testMode,false);
 console.log('Starter account contract PASS: 3 fighters, 300 Coins, 3 Embers, unlock persistence and old save compatibility.');

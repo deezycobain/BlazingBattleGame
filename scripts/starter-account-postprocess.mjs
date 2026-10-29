@@ -65,6 +65,8 @@ html=html.replaceAll('FREE TEST PULLS â€¢ DUPLICATES BANKED','EMBERS REQUIRED â€
 html=html.replaceAll('UNLIMITED EMBERS','LIMITED EMBERS');
 html=html.replaceAll('Summon pulls remain unlimited in development.','Summon pulls require earned Embers.');
 html=html.replaceAll('Development pulls are free and use equal test odds.','Summons require earned Embers and use equal odds.');
+// Empty partner slots are legal in a new account, and must not crash Edit Team.
+one("function fighterDisplayName(name){if(owned[name]?.name)return owned[name].name;try{return canonicalUnit(name)?.display_name||name.toUpperCase()}catch(_){return name.toUpperCase()}}","function fighterDisplayName(name){if(!name)return 'EMPTY SLOT';if(owned[name]?.name)return owned[name].name;try{return canonicalUnit(name)?.display_name||String(name).toUpperCase()}catch(_){return String(name).toUpperCase()}}",'nullable partner display name');
 const style='<style id="bb-starter-locked-style">#teamScreen .unitTile[data-bb-locked="true"]{opacity:.42!important;filter:grayscale(.8)!important;cursor:not-allowed!important}#teamScreen .unitTile[data-bb-locked="true"]:after{content:"LOCKED";position:absolute;inset:auto 0 0;text-align:center;background:rgba(18,17,21,.84);color:#fff;padding:4px;font:bold 11px system-ui;pointer-events:none}</style>';
 one('</head>',style+'</head>','locked team styling');
 for(const marker of ['bb-starter-collection','payForPull(10','BlazingCollection?.unlock','DEFAULT_ACTIVE_TEAM=Object.freeze([','bb-starter-locked-style'])if(!html.includes(marker))throw new Error('Starter account: missing '+marker);

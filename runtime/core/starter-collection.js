@@ -2,6 +2,9 @@
 'use strict';
 const KEY='blazing.collection.v1',VERSION=1;
 const STARTERS=Object.freeze(['tyler','subzero','senku']);
+// Only the explicit animation QA URL can preview the full playable roster.
+// The stored ownership list stays untouched.
+const TEST_MODE=(()=>{try{return new URLSearchParams(window.location?.search||'').get('bbAnimationTest')==='1'}catch{return false}})();
 const aliases=Object.freeze({'sub-zero':'subzero','wong fei-hung':'jackie_chan','jackie chan':'jackie_chan','solar pharaoh naruto':'naruto_solar','egyptian gaara':'gaara','madara uchiha':'madara'});
 function id(input){
  if(input&&typeof input==='object')return id(input.id||input.display_name);
@@ -22,14 +25,21 @@ function earned(){
  return result;
 }
 function clean(value){return [...new Set([...STARTERS,...(Array.isArray(value)?value:[])].map(id).filter(Boolean))]}
+function testOwnership(state){
+ if(!TEST_MODE)return state;
+ const available=Object.values(window.BLAZING_UNIT_DATA||{})
+  .filter(unit=>unit?.id&&unit?.role==='playable'&&unit?.collection?.battle_ready!==false)
+  .map(unit=>unit.id);
+ return {...state,owned:clean([...(state?.owned||[]),...available])};
+}
 function load(){
  try{
   const raw=localStorage.getItem(KEY);
-  if(raw){const state=JSON.parse(raw);return {version:VERSION,owned:clean(state?.owned)}}
+  if(raw){const state=JSON.parse(raw);return testOwnership({version:VERSION,owned:clean(state?.owned)})}
   const initial={version:VERSION,owned:clean(earned())};
   localStorage.setItem(KEY,JSON.stringify(initial));
-  return initial;
- }catch{return {version:VERSION,owned:[...STARTERS]}}
+  return testOwnership(initial);
+ }catch{return testOwnership({version:VERSION,owned:[...STARTERS]})}
 }
 function owns(unit){return load().owned.includes(id(unit))}
 function unlock(unit){
@@ -64,6 +74,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  markLocked();
 },{once:true});
 else markLocked();
-window.BlazingCollection=Object.freeze({KEY,VERSION,STARTERS,id,load,owns,unlock});
+window.BlazingCollection=Object.freeze({KEY,VERSION,STARTERS,testMode:TEST_MODE,id,load,owns,unlock});
 load();
+if(TEST_MODE){
+ // Direct QA link opens the existing team selector after the game has loaded.
+ window.addEventListener('load',()=>{
+  setTimeout(()=>{
+   try{
+    const show=globalThis.eval('typeof showTeamScreen==="function"?showTeamScreen:null');
+    if(typeof show==='function')show();
+   }catch(error){console.warn('Animation QA: open Edit Team manually from Inventory.',error)}
+  },400);
+ },{once:true});
+}
 })();
