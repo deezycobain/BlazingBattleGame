@@ -1,4 +1,4 @@
-import {chromium,webkit} from 'playwright';
+const {chromium,webkit}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 
 const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'');
 const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
@@ -11,10 +11,16 @@ function overlaps(a,b){
 }
 
 for(const [browserName,browserType] of Object.entries({chromium,webkit})){
+ if(process.env.BB_SMOKE_BROWSER&&process.env.BB_SMOKE_BROWSER!==browserName)continue;
  let browser;
  try{
-  browser=await browserType.launch({headless:true,timeout:15000});
+  browser=await browserType.launch({headless:true,timeout:15000,...(browserName==='chromium'&&process.env.CHROMIUM_EXECUTABLE?{executablePath:process.env.CHROMIUM_EXECUTABLE,args:['--no-sandbox']}:{})});
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:browserName==='webkit',hasTouch:true});
+  // This checks presentation of the full Legacy roster, not fresh-account ownership.
+  // Seed only this isolated test context; production starter rules stay unchanged.
+  await context.addInitScript(ids=>{
+   if(!localStorage.getItem('blazing.collection.v1'))localStorage.setItem('blazing.collection.v1',JSON.stringify({version:1,owned:['tyler','subzero','senku',...ids]}));
+  },IDS);
   const page=await context.newPage();
   page.setDefaultTimeout(20000);
   const errors=[];
@@ -81,6 +87,14 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   },{names:NAMES});
   if(!/LEGACYOFTHE?SHINOBI/i.test(String(summon.title||'').replace(/[^A-Z]/gi,''))||summon.fighterCount!==12||summon.missingNames.length||!summon.singleVisible||!summon.multiVisible)throw new Error('Legacy summon lobby invalid: '+JSON.stringify(summon));
 
+  // The single + ten-pull assertions spend exactly eleven Embers. Fresh accounts
+  // now start with three, so fund this presentation fixture through the real wallet.
+  await page.evaluate(()=>{
+   const economy=window.BlazingEconomy;
+   if(!economy?.load||!economy?.save)throw new Error('Legacy test wallet API missing');
+   economy.save({...economy.load(),embers:11});
+  });
+
   // Regression: Legacy reveal/results must use the restored name-free presentation art.
   // The clean art fills the owned card frame; baked source-name cards are forbidden at runtime.
   await page.evaluate(()=>{window.__bbLegacyOriginalRandom=Math.random;Math.random=()=>0});
@@ -116,6 +130,13 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
     return {count:cards.length,rowCounts:[...rows.values()].sort((a,b)=>b-a),columns:getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length,mismatches,broken:cards.filter(card=>{const img=card.querySelector('.resultTradingCard');return !img||!img.complete||img.naturalWidth<=0}).length};
   });
   if(tenPull.count!==10||tenPull.columns!==5||JSON.stringify(tenPull.rowCounts)!==JSON.stringify([5,5])||tenPull.mismatches.length||tenPull.broken)throw new Error('Ten-pull result grid/art integrity failed: '+JSON.stringify(tenPull));
+
+  const remainingEmbers=await page.evaluate(()=>window.BlazingEconomy.emberBalance());
+  if(remainingEmbers!==0)throw new Error('Legacy presentation fixture must pay for all eleven pulls; remaining '+remainingEmbers);
+
+  // Scorpion's approved six-frame idle becomes ten ping-pong playback slots.
+  // Wait for quality preparation rather than asserting a cold-cache fallback.
+  await page.waitForFunction(()=>{const quality=window.BlazingAnimationQuality;return !!quality&&[...quality.idle('Scorpion'),...quality.basic('Scorpion')].every(quality.ready)},null,{timeout:20000});
 
   const attackScaleValues=await page.evaluate(names=>{
    const body=globalThis.eval('LEGACY_SHINOBI_BODY_RUNTIME');
@@ -160,7 +181,7 @@ for(const [browserName,browserType] of Object.entries({chromium,webkit})){
   },{names:NAMES});
   const normalized=dims=>Array.isArray(dims)&&dims.length>0&&dims.every(([w,h])=>w===512&&h===768);
   const badRuntime=runtime.filter(x=>{
-   const expectedIdleResolved=(x.name==='Wong Fei-Hung'||x.name==='Scorpion')&&x.idleCount===6?12:x.expectedIdle;
+   const expectedIdleResolved=x.name==='Scorpion'?10:x.name==='Wong Fei-Hung'&&x.idleCount===6?12:x.expectedIdle;
    return x.idleCount!==x.expectedIdle||x.basicCount!==x.expectedBasic||x.idleResolved!==expectedIdleResolved||x.attackResolved!==x.expectedBasic||x.idleBroken||x.basicBroken||x.idleLandscape||x.basicLandscape||!normalized(x.idleDims)||!normalized(x.basicDims)||!/\/sprites\/runtime\/idle\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.idleSrc)||!/\/sprites\/runtime\/attack\/basic\/frame_01\.png\?legacySpriteAudit=v4$/.test(x.basicSrc);
   });
   if(badRuntime.length)throw new Error('Legacy battle animation runtime invalid: '+JSON.stringify(badRuntime));

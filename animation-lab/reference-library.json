@@ -1,0 +1,738 @@
+{
+  "schemaVersion": "1.0.0",
+  "auditedCommit": "f2b8759",
+  "standardPath": "config/fighter-visual-standard.json",
+  "units": {
+    "itachi": {
+      "label": "Itachi",
+      "legacy": true,
+      "anchor": [
+        210,
+        402
+      ],
+      "metadataAnchor": [
+        210,
+        392
+      ],
+      "sequences": {
+        "idle": {
+          "paths": [
+            "assets/characters/itachi/sprites/runtime/idle/frame_01.png",
+            "assets/characters/itachi/sprites/runtime/idle/frame_02.png",
+            "assets/characters/itachi/sprites/runtime/idle/frame_03.png",
+            "assets/characters/itachi/sprites/runtime/idle/frame_04.png",
+            "assets/characters/itachi/sprites/runtime/idle/frame_05.png",
+            "assets/characters/itachi/sprites/runtime/idle/frame_06.png",
+            "assets/characters/itachi/sprites/runtime/idle/frame_07.png",
+            "assets/characters/itachi/sprites/runtime/idle/frame_08.png",
+            "assets/characters/itachi/sprites/runtime/idle/frame_09.png",
+            "assets/characters/itachi/sprites/runtime/idle/frame_10.png",
+            "assets/characters/itachi/sprites/runtime/idle/frame_11.png",
+            "assets/characters/itachi/sprites/runtime/idle/frame_12.png"
+          ],
+          "timeline": [
+            {
+              "frame": 0,
+              "durationMs": 165
+            },
+            {
+              "frame": 1,
+              "durationMs": 165
+            },
+            {
+              "frame": 2,
+              "durationMs": 165
+            },
+            {
+              "frame": 3,
+              "durationMs": 165
+            },
+            {
+              "frame": 4,
+              "durationMs": 165
+            },
+            {
+              "frame": 5,
+              "durationMs": 165
+            },
+            {
+              "frame": 6,
+              "durationMs": 165
+            },
+            {
+              "frame": 7,
+              "durationMs": 165
+            },
+            {
+              "frame": 8,
+              "durationMs": 165
+            },
+            {
+              "frame": 9,
+              "durationMs": 165
+            },
+            {
+              "frame": 10,
+              "durationMs": 165
+            },
+            {
+              "frame": 11,
+              "durationMs": 165
+            }
+          ],
+          "manifestFrameMs": 100,
+          "loop": true,
+          "events": [],
+          "normalization": "none",
+          "notes": "Gold legacy originals preserved."
+        },
+        "run": {
+          "paths": [
+            "assets/characters/itachi/sprites/runtime/run/frame_01.png",
+            "assets/characters/itachi/sprites/runtime/run/frame_02.png",
+            "assets/characters/itachi/sprites/runtime/run/frame_03.png",
+            "assets/characters/itachi/sprites/runtime/run/frame_04.png",
+            "assets/characters/itachi/sprites/runtime/run/frame_05.png",
+            "assets/characters/itachi/sprites/runtime/run/frame_06.png",
+            "assets/characters/itachi/sprites/runtime/run/frame_07.png",
+            "assets/characters/itachi/sprites/runtime/run/frame_08.png",
+            "assets/characters/itachi/sprites/runtime/run/frame_09.png",
+            "assets/characters/itachi/sprites/runtime/run/frame_10.png",
+            "assets/characters/itachi/sprites/runtime/run/frame_11.png",
+            "assets/characters/itachi/sprites/runtime/run/frame_12.png"
+          ],
+          "timeline": [
+            {
+              "frame": 0,
+              "durationMs": 85
+            },
+            {
+              "frame": 1,
+              "durationMs": 85
+            },
+            {
+              "frame": 2,
+              "durationMs": 85
+            },
+            {
+              "frame": 3,
+              "durationMs": 85
+            },
+            {
+              "frame": 4,
+              "durationMs": 85
+            },
+            {
+              "frame": 5,
+              "durationMs": 85
+            },
+            {
+              "frame": 6,
+              "durationMs": 85
+            },
+            {
+              "frame": 7,
+              "durationMs": 85
+            },
+            {
+              "frame": 8,
+              "durationMs": 85
+            },
+            {
+              "frame": 9,
+              "durationMs": 85
+            },
+            {
+              "frame": 10,
+              "durationMs": 85
+            },
+            {
+              "frame": 11,
+              "durationMs": 85
+            }
+          ],
+          "manifestFrameMs": 85,
+          "loop": true,
+          "events": [],
+          "normalization": "none",
+          "notes": "Gold legacy originals preserved."
+        },
+        "basic": {
+          "paths": [
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_01.png",
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_02.png",
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_03.png",
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_04.png",
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_05.png",
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_06.png",
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_07.png",
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_08.png",
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_09.png",
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_10.png",
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_11.png",
+            "assets/characters/itachi/sprites/runtime/attack/basic/frame_12.png"
+          ],
+          "timeline": [
+            {
+              "frame": 0,
+              "durationMs": 85
+            },
+            {
+              "frame": 1,
+              "durationMs": 85
+            },
+            {
+              "frame": 2,
+              "durationMs": 85
+            },
+            {
+              "frame": 3,
+              "durationMs": 85
+            },
+            {
+              "frame": 4,
+              "durationMs": 85
+            },
+            {
+              "frame": 5,
+              "durationMs": 85
+            },
+            {
+              "frame": 6,
+              "durationMs": 85
+            },
+            {
+              "frame": 7,
+              "durationMs": 85
+            },
+            {
+              "frame": 8,
+              "durationMs": 85
+            },
+            {
+              "frame": 9,
+              "durationMs": 85
+            },
+            {
+              "frame": 10,
+              "durationMs": 85
+            },
+            {
+              "frame": 11,
+              "durationMs": 85
+            }
+          ],
+          "manifestFrameMs": 85,
+          "loop": false,
+          "events": [
+            {
+              "name": "crow_release",
+              "timeMs": 340
+            },
+            {
+              "name": "crow_impact",
+              "timeMs": 1020,
+              "layer": "vfx"
+            }
+          ],
+          "normalization": "none",
+          "notes": "Gold legacy originals preserved."
+        }
+      }
+    },
+    "obito": {
+      "label": "Obito",
+      "legacy": true,
+      "anchor": [
+        256,
+        742
+      ],
+      "metadataAnchor": null,
+      "sequences": {
+        "idle": {
+          "paths": [
+            "assets/characters/obito/sprites/runtime/idle/frame_01.png",
+            "assets/characters/obito/sprites/runtime/idle/frame_02.png",
+            "assets/characters/obito/sprites/runtime/idle/frame_03.png",
+            "assets/characters/obito/sprites/runtime/idle/frame_04.png",
+            "assets/characters/obito/sprites/runtime/idle/frame_05.png",
+            "assets/characters/obito/sprites/runtime/idle/frame_06.png"
+          ],
+          "timeline": [
+            {
+              "frame": 0,
+              "durationMs": 205
+            },
+            {
+              "frame": 1,
+              "durationMs": 205
+            },
+            {
+              "frame": 2,
+              "durationMs": 205
+            },
+            {
+              "frame": 3,
+              "durationMs": 205
+            },
+            {
+              "frame": 4,
+              "durationMs": 205
+            },
+            {
+              "frame": 5,
+              "durationMs": 205
+            }
+          ],
+          "manifestFrameMs": 145,
+          "loop": true,
+          "events": [],
+          "normalization": "none",
+          "notes": "Active paths verified against final built resolver."
+        },
+        "run": {
+          "paths": [
+            "assets/characters/obito/sprites/runtime/run/frame_01.png",
+            "assets/characters/obito/sprites/runtime/run/frame_02.png",
+            "assets/characters/obito/sprites/runtime/run/frame_03.png",
+            "assets/characters/obito/sprites/runtime/run/frame_04.png",
+            "assets/characters/obito/sprites/runtime/run/frame_05.png",
+            "assets/characters/obito/sprites/runtime/run/frame_06.png",
+            "assets/characters/obito/sprites/runtime/run/frame_07.png",
+            "assets/characters/obito/sprites/runtime/run/frame_08.png",
+            "assets/characters/obito/sprites/runtime/run/frame_09.png",
+            "assets/characters/obito/sprites/runtime/run/frame_10.png",
+            "assets/characters/obito/sprites/runtime/run/frame_11.png",
+            "assets/characters/obito/sprites/runtime/run/frame_12.png"
+          ],
+          "timeline": [
+            {
+              "frame": 0,
+              "durationMs": 85
+            },
+            {
+              "frame": 1,
+              "durationMs": 85
+            },
+            {
+              "frame": 2,
+              "durationMs": 85
+            },
+            {
+              "frame": 3,
+              "durationMs": 85
+            },
+            {
+              "frame": 4,
+              "durationMs": 85
+            },
+            {
+              "frame": 5,
+              "durationMs": 85
+            },
+            {
+              "frame": 6,
+              "durationMs": 85
+            },
+            {
+              "frame": 7,
+              "durationMs": 85
+            },
+            {
+              "frame": 8,
+              "durationMs": 85
+            },
+            {
+              "frame": 9,
+              "durationMs": 85
+            },
+            {
+              "frame": 10,
+              "durationMs": 85
+            },
+            {
+              "frame": 11,
+              "durationMs": 85
+            }
+          ],
+          "manifestFrameMs": 85,
+          "loop": true,
+          "events": [],
+          "normalization": "none",
+          "notes": "Active paths verified against final built resolver."
+        },
+        "basic": {
+          "paths": [
+            "assets/characters/obito/sprites/runtime/attack/basic/frame_01.png",
+            "assets/characters/obito/sprites/runtime/attack/basic/frame_02.png",
+            "assets/characters/obito/sprites/runtime/attack/basic/frame_03.png",
+            "assets/characters/obito/sprites/runtime/attack/basic/frame_04.png",
+            "assets/characters/obito/sprites/runtime/attack/basic/frame_05.png",
+            "assets/characters/obito/sprites/runtime/attack/basic/frame_06.png"
+          ],
+          "timeline": [
+            {
+              "frame": 0,
+              "durationMs": 120
+            },
+            {
+              "frame": 1,
+              "durationMs": 120
+            },
+            {
+              "frame": 2,
+              "durationMs": 120
+            }
+          ],
+          "manifestFrameMs": 120,
+          "loop": false,
+          "events": [
+            {
+              "name": "release",
+              "timeMs": 360
+            },
+            {
+              "name": "impact",
+              "timeMs": 920,
+              "layer": "vfx"
+            }
+          ],
+          "normalization": "none",
+          "notes": "Only first 3 of 6 source poses play before the 360ms release deletes the body state."
+        },
+        "recoil": {
+          "paths": [
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_01.png",
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_02.png",
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_03.png",
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_04.png",
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_05.png",
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_06.png",
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_07.png",
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_08.png",
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_09.png",
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_10.png",
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_11.png",
+            "assets/characters/obito/sprites/runtime/v2/recoil/frame_12.png"
+          ],
+          "timeline": [
+            {
+              "frame": 0,
+              "durationMs": 15
+            },
+            {
+              "frame": 1,
+              "durationMs": 15
+            },
+            {
+              "frame": 2,
+              "durationMs": 15
+            },
+            {
+              "frame": 3,
+              "durationMs": 15
+            },
+            {
+              "frame": 4,
+              "durationMs": 15
+            },
+            {
+              "frame": 5,
+              "durationMs": 15
+            },
+            {
+              "frame": 6,
+              "durationMs": 15
+            },
+            {
+              "frame": 7,
+              "durationMs": 15
+            },
+            {
+              "frame": 8,
+              "durationMs": 15
+            },
+            {
+              "frame": 9,
+              "durationMs": 15
+            },
+            {
+              "frame": 10,
+              "durationMs": 15
+            },
+            {
+              "frame": 11,
+              "durationMs": 15
+            }
+          ],
+          "manifestFrameMs": null,
+          "loop": false,
+          "events": [],
+          "normalization": "none",
+          "notes": "Desktop uploaded route only. Normal hit 180ms; strong hit 230ms. Quality recoil method is not selected by final drawUnit."
+        }
+      }
+    },
+    "scorpion": {
+      "label": "Scorpion",
+      "legacy": true,
+      "anchor": [
+        256,
+        742
+      ],
+      "metadataAnchor": null,
+      "sequences": {
+        "idle": {
+          "paths": [
+            "assets/characters/scorpion/sprites/runtime/idle/frame_01.png",
+            "assets/characters/scorpion/sprites/runtime/idle/frame_02.png",
+            "assets/characters/scorpion/sprites/runtime/idle/frame_03.png",
+            "assets/characters/scorpion/sprites/runtime/idle/frame_04.png",
+            "assets/characters/scorpion/sprites/runtime/idle/frame_05.png",
+            "assets/characters/scorpion/sprites/runtime/idle/frame_06.png"
+          ],
+          "timeline": [
+            {
+              "frame": 0,
+              "durationMs": 205
+            },
+            {
+              "frame": 1,
+              "durationMs": 205
+            },
+            {
+              "frame": 2,
+              "durationMs": 205
+            },
+            {
+              "frame": 3,
+              "durationMs": 205
+            },
+            {
+              "frame": 4,
+              "durationMs": 205
+            },
+            {
+              "frame": 5,
+              "durationMs": 205
+            },
+            {
+              "frame": 4,
+              "durationMs": 205
+            },
+            {
+              "frame": 3,
+              "durationMs": 205
+            },
+            {
+              "frame": 2,
+              "durationMs": 205
+            },
+            {
+              "frame": 1,
+              "durationMs": 205
+            }
+          ],
+          "manifestFrameMs": 145,
+          "loop": true,
+          "events": [],
+          "normalization": "quality-sequence",
+          "notes": "Quality idle ping-pongs six sources into ten slots after decoding."
+        },
+        "run": {
+          "paths": [
+            "assets/characters/scorpion/sprites/runtime/run/frame_01.png",
+            "assets/characters/scorpion/sprites/runtime/run/frame_02.png",
+            "assets/characters/scorpion/sprites/runtime/run/frame_03.png",
+            "assets/characters/scorpion/sprites/runtime/run/frame_04.png",
+            "assets/characters/scorpion/sprites/runtime/run/frame_05.png",
+            "assets/characters/scorpion/sprites/runtime/run/frame_06.png",
+            "assets/characters/scorpion/sprites/runtime/run/frame_07.png",
+            "assets/characters/scorpion/sprites/runtime/run/frame_08.png",
+            "assets/characters/scorpion/sprites/runtime/run/frame_09.png",
+            "assets/characters/scorpion/sprites/runtime/run/frame_10.png",
+            "assets/characters/scorpion/sprites/runtime/run/frame_11.png",
+            "assets/characters/scorpion/sprites/runtime/run/frame_12.png"
+          ],
+          "timeline": [
+            {
+              "frame": 0,
+              "durationMs": 72
+            },
+            {
+              "frame": 1,
+              "durationMs": 72
+            },
+            {
+              "frame": 2,
+              "durationMs": 72
+            },
+            {
+              "frame": 3,
+              "durationMs": 72
+            },
+            {
+              "frame": 4,
+              "durationMs": 72
+            },
+            {
+              "frame": 5,
+              "durationMs": 72
+            },
+            {
+              "frame": 6,
+              "durationMs": 72
+            },
+            {
+              "frame": 7,
+              "durationMs": 72
+            },
+            {
+              "frame": 8,
+              "durationMs": 72
+            },
+            {
+              "frame": 9,
+              "durationMs": 72
+            },
+            {
+              "frame": 10,
+              "durationMs": 72
+            },
+            {
+              "frame": 11,
+              "durationMs": 72
+            }
+          ],
+          "manifestFrameMs": 41.666666666666664,
+          "loop": true,
+          "events": [],
+          "normalization": "quality-sequence",
+          "notes": "Active paths verified against final built resolver."
+        },
+        "basic": {
+          "paths": [
+            "assets/characters/scorpion/sprites/runtime/attack/basic/frame_01.png",
+            "assets/characters/scorpion/sprites/runtime/attack/basic/frame_02.png",
+            "assets/characters/scorpion/sprites/runtime/attack/basic/frame_03.png",
+            "assets/characters/scorpion/sprites/runtime/attack/basic/frame_04.png",
+            "assets/characters/scorpion/sprites/runtime/attack/basic/frame_05.png",
+            "assets/characters/scorpion/sprites/runtime/attack/basic/frame_06.png"
+          ],
+          "timeline": [
+            {
+              "frame": 0,
+              "durationMs": 80
+            },
+            {
+              "frame": 1,
+              "durationMs": 80
+            },
+            {
+              "frame": 2,
+              "durationMs": 80
+            },
+            {
+              "frame": 3,
+              "durationMs": 80
+            },
+            {
+              "frame": 4,
+              "durationMs": 160
+            },
+            {
+              "frame": 5,
+              "durationMs": 510
+            }
+          ],
+          "manifestFrameMs": 120,
+          "loop": false,
+          "events": [
+            {
+              "name": "spear_release",
+              "timeMs": 350
+            },
+            {
+              "name": "impact",
+              "timeMs": 740,
+              "layer": "vfx"
+            }
+          ],
+          "normalization": "quality-sequence",
+          "notes": "Active paths verified against final built resolver."
+        },
+        "recoil": {
+          "paths": [
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_01.png",
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_02.png",
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_03.png",
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_04.png",
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_05.png",
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_06.png",
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_07.png",
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_08.png",
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_09.png",
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_10.png",
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_11.png",
+            "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_12.png"
+          ],
+          "timeline": [
+            {
+              "frame": 0,
+              "durationMs": 15
+            },
+            {
+              "frame": 1,
+              "durationMs": 15
+            },
+            {
+              "frame": 2,
+              "durationMs": 15
+            },
+            {
+              "frame": 3,
+              "durationMs": 15
+            },
+            {
+              "frame": 4,
+              "durationMs": 15
+            },
+            {
+              "frame": 5,
+              "durationMs": 15
+            },
+            {
+              "frame": 6,
+              "durationMs": 15
+            },
+            {
+              "frame": 7,
+              "durationMs": 15
+            },
+            {
+              "frame": 8,
+              "durationMs": 15
+            },
+            {
+              "frame": 9,
+              "durationMs": 15
+            },
+            {
+              "frame": 10,
+              "durationMs": 15
+            },
+            {
+              "frame": 11,
+              "durationMs": 15
+            }
+          ],
+          "manifestFrameMs": null,
+          "loop": false,
+          "events": [],
+          "normalization": "uploaded-per-frame",
+          "notes": "Desktop uploaded route only. Normal hit 180ms; strong hit 230ms. Quality recoil method is not selected by final drawUnit."
+        }
+      }
+    }
+  }
+}

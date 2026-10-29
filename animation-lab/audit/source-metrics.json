@@ -1,0 +1,2478 @@
+{
+  "itachi:idle": [
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_01.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        118,
+        11,
+        302,
+        402
+      ],
+      "height": 391,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_02.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        112,
+        11,
+        308,
+        402
+      ],
+      "height": 391,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_03.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        112,
+        11,
+        307,
+        402
+      ],
+      "height": 391,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_04.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        112,
+        10,
+        307,
+        402
+      ],
+      "height": 392,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_05.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        113,
+        11,
+        307,
+        402
+      ],
+      "height": 391,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_06.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        112,
+        11,
+        308,
+        402
+      ],
+      "height": 391,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_07.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        107,
+        11,
+        313,
+        402
+      ],
+      "height": 391,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_08.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        107,
+        11,
+        313,
+        402
+      ],
+      "height": 391,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_09.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        113,
+        11,
+        307,
+        402
+      ],
+      "height": 391,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_10.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        113,
+        11,
+        306,
+        402
+      ],
+      "height": 391,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_11.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        107,
+        11,
+        312,
+        402
+      ],
+      "height": 391,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/idle/frame_12.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        115,
+        12,
+        305,
+        402
+      ],
+      "height": 390,
+      "center": 210.0,
+      "bottom": 402
+    }
+  ],
+  "itachi:run": [
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_01.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        42,
+        11,
+        377,
+        402
+      ],
+      "height": 391,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_02.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        45,
+        10,
+        375,
+        402
+      ],
+      "height": 392,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_03.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        51,
+        13,
+        369,
+        402
+      ],
+      "height": 389,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_04.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        58,
+        16,
+        361,
+        402
+      ],
+      "height": 386,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_05.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        50,
+        14,
+        370,
+        402
+      ],
+      "height": 388,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_06.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        42,
+        20,
+        378,
+        402
+      ],
+      "height": 382,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_07.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        49,
+        24,
+        370,
+        402
+      ],
+      "height": 378,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_08.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        54,
+        24,
+        365,
+        402
+      ],
+      "height": 378,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_09.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        47,
+        18,
+        373,
+        402
+      ],
+      "height": 384,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_10.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        49,
+        22,
+        370,
+        402
+      ],
+      "height": 380,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_11.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        49,
+        17,
+        371,
+        402
+      ],
+      "height": 385,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/run/frame_12.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        50,
+        23,
+        370,
+        402
+      ],
+      "height": 379,
+      "center": 210.0,
+      "bottom": 402
+    }
+  ],
+  "itachi:attack/basic": [
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_01.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        112,
+        32,
+        307,
+        402
+      ],
+      "height": 370,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_02.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        74,
+        98,
+        345,
+        402
+      ],
+      "height": 304,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_03.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        73,
+        77,
+        347,
+        402
+      ],
+      "height": 325,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_04.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        24,
+        90,
+        395,
+        402
+      ],
+      "height": 312,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_05.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        16,
+        97,
+        404,
+        402
+      ],
+      "height": 305,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_06.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        60,
+        47,
+        359,
+        402
+      ],
+      "height": 355,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_07.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        75,
+        110,
+        344,
+        402
+      ],
+      "height": 292,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_08.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        66,
+        116,
+        354,
+        402
+      ],
+      "height": 286,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_09.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        76,
+        97,
+        343,
+        402
+      ],
+      "height": 305,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_10.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        89,
+        55,
+        330,
+        402
+      ],
+      "height": 347,
+      "center": 209.5,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_11.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        109,
+        45,
+        311,
+        402
+      ],
+      "height": 357,
+      "center": 210.0,
+      "bottom": 402
+    },
+    {
+      "file": "assets/characters/itachi/sprites/runtime/attack/basic/frame_12.png",
+      "size": [
+        420,
+        420
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        119,
+        50,
+        301,
+        402
+      ],
+      "height": 352,
+      "center": 210.0,
+      "bottom": 402
+    }
+  ],
+  "obito:idle": [
+    {
+      "file": "assets/characters/obito/sprites/runtime/idle/frame_01.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        46,
+        38,
+        466,
+        742
+      ],
+      "height": 704,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/idle/frame_02.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        44,
+        38,
+        468,
+        742
+      ],
+      "height": 704,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/idle/frame_03.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        42,
+        38,
+        469,
+        741
+      ],
+      "height": 703,
+      "center": 255.5,
+      "bottom": 741
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/idle/frame_04.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        42,
+        38,
+        470,
+        742
+      ],
+      "height": 704,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/idle/frame_05.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        36,
+        38,
+        476,
+        742
+      ],
+      "height": 704,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/idle/frame_06.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        41,
+        38,
+        470,
+        742
+      ],
+      "height": 704,
+      "center": 255.5,
+      "bottom": 742
+    }
+  ],
+  "obito:run": [
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_01.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        118,
+        91,
+        394,
+        700
+      ],
+      "height": 609,
+      "center": 256.0,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_02.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        117,
+        87,
+        395,
+        700
+      ],
+      "height": 613,
+      "center": 256.0,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_03.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        114,
+        89,
+        397,
+        700
+      ],
+      "height": 611,
+      "center": 255.5,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_04.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        112,
+        174,
+        399,
+        700
+      ],
+      "height": 526,
+      "center": 255.5,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_05.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        111,
+        87,
+        400,
+        700
+      ],
+      "height": 613,
+      "center": 255.5,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_06.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        98,
+        85,
+        414,
+        700
+      ],
+      "height": 615,
+      "center": 256.0,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_07.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        123,
+        95,
+        389,
+        700
+      ],
+      "height": 605,
+      "center": 256.0,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_08.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        117,
+        147,
+        395,
+        700
+      ],
+      "height": 553,
+      "center": 256.0,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_09.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        114,
+        104,
+        397,
+        700
+      ],
+      "height": 596,
+      "center": 255.5,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_10.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        112,
+        195,
+        399,
+        700
+      ],
+      "height": 505,
+      "center": 255.5,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_11.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        111,
+        97,
+        400,
+        700
+      ],
+      "height": 603,
+      "center": 255.5,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/run/frame_12.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        102,
+        95,
+        410,
+        700
+      ],
+      "height": 605,
+      "center": 256.0,
+      "bottom": 700
+    }
+  ],
+  "obito:attack/basic": [
+    {
+      "file": "assets/characters/obito/sprites/runtime/attack/basic/frame_01.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        28,
+        106,
+        484,
+        742
+      ],
+      "height": 636,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/attack/basic/frame_02.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        28,
+        154,
+        484,
+        742
+      ],
+      "height": 588,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/attack/basic/frame_03.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        28,
+        241,
+        484,
+        741
+      ],
+      "height": 500,
+      "center": 256.0,
+      "bottom": 741
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/attack/basic/frame_04.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        28,
+        250,
+        484,
+        742
+      ],
+      "height": 492,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/attack/basic/frame_05.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        28,
+        257,
+        484,
+        742
+      ],
+      "height": 485,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/attack/basic/frame_06.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        28,
+        100,
+        483,
+        742
+      ],
+      "height": 642,
+      "center": 255.5,
+      "bottom": 742
+    }
+  ],
+  "obito:v2/recoil": [
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_01.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        78,
+        201,
+        423,
+        688
+      ],
+      "height": 487,
+      "center": 250.5,
+      "bottom": 688
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_02.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        46,
+        308,
+        466,
+        682
+      ],
+      "height": 374,
+      "center": 256.0,
+      "bottom": 682
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_03.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        46,
+        328,
+        466,
+        682
+      ],
+      "height": 354,
+      "center": 256.0,
+      "bottom": 682
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_04.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        46,
+        387,
+        466,
+        738
+      ],
+      "height": 351,
+      "center": 256.0,
+      "bottom": 738
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_05.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        46,
+        325,
+        466,
+        742
+      ],
+      "height": 417,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_06.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        46,
+        228,
+        463,
+        742
+      ],
+      "height": 514,
+      "center": 254.5,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_07.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        50,
+        138,
+        466,
+        728
+      ],
+      "height": 590,
+      "center": 258.0,
+      "bottom": 728
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_08.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        46,
+        244,
+        466,
+        730
+      ],
+      "height": 486,
+      "center": 256.0,
+      "bottom": 730
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_09.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        46,
+        243,
+        466,
+        729
+      ],
+      "height": 486,
+      "center": 256.0,
+      "bottom": 729
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_10.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        46,
+        243,
+        466,
+        729
+      ],
+      "height": 486,
+      "center": 256.0,
+      "bottom": 729
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_11.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        46,
+        244,
+        466,
+        731
+      ],
+      "height": 487,
+      "center": 256.0,
+      "bottom": 731
+    },
+    {
+      "file": "assets/characters/obito/sprites/runtime/v2/recoil/frame_12.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        46,
+        144,
+        464,
+        729
+      ],
+      "height": 585,
+      "center": 255.0,
+      "bottom": 729
+    }
+  ],
+  "scorpion:idle": [
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/idle/frame_01.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        36,
+        38,
+        475,
+        742
+      ],
+      "height": 704,
+      "center": 255.5,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/idle/frame_02.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        45,
+        38,
+        467,
+        742
+      ],
+      "height": 704,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/idle/frame_03.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        32,
+        38,
+        480,
+        742
+      ],
+      "height": 704,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/idle/frame_04.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        33,
+        38,
+        478,
+        742
+      ],
+      "height": 704,
+      "center": 255.5,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/idle/frame_05.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        44,
+        38,
+        468,
+        742
+      ],
+      "height": 704,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/idle/frame_06.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        31,
+        38,
+        480,
+        742
+      ],
+      "height": 704,
+      "center": 255.5,
+      "bottom": 742
+    }
+  ],
+  "scorpion:run": [
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_01.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        109,
+        258,
+        443,
+        701
+      ],
+      "height": 443,
+      "center": 276.0,
+      "bottom": 701
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_02.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        88,
+        249,
+        503,
+        741
+      ],
+      "height": 492,
+      "center": 295.5,
+      "bottom": 741
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_03.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        35,
+        192,
+        509,
+        727
+      ],
+      "height": 535,
+      "center": 272.0,
+      "bottom": 727
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_04.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        97,
+        258,
+        421,
+        685
+      ],
+      "height": 427,
+      "center": 259.0,
+      "bottom": 685
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_05.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        62,
+        257,
+        512,
+        741
+      ],
+      "height": 484,
+      "center": 287.0,
+      "bottom": 741
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_06.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        66,
+        230,
+        490,
+        741
+      ],
+      "height": 511,
+      "center": 278.0,
+      "bottom": 741
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_07.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        99,
+        239,
+        455,
+        646
+      ],
+      "height": 407,
+      "center": 277.0,
+      "bottom": 646
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_08.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        62,
+        231,
+        475,
+        725
+      ],
+      "height": 494,
+      "center": 268.5,
+      "bottom": 725
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_09.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        32,
+        208,
+        488,
+        698
+      ],
+      "height": 490,
+      "center": 260.0,
+      "bottom": 698
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_10.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        112,
+        256,
+        417,
+        656
+      ],
+      "height": 400,
+      "center": 264.5,
+      "bottom": 656
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_11.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        80,
+        229,
+        512,
+        708
+      ],
+      "height": 479,
+      "center": 296.0,
+      "bottom": 708
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/run/frame_12.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        63,
+        208,
+        497,
+        702
+      ],
+      "height": 494,
+      "center": 280.0,
+      "bottom": 702
+    }
+  ],
+  "scorpion:attack/basic": [
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/attack/basic/frame_01.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        30,
+        116,
+        482,
+        742
+      ],
+      "height": 626,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/attack/basic/frame_02.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        28,
+        244,
+        484,
+        742
+      ],
+      "height": 498,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/attack/basic/frame_03.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        28,
+        339,
+        484,
+        742
+      ],
+      "height": 403,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/attack/basic/frame_04.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        29,
+        177,
+        484,
+        742
+      ],
+      "height": 565,
+      "center": 256.5,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/attack/basic/frame_05.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        28,
+        217,
+        484,
+        742
+      ],
+      "height": 525,
+      "center": 256.0,
+      "bottom": 742
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/attack/basic/frame_06.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        28,
+        171,
+        484,
+        742
+      ],
+      "height": 571,
+      "center": 256.0,
+      "bottom": 742
+    }
+  ],
+  "scorpion:v2/idle": [
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_01.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        44,
+        236,
+        487,
+        697
+      ],
+      "height": 461,
+      "center": 265.5,
+      "bottom": 697
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_02.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        50,
+        236,
+        491,
+        697
+      ],
+      "height": 461,
+      "center": 270.5,
+      "bottom": 697
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_03.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        236,
+        491,
+        696
+      ],
+      "height": 460,
+      "center": 256.0,
+      "bottom": 696
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_04.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        236,
+        487,
+        696
+      ],
+      "height": 460,
+      "center": 254.0,
+      "bottom": 696
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_05.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        40,
+        236,
+        480,
+        697
+      ],
+      "height": 461,
+      "center": 260.0,
+      "bottom": 697
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_06.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        35,
+        236,
+        476,
+        696
+      ],
+      "height": 460,
+      "center": 255.5,
+      "bottom": 696
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_07.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        43,
+        233,
+        491,
+        692
+      ],
+      "height": 459,
+      "center": 267.0,
+      "bottom": 692
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_08.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        52,
+        234,
+        491,
+        692
+      ],
+      "height": 458,
+      "center": 271.5,
+      "bottom": 692
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_09.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        234,
+        491,
+        693
+      ],
+      "height": 459,
+      "center": 256.0,
+      "bottom": 693
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_10.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        234,
+        487,
+        693
+      ],
+      "height": 459,
+      "center": 254.0,
+      "bottom": 693
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_11.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        42,
+        233,
+        482,
+        693
+      ],
+      "height": 460,
+      "center": 262.0,
+      "bottom": 693
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/idle/frame_12.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        43,
+        233,
+        476,
+        692
+      ],
+      "height": 459,
+      "center": 259.5,
+      "bottom": 692
+    }
+  ],
+  "scorpion:v2/run": [
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_01.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        58,
+        239,
+        491,
+        700
+      ],
+      "height": 461,
+      "center": 274.5,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_02.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        238,
+        491,
+        700
+      ],
+      "height": 462,
+      "center": 256.0,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_03.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        238,
+        491,
+        700
+      ],
+      "height": 462,
+      "center": 256.0,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_04.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        239,
+        491,
+        700
+      ],
+      "height": 461,
+      "center": 256.0,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_05.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        239,
+        491,
+        700
+      ],
+      "height": 461,
+      "center": 256.0,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_06.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        238,
+        390,
+        700
+      ],
+      "height": 462,
+      "center": 205.5,
+      "bottom": 700
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_07.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        38,
+        241,
+        491,
+        693
+      ],
+      "height": 452,
+      "center": 264.5,
+      "bottom": 693
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_08.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        241,
+        491,
+        692
+      ],
+      "height": 451,
+      "center": 256.0,
+      "bottom": 692
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_09.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        230,
+        491,
+        690
+      ],
+      "height": 460,
+      "center": 256.0,
+      "bottom": 690
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_10.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        230,
+        491,
+        689
+      ],
+      "height": 459,
+      "center": 256.0,
+      "bottom": 689
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_11.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        230,
+        437,
+        692
+      ],
+      "height": 462,
+      "center": 229.0,
+      "bottom": 692
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/run/frame_12.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        23,
+        230,
+        446,
+        690
+      ],
+      "height": 460,
+      "center": 234.5,
+      "bottom": 690
+    }
+  ],
+  "scorpion:v2/attack": [
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_01.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        31,
+        244,
+        434,
+        698
+      ],
+      "height": 454,
+      "center": 232.5,
+      "bottom": 698
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_02.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        245,
+        471,
+        697
+      ],
+      "height": 452,
+      "center": 246.0,
+      "bottom": 697
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_03.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        43,
+        252,
+        486,
+        698
+      ],
+      "height": 446,
+      "center": 264.5,
+      "bottom": 698
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_04.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        56,
+        255,
+        491,
+        697
+      ],
+      "height": 442,
+      "center": 273.5,
+      "bottom": 697
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_05.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        253,
+        491,
+        698
+      ],
+      "height": 445,
+      "center": 256.0,
+      "bottom": 698
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_06.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        325,
+        266,
+        696
+      ],
+      "height": 371,
+      "center": 143.5,
+      "bottom": 696
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_07.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        35,
+        261,
+        491,
+        675
+      ],
+      "height": 414,
+      "center": 263.0,
+      "bottom": 675
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_08.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        253,
+        491,
+        677
+      ],
+      "height": 424,
+      "center": 256.0,
+      "bottom": 677
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_09.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        241,
+        491,
+        678
+      ],
+      "height": 437,
+      "center": 256.0,
+      "bottom": 678
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_10.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        21,
+        247,
+        491,
+        679
+      ],
+      "height": 432,
+      "center": 256.0,
+      "bottom": 679
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_11.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        87,
+        251,
+        481,
+        678
+      ],
+      "height": 427,
+      "center": 284.0,
+      "bottom": 678
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/attack/frame_12.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        71,
+        240,
+        460,
+        678
+      ],
+      "height": 438,
+      "center": 265.5,
+      "bottom": 678
+    }
+  ],
+  "scorpion:v2/recoil": [
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_01.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        44,
+        236,
+        487,
+        697
+      ],
+      "height": 461,
+      "center": 265.5,
+      "bottom": 697
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_02.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        48,
+        238,
+        491,
+        697
+      ],
+      "height": 459,
+      "center": 269.5,
+      "bottom": 697
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_03.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        19,
+        244,
+        491,
+        697
+      ],
+      "height": 453,
+      "center": 255.0,
+      "bottom": 697
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_04.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        19,
+        253,
+        485,
+        697
+      ],
+      "height": 444,
+      "center": 252.0,
+      "bottom": 697
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_05.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        31,
+        260,
+        479,
+        697
+      ],
+      "height": 437,
+      "center": 255.0,
+      "bottom": 697
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_06.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        27,
+        256,
+        475,
+        697
+      ],
+      "height": 441,
+      "center": 251.0,
+      "bottom": 697
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_07.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        36,
+        248,
+        490,
+        692
+      ],
+      "height": 444,
+      "center": 263.0,
+      "bottom": 692
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_08.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        47,
+        243,
+        491,
+        693
+      ],
+      "height": 450,
+      "center": 269.0,
+      "bottom": 693
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_09.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        20,
+        239,
+        491,
+        693
+      ],
+      "height": 454,
+      "center": 255.5,
+      "bottom": 693
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_10.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        20,
+        236,
+        487,
+        693
+      ],
+      "height": 457,
+      "center": 253.5,
+      "bottom": 693
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_11.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        41,
+        234,
+        482,
+        693
+      ],
+      "height": 459,
+      "center": 261.5,
+      "bottom": 693
+    },
+    {
+      "file": "assets/characters/scorpion/sprites/runtime/v2/recoil/frame_12.png",
+      "size": [
+        512,
+        768
+      ],
+      "mode": "RGBA",
+      "bounds": [
+        43,
+        233,
+        476,
+        692
+      ],
+      "height": 459,
+      "center": 259.5,
+      "bottom": 692
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "auditedCommit": "f2b8759",
+  "method": "Fresh Chromium contexts, desktop 1280px and 390px WebKit-UA guard; final built resolvers after complete quality decode. Not Safari hardware.",
+  "observations": {
+    "desktop": {
+      "Itachi": {
+        "uploadedRouteEnabled": false,
+        "idle": {
+          "playbackSourceCount": 12,
+          "sourceTypes": [
+            "/assets/characters/itachi/sprites/runtime/idle"
+          ],
+          "dimensions": [
+            "420x420"
+          ]
+        },
+        "run": {
+          "playbackSourceCount": 12,
+          "sourceTypes": [
+            "/assets/characters/itachi/sprites/runtime/run"
+          ],
+          "dimensions": [
+            "420x420"
+          ]
+        },
+        "basic": {
+          "playbackSourceCount": 12,
+          "sourceTypes": [
+            "/assets/characters/itachi/sprites/runtime/attack/basic"
+          ],
+          "dimensions": [
+            "420x420"
+          ]
+        }
+      },
+      "Obito": {
+        "uploadedRouteEnabled": true,
+        "idle": {
+          "playbackSourceCount": 6,
+          "sourceTypes": [
+            "/assets/characters/obito/sprites/runtime/idle"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        },
+        "run": {
+          "playbackSourceCount": 12,
+          "sourceTypes": [
+            "/assets/characters/obito/sprites/runtime/run"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        },
+        "basic": {
+          "playbackSourceCount": 6,
+          "sourceTypes": [
+            "/assets/characters/obito/sprites/runtime/attack/basic"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        }
+      },
+      "Scorpion": {
+        "uploadedRouteEnabled": true,
+        "idle": {
+          "playbackSourceCount": 10,
+          "sourceTypes": [
+            "normalized-memory-image"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        },
+        "run": {
+          "playbackSourceCount": 12,
+          "sourceTypes": [
+            "normalized-memory-image"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        },
+        "basic": {
+          "playbackSourceCount": 6,
+          "sourceTypes": [
+            "normalized-memory-image"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        }
+      },
+      "pageErrors": []
+    },
+    "mobile": {
+      "Itachi": {
+        "uploadedRouteEnabled": false,
+        "idle": {
+          "playbackSourceCount": 12,
+          "sourceTypes": [
+            "/assets/characters/itachi/sprites/runtime/idle"
+          ],
+          "dimensions": [
+            "420x420"
+          ]
+        },
+        "run": {
+          "playbackSourceCount": 12,
+          "sourceTypes": [
+            "/assets/characters/itachi/sprites/runtime/run"
+          ],
+          "dimensions": [
+            "420x420"
+          ]
+        },
+        "basic": {
+          "playbackSourceCount": 12,
+          "sourceTypes": [
+            "/assets/characters/itachi/sprites/runtime/attack/basic"
+          ],
+          "dimensions": [
+            "420x420"
+          ]
+        }
+      },
+      "Obito": {
+        "uploadedRouteEnabled": false,
+        "idle": {
+          "playbackSourceCount": 6,
+          "sourceTypes": [
+            "/assets/characters/obito/sprites/runtime/idle"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        },
+        "run": {
+          "playbackSourceCount": 12,
+          "sourceTypes": [
+            "/assets/characters/obito/sprites/runtime/run"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        },
+        "basic": {
+          "playbackSourceCount": 6,
+          "sourceTypes": [
+            "/assets/characters/obito/sprites/runtime/attack/basic"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        }
+      },
+      "Scorpion": {
+        "uploadedRouteEnabled": false,
+        "idle": {
+          "playbackSourceCount": 10,
+          "sourceTypes": [
+            "normalized-memory-image"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        },
+        "run": {
+          "playbackSourceCount": 12,
+          "sourceTypes": [
+            "normalized-memory-image"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        },
+        "basic": {
+          "playbackSourceCount": 6,
+          "sourceTypes": [
+            "normalized-memory-image"
+          ],
+          "dimensions": [
+            "512x768"
+          ]
+        }
+      },
+      "pageErrors": []
+    }
+  }
+}

@@ -11,7 +11,10 @@
     "smoke:presentation": "node scripts/presentation-regression-browser-smoke.mjs && node scripts/road-mobile-visibility-browser-smoke.mjs",
     "smoke:tyler": "node scripts/tyler-basic-browser-smoke.mjs",
     "deploy": "wrangler deploy",
-    "preview": "wrangler versions upload"
+    "preview": "wrangler versions upload",
+    "serve:motion": "node scripts/serve-animation-lab.mjs",
+    "test:motion": "node scripts/test-animation-lab.mjs",
+    "smoke:motion": "node scripts/animation-lab-browser-smoke.mjs"
   },
   "devDependencies": {
     "playwright": "1.62.1",
