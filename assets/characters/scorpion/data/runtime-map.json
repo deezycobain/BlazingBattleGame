@@ -31,8 +31,6 @@
     }
   },
   "states": {
-    "idle": "scorpion.animation.idle",
-    "run": "scorpion.animation.run",
-    "recoil": "scorpion.animation.recoil"
+    "idle": "scorpion.animation.idle"
   }
 }

@@ -69,13 +69,6 @@ jobs:
           node scripts/legendary-itachi-browser-smoke.mjs || status=$?
           node scripts/itachi-battle-browser-smoke.mjs || status=$?
           exit $status
-      - name: Save Home browser screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: home-browser-screenshots
-          path: test-artifacts/*.png
-          retention-days: 3
       - name: Chromium + WebKit local results and economy smoke
         run: node scripts/results-browser-smoke.mjs
       - name: Chromium + WebKit local unit progression smoke
@@ -186,3 +179,11 @@ jobs:
             sleep 20
           done
           exit 1
+      - name: Save Home browser screenshots after a failed build
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: home-browser-screenshots
+          path: test-artifacts/*.png
+          if-no-files-found: ignore
+          retention-days: 3
