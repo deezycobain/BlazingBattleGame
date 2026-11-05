@@ -20,7 +20,25 @@ jobs:
           node-version: '22'
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
-      - run: npm run build
+      - name: Validate proposed Common roster
+        run: node scripts/validate-recruitment-roster.mjs
+      - name: Validate preserved Journey contract
+        if: always()
+        run: node scripts/validate-realm-exploration.mjs
+      - name: Run source regression validators
+        if: always()
+        run: npm run validate
+      - name: Build with actionable failure annotation
+        shell: bash
+        run: |
+          if npm run build > /tmp/bb-build.log 2>&1; then
+            tail -n 20 /tmp/bb-build.log
+          else
+            tail -n 70 /tmp/bb-build.log
+            last_error="$(tail -n 18 /tmp/bb-build.log | tr '\n' ' ' | cut -c 1-3000)"
+            printf '::error title=Blazing Battle build failure::%s\n' "$last_error"
+            exit 1
+          fi
       - name: Start built game
         run: |
           env -u RUNNER_TRACKING_ID nohup node scripts/serve-dist.mjs > /tmp/bb-server.log 2>&1 </dev/null &
@@ -46,6 +64,8 @@ jobs:
           exit 1
       - name: Chromium + WebKit local paired-team smoke
         run: node scripts/team-pair-browser-smoke.mjs
+      - name: Chromium + WebKit local Realm Exploration smoke
+        run: node scripts/realm-exploration-browser-smoke.mjs
       - name: WebKit mobile deployed Home input smoke
         if: always() && github.event_name == 'push' && github.ref_name == 'dev'
         env:
@@ -61,14 +81,33 @@ jobs:
           exit 1
       - name: Chromium + WebKit local boot smoke
         if: always()
-        run: npm run smoke:browser
+        shell: bash
+        run: |
+          set +e
+          npm run smoke:browser > /tmp/bb-smoke.log 2>&1
+          status=$?
+          tail -n 70 /tmp/bb-smoke.log
+          if [ "$status" -ne 0 ]; then
+            reason="$(tail -n 18 /tmp/bb-smoke.log | tr '\n' ' ' | cut -c 1-3000)"
+            printf '::error title=Blazing Battle browser regression::%s\n' "$reason"
+            exit "$status"
+          fi
       - name: Chromium + WebKit local Itachi integration smoke
         if: always()
+        shell: bash
         run: |
-          status=0
-          node scripts/legendary-itachi-browser-smoke.mjs || status=$?
-          node scripts/itachi-battle-browser-smoke.mjs || status=$?
-          exit $status
+          set +e
+          node scripts/legendary-itachi-browser-smoke.mjs > /tmp/bb-itachi-reveal.log 2>&1
+          reveal=$?
+          node scripts/itachi-battle-browser-smoke.mjs > /tmp/bb-itachi-battle.log 2>&1
+          battle=$?
+          tail -n 25 /tmp/bb-itachi-reveal.log
+          tail -n 25 /tmp/bb-itachi-battle.log
+          if [ "$reveal" -ne 0 ] || [ "$battle" -ne 0 ]; then
+            reason="$( (tail -n 9 /tmp/bb-itachi-reveal.log; tail -n 9 /tmp/bb-itachi-battle.log) | tr '\n' ' ' | cut -c 1-3000)"
+            printf '::error title=Blazing Battle Itachi regression::%s\n' "$reason"
+            exit 1
+          fi
       - name: Save Home browser screenshots
         if: always()
         uses: actions/upload-artifact@v4

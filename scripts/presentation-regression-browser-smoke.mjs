@@ -1,4 +1,5 @@
 import {chromium,webkit} from 'playwright';
+import {seedSmokeProfile,LEGACY_SIX,LEGACY_TWELVE} from './smoke-fixtures.mjs';
 
 const BASE=(process.env.BB_SMOKE_URL||'http://127.0.0.1:4173').replace(/\/$/,'');
 const EXPECT=(process.env.BB_EXPECT_COMMIT||'').trim();
@@ -8,6 +9,8 @@ for(const [name,type] of Object.entries({chromium,webkit})){
  try{
   browser=await type.launch({headless:true,timeout:15000});
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:name==='webkit',hasTouch:true});
+  // This presentation scenario explicitly owns the legacy roster; fresh-account rules are tested separately.
+  await seedSmokeProfile(context,{team:LEGACY_SIX,owned:LEGACY_TWELVE});
   const page=await context.newPage();page.setDefaultTimeout(15000);
   const errors=[];page.on('pageerror',error=>errors.push(String(error?.message||error)));
   await page.goto(BASE+'/',{waitUntil:'domcontentloaded'});

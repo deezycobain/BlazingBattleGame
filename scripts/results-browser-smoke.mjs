@@ -63,7 +63,7 @@ async function run(name,type){
     const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
     if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
 
-    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingUnitProgression.reset();window.BlazingApprovedHomeCompat.apply();window.BlazingHomeLivePolish.apply();window.BlazingHomeV8.apply();window.BlazingHomeV9.apply()});
+    await page.evaluate(()=>{window.BlazingRoadRun.clearRun();window.BlazingEconomy.reset();window.BlazingEconomy.save({...window.BlazingEconomy.load(),battleMarks:0,lifetimeEarned:0,embers:0});window.BlazingUnitProgression.reset();window.BlazingApprovedHomeCompat.apply();window.BlazingHomeLivePolish.apply();window.BlazingHomeV8.apply();window.BlazingHomeV9.apply()});
     const home=await page.evaluate(()=>{
       const shell=document.getElementById('bbHomeApproved');
       const legacy=document.querySelector('#menuScreen > .menuInner');

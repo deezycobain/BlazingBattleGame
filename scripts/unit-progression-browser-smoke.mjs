@@ -45,7 +45,7 @@ async function run(name,type){
   const meta=await page.evaluate(()=>window.BB_BUILD_META||null);
   if(EXPECT&&(!meta?.commit||!String(meta.commit).startsWith(EXPECT.slice(0,12))))throw new Error(`commit mismatch: expected ${EXPECT.slice(0,12)}, got ${meta?.commit||'missing'}`);
 
-  await page.evaluate(()=>{window.BlazingUnitProgression.reset();window.BlazingEconomy.reset()});
+  await page.evaluate(()=>{window.BlazingUnitProgression.reset();window.BlazingEconomy.reset();window.BlazingEconomy.save({...window.BlazingEconomy.load(),battleMarks:0,lifetimeEarned:0,embers:0})});
   await page.evaluate(()=>window.BlazingProgression.openForge('Lebee'));
   await page.locator('#resonanceScreen.active #bbLevelProgression').waitFor({state:'visible'});
   const forgeRegistry=await page.evaluate(()=>({fighters:window.BlazingProgression.fighters(),progression:window.BlazingUnitProgression.fighters(),buttons:[...document.querySelectorAll('#forgeRoster [data-fighter]')].map(node=>node.dataset.fighter)}));
@@ -152,7 +152,7 @@ async function run(name,type){
   await page.locator('#bbProgressionFx.active.shiny').waitFor({state:'visible',timeout:2000});const shinyFx=await page.locator('#bbProgressionFx').innerText(),shiny=await page.evaluate(()=>window.BlazingUnitProgression.unit('Lebee'));
   if(!shiny.shiny||shiny.awakening!==5||shiny.level!==50||!/SHINY AWAKENED/i.test(shinyFx)||!/FINAL AWAKENING/i.test(shinyFx))throw new Error(`final Shiny state incorrect: ${JSON.stringify({shiny,shinyFx})}`);
 
-  await page.evaluate(()=>{window.BlazingUnitProgression.reset();window.BlazingEconomy.reset()});
+  await page.evaluate(()=>{window.BlazingUnitProgression.reset();window.BlazingEconomy.reset();window.BlazingEconomy.save({...window.BlazingEconomy.load(),battleMarks:0,lifetimeEarned:0,embers:0})});
   if(errors.length)throw new Error(`pageerror: ${errors.join(' | ')}`);
   console.log(`Unit progression browser smoke PASS (${name}): insufficient-coin feedback, single leveling, exact MAX TO AWAKENING, accelerated early Road XP, Awakening/Shiny, Ember exchange, and persistence verified.`);
  }finally{if(browser)await browser.close().catch(()=>{})}
