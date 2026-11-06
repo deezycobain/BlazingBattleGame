@@ -172,7 +172,7 @@ function profileSnapshot(){
   fighters,
   coins:Math.max(0,Math.floor(Number(economy.battleMarks)||0)),
   lifetimeCoins:Math.max(0,Math.floor(Number(economy.lifetimeEarned)||0)),
-  embers:Math.max(0,Math.floor(Number(economy.embers)||0)),
+  embers:window.BlazingEconomy?.friendTest?Infinity:Math.max(0,Math.floor(Number(economy.embers)||0)),
   roadWins:Math.max(0,Math.floor(Number(economy.wins?.road)||0)),
   castleWins:Math.max(0,Math.floor(Number(economy.wins?.castle)||0)),
   road:road?{stage:Math.max(1,Math.floor(Number(road.stage)||1)),status:String(road.status||'active'),living,total:roadFighters.length}:null

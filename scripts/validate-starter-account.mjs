@@ -3,18 +3,18 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 const collection=fs.readFileSync('runtime/core/starter-collection.js','utf8');
 const teamPostprocess=fs.readFileSync('scripts/starter-account-postprocess.mjs','utf8');
-assert.ok(teamPostprocess.includes("testMode?['Itachi',null,'Obito',null,'Scorpion',null]"),'QA team defaults to three requested fighters');
+assert.ok(teamPostprocess.includes("testMode&&!window.BlazingCollection?.friendBuild?['Itachi',null,'Obito',null,'Scorpion',null]"),'QA link preserves requested fighters while friend build uses ordinary starters');
 assert.ok(teamPostprocess.includes('blazingBattle.animationTestTeam.v1'), 'QA team storage stays separate from the normal account');
 const economy=fs.readFileSync('runtime/modes/battle-economy.js','utf8');
 const road=fs.readFileSync('runtime/modes/blazing-road-run.js','utf8');
-function boot(entries={},search=''){
+function boot(entries={},search='',friendBuild=false){
  const store=new Map(Object.entries(entries));
  const localStorage={
   getItem:key=>store.has(key)?store.get(key):null,
   setItem:(key,val)=>store.set(key,String(val)),
   removeItem:key=>store.delete(key)
  };
- const win={location:{search},localStorage,BLAZING_UNIT_DATA:{tyler:{id:'tyler',display_name:'Tyler',role:'playable'},subzero:{id:'subzero',display_name:'Sub-Zero',role:'playable'},senku:{id:'senku',display_name:'Senku',role:'playable'},scorpion:{id:'scorpion',display_name:'Scorpion',role:'playable'}},addEventListener(){},dispatchEvent(){}};
+ const win={location:{search},localStorage,BLAZING_FRIEND_BUILD:friendBuild,BLAZING_UNIT_DATA:{tyler:{id:'tyler',display_name:'Tyler',role:'playable'},subzero:{id:'subzero',display_name:'Sub-Zero',role:'playable'},senku:{id:'senku',display_name:'Senku',role:'playable'},scorpion:{id:'scorpion',display_name:'Scorpion',role:'playable'}},addEventListener(){},dispatchEvent(){}};
  const document={readyState:'loading',addEventListener(){},getElementById(){return null}};
  const ctx=vm.createContext({window:win,document,localStorage,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail}},MutationObserver:class{observe(){}},URLSearchParams,console});
  vm.runInContext(collection,ctx,{filename:'starter-collection.js'});
@@ -54,6 +54,17 @@ const testRun=friend.win.BlazingRoadRun.createRun([{name:'Scorpion',hp:100,maxHp
 assert.equal(testRun.stage,2,'second map launches directly');
 assert.notEqual(friend.win.BlazingRoadRun.STORAGE_KEY,fresh.win.BlazingRoadRun.STORAGE_KEY,'friend and normal Road saves are separate');
 assert.equal(fresh.win.BlazingRoadRun.createRun([{name:'Tyler',hp:100,maxHp:100}],{stage:1}).stage,1);
-const launcher=fs.readFileSync('friend-test.html','utf8');
-assert.ok(launcher.includes('bbFriendMap=1')&&launcher.includes('bbFriendMap=2'),'friend launcher contains both map links');
-console.log('Starter account and friend playtest PASS: starter economy protected, full QA roster, infinite free pulls, separate map saves.');
+const branchFriend=boot({},'',true);
+assert.equal(branchFriend.win.BlazingCollection.testMode,true,'friend branch unlocks all playable fighters without URL flags');
+assert.equal(branchFriend.win.BlazingCollection.friendBuild,true,'friend branch marker is available');
+assert.equal(branchFriend.win.BlazingCollection.owns('Scorpion'),true,'friend branch has full test roster');
+assert.equal(branchFriend.win.BlazingEconomy.emberBalance(),Infinity,'friend branch shows unlimited Embers');
+assert.equal(branchFriend.win.BlazingEconomy.spendEmbers(1000000),true,'friend branch summons are free');
+assert.equal(branchFriend.store.has('blazing.economy.v1'),false,'friend pulls do not debit saved currency');
+assert.equal(branchFriend.win.BlazingRoadRun.createRun([{name:'Scorpion',hp:100,maxHp:100}],{stage:1}).stage,1,'friend branch starts on the first map by default');
+assert.ok(branchFriend.win.BlazingRoadRun.STORAGE_KEY.startsWith('blazingBattle.friendRoad.'),'friend branch Road save is isolated');
+const firstLogin=fs.readFileSync('runtime/ui/home/home-v8-runtime.js','utf8');
+assert.ok(firstLogin.includes('CREATE YOUR PLAYER')&&firstLogin.includes('saveProfile(input?.value)'),'full Home first-login username entry stays intact');
+assert.ok(collection.includes('if(TEST_MODE&&!FRIEND_BUILD){'),'friend branch does not redirect from Home to Edit Team');
+assert.ok(teamPostprocess.includes('bb-friend-build-flag'),'friend build flag is injected before collection boot');
+console.log('Starter account and full-game friend playtest PASS: normal first-login Home, default starters, full test roster, infinite summons, isolated Road maps.');

@@ -322,7 +322,7 @@ function syncEconomy(coins,embers){
  const coinValue=coins?.querySelector('[data-v5-marks]');
  const emberValue=embers?.querySelector('[data-v5-embers]');
  const nextCoins=format(state.battleMarks);
- const nextEmbers=format(state.embers);
+ const nextEmbers=window.BlazingEconomy?.friendTest?'∞':format(state.embers);
  if(coinValue&&coinValue.textContent!==nextCoins)coinValue.textContent=nextCoins;
  if(emberValue&&emberValue.textContent!==nextEmbers)emberValue.textContent=nextEmbers;
  return !!(coinValue&&emberValue);

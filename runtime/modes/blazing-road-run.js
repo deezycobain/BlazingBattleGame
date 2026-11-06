@@ -4,7 +4,7 @@
 const SCHEMA_VERSION=1;
 const MODE='blazing-road';
 // Map selection and run storage are isolated from normal campaign progress.
-const FRIEND_TEST=(()=>{try{return new URLSearchParams(window.location?.search||'').get('bbFriendTest')==='1'}catch{return false}})();
+const FRIEND_TEST=window.BLAZING_FRIEND_BUILD===true||(()=>{try{return new URLSearchParams(window.location?.search||'').get('bbFriendTest')==='1'}catch{return false}})();
 const FRIEND_STAGE=(()=>{try{return new URLSearchParams(window.location?.search||'').get('bbFriendMap')==='2'?2:1}catch{return 1}})();
 const STORAGE_KEY=FRIEND_TEST?`blazingBattle.friendRoad.stage${FRIEND_STAGE}.v1`:'blazingBattle.blazingRoad.run.v1';
 

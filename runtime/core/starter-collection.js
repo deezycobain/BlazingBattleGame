@@ -4,7 +4,8 @@ const KEY='blazing.collection.v1',VERSION=1;
 const STARTERS=Object.freeze(['tyler','subzero','senku']);
 // Only the explicit animation QA URL can preview the full playable roster.
 // The stored ownership list stays untouched.
-const TEST_MODE=(()=>{try{return new URLSearchParams(window.location?.search||'').get('bbAnimationTest')==='1'||new URLSearchParams(window.location?.search||'').get('bbFriendTest')==='1'}catch{return false}})();
+const FRIEND_BUILD=window.BLAZING_FRIEND_BUILD===true;
+const TEST_MODE=FRIEND_BUILD||(()=>{try{return new URLSearchParams(window.location?.search||'').get('bbAnimationTest')==='1'||new URLSearchParams(window.location?.search||'').get('bbFriendTest')==='1'}catch{return false}})();
 const aliases=Object.freeze({'sub-zero':'subzero','wong fei-hung':'jackie_chan','jackie chan':'jackie_chan','solar pharaoh naruto':'naruto_solar','egyptian gaara':'gaara','madara uchiha':'madara'});
 function id(input){
  if(input&&typeof input==='object')return id(input.id||input.display_name);
@@ -74,9 +75,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  markLocked();
 },{once:true});
 else markLocked();
-window.BlazingCollection=Object.freeze({KEY,VERSION,STARTERS,testMode:TEST_MODE,id,load,owns,unlock});
+window.BlazingCollection=Object.freeze({KEY,VERSION,STARTERS,testMode:TEST_MODE,friendBuild:FRIEND_BUILD,id,load,owns,unlock});
 load();
-if(TEST_MODE){
+if(TEST_MODE&&!FRIEND_BUILD){
  // Direct QA link opens the existing team selector after the game has loaded.
  window.addEventListener('load',()=>{
   setTimeout(()=>{

@@ -3,7 +3,7 @@
 
 const KEY='blazing.economy.v1';
 // Friend playtests never consume the player's stored summon currency.
-const FRIEND_TEST=(()=>{try{return new URLSearchParams(window.location?.search||'').get('bbFriendTest')==='1'}catch{return false}})();
+const FRIEND_TEST=window.BLAZING_FRIEND_BUILD===true||(()=>{try{return new URLSearchParams(window.location?.search||'').get('bbFriendTest')==='1'}catch{return false}})();
 const VERSION=2;
 const CURRENCY='BLAZING COINS';
 const SYMBOL='◈';
