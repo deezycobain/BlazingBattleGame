@@ -37,7 +37,7 @@ one('function activateSummons(){',[
 "function activateSummons(){",
 " const syncWallet=()=>{",
 "  summonEmbers=Math.max(0,Number(window.BlazingEconomy?.emberBalance?.()??0));",
-"  document.querySelectorAll('#emberCount,#pullEmberCount').forEach(el=>{const friend=window.BlazingEconomy?.friendTest;el.textContent=friend?'∞':String(summonEmbers);el.classList.toggle('bb-dev-infinity',!!friend)});",
+"  document.querySelectorAll('#emberCount,#pullEmberCount').forEach(el=>{el.textContent=String(summonEmbers);el.classList.remove('bb-dev-infinity')});",
 " };",
 " const payForPull=(count,create)=>{",
 "  if(!window.BlazingEconomy?.spendEmbers?.(count)){",

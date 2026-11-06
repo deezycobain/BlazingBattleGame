@@ -3,10 +3,7 @@
 
 const SCHEMA_VERSION=1;
 const MODE='blazing-road';
-// Map selection and run storage are isolated from normal campaign progress.
-const FRIEND_TEST=(()=>{try{return new URLSearchParams(window.location?.search||'').get('bbFriendTest')==='1'}catch{return false}})();
-const FRIEND_STAGE=(()=>{try{return new URLSearchParams(window.location?.search||'').get('bbFriendMap')==='2'?2:1}catch{return 1}})();
-const STORAGE_KEY=FRIEND_TEST?`blazingBattle.friendRoad.stage${FRIEND_STAGE}.v1`:'blazingBattle.blazingRoad.run.v1';
+const STORAGE_KEY='blazingBattle.blazingRoad.run.v1';
 
 const finite=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;
 const integer=(value,fallback=0)=>Number.isInteger(Number(value))?Number(value):fallback;
@@ -96,7 +93,7 @@ function createRun(fighters,{stage=1,runId=null,startedAt=null}={}){
   const normalized=fighters.map(normalizeFighter);
   const seen=new Set();
   for(const fighter of normalized){if(seen.has(fighter.unit_id))throw new Error(`Duplicate Blazing Road fighter ${fighter.unit_id}`);seen.add(fighter.unit_id);}
-  const startStage=integer(FRIEND_TEST?FRIEND_STAGE:stage,0);
+  const startStage=integer(stage,0);
   if(startStage<1)throw new Error('Blazing Road stage must be a positive integer');
   const stamp=startedAt||now();
   const run={
