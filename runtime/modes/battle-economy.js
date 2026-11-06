@@ -2,6 +2,8 @@
 'use strict';
 
 const KEY='blazing.economy.v1';
+// Friend playtests never consume the player's stored summon currency.
+const FRIEND_TEST=(()=>{try{return new URLSearchParams(window.location?.search||'').get('bbFriendTest')==='1'}catch{return false}})();
 const VERSION=2;
 const CURRENCY='BLAZING COINS';
 const SYMBOL='◈';
@@ -65,7 +67,7 @@ function awardVictory({mode,stage=1,boss=1}={}){
 }
 
 function balance(){return load().battleMarks;}
-function emberBalance(){return load().embers;}
+function emberBalance(){return FRIEND_TEST?Infinity:load().embers;}
 function canSpend(amount){return balance()>=Math.max(0,Math.floor(Number(amount)||0));}
 function spend(amount,reason='SPEND'){
   const cost=Math.max(0,Math.floor(Number(amount)||0));
@@ -94,6 +96,7 @@ function purchaseEmber(){
   return {ok:true,reason:'PURCHASED',cost:EMBER_COST,weeklyCap:EMBER_WEEKLY_CAP,bought:saved.embersBoughtThisWeek,remaining:EMBER_WEEKLY_CAP-saved.embersBoughtThisWeek,embers:saved.embers,battleMarks:saved.battleMarks,week:saved.emberWeek};
 }
 function spendEmbers(amount){
+  if(FRIEND_TEST)return true;
   const cost=Math.max(0,Math.floor(Number(amount)||0));
   const state=load();
   if(state.embers<cost)return false;
@@ -101,5 +104,5 @@ function spendEmbers(amount){
 }
 function reset(){localStorage.removeItem(KEY);window.dispatchEvent(new CustomEvent('bb:economy',{detail:fresh()}));return fresh();}
 
-window.BlazingEconomy=Object.freeze({KEY,VERSION,CURRENCY,SYMBOL,EMBER_COST,EMBER_WEEKLY_CAP,load,save,balance,emberBalance,rewardFor,awardVictory,canSpend,spend,grantMarks,emberExchangeStatus,purchaseEmber,spendEmbers,reset});
+window.BlazingEconomy=Object.freeze({KEY,VERSION,friendTest:FRIEND_TEST,CURRENCY,SYMBOL,EMBER_COST,EMBER_WEEKLY_CAP,load,save,balance,emberBalance,rewardFor,awardVictory,canSpend,spend,grantMarks,emberExchangeStatus,purchaseEmber,spendEmbers,reset});
 })();
