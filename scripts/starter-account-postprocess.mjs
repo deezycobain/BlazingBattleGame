@@ -13,11 +13,11 @@ const oneRx=(rx,to,label)=>{
  html=html.replace(rx,to);
 };
 oneRx(/const DEFAULT_ACTIVE_TEAM=Object\.freeze\(\[[^\]]+\]\);/,
- "const DEFAULT_ACTIVE_TEAM=Object.freeze(window.BlazingCollection?.testMode&&!window.BlazingCollection?.friendBuild?['Itachi',null,'Obito',null,'Scorpion',null]:['Tyler',null,'Sub-Zero',null,'Senku',null]);",
+ "const DEFAULT_ACTIVE_TEAM=Object.freeze(window.BlazingCollection?.friendBuild?['Itachi','Obito','Lebee','Zabuza','Sub-Zero','Senku']:window.BlazingCollection?.testMode?['Itachi',null,'Obito',null,'Scorpion',null]:['Tyler',null,'Sub-Zero',null,'Senku',null]);",
  'starter team');
 // Keep QA team edits separate from the real account, including existing team saves.
 one("const TEAM_STORAGE_KEY='blazingBattle.activeTeam.v6';",
- "const TEAM_STORAGE_KEY=window.BlazingCollection?.testMode?'blazingBattle.animationTestTeam.v1':'blazingBattle.activeTeam.v6';",
+ "const TEAM_STORAGE_KEY=window.BlazingCollection?.friendBuild?'blazingBattle.friendTestTeam.v2':window.BlazingCollection?.testMode?'blazingBattle.animationTestTeam.v1':'blazingBattle.activeTeam.v6';",
  'isolated animation test team storage');
 oneRx(/function validActiveTeam\(team\)\{[\s\S]*?\n\}/,
  ["function validActiveTeam(team){",
@@ -70,6 +70,6 @@ html=html.replace("multiSummonBtn.querySelector('span').textContent='UNLIMITED â
 one("function fighterDisplayName(name){if(owned[name]?.name)return owned[name].name;try{return canonicalUnit(name)?.display_name||name.toUpperCase()}catch(_){return name.toUpperCase()}}","function fighterDisplayName(name){if(!name)return 'EMPTY SLOT';if(owned[name]?.name)return owned[name].name;try{return canonicalUnit(name)?.display_name||String(name).toUpperCase()}catch(_){return String(name).toUpperCase()}}",'nullable partner display name');
 const style='<style id="bb-starter-locked-style">#teamScreen .unitTile[data-bb-locked="true"]{opacity:.42!important;filter:grayscale(.8)!important;cursor:not-allowed!important}#teamScreen .unitTile[data-bb-locked="true"]:after{content:"LOCKED";position:absolute;inset:auto 0 0;text-align:center;background:rgba(18,17,21,.84);color:#fff;padding:4px;font:bold 11px system-ui;pointer-events:none}</style>';
 one('</head>',style+'</head>','locked team styling');
-for(const marker of ['bb-starter-collection','payForPull(10','BlazingCollection?.unlock',"testMode&&!window.BlazingCollection?.friendBuild?['Itachi',null,'Obito',null,'Scorpion',null]",'blazingBattle.animationTestTeam.v1','bb-starter-locked-style'])if(!html.includes(marker))throw new Error('Starter account: missing '+marker);
+for(const marker of ['bb-starter-collection','payForPull(10','BlazingCollection?.unlock',"friendBuild?['Itachi','Obito','Lebee','Zabuza','Sub-Zero','Senku']",'blazingBattle.animationTestTeam.v1','bb-starter-locked-style'])if(!html.includes(marker))throw new Error('Starter account: missing '+marker);
 await fs.writeFile(file,html);
-console.log('Friend playtest branch: full Home and first-login profile, three normal starters, unlocked playable roster, unlimited Embers and isolated Road saves.');
+console.log('Friend playtest branch: full Home/profile, Itachi + Obito / Lebee + Zabuza / Sub-Zero + Senku starting team, full playable roster, unlimited Embers, isolated saves.');
